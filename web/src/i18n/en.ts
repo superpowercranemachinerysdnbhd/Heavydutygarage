@@ -94,6 +94,7 @@ export const en = {
   "login.pending": "Signing in…",
   "login.missing": "Enter your phone number and password.",
   "login.wrong": "Phone number or password is wrong. Ask the Boss to reset your password if you have forgotten it.",
+  "login.tooMany": "Too many wrong attempts. Wait 15 minutes, or ask the Boss to reset your password.",
   "account.title": "Your account",
   "account.name": "Name",
   "account.role": "Role",

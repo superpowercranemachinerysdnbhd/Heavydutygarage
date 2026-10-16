@@ -5,9 +5,9 @@ import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
-  return { title: { default: t("app.name"), template: `%s · ${t("app.name")}` }, description: t("app.tagline"), icons: { icon: "/logo.jpg" } };
+  return { title: { default: t("app.name"), template: `%s · ${t("app.name")}` }, description: t("app.tagline"), icons: { icon: "/logo.jpg", apple: "/icon-180.png" }, appleWebApp: { capable: true, title: "Heavyworks" } };
 }
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#1a1f26" };
 
 const HTML_LANG = { en: "en", ms: "ms", zh: "zh-Hans" } as const;
 

@@ -79,12 +79,14 @@ npm run typecheck
 npm run build
 ```
 
-## Going live (next step)
+## Going live
 
-1. A managed PostgreSQL database (e.g. AWS RDS or DigitalOcean, Singapore region) with daily backups.
-2. Host the app (e.g. a small VPS with `npm run build && npm start` behind HTTPS, or a platform like Render/Railway).
-3. Photos and signatures are stored in `STORAGE_DIR` on disk. For a cloud host, point this at a persistent volume or switch `src/lib/storage.ts` to S3-compatible storage.
-4. Create the Boss account with `npm run user:create`, then add staff from the Team page.
+Step-by-step guide: [`docs/GO-LIVE.md`](../docs/GO-LIVE.md). The production setup is in [`deploy/`](../deploy):
+
+- `docker-compose.yml`: the app, PostgreSQL 16, Caddy (automatic HTTPS) and a nightly backup job
+- `backup.sh` / `restore.sh`: the backups (database plus photos, kept 14 days) and how to restore them
+- `update.sh`: back up, pull, rebuild and restart
+- `web/Dockerfile`: runs database migrations on start; health check at `/api/health`
 
 ## Not built yet (planned)
 

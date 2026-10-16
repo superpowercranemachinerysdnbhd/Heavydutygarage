@@ -89,6 +89,7 @@ export const ms: Messages = {
   "login.pending": "Sedang log masuk…",
   "login.missing": "Masukkan nombor telefon dan kata laluan anda.",
   "login.wrong": "Nombor telefon atau kata laluan salah. Minta Bos menetapkan semula kata laluan jika anda terlupa.",
+  "login.tooMany": "Terlalu banyak cubaan salah. Tunggu 15 minit, atau minta Bos set semula kata laluan anda.",
   "account.title": "Akaun anda",
   "account.name": "Nama",
   "account.role": "Jawatan",

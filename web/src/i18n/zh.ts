@@ -89,6 +89,7 @@ export const zh: Messages = {
   "login.pending": "登录中…",
   "login.missing": "请输入手机号码和密码。",
   "login.wrong": "手机号码或密码错误。如忘记密码，请找老板重设。",
+  "login.tooMany": "错误次数太多。请等 15 分钟，或请老板重设密码。",
   "account.title": "我的账户",
   "account.name": "姓名",
   "account.role": "职位",
