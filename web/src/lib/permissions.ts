@@ -30,6 +30,10 @@ export type Action =
   | "money.labourCost"   // pay rates, labour cost, margins
   | "customer.manage"
   | "machine.manage"
+  | "stock.manage"       // parts, suppliers, issue and adjust stock
+  | "po.create"          // raise purchase orders and receive goods
+  | "po.approve"         // approve purchase orders above the limit
+  | "price.set"          // set selling prices and markup rules
   | "staff.view"         // see all staff profiles (without pay)
   | "staff.manage";      // create staff, set pay and passwords
 
@@ -47,6 +51,10 @@ const GRANTS: Record<Action, Role[]> = {
   "money.labourCost": ["boss"],
   "customer.manage": ["boss", "supervisor"],
   "machine.manage": ["boss", "supervisor"],
+  "stock.manage": ["boss", "supervisor"],
+  "po.create": ["boss", "supervisor"],
+  "po.approve": ["boss"],
+  "price.set": ["boss"],
   "staff.view": ["boss", "supervisor"],
   "staff.manage": ["boss"],
 };

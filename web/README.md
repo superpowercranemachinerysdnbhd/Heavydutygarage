@@ -1,4 +1,4 @@
-# Heavyworks Garage — workshop app (Phase 1)
+# Heavyworks Garage — workshop app (Phases 1 and 2)
 
 Next.js 16 web app with a PostgreSQL database. Works on desktop, tablet and phone (add it to the phone's home screen).
 
@@ -10,6 +10,18 @@ Next.js 16 web app with a PostgreSQL database. Works on desktop, tablet and phon
 - **Machinery:** machines with owner, serial, hour meter, location, days on premises, service history, printable history report; model library with specs, service intervals and a known-issues knowledge base.
 - **Customers** with their machines and jobs.
 - **Team:** profiles, chain of command, skills, certificates and permit expiry, account management.
+
+### Phase 2: parts, stock and purchasing
+
+- **Parts catalogue:** our part no. and OEM no., category, unit, bin, minimum and reorder quantity, which machine models each part fits (or "fits all").
+- **Supplier prices are a history, never overwritten.** Every price is saved with its date and source: phone/WhatsApp quote, purchase order, supplier invoice, or imported price list. The part page shows each supplier's latest price, cheapest first, with the % change and the full history.
+- **Purchase orders:** tap a supplier's price on each line or type a new one; a price more than 10% away from that supplier's last price shows a warning. Add a new supplier from the PO line without leaving the page. One PO is raised per supplier. POs over RM 5,000 raised by the Supervisor wait for Boss approval. Printable PO with the supplier's own part codes.
+- **Receiving:** enter the invoice/DO number, quantity and the price on the invoice. Stock goes up, the **weighted average cost** is recalculated, and an invoice price that differs from the PO is saved to the price history and flagged to the Boss.
+- **Selling prices:** per category markup (selling price follows average cost automatically) or a fixed price per part. The Boss is alerted when a fixed-price part's margin falls below the category target.
+- **Price list import:** upload a supplier's price list saved as CSV; parts are matched by our part no., OEM no. or the supplier's code; unmatched rows and big changes are listed.
+- **Parts on jobs:** crew request parts on the job page (only parts that fit the machine); the Supervisor issues them (stock down, cost and selling price snapshotted on the job) or orders them. Job value, service reports and machine history now include parts.
+- **Stock-take:** count on the shelf and give a reason; every movement (received, issued, adjusted) is logged with balance, person and reference.
+- **Who sees what:** crew see stock, bins and fits but no prices; the Supervisor sees purchase and selling prices but not margins; the Boss sees margins, approves big POs and sets selling prices and markups.
 
 ### Languages
 
@@ -48,7 +60,7 @@ npm run dev                     # http://localhost:3000
 To try it with example data instead (only works on an empty database):
 
 ```bash
-npm run db:seed                 # demo logins: Boss 0120000000, Supervisor 0120000001, Mechanic 0120000003; password demo-pass-1
+npm run db:seed                 # demo jobs, parts, suppliers and POs; demo logins: Boss 0120000000, Supervisor 0120000001, Mechanic 0120000003; password demo-pass-1
 ```
 
 ## Checks
@@ -66,6 +78,6 @@ npm run build
 3. Photos and signatures are stored in `STORAGE_DIR` on disk. For a cloud host, point this at a persistent volume or switch `src/lib/storage.ts` to S3-compatible storage.
 4. Create the Boss account with `npm run user:create`, then add staff from the Team page.
 
-## Not in Phase 1 (planned)
+## Not built yet (planned)
 
-Parts & inventory, suppliers and purchase orders (Phase 2); weekly schedule and PM reminders (Phase 3); quotes, invoices and Boss reports (Phase 4); WhatsApp, QR labels, offline mode (Phase 5).
+Weekly schedule and PM reminders (Phase 3); quotes, invoices and Boss reports (Phase 4); WhatsApp, QR labels, offline mode (Phase 5).

@@ -183,3 +183,161 @@ export const jobActivity = pgTable("job_activity", {
   params: jsonb("params").$type<Record<string, string | number>>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("activity_job_idx").on(t.jobId)]);
+
+/* ======================= Phase 2: parts, suppliers, purchasing ======================= */
+export const priceSourceEnum = pgEnum("price_source", ["quote", "po", "invoice", "import"]);
+export const poStatusEnum = pgEnum("po_status", ["awaiting_approval", "ordered", "partially_received", "received", "cancelled"]);
+export const movementTypeEnum = pgEnum("movement_type", ["receive", "issue", "return", "adjust"]);
+export const requestStatusEnum = pgEnum("request_status", ["requested", "issued", "rejected"]);
+export const pricingModeEnum = pgEnum("pricing_mode", ["markup", "fixed"]);
+
+export const suppliers = pgTable("suppliers", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 160 }).notNull(),
+  contactName: varchar("contact_name", { length: 120 }),
+  phone: varchar("phone", { length: 30 }),
+  email: varchar("email", { length: 160 }),
+  address: text("address"),
+  paymentTerms: varchar("payment_terms", { length: 60 }),
+  leadTimeDays: integer("lead_time_days"),
+  notes: text("notes"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const partCategories = pgTable("part_categories", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 80 }).notNull(),
+  /** Selling price = average cost × (1 + markup%) for parts priced by markup. */
+  markupPct: numeric("markup_pct", { precision: 6, scale: 2 }).notNull().default("40"),
+  /** Boss is alerted when a fixed-price part's margin falls below this. */
+  targetMarginPct: numeric("target_margin_pct", { precision: 6, scale: 2 }).notNull().default("25"),
+}, (t) => [uniqueIndex("part_categories_name_idx").on(t.name)]);
+
+export const parts = pgTable("parts", {
+  id: serial("id").primaryKey(),
+  sku: varchar("sku", { length: 60 }).notNull(),
+  oemPartNo: varchar("oem_part_no", { length: 60 }),
+  description: varchar("description", { length: 200 }).notNull(),
+  categoryId: integer("category_id").notNull().references(() => partCategories.id),
+  uom: varchar("uom", { length: 20 }).notNull().default("pc"),
+  bin: varchar("bin", { length: 30 }),
+  fitsAll: boolean("fits_all").notNull().default(false),
+  onHand: numeric("on_hand", { precision: 12, scale: 2 }).notNull().default("0"),
+  minLevel: numeric("min_level", { precision: 12, scale: 2 }).notNull().default("0"),
+  reorderQty: numeric("reorder_qty", { precision: 12, scale: 2 }).notNull().default("0"),
+  avgCost: numeric("avg_cost", { precision: 12, scale: 4 }).notNull().default("0"),
+  lastCost: numeric("last_cost", { precision: 12, scale: 2 }),
+  pricingMode: pricingModeEnum("pricing_mode").notNull().default("markup"),
+  sellPrice: numeric("sell_price", { precision: 12, scale: 2 }).notNull().default("0"),
+  notes: text("notes"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("parts_sku_idx").on(t.sku), index("parts_oem_idx").on(t.oemPartNo)]);
+
+export const partModels = pgTable("part_models", {
+  id: serial("id").primaryKey(),
+  partId: integer("part_id").notNull().references(() => parts.id, { onDelete: "cascade" }),
+  modelId: integer("model_id").notNull().references(() => machineModels.id, { onDelete: "cascade" }),
+}, (t) => [uniqueIndex("part_models_idx").on(t.partId, t.modelId)]);
+
+/** A supplier's own code for one of our parts. */
+export const supplierParts = pgTable("supplier_parts", {
+  id: serial("id").primaryKey(),
+  partId: integer("part_id").notNull().references(() => parts.id, { onDelete: "cascade" }),
+  supplierId: integer("supplier_id").notNull().references(() => suppliers.id, { onDelete: "cascade" }),
+  supplierPartNo: varchar("supplier_part_no", { length: 60 }),
+}, (t) => [uniqueIndex("supplier_parts_idx").on(t.partId, t.supplierId)]);
+
+/** Every price ever quoted or paid. Never updated: a new price is a new row. */
+export const supplierPrices = pgTable("supplier_prices", {
+  id: serial("id").primaryKey(),
+  partId: integer("part_id").notNull().references(() => parts.id, { onDelete: "cascade" }),
+  supplierId: integer("supplier_id").notNull().references(() => suppliers.id, { onDelete: "cascade" }),
+  price: numeric("price", { precision: 12, scale: 2 }).notNull(),
+  priceDate: date("price_date").notNull(),
+  source: priceSourceEnum("source").notNull(),
+  ref: varchar("ref", { length: 80 }),
+  createdBy: integer("created_by").references(() => staff.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("supplier_prices_part_idx").on(t.partId, t.supplierId)]);
+
+export const purchaseOrders = pgTable("purchase_orders", {
+  id: serial("id").primaryKey(),
+  poNo: varchar("po_no", { length: 20 }).notNull(),
+  supplierId: integer("supplier_id").notNull().references(() => suppliers.id),
+  status: poStatusEnum("status").notNull(),
+  jobId: integer("job_id").references(() => jobs.id),
+  orderDate: date("order_date").notNull(),
+  eta: date("eta"),
+  notes: text("notes"),
+  createdBy: integer("created_by").references(() => staff.id),
+  approvedBy: integer("approved_by").references(() => staff.id),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("po_no_idx").on(t.poNo), index("po_status_idx").on(t.status)]);
+
+export const poLines = pgTable("po_lines", {
+  id: serial("id").primaryKey(),
+  poId: integer("po_id").notNull().references(() => purchaseOrders.id, { onDelete: "cascade" }),
+  partId: integer("part_id").notNull().references(() => parts.id),
+  qty: numeric("qty", { precision: 12, scale: 2 }).notNull(),
+  unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull(),
+  receivedQty: numeric("received_qty", { precision: 12, scale: 2 }).notNull().default("0"),
+  supplierPartNo: varchar("supplier_part_no", { length: 60 }),
+});
+
+export const receipts = pgTable("receipts", {
+  id: serial("id").primaryKey(),
+  poId: integer("po_id").notNull().references(() => purchaseOrders.id),
+  invoiceNo: varchar("invoice_no", { length: 60 }),
+  receivedBy: integer("received_by").references(() => staff.id),
+  receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const receiptLines = pgTable("receipt_lines", {
+  id: serial("id").primaryKey(),
+  receiptId: integer("receipt_id").notNull().references(() => receipts.id, { onDelete: "cascade" }),
+  poLineId: integer("po_line_id").notNull().references(() => poLines.id),
+  qty: numeric("qty", { precision: 12, scale: 2 }).notNull(),
+  poPrice: numeric("po_price", { precision: 12, scale: 2 }).notNull(),
+  invoicePrice: numeric("invoice_price", { precision: 12, scale: 2 }).notNull(),
+});
+
+export const stockMovements = pgTable("stock_movements", {
+  id: serial("id").primaryKey(),
+  partId: integer("part_id").notNull().references(() => parts.id),
+  type: movementTypeEnum("type").notNull(),
+  qty: numeric("qty", { precision: 12, scale: 2 }).notNull(),
+  unitCost: numeric("unit_cost", { precision: 12, scale: 4 }),
+  balanceAfter: numeric("balance_after", { precision: 12, scale: 2 }).notNull(),
+  poId: integer("po_id").references(() => purchaseOrders.id),
+  jobId: integer("job_id").references(() => jobs.id),
+  note: text("note"),
+  staffId: integer("staff_id").references(() => staff.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("movements_part_idx").on(t.partId)]);
+
+export const jobParts = pgTable("job_parts", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  partId: integer("part_id").notNull().references(() => parts.id),
+  qty: numeric("qty", { precision: 12, scale: 2 }).notNull(),
+  unitCost: numeric("unit_cost", { precision: 12, scale: 4 }).notNull(),
+  unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull(),
+  issuedBy: integer("issued_by").references(() => staff.id),
+  issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const partRequests = pgTable("part_requests", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  partId: integer("part_id").notNull().references(() => parts.id),
+  qty: numeric("qty", { precision: 12, scale: 2 }).notNull(),
+  note: text("note"),
+  status: requestStatusEnum("status").notNull().default("requested"),
+  requestedBy: integer("requested_by").references(() => staff.id),
+  handledBy: integer("handled_by").references(() => staff.id),
+  handledAt: timestamp("handled_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("requests_status_idx").on(t.status)]);

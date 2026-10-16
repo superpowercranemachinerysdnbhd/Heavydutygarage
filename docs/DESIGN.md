@@ -410,3 +410,17 @@ The app runs in **English, Bahasa Melayu and 中文**, with more languages added
 | Translated | Menus, buttons, statuses, job categories, roles, QC checklist, error messages, activity history. |
 | Not translated | Free text people type: complaints, diagnosis, notes, task names, machine specs. |
 | Suggested next | Tamil, Bengali or Nepali for foreign workers; optional machine translation of typed notes. |
+
+---
+
+## 13. Supplier prices that change often (built in Phase 2)
+
+| Situation | What happens |
+|---|---|
+| Supplier quotes a new price by phone or WhatsApp | Record it on the part page. It is added to that supplier's price history with the date; old prices stay. |
+| A new price is typed on a purchase order | Saved to the history when the PO is raised. A change of more than 10% from that supplier's last price shows a warning first. |
+| Buying from a new supplier | Choose "+ New supplier" on the PO line, enter name, phone, terms and lead time. The supplier and their price are saved without leaving the PO. |
+| The invoice price differs from the PO | Enter the invoice price when receiving. Stock is costed at the invoice price, the price is saved to the history, and the Boss is alerted. |
+| Supplier sends a new price list | Save it as CSV and import it. Matched prices are added to the history; unmatched rows and changes over 10% are listed. |
+| Stock cost | Weighted average: (stock × old average + received × new price) ÷ new stock. Used for stock value and job parts cost. |
+| Selling price | Category markup on average cost (follows cost automatically), or a fixed price with a margin alert to the Boss. |

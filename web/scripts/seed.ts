@@ -2,6 +2,7 @@
  *  Refuses to run when staff already exist, so it never mixes with real data.
  *  Every demo login uses the password "demo-pass-1".
  */
+import { eq } from "drizzle-orm";
 import { loadEnv } from "./env";
 
 loadEnv();
@@ -10,6 +11,7 @@ const { hashPassword } = await import("../src/lib/password");
 const { qcTemplate } = await import("../src/lib/jobs");
 const { addDays, today } = await import("../src/lib/format");
 const { translator } = await import("../src/i18n/index");
+const { sellFromMarkup } = await import("../src/lib/stock");
 const en = translator("en");
 
 const existing = await db.select({ id: schema.staff.id }).from(schema.staff).limit(1);
@@ -79,19 +81,96 @@ async function J(v: Omit<typeof schema.jobs.$inferInsert, "jobNo">, extra: { tea
 
 const old = await J({ category: "MAJOR", status: "closed", unitId: u3.id, siteLocation: "Bay 2", complaint: "Swing motor noisy.", diagnosis: "Swing motor bearing failed; rebuilt.", leadId: raj.id, hourMeterIn: 13980, openedAt: d(-73), dueDate: d(-57), closedAt: d(-58), statusSince: ago(58) }, { labour: [[raj.id, 14, 66]], qcDone: 6 });
 await J({ category: "EMG", priority: "critical", status: "received", unitId: u5.id, siteType: "field", siteLocation: "Westport, Pulau Indah", complaint: "Loader overheating and shutting down during container yard work.", reportedBy: "Mr. Ravi", hourMeterIn: 6890, openedAt: T, dueDate: T, statusSince: new Date() });
-await J({ category: "EMG", priority: "critical", status: "in_progress", unitId: u3.id, siteType: "field", siteLocation: "Semenyih quarry, pit 2", complaint: "Boom will not lift, machine weak on all functions.", diagnosis: "Main pump delivery pressure 18 MPa against 34.3 MPa spec. Pilot pressure OK.", leadId: raj.id, hourMeterIn: 14210, openedAt: d(-1), dueDate: d(1), statusSince: ago(1) },
+const pumpJob = await J({ category: "EMG", priority: "critical", status: "in_progress", unitId: u3.id, siteType: "field", siteLocation: "Semenyih quarry, pit 2", complaint: "Boom will not lift, machine weak on all functions.", diagnosis: "Main pump delivery pressure 18 MPa against 34.3 MPa spec. Pilot pressure OK.", leadId: raj.id, hourMeterIn: 14210, openedAt: d(-1), dueDate: d(1), statusSince: ago(1) },
   { team: [sur.id], tasks: [["Travel to site, lock-out / tag-out", true, raj.id], ["Pressure test main and pilot circuits", true, raj.id], ["Replace main pump seal kit", false, raj.id], ["Flush and refill hydraulic oil", false, sur.id], ["Test run and hand over", false, raj.id]], labour: [[raj.id, 6.5, 1], [sur.id, 6.5, 1], [raj.id, 3, 0]] });
-await J({ category: "PM", status: "awaiting_parts", unitId: u1.id, siteLocation: "Bay 2", complaint: "Scheduled 500 hr service plus check slow boom up.", diagnosis: "Pilot filter partly blocked. Waiting for oil filters.", leadId: lim.id, hourMeterIn: 9850, openedAt: d(-2), dueDate: d(2), statusSince: ago(1) },
+const pmJob = await J({ category: "PM", status: "awaiting_parts", unitId: u1.id, siteLocation: "Bay 2", complaint: "Scheduled 500 hr service plus check slow boom up.", diagnosis: "Pilot filter partly blocked. Waiting for oil filters.", leadId: lim.id, hourMeterIn: 9850, openedAt: d(-2), dueDate: d(2), statusSince: ago(1) },
   { team: [sur.id], tasks: [["Take oil samples", true, lim.id], ["Replace engine oil and filters", false, sur.id], ["Replace pilot filter", false, lim.id]], labour: [[lim.id, 2, 2]] });
-await J({ category: "DIAG", priority: "high", status: "quality_check", unitId: u4.id, siteLocation: "Bay 4", complaint: "Outrigger interlock fault comes and goes.", diagnosis: "Left front outrigger proximity sensor corroded. Replaced and calibrated.", leadId: haf.id, hourMeterIn: 6420, openedAt: d(-4), dueDate: d(4), statusSince: ago(0) },
+const diagJob = await J({ category: "DIAG", priority: "high", status: "quality_check", unitId: u4.id, siteLocation: "Bay 4", complaint: "Outrigger interlock fault comes and goes.", diagnosis: "Left front outrigger proximity sensor corroded. Replaced and calibrated.", leadId: haf.id, hourMeterIn: 6420, openedAt: d(-4), dueDate: d(4), statusSince: ago(0) },
   { tasks: [["Read fault history", true, haf.id], ["Harness continuity test", true, haf.id], ["Replace sensor and calibrate", true, haf.id]], labour: [[haf.id, 4, 3], [haf.id, 3, 1]], qcDone: 3 });
 await J({ category: "MAJOR", status: "in_progress", unitId: u2.id, siteLocation: "Long-stay yard A", complaint: "Engine knocking, low oil pressure. Customer wants full engine overhaul.", diagnosis: "No. 3 con-rod bearing spun. Crankshaft regrind sublet.", leadId: raj.id, hourMeterIn: 12430, openedAt: d(-44), dueDate: d(14), statusSince: ago(41) },
   { team: [lim.id], tasks: [["Remove engine", true, raj.id], ["Strip and measure", true, lim.id], ["Rebuild engine", false, raj.id]], labour: [[raj.id, 8, 43], [lim.id, 8, 42], [raj.id, 6, 2]] });
-await J({ category: "FAB", status: "in_progress", unitId: u2.id, siteLocation: "Fabrication bay", complaint: "Bucket side cutters worn through, base cracked.", leadId: azm.id, hourMeterIn: 12430, openedAt: d(-11), dueDate: d(6), statusSince: ago(10) },
+const fabJob = await J({ category: "FAB", status: "in_progress", unitId: u2.id, siteLocation: "Fabrication bay", complaint: "Bucket side cutters worn through, base cracked.", leadId: azm.id, hourMeterIn: 12430, openedAt: d(-11), dueDate: d(6), statusSince: ago(10) },
   { tasks: [["Gouge and weld base crack", true, azm.id], ["Fit new side cutters", false, azm.id], ["Hardface wear areas", false, azm.id]], labour: [[azm.id, 7, 8]] });
 await J({ category: "WARR", priority: "high", status: "ready_for_pickup", unitId: u3.id, siteLocation: "Bay 5", complaint: "Oil leak at swing motor after repair in August.", diagnosis: "O-ring pinched during last assembly. Replaced under warranty.", leadId: lim.id, hourMeterIn: 14150, openedAt: d(-8), dueDate: d(-1), statusSince: ago(2), parentJobId: old.id },
   { tasks: [["Replace swing motor O-ring", true, lim.id], ["Leak test 1 hr", true, lim.id]], labour: [[lim.id, 3, 7]], qcDone: 6 });
 await J({ category: "PAINT", priority: "low", status: "awaiting_approval", unitId: u2.id, siteLocation: "Paint bay", complaint: "Touch-up and repaint boom before return.", leadId: kum.id, hourMeterIn: 12430, openedAt: d(-5), dueDate: d(21), statusSince: ago(4) });
+
+/* ---------- Phase 2 demo: categories, suppliers, parts, prices, purchase orders, stock ---------- */
+const CAT = async (name: string, markup: number, target: number) => (await db.insert(schema.partCategories).values({ name, markupPct: String(markup), targetMarginPct: String(target) }).returning())[0];
+const cFilters = await CAT("Filters", 45, 30), cFluids = await CAT("Fluids & lubricants", 35, 22), cSeals = await CAT("Seal kits", 40, 25),
+  cHoses = await CAT("Hoses & fittings", 60, 35), cGet = await CAT("Ground engaging", 45, 25), cWeld = await CAT("Welding", 40, 25), cElec = await CAT("Electrical", 45, 25);
+const SUP = async (v: typeof schema.suppliers.$inferInsert) => (await db.insert(schema.suppliers).values(v).returning())[0];
+const sinar = await SUP({ name: "Sinar Heavy Parts (demo)", contactName: "Mr. Lee", phone: "03-0000 5000", paymentTerms: "30 days", leadTimeDays: 2 });
+const borneo = await SUP({ name: "Borneo Earthmoving Spares (demo)", contactName: "En. Hakim", phone: "03-0000 5100", paymentTerms: "COD", leadTimeDays: 3 });
+const hidro = await SUP({ name: "Hidro Seal Engineering (demo)", contactName: "Ms. Tan", phone: "03-0000 6000", paymentTerms: "30 days", leadTimeDays: 4 });
+const mega = await SUP({ name: "Mega Lubricants (demo)", contactName: "Mr. Siva", phone: "03-0000 7000", paymentTerms: "COD", leadTimeDays: 1 });
+const united = await SUP({ name: "United Hydraulic Supply (demo)", contactName: "Mr. Ong", phone: "03-0000 6100", paymentTerms: "30 days", leadTimeDays: 3 });
+const weld = await SUP({ name: "Weld-Pro Supplies (demo)", contactName: "En. Farid", phone: "03-0000 8000", paymentTerms: "14 days", leadTimeDays: 1 });
+
+type PartSeed = { sku: string; oem?: string; desc: string; cat: { id: number; markupPct: string }; uom: string; bin: string; fits?: number[]; onHand: number; min: number; reorder?: number; avg: number; fixedSell?: number;
+  prices: [number, number, number, "quote" | "po" | "invoice" | "import", string?][]; codes?: [number, string][] };
+const P: Record<string, typeof schema.parts.$inferSelect & { final: number }> = {};
+async function part(key: string, v: PartSeed) {
+  const sell = v.fixedSell ?? sellFromMarkup(v.avg, Number(v.cat.markupPct));
+  const [row] = await db.insert(schema.parts).values({ sku: v.sku, oemPartNo: v.oem ?? v.sku, description: v.desc, categoryId: v.cat.id, uom: v.uom, bin: v.bin, fitsAll: !v.fits,
+    onHand: "0", minLevel: String(v.min), reorderQty: String(v.reorder ?? 0), avgCost: v.avg.toFixed(4), lastCost: v.prices.length ? v.prices[v.prices.length - 1][1].toFixed(2) : null,
+    pricingMode: v.fixedSell ? "fixed" : "markup", sellPrice: sell.toFixed(2) }).returning();
+  for (const m of v.fits ?? []) await db.insert(schema.partModels).values({ partId: row.id, modelId: m });
+  for (const [sid, price, daysAgo, source, ref] of v.prices) await db.insert(schema.supplierPrices).values({ partId: row.id, supplierId: sid, price: price.toFixed(2), priceDate: d(-daysAgo), source, ref: ref ?? null, createdBy: sup.id });
+  for (const [sid, code] of v.codes ?? []) await db.insert(schema.supplierParts).values({ partId: row.id, supplierId: sid, supplierPartNo: code });
+  P[key] = { ...row, final: v.onHand };
+}
+await part("fuel", { sku: "1R-0750", desc: "Fuel filter, secondary", cat: cFilters, uom: "pc", bin: "A1-03", fits: [cat320.id], onHand: 4, min: 4, avg: 76, prices: [[sinar.id, 74, 120, "quote"], [borneo.id, 72, 25, "quote", "WhatsApp En. Hakim"], [sinar.id, 78, 30, "po", "PO-2026-0218"]], codes: [[sinar.id, "SHP-0750"]] });
+await part("oil", { sku: "1R-0739", desc: "Engine oil filter", cat: cFilters, uom: "pc", bin: "A1-04", fits: [cat320.id], onHand: 2, min: 4, reorder: 6, avg: 62, prices: [[sinar.id, 61.5, 75, "invoice", "INV-77812"], [borneo.id, 59, 24, "quote"], [sinar.id, 65, 1, "po"]], codes: [[sinar.id, "SHP-0739"]] });
+await part("hyd", { sku: "HYD-VG46-20", desc: "Hydraulic oil ISO VG46, 20 L pail", cat: cFluids, uom: "pail", bin: "L-01", onHand: 14, min: 10, avg: 208, prices: [[mega.id, 205, 90, "quote"], [united.id, 222, 95, "quote"], [mega.id, 210, 10, "po"]] });
+await part("eng", { sku: "EO-15W40-20", desc: "Engine oil 15W-40 CI-4, 20 L", cat: cFluids, uom: "pail", bin: "L-02", onHand: 9, min: 8, avg: 246, prices: [[united.id, 238, 95, "quote"], [mega.id, 245, 10, "po"], [mega.id, 248, 8, "invoice", "MG-3301"]] });
+await part("pump", { sku: "KIT-PC200-MP", oem: "708-2L-00300", desc: "Main pump seal kit, PC200-8", cat: cSeals, uom: "kit", bin: "B2-01", fits: [pc200.id], onHand: 1, min: 1, avg: 640, prices: [[hidro.id, 640, 110, "invoice"], [united.id, 695, 3, "quote", "Quote Q-5521"]] });
+await part("lift", { sku: "KIT-L120H-LC", desc: "Lift cylinder seal kit, L120H", cat: cSeals, uom: "kit", bin: "B2-02", fits: [l120.id], onHand: 0, min: 1, avg: 0, prices: [[hidro.id, 880, 3, "po"]] });
+await part("tooth", { sku: "TTH-J350", desc: "Bucket tooth, J350 style", cat: cGet, uom: "pc", bin: "C1-01", fits: [cat320.id, zx200.id], onHand: 24, min: 20, avg: 57, prices: [[sinar.id, 58, 60, "quote"], [borneo.id, 52, 20, "quote"]], codes: [[borneo.id, "BES-J350"]] });
+await part("rod", { sku: "HF-ROD-40", desc: "Hardfacing rod 4.0 mm, 5 kg", cat: cWeld, uom: "pack", bin: "W-02", onHand: 3, min: 5, avg: 165, fixedSell: 195, prices: [[weld.id, 150, 200, "invoice"], [weld.id, 165, 7, "po"]] });
+await part("hose", { sku: "HOSE-08-2W", desc: "Hydraulic hose 1/2\" 2-wire", cat: cHoses, uom: "m", bin: "H-01", onHand: 40, min: 20, avg: 21, prices: [[hidro.id, 22, 40, "quote"], [united.id, 19.5, 3, "quote"]] });
+await part("sensor", { sku: "SNS-GR500-OR", desc: "Outrigger proximity sensor, GR-500EX", cat: cElec, uom: "pc", bin: "E1-01", fits: [gr500.id], onHand: 0, min: 1, avg: 0, prices: [[sinar.id, 520, 1, "po"]] });
+await part("pm250", { sku: "KIT-PC200-PM250", desc: "250 hr service kit, PC200-8", cat: cFilters, uom: "kit", bin: "A3-01", fits: [pc200.id], onHand: 3, min: 2, avg: 390, prices: [[sinar.id, 390, 50, "po"]] });
+
+const PO = async (no: string, supplierId: number, status: "awaiting_approval" | "ordered" | "partially_received" | "received", orderAgo: number, etaIn: number, lines: [string, number, number][], jobId?: number) => {
+  const [po] = await db.insert(schema.purchaseOrders).values({ poNo: no, supplierId, status, jobId: jobId ?? null, orderDate: d(-orderAgo), eta: d(etaIn), createdBy: sup.id,
+    ...(status === "awaiting_approval" ? {} : { approvedBy: sup.id, approvedAt: ago(orderAgo) }) }).returning();
+  const ls = [];
+  for (const [k, q, price] of lines) ls.push((await db.insert(schema.poLines).values({ poId: po.id, partId: P[k].id, qty: String(q), unitPrice: price.toFixed(2), receivedQty: status === "received" ? String(q) : "0" }).returning())[0]);
+  return { po, ls };
+};
+const y = T.slice(0, 4);
+const r1 = await PO(`PO-${y}-0001`, mega.id, "received", 10, -8, [["hyd", 10, 210], ["eng", 6, 245]]);
+await PO(`PO-${y}-0002`, weld.id, "ordered", 7, -6, [["rod", 4, 165]], fabJob.id);
+await PO(`PO-${y}-0003`, hidro.id, "ordered", 3, 4, [["lift", 2, 880]]);
+await PO(`PO-${y}-0004`, sinar.id, "ordered", 1, 1, [["sensor", 1, 520], ["oil", 6, 65]], pmJob.id);
+await PO(`PO-${y}-0005`, united.id, "awaiting_approval", 0, 3, [["pump", 4, 695], ["hose", 150, 19.5]]);
+const [rc] = await db.insert(schema.receipts).values({ poId: r1.po.id, invoiceNo: "MG-3301", receivedBy: sup.id, receivedAt: ago(8) }).returning();
+await db.insert(schema.receiptLines).values([
+  { receiptId: rc.id, poLineId: r1.ls[0].id, qty: "10", poPrice: "210.00", invoicePrice: "210.00" },
+  { receiptId: rc.id, poLineId: r1.ls[1].id, qty: "6", poPrice: "245.00", invoicePrice: "248.00" },
+]);
+
+// Stock movements: opening stock, the received PO, then parts issued to jobs. Final on-hand matches the part records above.
+const received: Record<string, [number, number]> = { hyd: [10, 210], eng: [6, 248] };
+const issues: [string, number, number][] = [["pump", 1, pumpJob.id], ["hyd", 4, pumpJob.id], ["fuel", 2, pmJob.id], ["eng", 1, pmJob.id], ["rod", 2, fabJob.id], ["tooth", 5, fabJob.id]];
+for (const [k, p] of Object.entries(P)) {
+  const inQty = received[k]?.[0] ?? 0, outQty = issues.filter((i) => i[0] === k).reduce((a, i) => a + i[1], 0);
+  let bal = p.final + outQty - inQty;
+  if (bal > 0) await db.insert(schema.stockMovements).values({ partId: p.id, type: "adjust", qty: String(bal), unitCost: p.avgCost, balanceAfter: String(bal), note: "Opening stock", staffId: sup.id, createdAt: ago(30) });
+  if (inQty) { bal += inQty; await db.insert(schema.stockMovements).values({ partId: p.id, type: "receive", qty: String(inQty), unitCost: String(received[k][1]), balanceAfter: String(bal), poId: r1.po.id, note: "Invoice MG-3301", staffId: sup.id, createdAt: ago(8) }); }
+  for (const [, q, jobId] of issues.filter((i) => i[0] === k)) {
+    bal -= q;
+    await db.insert(schema.stockMovements).values({ partId: p.id, type: "issue", qty: String(-q), unitCost: p.avgCost, balanceAfter: String(bal), jobId, staffId: sup.id, createdAt: ago(1) });
+    await db.insert(schema.jobParts).values({ jobId, partId: p.id, qty: String(q), unitCost: p.avgCost, unitPrice: p.sellPrice, issuedBy: sup.id, issuedAt: ago(1) });
+  }
+  await db.update(schema.parts).set({ onHand: String(p.final) }).where(eq(schema.parts.id, p.id));
+}
+await db.insert(schema.partRequests).values([
+  { jobId: pumpJob.id, partId: P.hose.id, qty: "2", note: "Case drain hose chafed", requestedBy: raj.id },
+  { jobId: pmJob.id, partId: P.oil.id, qty: "2", note: "500 hr service", requestedBy: lim.id },
+  { jobId: diagJob.id, partId: P.sensor.id, qty: "1", note: "Left front outrigger", requestedBy: haf.id },
+]);
 
 console.log(`Demo data loaded. Sign in with any demo phone (Boss 0120000000, Supervisor 0120000001, Mechanic 0120000003) and password demo-pass-1.`);
 await pool.end();

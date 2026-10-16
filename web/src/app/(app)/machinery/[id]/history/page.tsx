@@ -34,7 +34,7 @@ export default async function HistoryReport({ params, searchParams }: { params: 
   const d = today(), from = all ? "0000-00-00" : addDays(d, -365);
   const list = (await listJobs(user, { unitId: id })).filter((j) => j.openedAt >= from);
   const down = (j: (typeof list)[number]) => Math.max(1, daysBetween(j.openedAt, j.closedAt ?? d));
-  const value = (j: (typeof list)[number]) => (j.category === "WARR" ? 0 : j.labourHours * LABOUR_RATE);
+  const value = (j: (typeof list)[number]) => (j.category === "WARR" ? 0 : j.labourHours * LABOUR_RATE + j.partsValue);
   const hrs = list.reduce((a, j) => a + j.labourHours, 0), days = list.reduce((a, j) => a + down(j), 0), billed = list.reduce((a, j) => a + value(j), 0);
   const byCat = CATEGORY_KEYS.map((k) => [k, list.filter((j) => j.category === k).length] as const).filter(([, n]) => n);
   const q = (c: Partial<{ range: string; prices: boolean; lang: Locale }>) => {
@@ -73,7 +73,7 @@ export default async function HistoryReport({ params, searchParams }: { params: 
           <div className="sumrow"><div><b>{list.length}</b><small>{t("hist.jobs")}</small></div><div><b>{hrs}</b><small>{t("hist.labourHours")}</small></div><div><b>{days}</b><small>{t("hist.daysOff")}</small></div>{prices && <div><b>{rm(billed)}</b><small>{t("hist.billed")}</small></div>}</div>
           <p style={{ marginTop: 8 }}>{byCat.map(([k, n]) => `${n} × ${catLabel(t, k)}`).join(" · ") || t("hist.noJobs")}</p></div>
         <div><h4>{t("hist.jobHistory")}</h4><div className="dt"><table>
-          <thead><tr><th>{t("col.date")}</th><th>{t("col.job")}</th><th>{t("col.type")}</th><th>{t("col.complaintFindings")}</th><th className="r">{t("col.days")}</th>{prices && <th className="r">{t("col.labour")}</th>}</tr></thead>
+          <thead><tr><th>{t("col.date")}</th><th>{t("col.job")}</th><th>{t("col.type")}</th><th>{t("col.complaintFindings")}</th><th className="r">{t("col.days")}</th>{prices && <th className="r">{t("col.amount")}</th>}</tr></thead>
           <tbody>{list.map((j) => <tr key={j.id}><td style={{ whiteSpace: "nowrap" }}>{fmtDate(j.openedAt, true, lang)}</td><td className="mono" style={{ whiteSpace: "nowrap" }}>{j.jobNo}</td><td>{catLabel(t, j.category)}</td>
             <td><b>{j.complaint}</b>{j.status !== "closed" && <><br /><small>{t("hist.open", { status: statusLabel(t, j.status) })}</small></>}</td><td className="r">{down(j)}</td>{prices && <td className="r">{j.category === "WARR" ? t("hist.warranty") : rm(value(j))}</td>}</tr>)}</tbody>
         </table></div></div>

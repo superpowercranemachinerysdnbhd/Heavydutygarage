@@ -15,6 +15,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     { href: "/", label: t("nav.dashboard") },
     { href: "/jobs", label: t("nav.jobs") },
     { href: "/machinery", label: t("nav.machinery") },
+    { href: "/parts", label: t("nav.parts") },
+    ...(can(user.role, "po.create") ? [{ href: "/purchasing", label: t("nav.purchasing") }] : []),
     ...(can(user.role, "customer.manage") ? [{ href: "/customers", label: t("nav.customers") }] : []),
     { href: "/team", label: t("nav.team") },
   ];

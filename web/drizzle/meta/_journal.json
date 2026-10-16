@@ -15,6 +15,13 @@
       "when": 1792132776037,
       "tag": "0001_languages",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792134458541,
+      "tag": "0002_parts_purchasing",
+      "breakpoints": true
     }
   ]
 }

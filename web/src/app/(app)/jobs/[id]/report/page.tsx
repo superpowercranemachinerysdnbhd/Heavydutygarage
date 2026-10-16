@@ -6,6 +6,7 @@ import { can } from "@/lib/permissions";
 import { qcMessageKey } from "@/lib/jobs";
 import { LABOUR_RATE, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
 import { getJob, type JobDetail } from "@/lib/queries";
+import { jobPartsFor } from "@/lib/inventory";
 import { getI18n } from "@/i18n/server";
 import { LOCALES, isLocale, placeLabel, translator, type Locale, type T } from "@/i18n";
 import { catLabel, langLabel, stageLabel } from "@/i18n/labels";
@@ -46,6 +47,9 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const byPerson = new Map<string, number>();
   labour.forEach((l) => byPerson.set(l.name, (byPerson.get(l.name) ?? 0) + Number(l.hours)));
   const hours = [...byPerson.values()].reduce((a, b) => a + b, 0);
+  const issued = await jobPartsFor(job.id);
+  const partsTotal = warr ? 0 : issued.reduce((a, x) => a + x.qty * x.unitPrice, 0);
+  const labourTotal = warr ? 0 : hours * LABOUR_RATE;
   const rec = job.recommendations ?? defaultRecommendations(d, t, lang);
   const stages = (["before", "during", "after", "qc"] as const).map((s) => [s, photos.filter((p) => p.stage === s)] as const).filter(([, l]) => l.length);
   const techs = [lead, ...team].filter(Boolean).map((p) => p!.name);
@@ -97,11 +101,15 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
         <div><h4>{t("rep.complaint")}</h4><p>{job.complaint}</p></div>
         <div><h4>{t("rep.findings")}</h4><p>{job.diagnosis || "—"}</p></div>
         <div><h4>{t("rep.work")}</h4>{tasks.filter((x) => x.doneAt).length ? <ul>{tasks.filter((x) => x.doneAt).map((x) => <li key={x.id}>{x.description}</li>)}</ul> : <p>—</p>}</div>
+        <div><h4>{t("rep.parts")}</h4>{issued.length ? (
+          <div className="dt"><table><thead><tr><th>{t("parts.partNo")}</th><th>{t("parts.description")}</th><th className="r">{t("po.qty")}</th>{o.prices && <><th className="r">{t("po.unitPrice")}</th><th className="r">{t("col.amount")}</th></>}</tr></thead>
+            <tbody>{issued.map((x) => <tr key={x.id}><td>{x.oem ?? x.sku}</td><td>{x.description}</td><td className="r">{x.qty} {x.uom}</td>{o.prices && <><td className="r">{warr ? t("rep.noCharge") : rm(x.unitPrice)}</td><td className="r">{warr ? t("rep.noCharge") : rm(x.qty * x.unitPrice)}</td></>}</tr>)}</tbody></table></div>
+        ) : <p>{t("rep.noParts")}</p>}</div>
         <div><h4>{t("rep.labour")}</h4>{byPerson.size ? (
           <div className="dt"><table><thead><tr><th>{t("col.technician")}</th><th className="r">{t("col.hours")}</th>{o.prices && <th className="r">{t("col.amount")}</th>}</tr></thead>
             <tbody>{[...byPerson].map(([n, h]) => <tr key={n}><td>{n}</td><td className="r">{h}</td>{o.prices && <td className="r">{warr ? t("rep.noCharge") : rm(h * LABOUR_RATE)}</td>}</tr>)}</tbody></table></div>
         ) : <p>—</p>}</div>
-        {o.prices && <div className="tot"><span>{t("rep.labourHrs", { h: hours })}</span><b>{warr ? t("rep.noCharge") : rm(hours * LABOUR_RATE)}</b><span><b>{t("rep.total")}</b></span><b>{rm(warr ? 0 : hours * LABOUR_RATE)}</b></div>}
+        {o.prices && <div className="tot"><span>{t("rep.parts")}</span><b>{warr ? t("rep.noCharge") : rm(partsTotal)}</b><span>{t("rep.labourHrs", { h: hours })}</span><b>{warr ? t("rep.noCharge") : rm(labourTotal)}</b><span><b>{t("rep.total")}</b></span><b>{rm(partsTotal + labourTotal)}</b></div>}
         {o.photos && stages.length > 0 && <div><h4>{t("rep.photos")}</h4>{stages.map(([s, l]) => (
           <div key={s} className="photos" style={{ marginBottom: 8 }}>{l.map((p) => <figure key={p.id} className="photo"><img src={`/api/photos/${p.id}`} alt={p.caption ?? stageLabel(t, s)} /><figcaption><span className="stage">{stageLabel(t, s)}</span> {p.caption}</figcaption></figure>)}</div>
         ))}</div>}

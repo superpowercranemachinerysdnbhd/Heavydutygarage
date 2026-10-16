@@ -9,6 +9,7 @@ import { BAYS, CATEGORY_KEYS, PRIORITIES, STATUSES, checkTransition, nextJobNo, 
 import { today } from "@/lib/format";
 import { addActivity } from "@/lib/queries";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, saveFile } from "@/lib/storage";
+import { issueToJob } from "@/lib/inventory";
 import { translator, type MessageKey, type Vars } from "@/i18n";
 import { activityText, statusLabel } from "@/i18n/labels";
 
@@ -301,4 +302,63 @@ export async function saveRecommendations(form: FormData) {
   revalidatePath(`/jobs/${jobId}/report`);
   const q = new URLSearchParams({ prices: str(form, "prices"), photos: str(form, "photos"), qc: str(form, "qc"), lang: str(form, "lang"), ok: translator(user.locale)("ok.recSaved") });
   redirect(`/jobs/${jobId}/report?${q}`);
+}
+
+/* ---------- parts ---------- */
+export async function requestPart(form: FormData) {
+  const user = await requireUser();
+  const jobId = num(form, "jobId"), partId = num(form, "partId"), qty = num(form, "qty");
+  const { job } = await access(jobId, user);
+  if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
+  if (!partId) back(user, jobId, { error: "err.choosePart" });
+  if (!(qty > 0)) back(user, jobId, { error: "err.qty" });
+  const [p] = await db.select({ description: schema.parts.description, uom: schema.parts.uom }).from(schema.parts).where(eq(schema.parts.id, partId));
+  if (!p) back(user, jobId, { error: "err.choosePart" });
+  await db.insert(schema.partRequests).values({ jobId, partId, qty: String(qty), note: str(form, "note") || null, requestedBy: user.id });
+  await addActivity(jobId, user.id, "act.partRequested", { qty, uom: p.uom, part: p.description, name: user.name });
+  back(user, jobId, { ok: "ok.partRequested" });
+}
+
+async function issue(user: CurrentUser, jobId: number, partId: number, qty: number, requestId?: number) {
+  const [p] = await db.select({ description: schema.parts.description, uom: schema.parts.uom, onHand: schema.parts.onHand, bin: schema.parts.bin }).from(schema.parts).where(eq(schema.parts.id, partId));
+  if (!p) back(user, jobId, { error: "err.choosePart" });
+  const ok = await db.transaction(async (tx) => {
+    const done = await issueToJob(tx, { partId, qty, jobId, staffId: user.id });
+    if (done && requestId) await tx.update(schema.partRequests).set({ status: "issued", handledBy: user.id, handledAt: new Date() }).where(eq(schema.partRequests.id, requestId));
+    return done;
+  });
+  if (!ok) back(user, jobId, { error: "err.notEnoughStock", vars: { n: Number(p.onHand), uom: p.uom } });
+  await addActivity(jobId, user.id, "act.partIssued", { qty, uom: p.uom, part: p.description, bin: p.bin ?? "—", name: user.name });
+  revalidatePath("/parts");
+  back(user, jobId, { ok: "ok.partIssued" });
+}
+
+export async function issueRequest(form: FormData) {
+  const user = await requirePermission("stock.manage");
+  const jobId = num(form, "jobId"), requestId = num(form, "requestId");
+  await access(jobId, user);
+  const [r] = await db.select().from(schema.partRequests).where(and(eq(schema.partRequests.id, requestId), eq(schema.partRequests.jobId, jobId)));
+  if (!r || r.status !== "requested") back(user, jobId, { error: "err.requestHandled" });
+  await issue(user, jobId, r.partId, Number(r.qty), r.id);
+}
+
+export async function issueDirect(form: FormData) {
+  const user = await requirePermission("stock.manage");
+  const jobId = num(form, "jobId"), partId = num(form, "partId"), qty = num(form, "qty");
+  const { job } = await access(jobId, user);
+  if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
+  if (!(qty > 0)) back(user, jobId, { error: "err.qty" });
+  await issue(user, jobId, partId, qty);
+}
+
+export async function rejectRequest(form: FormData) {
+  const user = await requirePermission("stock.manage");
+  const jobId = num(form, "jobId"), requestId = num(form, "requestId");
+  await access(jobId, user);
+  const [r] = await db.select({ r: schema.partRequests, description: schema.parts.description }).from(schema.partRequests).innerJoin(schema.parts, eq(schema.partRequests.partId, schema.parts.id))
+    .where(and(eq(schema.partRequests.id, requestId), eq(schema.partRequests.jobId, jobId)));
+  if (!r || r.r.status !== "requested") back(user, jobId, { error: "err.requestHandled" });
+  await db.update(schema.partRequests).set({ status: "rejected", handledBy: user.id, handledAt: new Date() }).where(eq(schema.partRequests.id, requestId));
+  await addActivity(jobId, user.id, "act.partRejected", { part: r.description, name: user.name });
+  back(user, jobId);
 }

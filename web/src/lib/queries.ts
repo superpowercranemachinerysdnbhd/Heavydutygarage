@@ -13,7 +13,7 @@ export type JobRow = {
   id: number; jobNo: string; category: typeof jobs.$inferSelect["category"]; priority: typeof jobs.$inferSelect["priority"];
   status: Status; statusSince: Date; siteType: "workshop" | "field"; siteLocation: string; openedAt: string; dueDate: string;
   closedAt: string | null; complaint: string; leadId: number | null; leadName: string | null; unitId: number;
-  make: string; model: string; serialNo: string; customerName: string; teamIds: number[]; labourHours: number;
+  make: string; model: string; serialNo: string; customerName: string; teamIds: number[]; labourHours: number; partsValue: number;
 };
 
 /** Jobs the user may see. Boss and supervisor see all; crew see jobs they lead or are on. */
@@ -33,6 +33,7 @@ export async function listJobs(user: CurrentUser, opts: { open?: boolean; unitId
       make: machineModels.make, model: machineModels.model, serialNo: machineUnits.serialNo, customerName: customers.name,
       teamIds: sql<number[]>`coalesce((select array_agg(${jobTeam.staffId}) from ${jobTeam} where ${jobTeam.jobId} = ${jobs.id}), '{}')`,
       labourHours: sql<string>`coalesce((select sum(${schema.labourEntries.hours}) from ${schema.labourEntries} where ${schema.labourEntries.jobId} = ${jobs.id}), 0)`,
+      partsValue: sql<string>`coalesce((select sum(${schema.jobParts.qty} * ${schema.jobParts.unitPrice}) from ${schema.jobParts} where ${schema.jobParts.jobId} = ${jobs.id}), 0)`,
     })
     .from(jobs)
     .innerJoin(machineUnits, eq(jobs.unitId, machineUnits.id))
@@ -41,7 +42,7 @@ export async function listJobs(user: CurrentUser, opts: { open?: boolean; unitId
     .leftJoin(staff, eq(jobs.leadId, staff.id))
     .where(conds.length ? and(...conds) : undefined)
     .orderBy(desc(jobs.openedAt), desc(jobs.id));
-  return rows.map((r) => ({ ...r, teamIds: (r.teamIds ?? []).map(Number), labourHours: Number(r.labourHours) }));
+  return rows.map((r) => ({ ...r, teamIds: (r.teamIds ?? []).map(Number), labourHours: Number(r.labourHours), partsValue: Number(r.partsValue) }));
 }
 
 export async function getJob(id: number) {
