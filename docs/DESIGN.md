@@ -1,4 +1,4 @@
-# HeavyDuty Garage — Workshop Management System Design
+# Heavyworks Garage — Workshop Management System Design
 
 Software for running a heavy machinery service and repair workshop: emergency breakdown response, troubleshooting and diagnostics, preventive maintenance, hydraulic services, fabrication and painting.
 

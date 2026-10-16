@@ -1,4 +1,4 @@
-<title>HeavyDuty Garage</title>
+<title>Heavyworks Garage</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -372,7 +372,7 @@ svg.line .end{fill:var(--ink);font-weight:600}
 <header class="top">
   <div class="wrap">
     <div class="top-row">
-      <div class="brand"><div class="brand-mark" aria-hidden="true"></div><div><h1>HeavyDuty Garage</h1><small>Workshop control</small></div></div>
+      <div class="brand"><div class="brand-mark" aria-hidden="true"></div><div><h1>Heavyworks Garage</h1><small>Workshop control</small></div></div>
       <label class="role" for="roleSel">Viewing as
         <select id="roleSel">
           <option value="boss">Boss · Tan Boon Hock</option>
@@ -1023,7 +1023,7 @@ function dailySummary(){
   const poT = pos.filter(p=>p.date===TODAY), poAppr = pos.filter(p=>p.status==='Awaiting approval');
   const attn = attentionItems().slice(0,4).map(a=>'  - '+a.t.replace(/<[^>]+>/g,''));
   const lines = [
-    `*HeavyDuty Garage · ${D(TODAY).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}*`,
+    `*Heavyworks Garage · ${D(TODAY).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}*`,
     '',
     `Jobs closed today: ${closed.length}${closed.length?' ('+closed.map(j=>j.id.slice(-4)).join(', ')+')':''}`,
     `New jobs today: ${opened.length}${opened.length?' ('+opened.map(j=>`${j.id.slice(-4)} ${models[units[j.unit].model].model} ${CATS[j.cat].name.split(' ')[0]}`).join(', ')+')':''}`,
@@ -1197,7 +1197,7 @@ function initSig(){
 
 /* ---------- service reports ---------- */
 function docHead(title, no, date){
-  return `<div class="doc-head"><div><div class="doc-brand">HeavyDuty Garage</div><small>Heavy machinery service &amp; repair · [Company address · phone · SSM no.]</small></div><div class="doc-meta"><b>${title}</b><span>${no}</span><span>${date}</span></div></div>`;
+  return `<div class="doc-head"><div><div class="doc-brand">Heavyworks Garage</div><small>Heavy machinery service &amp; repair · [Company address · phone · SSM no.]</small></div><div class="doc-meta"><b>${title}</b><span>${no}</span><span>${date}</span></div></div>`;
 }
 function defaultRec(j){
   const u = units[j.unit], out = [];
