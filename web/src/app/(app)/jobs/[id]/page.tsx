@@ -12,6 +12,8 @@ import { activityText, catLabel, priLabel, roleLabel, stageLabel, statusLabel } 
 import { AgeText, Avatar, CatChip, Notice, Pri, dueInfo } from "@/components/ui";
 import SignaturePad from "@/components/SignaturePad";
 import SubmitButton from "@/components/SubmitButton";
+import ChatRoom from "@/components/ChatRoom";
+import { jobThreadId, messagesFor } from "@/lib/chat";
 import * as A from "../actions";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -38,7 +40,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const idx = STATUSES.indexOf(job.status);
   const statusOptions = sup ? STATUSES.filter((s) => s !== job.status) : CREW_STATUSES.filter((s) => s !== job.status);
   const staffList = sup ? await activeStaff() : [];
-  const [issued, requests, fitParts] = await Promise.all([jobPartsFor(job.id), requestsFor(job.id), open ? partsForModel(model.id) : Promise.resolve([])]);
+  const chatId = await jobThreadId(job.id);
+  const [issued, requests, fitParts, chatInitial] = await Promise.all([jobPartsFor(job.id), requestsFor(job.id), open ? partsForModel(model.id) : Promise.resolve([]), messagesFor(user, chatId)]);
   const partsSell = issued.reduce((a, x) => a + x.qty * x.unitPrice, 0), partsCost = issued.reduce((a, x) => a + x.qty * x.unitCost, 0);
   const q2 = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
   const crew = staffList.filter((s) => CREW_ROLES.includes(s.role));
@@ -59,6 +62,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           <h1>{model.make} {model.model}</h1>
           <span className="mono">{unit.serialNo} · {customer.name}</span>
         </div>
+        <a className="btn small" href="#chat">{t("chat.jobChat")}</a>
         {can(user.role, "job.report") && <Link className="btn small" href={`/jobs/${job.id}/report`}>{open ? t("job.interimReport") : t("job.report")}</Link>}
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
@@ -238,6 +242,9 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         </div>
 
         <aside className="stack">
+          <section className="sect" id="chat"><h3>{t("chat.jobChat")} <Link className="btn small" href={`/chat?t=${chatId}`} style={subtle}>{t("chat.openFull")}</Link></h3>
+            <ChatRoom threadId={chatId} meId={user.id} initial={chatInitial} info={t("chat.jobInfo")} priceHint={can(user.role, "money.cost") || can(user.role, "money.selling")} compact />
+          </section>
           <section className="sect"><h3>{t("job.people")}</h3><div className="in">
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {lead ? <span style={{ display: "flex", gap: 8, alignItems: "center" }}><Avatar name={lead.name} /> {lead.name} <span className="muted">{t("job.leadLabel")}</span></span> : <span className="due over">{t("job.noLead")}</span>}

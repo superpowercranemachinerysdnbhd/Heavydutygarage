@@ -22,6 +22,13 @@
       "when": 1792134458541,
       "tag": "0002_parts_purchasing",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792135728367,
+      "tag": "0003_chat",
+      "breakpoints": true
     }
   ]
 }

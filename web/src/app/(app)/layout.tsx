@@ -4,6 +4,7 @@ import Nav from "@/components/Nav";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
+import { unreadTotal } from "@/lib/chat";
 import { getI18n } from "@/i18n/server";
 import { roleLabel } from "@/i18n/labels";
 import { logout } from "@/app/login/actions";
@@ -14,12 +15,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const items = [
     { href: "/", label: t("nav.dashboard") },
     { href: "/jobs", label: t("nav.jobs") },
+    { href: "/chat", label: t("nav.chat") },
     { href: "/machinery", label: t("nav.machinery") },
     { href: "/parts", label: t("nav.parts") },
     ...(can(user.role, "po.create") ? [{ href: "/purchasing", label: t("nav.purchasing") }] : []),
     ...(can(user.role, "customer.manage") ? [{ href: "/customers", label: t("nav.customers") }] : []),
     { href: "/team", label: t("nav.team") },
   ];
+  const chatUnread = await unreadTotal(user);
   return (
     <>
       <header className="top">
@@ -36,7 +39,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <form action={logout}><button type="submit">{t("common.signOut")}</button></form>
             </div>
           </div>
-          <Nav items={items} />
+          <Nav items={items} chatUnread={chatUnread} />
         </div>
       </header>
       <main className="wrap">{children}</main>

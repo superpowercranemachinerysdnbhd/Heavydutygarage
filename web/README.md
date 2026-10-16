@@ -32,6 +32,14 @@ English, Bahasa Melayu and 中文 (Simplified Chinese).
 - Built-in text is translated: menus, statuses, categories, roles, QC checklist items, messages and the job activity history. Text people type (complaints, diagnosis, notes, tasks) is shown as typed.
 - All text lives in `src/i18n/en.ts`, `ms.ts` and `zh.ts`. A test fails if any language is missing a phrase. To add a language (e.g. Tamil, Bengali, Nepali), copy `en.ts`, translate it, and add the code to `LOCALES` in `src/i18n/index.ts`.
 
+### Chat
+
+- **Job chat** on every job page (and in Chat). People on the job, the Supervisor and the Boss can read it.
+- **Workshop** chat for all staff, and **private messages** between two people. The Boss cannot read other people's private messages.
+- Text and photos (camera on phones). New messages appear within about 4 seconds; the Chat tab shows an unread count.
+- Built-in chat text is translated; messages are shown as typed. Anyone who can see prices gets a reminder not to post costs in chats mechanics can read.
+- Code: `src/lib/chat.ts` (queries), `src/lib/chat-rules.ts` (who can read what, tested), `src/app/api/chat/` (messages, photos, unread count), `src/components/ChatRoom.tsx`.
+
 ### Rules enforced on the server
 
 | Rule | Where |

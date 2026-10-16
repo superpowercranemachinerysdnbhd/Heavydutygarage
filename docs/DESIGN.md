@@ -424,3 +424,16 @@ The app runs in **English, Bahasa Melayu and 中文**, with more languages added
 | Supplier sends a new price list | Save it as CSV and import it. Matched prices are added to the history; unmatched rows and changes over 10% are listed. |
 | Stock cost | Weighted average: (stock × old average + received × new price) ÷ new stock. Used for stock value and job parts cost. |
 | Selling price | Category markup on average cost (follows cost automatically), or a fixed price with a margin alert to the Boss. |
+
+## 14. In-app chat
+
+| Chat | Who can read it |
+|---|---|
+| Job chat (one per job) | Job lead and team, Supervisor, Boss |
+| Workshop | All staff |
+| Private message | Only the two people (not the Boss) |
+
+- Text up to 2,000 characters and photos (same types and 10 MB limit as job photos). Photos are served only to people who can read the chat.
+- Live updates by polling every 4 seconds while the screen is open (no extra server needed). Unread counts are kept per person per chat.
+- Job notes and the activity history stay the formal record; chat is for quick talk. Prices should not be posted in chats mechanics can read, and the app reminds people who see prices.
+- Later options: push notifications on phones, WhatsApp bridge (Phase 5).

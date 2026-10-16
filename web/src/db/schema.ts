@@ -341,3 +341,41 @@ export const partRequests = pgTable("part_requests", {
   handledAt: timestamp("handled_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("requests_status_idx").on(t.status)]);
+
+/* ======================= Chat ======================= */
+export const chatKindEnum = pgEnum("chat_kind", ["team", "direct", "job"]);
+
+export const chatThreads = pgTable("chat_threads", {
+  id: serial("id").primaryKey(),
+  kind: chatKindEnum("kind").notNull(),
+  jobId: integer("job_id").references(() => jobs.id, { onDelete: "cascade" }),
+  /** For direct threads: "smallerId:largerId", so each pair has one thread. */
+  directKey: varchar("direct_key", { length: 30 }),
+  lastMessageAt: timestamp("last_message_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("chat_job_idx").on(t.jobId), uniqueIndex("chat_direct_idx").on(t.directKey)]);
+
+/** Members of direct threads. Team = all active staff; job = whoever can work on the job. */
+export const chatMembers = pgTable("chat_members", {
+  id: serial("id").primaryKey(),
+  threadId: integer("thread_id").notNull().references(() => chatThreads.id, { onDelete: "cascade" }),
+  staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+}, (t) => [uniqueIndex("chat_members_idx").on(t.threadId, t.staffId)]);
+
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  threadId: integer("thread_id").notNull().references(() => chatThreads.id, { onDelete: "cascade" }),
+  staffId: integer("staff_id").notNull().references(() => staff.id),
+  body: text("body").notNull().default(""),
+  photoPath: varchar("photo_path", { length: 200 }),
+  photoType: varchar("photo_type", { length: 60 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("chat_messages_thread_idx").on(t.threadId, t.id)]);
+
+/** Last message each person has read in each thread. */
+export const chatReads = pgTable("chat_reads", {
+  id: serial("id").primaryKey(),
+  threadId: integer("thread_id").notNull().references(() => chatThreads.id, { onDelete: "cascade" }),
+  staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+  lastReadId: integer("last_read_id").notNull().default(0),
+}, (t) => [uniqueIndex("chat_reads_idx").on(t.threadId, t.staffId)]);

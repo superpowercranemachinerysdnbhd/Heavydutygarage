@@ -2,7 +2,7 @@
  *  Refuses to run when staff already exist, so it never mixes with real data.
  *  Every demo login uses the password "demo-pass-1".
  */
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { loadEnv } from "./env";
 
 loadEnv();
@@ -171,6 +171,22 @@ await db.insert(schema.partRequests).values([
   { jobId: pmJob.id, partId: P.oil.id, qty: "2", note: "500 hr service", requestedBy: lim.id },
   { jobId: diagJob.id, partId: P.sensor.id, qty: "1", note: "Left front outrigger", requestedBy: haf.id },
 ]);
+
+// Chat: workshop group and a job chat.
+const mins = (m: number) => new Date(Date.now() - m * 60000);
+const [teamT] = await db.insert(schema.chatThreads).values({ kind: "team", lastMessageAt: mins(35) }).returning();
+const [pumpT] = await db.insert(schema.chatThreads).values({ kind: "job", jobId: pumpJob.id, lastMessageAt: mins(12) }).returning();
+await db.insert(schema.chatMessages).values([
+  { threadId: teamT.id, staffId: sup.id, body: "Morning all. Toolbox talk at 8:15, then bays as per the board.", createdAt: mins(95) },
+  { threadId: teamT.id, staffId: lim.id, body: "Noted. Bay 2 forklift battery is low, charging now.", createdAt: mins(80) },
+  { threadId: teamT.id, staffId: boss.id, body: "Customer visit at 3pm today, please keep the front bay tidy.", createdAt: mins(35) },
+  { threadId: pumpT.id, staffId: raj.id, body: "On site. Pump delivery 18 MPa, spec 34.3. Pilot OK. Pump coming off.", createdAt: mins(40) },
+  { threadId: pumpT.id, staffId: sup.id, body: "New pump issued to the job. Send a photo of the old pump nameplate please.", createdAt: mins(12) },
+]);
+for (const [threadId, staffId] of [[teamT.id, sup.id], [teamT.id, boss.id], [pumpT.id, sup.id], [pumpT.id, raj.id]]) {
+  const [last] = await db.select({ id: schema.chatMessages.id }).from(schema.chatMessages).where(and(eq(schema.chatMessages.threadId, threadId), eq(schema.chatMessages.staffId, staffId))).orderBy(desc(schema.chatMessages.id)).limit(1);
+  if (last) await db.insert(schema.chatReads).values({ threadId, staffId, lastReadId: last.id });
+}
 
 console.log(`Demo data loaded. Sign in with any demo phone (Boss 0120000000, Supervisor 0120000001, Mechanic 0120000003) and password demo-pass-1.`);
 await pool.end();
