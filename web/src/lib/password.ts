@@ -26,7 +26,7 @@ export function hashToken(token: string): string {
 }
 
 /** Minimum rules for staff passwords. Returns an error message or null. */
-export function passwordProblem(pw: string): string | null {
-  if (pw.length < 8) return "Use at least 8 characters.";
+export function passwordProblem(pw: string): "pw.short" | null {
+  if (pw.length < 8) return "pw.short";
   return null;
 }

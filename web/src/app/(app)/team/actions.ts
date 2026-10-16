@@ -7,71 +7,78 @@ import { requirePermission } from "@/lib/auth";
 import { hashPassword, passwordProblem } from "@/lib/password";
 import { normalisePhone } from "@/lib/phone";
 import { isRole } from "@/lib/queries";
+import { isLocale, translator, type MessageKey, type Vars } from "@/i18n";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const optDate = (f: FormData, k: string) => { const v = str(f, k); return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null; };
 
 function values(f: FormData) {
-  const role = str(f, "role");
+  const role = str(f, "role"), locale = str(f, "locale");
   return {
     name: str(f, "name"), role: isRole(role) ? role : null, phone: normalisePhone(str(f, "phone")), email: str(f, "email") || null,
     reportsTo: Number(f.get("reportsTo")) || null, idNumber: str(f, "idNumber") || null, permitExpiry: optDate(f, "permitExpiry"),
     emergencyContact: str(f, "emergencyContact") || null, joined: optDate(f, "joined"),
     skills: str(f, "skills").split(",").map((s) => s.trim()).filter(Boolean), payRate: String(Number(str(f, "payRate")) || 0),
+    locale: isLocale(locale) ? locale : "en",
   };
 }
 
+async function boss() {
+  const me = await requirePermission("staff.manage");
+  const t = translator(me.locale);
+  const go = (path: string, kind: "error" | "ok", key: MessageKey, vars?: Vars): never => redirect(`${path}?${kind}=${encodeURIComponent(t(key, vars))}`);
+  return { me, t, go };
+}
+
 export async function createStaff(form: FormData) {
-  await requirePermission("staff.manage");
+  const { t, go } = await boss();
   const v = values(form), pw = str(form, "password");
-  const fail = (e: string): never => redirect("/team/new?error=" + encodeURIComponent(e));
-  if (!v.name || !v.role || v.phone.length < 9) fail("Enter name, role and a valid phone number.");
+  if (!v.name || !v.role || v.phone.length < 9) go("/team/new", "error", "err.staffFields");
   const problem = passwordProblem(pw);
-  if (problem) fail("Temporary password: " + problem);
+  if (problem) go("/team/new", "error", "err.tempPw", { problem: t(problem) });
   const [dupe] = await db.select({ id: schema.staff.id }).from(schema.staff).where(eq(schema.staff.phone, v.phone));
-  if (dupe) fail("Someone already uses that phone number.");
+  if (dupe) go("/team/new", "error", "err.phoneUsed");
   const [row] = await db.insert(schema.staff).values({ ...v, role: v.role!, passwordHash: await hashPassword(pw) }).returning({ id: schema.staff.id });
   revalidatePath("/team");
-  redirect(`/team/${row.id}?ok=${encodeURIComponent("Staff added. Give them their phone number and temporary password to sign in.")}`);
+  go(`/team/${row.id}`, "ok", "ok.staffAdded");
 }
 
 export async function updateStaff(form: FormData) {
-  const me = await requirePermission("staff.manage");
+  const { me, go } = await boss();
   const id = Number(form.get("id")), v = values(form);
-  const fail = (e: string): never => redirect(`/team/${id}?error=${encodeURIComponent(e)}`);
-  if (!v.name || !v.role || v.phone.length < 9) fail("Enter name, role and a valid phone number.");
-  if (id === me.id && v.role !== "boss") fail("You cannot remove your own Boss role.");
+  if (!v.name || !v.role || v.phone.length < 9) go(`/team/${id}`, "error", "err.staffFields");
+  if (id === me.id && v.role !== "boss") go(`/team/${id}`, "error", "err.ownRole");
   const [dupe] = await db.select({ id: schema.staff.id }).from(schema.staff).where(and(eq(schema.staff.phone, v.phone), ne(schema.staff.id, id)));
-  if (dupe) fail("Someone else already uses that phone number.");
+  if (dupe) go(`/team/${id}`, "error", "err.phoneUsed");
   await db.update(schema.staff).set({ ...v, role: v.role! }).where(eq(schema.staff.id, id));
   revalidatePath(`/team/${id}`);
-  redirect(`/team/${id}?ok=${encodeURIComponent("Saved.")}`);
+  go(`/team/${id}`, "ok", "ok.saved");
 }
 
 export async function resetPassword(form: FormData) {
-  await requirePermission("staff.manage");
+  const { t, go } = await boss();
   const id = Number(form.get("id")), pw = str(form, "password");
   const problem = passwordProblem(pw);
-  if (problem) redirect(`/team/${id}?error=${encodeURIComponent(problem)}`);
+  if (problem) redirect(`/team/${id}?error=${encodeURIComponent(t(problem))}`);
   await db.update(schema.staff).set({ passwordHash: await hashPassword(pw) }).where(eq(schema.staff.id, id));
   await db.delete(schema.sessions).where(eq(schema.sessions.staffId, id));
-  redirect(`/team/${id}?ok=${encodeURIComponent("Password reset. They are signed out everywhere.")}`);
+  go(`/team/${id}`, "ok", "ok.pwReset");
 }
 
 export async function setActive(form: FormData) {
-  const me = await requirePermission("staff.manage");
+  const { me, go } = await boss();
   const id = Number(form.get("id")), active = form.get("active") === "1";
-  if (id === me.id) redirect(`/team/${id}?error=${encodeURIComponent("You cannot deactivate yourself.")}`);
+  if (id === me.id) go(`/team/${id}`, "error", "err.selfDeactivate");
   await db.update(schema.staff).set({ active }).where(eq(schema.staff.id, id));
   if (!active) await db.delete(schema.sessions).where(eq(schema.sessions.staffId, id));
   revalidatePath("/team");
-  redirect(`/team/${id}?ok=${encodeURIComponent(active ? "Account re-activated." : "Account deactivated. They can no longer sign in.")}`);
+  go(`/team/${id}`, "ok", active ? "ok.reactivated" : "ok.deactivated");
 }
 
 export async function addCert(form: FormData) {
-  await requirePermission("staff.view");
+  const me = await requirePermission("staff.view");
   const staffId = Number(form.get("staffId")), name = str(form, "name");
-  if (!name) redirect(`/team/${staffId}?error=${encodeURIComponent("Enter the certificate name.")}`);
+  if (!name) redirect(`/team/${staffId}?error=${encodeURIComponent(translator(me.locale)("err.certName"))}`);
   await db.insert(schema.certifications).values({ staffId, name, number: str(form, "number") || null, expiry: optDate(form, "expiry") });
   revalidatePath(`/team/${staffId}`);
   redirect(`/team/${staffId}`);

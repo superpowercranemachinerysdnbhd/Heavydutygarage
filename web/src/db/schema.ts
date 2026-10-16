@@ -27,6 +27,7 @@ export const staff = pgTable("staff", {
   payRate: numeric("pay_rate", { precision: 10, scale: 2 }).notNull().default("0"),
   active: boolean("active").notNull().default(true),
   passwordHash: text("password_hash"),
+  locale: varchar("locale", { length: 5 }).notNull().default("en"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("staff_phone_idx").on(t.phone)]);
 
@@ -55,6 +56,7 @@ export const customers = pgTable("customers", {
   email: varchar("email", { length: 160 }),
   address: text("address"),
   notes: text("notes"),
+  locale: varchar("locale", { length: 5 }).notNull().default("en"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -143,6 +145,7 @@ export const jobQc = pgTable("job_qc", {
   jobId: integer("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
   seq: integer("seq").notNull().default(0),
   item: text("item").notNull(),
+  itemKey: varchar("item_key", { length: 40 }),
   passedAt: timestamp("passed_at", { withTimezone: true }),
   passedBy: integer("passed_by").references(() => staff.id),
 });
@@ -173,6 +176,10 @@ export const jobActivity = pgTable("job_activity", {
   id: serial("id").primaryKey(),
   jobId: integer("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
   staffId: integer("staff_id").references(() => staff.id),
+  /** English rendering, kept for search and as a fallback. */
   text: text("text").notNull(),
+  /** Message key (e.g. "act.status") and its parameters, rendered in each reader's language. */
+  key: varchar("key", { length: 40 }),
+  params: jsonb("params").$type<Record<string, string | number>>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("activity_job_idx").on(t.jobId)]);

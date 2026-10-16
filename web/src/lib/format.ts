@@ -1,3 +1,5 @@
+import { INTL_LOCALE, type Locale } from "@/i18n";
+
 export const TZ = "Asia/Kuala_Lumpur";
 
 /** Today's date in Malaysia as YYYY-MM-DD. */
@@ -17,13 +19,13 @@ export function daysBetween(a: string, b: string): number {
 export function dateOf(ts: Date): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(ts);
 }
-export function fmtDate(iso: string | null | undefined, withYear = false): string {
+export function fmtDate(iso: string | null | undefined, withYear = false, locale: Locale = "en"): string {
   if (!iso) return "—";
   const [y, m, d] = iso.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-GB", { day: "numeric", month: "short", ...(withYear ? { year: "numeric" } : {}), timeZone: "UTC" });
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(INTL_LOCALE[locale], { day: "numeric", month: "short", ...(withYear ? { year: "numeric" } : {}), timeZone: "UTC" });
 }
-export function fmtDateTime(ts: Date): string {
-  return ts.toLocaleString("en-GB", { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
+export function fmtDateTime(ts: Date, locale: Locale = "en"): string {
+  return ts.toLocaleString(INTL_LOCALE[locale], { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
 }
 export function rm(n: number): string {
   return "RM " + n.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

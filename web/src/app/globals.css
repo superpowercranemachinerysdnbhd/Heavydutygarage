@@ -411,3 +411,7 @@ main{padding-block:16px 48px}
 }
 .btn{color:var(--ink);text-decoration:none;display:inline-block}
 .btn.primary{color:var(--accent-ink)}
+select.lang{background:transparent;border:1px solid var(--steel-muted);color:var(--steel-ink);border-radius:4px;padding:4px 6px;font-size:.8rem}
+select.lang option{color:#1a1f26;background:#fff}
+select.lang.on-light{color:var(--ink);border-color:var(--line)}
+.login-lang{align-self:flex-end}

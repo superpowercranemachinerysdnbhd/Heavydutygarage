@@ -27,7 +27,7 @@ test("closing needs QC and customer sign-off", () => {
 test("release is blocked while tasks are open", () => {
   const r = checkTransition({ ...base, role: "supervisor", from: "quality_check", to: "ready_for_pickup", tasksOpen: 1 });
   assert.equal(r.ok, false);
-  assert.match((r as { reason: string }).reason, /1 task is not done/);
+  assert.equal((r as { reason: string }).reason, "tr.tasksOpen");
 });
 
 test("closed jobs cannot be reopened", () => {
@@ -51,5 +51,5 @@ test("days-in-status thresholds", () => {
 test("QC list has a category check plus the standard checks", () => {
   const q = qcTemplate("HYD");
   assert.equal(q.length, 6);
-  assert.match(q[0], /Pressure readings/);
+  assert.equal(q[0], "HYD");
 });

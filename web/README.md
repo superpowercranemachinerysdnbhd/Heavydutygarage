@@ -11,6 +11,15 @@ Next.js 16 web app with a PostgreSQL database. Works on desktop, tablet and phon
 - **Customers** with their machines and jobs.
 - **Team:** profiles, chain of command, skills, certificates and permit expiry, account management.
 
+### Languages
+
+English, Bahasa Melayu and 中文 (Simplified Chinese).
+
+- Each person picks their language from the top bar (or the sign-in page). It is saved on their account, so a mechanic can work in Bahasa Melayu while the Boss uses Chinese. The Boss can also set it on the staff profile.
+- Each customer has a **report language**. Service reports and machine history reports print in it, and it can be changed on the report page before printing.
+- Built-in text is translated: menus, statuses, categories, roles, QC checklist items, messages and the job activity history. Text people type (complaints, diagnosis, notes, tasks) is shown as typed.
+- All text lives in `src/i18n/en.ts`, `ms.ts` and `zh.ts`. A test fails if any language is missing a phrase. To add a language (e.g. Tamil, Bengali, Nepali), copy `en.ts`, translate it, and add the code to `LOCALES` in `src/i18n/index.ts`.
+
 ### Rules enforced on the server
 
 | Rule | Where |

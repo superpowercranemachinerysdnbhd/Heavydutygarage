@@ -1,18 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import Nav from "@/components/Nav";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { requireUser } from "@/lib/auth";
-import { can, ROLE_LABEL } from "@/lib/permissions";
+import { can } from "@/lib/permissions";
+import { getI18n } from "@/i18n/server";
+import { roleLabel } from "@/i18n/labels";
 import { logout } from "@/app/login/actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
+  const { t } = await getI18n();
   const items = [
-    { href: "/", label: "Dashboard" },
-    { href: "/jobs", label: "Jobs" },
-    { href: "/machinery", label: "Machinery" },
-    ...(can(user.role, "customer.manage") ? [{ href: "/customers", label: "Customers" }] : []),
-    { href: "/team", label: "Team" },
+    { href: "/", label: t("nav.dashboard") },
+    { href: "/jobs", label: t("nav.jobs") },
+    { href: "/machinery", label: t("nav.machinery") },
+    ...(can(user.role, "customer.manage") ? [{ href: "/customers", label: t("nav.customers") }] : []),
+    { href: "/team", label: t("nav.team") },
   ];
   return (
     <>
@@ -21,12 +25,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <div className="top-row">
             <Link href="/" className="brand plain">
               <Image src="/logo.jpg" alt="" width={40} height={40} priority />
-              <div><h1>Heavyworks Garage</h1><small>Workshop control</small></div>
+              <div><h1>{t("app.name")}</h1><small>{t("app.tagline")}</small></div>
             </Link>
             <div className="userbox">
-              <span><b>{user.name}</b> · {ROLE_LABEL[user.role]}</span>
-              <Link href="/account" style={{ color: "var(--steel-ink)" }}>Account</Link>
-              <form action={logout}><button type="submit">Sign out</button></form>
+              <span><b>{user.name}</b> · {roleLabel(t, user.role)}</span>
+              <LanguageSwitcher />
+              <Link href="/account" style={{ color: "var(--steel-ink)" }}>{t("common.account")}</Link>
+              <form action={logout}><button type="submit">{t("common.signOut")}</button></form>
             </div>
           </div>
           <Nav items={items} />

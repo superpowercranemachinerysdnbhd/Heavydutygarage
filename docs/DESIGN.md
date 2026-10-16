@@ -396,3 +396,17 @@ Status rules added by these features:
 - Summary: number of jobs by type, labour hours, days off work, amount billed (optional).
 - Table of jobs with date, job no., type, hour meter, complaint and work done, days off work.
 - Next scheduled service.
+
+---
+
+## 12. Languages
+
+The app runs in **English, Bahasa Melayu and 中文**, with more languages added as one translation file each.
+
+| What | How |
+|---|---|
+| Staff | Each person chooses a language from the top bar or sign-in page; it is saved on their account. |
+| Customer reports | Each customer has a report language; service and machine history reports print in it and can be switched before printing. |
+| Translated | Menus, buttons, statuses, job categories, roles, QC checklist, error messages, activity history. |
+| Not translated | Free text people type: complaints, diagnosis, notes, task names, machine specs. |
+| Suggested next | Tamil, Bengali or Nepali for foreign workers; optional machine translation of typed notes. |

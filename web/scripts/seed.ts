@@ -9,6 +9,8 @@ const { db, schema, pool } = await import("../src/db/index");
 const { hashPassword } = await import("../src/lib/password");
 const { qcTemplate } = await import("../src/lib/jobs");
 const { addDays, today } = await import("../src/lib/format");
+const { translator } = await import("../src/i18n/index");
+const en = translator("en");
 
 const existing = await db.select({ id: schema.staff.id }).from(schema.staff).limit(1);
 if (existing.length) {
@@ -62,15 +64,16 @@ const u4 = await U({ modelId: gr500.id, customerId: tunas.id, serialNo: "GR-500E
 const u5 = await U({ modelId: l120.id, customerId: port.id, serialNo: "VCE0L120H00013377", year: 2020, hourMeter: 6890, location: "Customer site" });
 
 let n = 0;
-async function J(v: Omit<typeof schema.jobs.$inferInsert, "jobNo">, extra: { team?: number[]; tasks?: [string, boolean, number?][]; labour?: [number, number, number][]; qcDone?: number; log?: string[] } = {}) {
+async function J(v: Omit<typeof schema.jobs.$inferInsert, "jobNo">, extra: { team?: number[]; tasks?: [string, boolean, number?][]; labour?: [number, number, number][]; qcDone?: number } = {}) {
   const jobNo = `J-${T.slice(0, 4)}-${String(++n).padStart(4, "0")}`;
   const [job] = await db.insert(schema.jobs).values({ ...v, jobNo, createdBy: sup.id }).returning();
   for (const s of extra.team ?? []) await db.insert(schema.jobTeam).values({ jobId: job.id, staffId: s });
   for (const [i, [t, done, who]] of (extra.tasks ?? []).entries()) await db.insert(schema.jobTasks).values({ jobId: job.id, seq: i, description: t, assigneeId: who ?? null, doneAt: done ? ago(1) : null, doneBy: done ? who ?? null : null });
   const qc = qcTemplate(v.category);
-  await db.insert(schema.jobQc).values(qc.map((item, i) => ({ jobId: job.id, seq: i, item, passedAt: i < (extra.qcDone ?? 0) ? ago(1) : null, passedBy: i < (extra.qcDone ?? 0) ? sup.id : null })));
+  await db.insert(schema.jobQc).values(qc.map((k, i) => ({ jobId: job.id, seq: i, itemKey: k, item: en(`qc.${k}` as never), passedAt: i < (extra.qcDone ?? 0) ? ago(1) : null, passedBy: i < (extra.qcDone ?? 0) ? sup.id : null })));
   for (const [s, h, back] of extra.labour ?? []) await db.insert(schema.labourEntries).values({ jobId: job.id, staffId: s, hours: String(h), workDate: d(-back), loggedBy: s });
-  for (const t of extra.log ?? [`Job ${jobNo} created by ${sup.name}.`]) await db.insert(schema.jobActivity).values({ jobId: job.id, staffId: sup.id, text: t });
+  const params = { no: jobNo, name: sup.name };
+  await db.insert(schema.jobActivity).values({ jobId: job.id, staffId: sup.id, key: "act.created", params, text: en("act.created", params) });
   return job;
 }
 

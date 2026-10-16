@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/i18n/client";
 
 /** Finger/mouse signature box. Writes a PNG data URL into a hidden input named `signature`. */
 export default function SignaturePad() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [data, setData] = useState("");
+  const t = useT();
 
   function reset() {
     const c = canvas.current; if (!c) return;
@@ -32,9 +34,9 @@ export default function SignaturePad() {
 
   return (
     <div className="stack" style={{ gap: 6 }}>
-      <canvas ref={canvas} className="sigpad" aria-label="Customer signature pad" />
+      <canvas ref={canvas} className="sigpad" aria-label={t("sig.pad")} />
       <input type="hidden" name="signature" value={data} />
-      <div><button type="button" className="btn small" onClick={reset}>Clear signature</button></div>
+      <div><button type="button" className="btn small" onClick={reset}>{t("sig.clear")}</button></div>
     </div>
   );
 }

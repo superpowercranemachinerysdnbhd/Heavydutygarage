@@ -2,6 +2,8 @@ import "server-only";
 import { and, asc, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { can } from "./permissions";
+import { translator, type MessageKey, type Vars } from "@/i18n";
+import { activityText } from "@/i18n/labels";
 import type { CurrentUser } from "./auth";
 import type { Status } from "./jobs";
 
@@ -58,7 +60,7 @@ export async function getJob(id: number) {
     db.select({ id: schema.labourEntries.id, staffId: schema.labourEntries.staffId, name: staff.name, workDate: schema.labourEntries.workDate, hours: schema.labourEntries.hours, note: schema.labourEntries.note, payRate: staff.payRate })
       .from(schema.labourEntries).innerJoin(staff, eq(schema.labourEntries.staffId, staff.id)).where(eq(schema.labourEntries.jobId, id)).orderBy(asc(schema.labourEntries.workDate), asc(schema.labourEntries.id)),
     db.select().from(schema.jobPhotos).where(eq(schema.jobPhotos.jobId, id)).orderBy(asc(schema.jobPhotos.createdAt)),
-    db.select({ id: schema.jobActivity.id, text: schema.jobActivity.text, createdAt: schema.jobActivity.createdAt, name: staff.name })
+    db.select({ id: schema.jobActivity.id, text: schema.jobActivity.text, key: schema.jobActivity.key, params: schema.jobActivity.params, createdAt: schema.jobActivity.createdAt, name: staff.name })
       .from(schema.jobActivity).leftJoin(staff, eq(schema.jobActivity.staffId, staff.id)).where(eq(schema.jobActivity.jobId, id)).orderBy(desc(schema.jobActivity.createdAt), desc(schema.jobActivity.id)),
     j.job.parentJobId ? db.select({ id: jobs.id, jobNo: jobs.jobNo }).from(jobs).where(eq(jobs.id, j.job.parentJobId)) : Promise.resolve([]),
   ]);
@@ -82,8 +84,9 @@ export async function unitsWithNames() {
     .orderBy(asc(machineModels.make), asc(machineModels.model), asc(machineUnits.serialNo));
 }
 
-export async function addActivity(jobId: number, staffId: number | null, text: string) {
-  await db.insert(schema.jobActivity).values({ jobId, staffId, text });
+/** Record an activity entry. Stored as a message key + params so everyone reads it in their own language. */
+export async function addActivity(jobId: number, staffId: number | null, key: MessageKey, params: Vars = {}) {
+  await db.insert(schema.jobActivity).values({ jobId, staffId, key, params, text: activityText(translator("en"), { key, params, text: "" }) });
 }
 
 export { isRole } from "./queries.shared";

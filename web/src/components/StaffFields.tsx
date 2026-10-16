@@ -1,19 +1,23 @@
-import { ROLE_LABEL, type Role } from "@/lib/permissions";
+import { LOCALES, type T } from "@/i18n";
+import { langLabel, roleLabel } from "@/i18n/labels";
+import type { Role } from "@/lib/permissions";
 
+const ROLES: Role[] = ["boss", "supervisor", "mechanic", "assistant", "fabricator", "painter", "cleaner"];
 type S = { name?: string; role?: Role; phone?: string; email?: string | null; reportsTo?: number | null; idNumber?: string | null; permitExpiry?: string | null;
-  emergencyContact?: string | null; joined?: string | null; skills?: string[]; payRate?: string };
-export default function StaffFields({ s = {}, managers }: { s?: S; managers: { id: number; name: string }[] }) {
+  emergencyContact?: string | null; joined?: string | null; skills?: string[]; payRate?: string; locale?: string };
+export default function StaffFields({ s = {}, managers, t }: { s?: S; managers: { id: number; name: string }[]; t: T }) {
   return (<>
-    <label>Full name<input name="name" required defaultValue={s.name ?? ""} /></label>
-    <label>Role<select className="field" name="role" defaultValue={s.role ?? "mechanic"}>{(Object.keys(ROLE_LABEL) as Role[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</select></label>
-    <label>Phone (used to sign in)<input name="phone" type="tel" required defaultValue={s.phone ?? ""} /></label>
-    <label>Reports to<select className="field" name="reportsTo" defaultValue={s.reportsTo ?? ""}><option value="">—</option>{managers.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
-    <label>Email<input name="email" type="email" defaultValue={s.email ?? ""} /></label>
-    <label>IC / passport no.<input name="idNumber" defaultValue={s.idNumber ?? ""} /></label>
-    <label>Work permit expiry<input type="date" name="permitExpiry" defaultValue={s.permitExpiry ?? ""} /></label>
-    <label>Joined<input type="date" name="joined" defaultValue={s.joined ?? ""} /></label>
-    <label>Pay rate (RM per hour, Boss only)<input type="number" name="payRate" min={0} step="0.5" defaultValue={s.payRate ?? "0"} /></label>
-    <label>Emergency contact<input name="emergencyContact" defaultValue={s.emergencyContact ?? ""} placeholder="Name · phone" /></label>
-    <label className="full">Skills (comma separated)<input name="skills" defaultValue={(s.skills ?? []).join(", ")} placeholder="Hydraulics, Komatsu, Field service" /></label>
+    <label>{t("s.name")}<input name="name" required defaultValue={s.name ?? ""} /></label>
+    <label>{t("s.role")}<select className="field" name="role" defaultValue={s.role ?? "mechanic"}>{ROLES.map((r) => <option key={r} value={r}>{roleLabel(t, r)}</option>)}</select></label>
+    <label>{t("s.phone")}<input name="phone" type="tel" required defaultValue={s.phone ?? ""} /></label>
+    <label>{t("s.reportsTo")}<select className="field" name="reportsTo" defaultValue={s.reportsTo ?? ""}><option value="">—</option>{managers.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
+    <label>{t("s.language")}<select className="field" name="locale" defaultValue={s.locale ?? "en"}>{LOCALES.map((l) => <option key={l} value={l}>{langLabel(t, l)}</option>)}</select></label>
+    <label>{t("s.email")}<input name="email" type="email" defaultValue={s.email ?? ""} /></label>
+    <label>{t("s.ic")}<input name="idNumber" defaultValue={s.idNumber ?? ""} /></label>
+    <label>{t("s.permit")}<input type="date" name="permitExpiry" defaultValue={s.permitExpiry ?? ""} /></label>
+    <label>{t("s.joined")}<input type="date" name="joined" defaultValue={s.joined ?? ""} /></label>
+    <label>{t("s.pay")}<input type="number" name="payRate" min={0} step="0.5" defaultValue={s.payRate ?? "0"} /></label>
+    <label>{t("s.emergency")}<input name="emergencyContact" defaultValue={s.emergencyContact ?? ""} placeholder={t("s.emergencyPh")} /></label>
+    <label className="full">{t("s.skills")}<input name="skills" defaultValue={(s.skills ?? []).join(", ")} placeholder={t("s.skillsPh")} /></label>
   </>);
 }
