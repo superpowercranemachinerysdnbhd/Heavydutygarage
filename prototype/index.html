@@ -264,7 +264,7 @@ td.r,th.r{text-align:right}
 
 /* role-based visibility */
 body[data-role="mechanic"] .cost, body[data-role="mechanic"] .boss, body[data-role="supervisor"] .boss{display:none!important}
-@media (prefers-reduced-motion:no-preference){.sheet{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(30px);opacity:.6}to{transform:none;opacity:1}}}
+@media (prefers-reduced-motion:no-preference){.sheet.enter{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(30px);opacity:.6}to{transform:none;opacity:1}}}
 
 /* v2 additions */
 .age{font-size:.74rem;color:var(--muted)}
@@ -331,6 +331,41 @@ svg.line .pt.mtd{fill:var(--surface);stroke:var(--chart)}
 svg.line .end{fill:var(--ink);font-weight:600}
 .tip{position:fixed;z-index:70;background:var(--steel);color:var(--steel-ink);font-size:.78rem;padding:6px 9px;border-radius:4px;pointer-events:none;max-width:260px;white-space:pre-line;box-shadow:var(--shadow)}
 .stack{display:flex;flex-direction:column;gap:16px}
+.docbar{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.docbar textarea{min-height:64px}
+.doc{background:#fff;color:#1a1f26;border:1px solid var(--line);border-radius:4px;padding:26px 28px;font-size:13px;line-height:1.5;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px}
+.doc h4{font-family:var(--f-display);font-size:1rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px;color:#26303b;border-bottom:2px solid #e3a008;padding-bottom:3px}
+.doc p{margin:0}
+.doc-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:3px solid #26303b;padding-bottom:12px}
+.doc-brand{font-family:var(--f-display);font-size:1.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.1}
+.doc small{color:#5a6471}
+.doc-meta{display:flex;flex-direction:column;align-items:flex-end;text-align:right;font-family:var(--f-mono);font-size:12px}
+.doc-meta b{font-family:var(--f-display);font-size:1.25rem;text-transform:uppercase;letter-spacing:.03em}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.doc dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;margin:0}
+.doc dt{color:#5a6471}
+.doc dd{margin:0;font-weight:500;overflow-wrap:anywhere}
+.doc .dt{overflow-x:auto}
+.doc table{font-size:12.5px}
+.doc th{background:#f2f4f6;color:#5a6471;border-bottom:1px solid #d2d8df}
+.doc td{border-bottom:1px solid #e3e7ec;color:#1a1f26}
+.doc ul{margin:0;padding-left:18px}
+.doc .stamp{align-self:flex-start;border:2px solid #b86e00;color:#b86e00;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px;padding:3px 8px;border-radius:3px}
+.doc .stamp.final{border-color:#2c7d3f;color:#2c7d3f}
+.doc .photo img{border-color:#d2d8df}
+.doc .photo figcaption,.doc .photo .stage{color:#5a6471}
+.doc .sign{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px}
+.doc .sline{border-bottom:1px solid #1a1f26;height:74px;display:flex;align-items:flex-end}
+.doc .sline img{max-height:70px;max-width:100%}
+.doc-foot{font-size:11px;color:#5a6471;border-top:1px solid #e3e7ec;padding-top:8px}
+.doc .tot{display:grid;grid-template-columns:1fr auto;gap:2px 20px;margin-left:auto;min-width:240px;font-variant-numeric:tabular-nums}
+.doc .ok{color:#2c7d3f;font-weight:600}
+.doc .no{color:#c4342b;font-weight:600}
+.doc .rec{white-space:pre-line}
+.doc .sumrow{display:flex;gap:10px 28px;flex-wrap:wrap}
+.doc .sumrow div{display:flex;flex-direction:column}
+.doc .sumrow b{font-family:var(--f-display);font-size:1.5rem;font-weight:600;line-height:1.1}
+@media (max-width:520px){.doc{padding:18px 16px}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -594,7 +629,7 @@ jobs.forEach(j => { j.since = j.since || j.closed || j.opened; j.reqs = j.reqs |
 
 /* ---------- state ---------- */
 const state = {view:'dashboard', role:'boss', me:'S3', jobQ:'', jobCat:'', jobStatus:'open', cal:new Date(2026,9,1),
-  mTab:'units', unit:'U3', model:'M2', histCat:'', mQ:'', invQ:'', invModel:'', invLow:false, invTab:'stock', mvPart:'',
+  rep:{prices:false,photos:true,qc:true}, histRange:'12', mTab:'units', unit:'U3', model:'M2', histCat:'', mQ:'', invQ:'', invModel:'', invLow:false, invTab:'stock', mvPart:'',
   week:'2026-10-12', rMonth:4, poDraft:null, sheet:null};
 try{ const v = localStorage.getItem('hdg-view'); if(v && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
@@ -833,7 +868,7 @@ function unitDetail(k){
   const spend = hist.filter(j=>!isOpen(j)).reduce((a,j)=>a+jobTotals(j).total,0);
   return `
     <div class="panel"><div class="panel-head" style="flex-wrap:wrap"><div><h2>${esc(m.make)} ${esc(m.model)} <span class="muted" style="font-size:1rem">${esc(m.type)}</span></h2><span class="mono muted">${esc(u.serial)}</span></div>
-      ${stay>30?`<span class="badge-long">In yard ${stay} days</span>`:''}</div>
+      <div class="btnrow" style="align-items:center">${stay>30?`<span class="badge-long">In yard ${stay} days</span>`:''}${mech()?'':`<button class="btn small" data-action="hist-report" data-uid="${k}">Service history report</button>`}</div></div>
       <div class="facts">
         <div><span class="label">Owner</span><b>${esc(customers[u.cust].name)}</b></div>
         <div><span class="label">Hour meter</span><b class="hm">${u.hm.toLocaleString()} h</b></div>
@@ -1063,16 +1098,17 @@ function renderReports(){
 /* ---------- sheets ---------- */
 function openSheet(title, sub, body, ctx){
   state.sheet = ctx || null;
-  const scrollTop = $('.sheet-body') && ctx && state.lastSheet && state.lastSheet===JSON.stringify(ctx) ? $('.sheet-body').scrollTop : 0;
+  const same = !!($('.sheet-body') && ctx && state.lastSheet && state.lastSheet===JSON.stringify(ctx));
+  const scrollTop = same ? $('.sheet-body').scrollTop : 0;
   state.lastSheet = JSON.stringify(ctx||null);
-  $('#sheetRoot').innerHTML = `<div class="scrim" data-action="close"></div><aside class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sheet-head"><div>${sub}<h2>${title}</h2></div><button class="x" data-action="close" aria-label="Close">×</button></div><div class="sheet-body">${body}</div></aside>`;
+  $('#sheetRoot').innerHTML = `<div class="scrim" data-action="close"></div><aside class="sheet ${same?'':'enter'}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sheet-head"><div>${sub}<h2>${title}</h2></div><button class="x" data-action="close" aria-label="Close">×</button></div><div class="sheet-body">${body}</div></aside>`;
   document.body.style.overflow = 'hidden';
   if(scrollTop) $('.sheet-body').scrollTop = scrollTop; else $('.sheet .x').focus();
 }
 function closeSheet(){ $('#sheetRoot').innerHTML=''; document.body.style.overflow=''; state.sheet=null; state.lastSheet=null; }
 function refreshSheet(){
   const s = state.sheet; if(!s) return;
-  if(s.type==='job') openJob(s.id); else if(s.type==='part') openPart(s.id); else if(s.type==='po') openPo(s.id); else if(s.type==='po-new') openPoNew(); else if(s.type==='staff') openStaff(s.id);
+  if(s.type==='job') openJob(s.id); else if(s.type==='part') openPart(s.id); else if(s.type==='po') openPo(s.id); else if(s.type==='po-new') openPoNew(); else if(s.type==='staff') openStaff(s.id); else if(s.type==='report') openReport(s.id); else if(s.type==='hist') openHistReport(s.id);
 }
 
 function openJob(id){
@@ -1084,7 +1120,7 @@ function openJob(id){
   const showQc = isOpen(j) || !!j.qc, qc = showQc ? qcFor(j) : [], qcDone = qc.filter(q=>q.done).length;
   const reqParts = partsForModel(u.model);
   openSheet(`${esc(unitName(j.unit))}`, `<span class="mono">${j.id} · ${j.site==='Field'?'Field service':'Workshop'} · ${esc(j.siteLoc)}</span>`, `
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${catChip(j.cat)}<span class="pri ${j.pri}">${j.pri}</span><span class="due ${dueClass(j)}">${dueText(j)}</span><span class="age ${ageClass(j)}">${esc(ageText(j))}</span>${j.parent?`<span class="muted">Comeback of <a href="#" data-job="${j.parent}">${j.parent}</a></span>`:''}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${catChip(j.cat)}<span class="pri ${j.pri}">${j.pri}</span><span class="due ${dueClass(j)}">${dueText(j)}</span><span class="age ${ageClass(j)}">${esc(ageText(j))}</span>${j.parent?`<span class="muted">Comeback of <a href="#" data-job="${j.parent}">${j.parent}</a></span>`:''}${sup?`<button class="btn small" data-action="report" data-jid="${j.id}" style="margin-left:auto">${j.status==='Closed'?'Service report':'Interim service report'}</button>`:''}</div>
     <div class="steps">${STATUSES.map((s,i)=>`<div class="step ${i<idx?'done':i===idx?'cur':''}">${s}</div>`).join('')}</div>
     ${canEdit?`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><label class="label" for="jStatus">Move to</label><select class="field" id="jStatus" data-jid="${j.id}">${statusOpts.map(s=>`<option ${s===j.status?'selected':''}>${s}</option>`).join('')}</select>
       ${sup?`<label class="label" for="jLead">Lead</label><select class="field" id="jLead" data-jid="${j.id}"><option value="">Unassigned</option>${leadOpts.map(s=>`<option value="${s}" ${j.lead===s?'selected':''}>${esc(staff[s].name)} · ${staffState(s).t}</option>`).join('')}</select>`:''}</div>`:''}
@@ -1157,6 +1193,95 @@ function initSig(){
   c.addEventListener('pointermove', e => { if(!drawing) return; const [x,y] = pt(e); ctx.lineTo(x,y); ctx.stroke(); sigDrawn = true; });
   const end = () => { drawing = false; };
   c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
+}
+
+/* ---------- service reports ---------- */
+function docHead(title, no, date){
+  return `<div class="doc-head"><div><div class="doc-brand">HeavyDuty Garage</div><small>Heavy machinery service &amp; repair · [Company address · phone · SSM no.]</small></div><div class="doc-meta"><b>${title}</b><span>${no}</span><span>${date}</span></div></div>`;
+}
+function defaultRec(j){
+  const u = units[j.unit], out = [];
+  if(j.cat==='WARR') out.push('Repeat repair carried out under warranty at no charge.');
+  if(['HYD','EMG'].includes(j.cat)) out.push('Check hoses and fittings daily for leaks. Report any loss of power early to avoid a breakdown.');
+  if(j.cat==='PM') out.push('Oil samples taken; results will be sent when received from the lab.');
+  if(u.pmNext) out.push(`Next scheduled service: ${u.pmNext.type}, due around ${fmtDY(u.pmNext.date)}.`);
+  const open = j.tasks.filter(x=>!x.done);
+  if(open.length) out.push('Outstanding: '+open.map(x=>x.t).join('; ')+'.');
+  return out.join('\n');
+}
+function openReport(id){
+  const j = job(id), u = units[j.unit], m = models[u.model], c = customers[u.cust], o = state.rep, t = jobTotals(j);
+  const final = j.status==='Closed', no = 'SR-'+j.id.slice(2);
+  const hrsBy = {}; j.labour.forEach(l=>hrsBy[l.s]=(hrsBy[l.s]||0)+l.h);
+  const techs = [j.lead,...j.team].filter(Boolean);
+  const done = j.tasks.filter(x=>x.done), qc = j.qc || [];
+  const rec = j.recommend ?? defaultRec(j);
+  const photos = ['Before','During','After','QC'].map(st=>[st, j.photos.filter(p=>p.stage===st)]).filter(([st,l])=>l.length);
+  const warr = j.cat==='WARR';
+  openSheet('Service report', `<span class="mono">${no} · ${j.id} · ${esc(unitName(j.unit))}</span>`, `
+    <div class="docbar">
+      <div class="filters"><span class="label">Include</span>
+        <label><input type="checkbox" class="repopt" data-k="prices" ${o.prices?'checked':''}> Selling prices</label>
+        <label><input type="checkbox" class="repopt" data-k="photos" ${o.photos?'checked':''}> Photos</label>
+        <label><input type="checkbox" class="repopt" data-k="qc" ${o.qc?'checked':''}> QC checklist</label></div>
+      <label class="label" for="repRec">Recommendations to customer</label>
+      <textarea id="repRec" data-jid="${j.id}">${esc(rec)}</textarea>
+      <div class="btnrow"><button class="btn small primary" data-action="rep-send" data-jid="${j.id}" data-via="WhatsApp">Send to ${esc(c.contact)} on WhatsApp</button><button class="btn small" data-action="rep-send" data-jid="${j.id}" data-via="email">Send by email</button><button class="btn small" data-action="rep-pdf">Download PDF</button></div>
+      <small class="muted">Cost prices and margins never appear on customer reports.${(j.sent||[]).length?' Sent: '+j.sent.map(x=>esc(x)).join('; ')+'.':''}</small>
+    </div>
+    <article class="doc" aria-label="Service report preview">
+      ${docHead('Service report', no, fmtDY(final?(j.closed||TODAY):TODAY))}
+      <span class="stamp ${final?'final':''}">${final?'Final report':'Interim report · work in progress'}</span>
+      <div class="doc-grid">
+        <div><h4>Customer</h4><dl><dt>Company</dt><dd>${esc(c.name)}</dd><dt>Contact</dt><dd>${esc(c.contact)}</dd><dt>Phone</dt><dd>${esc(c.phone)}</dd></dl></div>
+        <div><h4>Machine</h4><dl><dt>Model</dt><dd>${esc(m.make)} ${esc(m.model)} · ${esc(m.type)}</dd><dt>Serial no.</dt><dd>${esc(u.serial)}</dd><dt>Year / plate</dt><dd>${u.year} · ${esc(u.plate)}</dd><dt>Hour meter</dt><dd>${j.hmIn.toLocaleString()} h in${j.signoff?` · ${j.signoff.hm.toLocaleString()} h out`:''}</dd></dl></div>
+        <div><h4>Job</h4><dl><dt>Job no.</dt><dd>${j.id}</dd><dt>Type</dt><dd>${esc(CATS[j.cat].name)}</dd><dt>Location</dt><dd>${j.site==='Field'?'On site: ':'Workshop: '}${esc(j.siteLoc)}</dd><dt>Received</dt><dd>${fmtDY(j.opened)}</dd><dt>Completed</dt><dd>${j.closed?fmtDY(j.closed):'—'}</dd><dt>Technicians</dt><dd>${techs.map(s=>esc(staff[s].name)).join(', ')||'—'}</dd></dl></div>
+      </div>
+      <div><h4>Customer complaint</h4><p>${esc(j.complaint)}</p></div>
+      <div><h4>Findings</h4><p>${esc(j.diagnosis)||'—'}</p></div>
+      <div><h4>Work carried out</h4>${done.length?`<ul>${done.map(x=>`<li>${esc(x.t)}</li>`).join('')}</ul>`:'<p>—</p>'}</div>
+      <div><h4>Parts used</h4>${j.parts.length?`<div class="dt"><table><thead><tr><th>Part no.</th><th>Description</th><th class="r">Qty</th>${o.prices?'<th class="r">Unit price</th><th class="r">Amount</th>':''}</tr></thead><tbody>${j.parts.map(x=>{const p=parts[x.p];return `<tr><td class="mono">${esc(p.no)}</td><td>${esc(p.desc)}</td><td class="r">${x.q} ${p.uom}</td>${o.prices?`<td class="r">${RM(p.sell)}</td><td class="r">${RM(p.sell*x.q)}</td>`:''}</tr>`;}).join('')}</tbody></table></div>`:'<p>No parts used.</p>'}</div>
+      <div><h4>Labour</h4>${Object.keys(hrsBy).length?`<div class="dt"><table><thead><tr><th>Technician</th><th class="r">Hours</th>${o.prices?'<th class="r">Amount</th>':''}</tr></thead><tbody>${Object.entries(hrsBy).map(([s,h])=>`<tr><td>${esc(staff[s].name)}</td><td class="r">${h}</td>${o.prices?`<td class="r">${warr?'No charge':RM(h*LABOUR_RATE)}</td>`:''}</tr>`).join('')}</tbody></table></div>`:'<p>—</p>'}</div>
+      ${o.prices?`<div class="tot"><span>Parts</span><b>${warr?'No charge':RM(t.pSell)}</b><span>Labour (${t.hrs} h)</span><b>${warr?'No charge':RM(t.lSell)}</b><span><b>Total (excl. SST)</b></span><b>${RM(t.total)}</b></div>`:''}
+      ${o.photos&&photos.length?`<div><h4>Photos</h4>${photos.map(([st,l])=>`<div class="photos" style="margin-bottom:8px">${l.map(p=>`<figure class="photo"><img src="${p.src}" alt="${esc(p.cap||st)}"><figcaption><span class="stage">${st}</span> ${esc(p.cap)}</figcaption></figure>`).join('')}</div>`).join('')}</div>`:''}
+      ${o.qc&&qc.length?`<div><h4>Quality check</h4><div class="dt"><table><tbody>${qc.map(q=>`<tr><td>${esc(q.t)}</td><td class="r ${q.done?'ok':isOpen(j)&&!['Quality Check','Ready for Pickup'].includes(j.status)?'':'no'}">${q.done?'Pass':isOpen(j)&&!['Quality Check','Ready for Pickup'].includes(j.status)?'Pending':'Not done'}</td></tr>`).join('')}</tbody></table></div></div>`:''}
+      <div><h4>Recommendations</h4><p class="rec">${esc(rec)||'—'}</p></div>
+      <div class="sign">
+        <div><div class="sline"></div><small>Serviced by: ${esc(staff.S1.name)}, Supervisor</small></div>
+        <div><div class="sline">${j.signoff?`<img src="${j.signoff.sig}" alt="Customer signature">`:''}</div><small>Customer acceptance: ${j.signoff?`${esc(j.signoff.name)} · ${esc(j.signoff.at)}`:'name, signature and date'}</small></div>
+      </div>
+      <div class="doc-foot">Generated ${esc(nowStamp())} by ${esc(who())}. ${final?'':'This is an interim report; the job is still open.'}</div>
+    </article>`, {type:'report', id});
+}
+function openHistReport(uid){
+  const u = units[uid], m = models[u.model], c = customers[u.cust], o = state.rep;
+  const from = state.histRange==='all' ? '0000-00-00' : addDays(TODAY,-365);
+  const list = jobs.filter(j=>j.unit===uid && j.opened>=from).sort((a,b)=>b.opened.localeCompare(a.opened));
+  const down = j => Math.max(1, daysBetween(j.opened, j.closed || TODAY));
+  const hrs = list.reduce((a,j)=>a+jobTotals(j).hrs,0), days = list.reduce((a,j)=>a+down(j),0), billed = list.reduce((a,j)=>a+jobTotals(j).total,0);
+  const byCat = Object.keys(CATS).map(k=>[k, list.filter(j=>j.cat===k).length]).filter(([k,n])=>n);
+  const no = 'MH-'+u.serial.replace(/[^A-Z0-9]/gi,'').slice(-6)+'-'+TODAY.replace(/-/g,'');
+  openSheet('Machine service history', `<span class="mono">${esc(unitName(uid))} · ${esc(u.serial)}</span>`, `
+    <div class="docbar">
+      <div class="filters"><label for="histRange" class="label">Period</label><select class="field" id="histRange"><option value="12" ${state.histRange==='12'?'selected':''}>Last 12 months</option><option value="all" ${state.histRange==='all'?'selected':''}>All records</option></select>
+        <label><input type="checkbox" class="repopt" data-k="prices" ${o.prices?'checked':''}> Amounts billed</label></div>
+      <div class="btnrow"><button class="btn small primary" data-action="hist-send" data-uid="${uid}">Send to ${esc(c.contact)}</button><button class="btn small" data-action="rep-pdf">Download PDF</button></div>
+    </div>
+    <article class="doc" aria-label="Machine history report preview">
+      ${docHead('Service history', no, fmtDY(TODAY))}
+      <div class="doc-grid">
+        <div><h4>Machine</h4><dl><dt>Model</dt><dd>${esc(m.make)} ${esc(m.model)} · ${esc(m.type)}</dd><dt>Serial no.</dt><dd>${esc(u.serial)}</dd><dt>Year / plate</dt><dd>${u.year} · ${esc(u.plate)}</dd><dt>Hour meter</dt><dd>${u.hm.toLocaleString()} h</dd></dl></div>
+        <div><h4>Owner</h4><dl><dt>Company</dt><dd>${esc(c.name)}</dd><dt>Contact</dt><dd>${esc(c.contact)} · ${esc(c.phone)}</dd><dt>Location</dt><dd>${esc(u.loc)}</dd>${u.arrived?`<dt>With us since</dt><dd>${fmtDY(u.arrived)} (${daysBetween(u.arrived,TODAY)} days)</dd>`:''}</dl></div>
+      </div>
+      <div><h4>Summary · ${state.histRange==='all'?'all records':'last 12 months'}</h4>
+        <div class="sumrow"><div><b>${list.length}</b><small>Jobs</small></div><div><b>${hrs}</b><small>Labour hours</small></div><div><b>${days}</b><small>Days off work</small></div>${o.prices?`<div><b>${RMk(billed)}</b><small>Billed</small></div>`:''}</div>
+        <p style="margin-top:8px">${byCat.map(([k,n])=>`${n} × ${esc(CATS[k].name)}`).join(' · ')||'No jobs in this period.'}</p></div>
+      <div><h4>Job history</h4><div class="dt"><table><thead><tr><th>Date</th><th>Job</th><th>Type</th><th class="r">Hour meter</th><th>Complaint and work done</th><th class="r">Days</th>${o.prices?'<th class="r">Amount</th>':''}</tr></thead><tbody>
+        ${list.map(j=>`<tr><td style="white-space:nowrap">${fmtDY(j.opened)}</td><td class="mono" style="white-space:nowrap">${j.id}</td><td>${esc(CATS[j.cat].name)}</td><td class="r">${j.hmIn.toLocaleString()}</td><td><b>${esc(j.complaint)}</b>${j.diagnosis?`<br>${esc(j.diagnosis)}`:''}${isOpen(j)?`<br><small>Open · ${j.status}</small>`:''}</td><td class="r">${down(j)}</td>${o.prices?`<td class="r">${j.cat==='WARR'?'Warranty':RM(jobTotals(j).total)}</td>`:''}</tr>`).join('')||'<tr><td colspan="7">No jobs in this period.</td></tr>'}
+      </tbody></table></div></div>
+      <div><h4>Coming up</h4><p>${u.pmNext?`${esc(u.pmNext.type)} due around ${fmtDY(u.pmNext.date)}.`:'No scheduled service on record. Send us the hour meter reading to plan the next service.'}</p></div>
+      <div class="doc-foot">Generated ${esc(nowStamp())} by ${esc(who())}. Hour meter readings are as recorded at job intake.</div>
+    </article>`, {type:'hist', id:uid});
 }
 
 function openStaff(s){
@@ -1283,6 +1408,11 @@ document.addEventListener('click', e => {
     if(act==='po-approve'){ const p=pos.find(x=>x.id===d.poid); p.status='Ordered'; p.lines.forEach(l=>parts[l.p].onOrder=(parts[l.p].onOrder||0)+l.q); toast(`${p.id} approved and sent to ${suppliers[p.sup].name}`); rerender(); }
     if(act==='po-decline'){ const p=pos.find(x=>x.id===d.poid); p.status='Declined'; toast(`${p.id} declined`); rerender(); }
     if(act==='sig-clear'){ initSig(); }
+    if(act==='report') openReport(d.jid);
+    if(act==='hist-report') openHistReport(d.uid);
+    if(act==='rep-pdf') toast('Prototype only: the live system saves this as a PDF on your letterhead.');
+    if(act==='rep-send'){ const j=job(d.jid), c=customers[units[j.unit].cust], no='SR-'+j.id.slice(2); (j.sent=j.sent||[]).push(`${d.via} ${nowStamp()}`); j.log.unshift({d:nowStamp(),t:`Service report ${no} sent to ${c.contact} by ${d.via} by ${who()}.`}); toast(`Logged on ${j.id}. The live system sends the PDF to ${c.contact} by ${d.via}.`); refreshSheet(); }
+    if(act==='hist-send'){ const c=customers[units[d.uid].cust]; toast(`Prototype only: the live system sends the history report to ${c.contact}.`); }
     if(act==='sum-test') toast('Prototype only: the live system sends this to the Boss\'s phone.');
     return;
   }
@@ -1308,6 +1438,9 @@ document.addEventListener('change', e => {
   if(t.id==='invLow'){ state.invLow=t.checked; render(); }
   if(t.id==='mvPart'){ state.mvPart=t.value; render(); }
   if(t.id==='rMonth'){ state.rMonth=+t.value; render(); }
+  if(t.classList.contains('repopt')){ state.rep[t.dataset.k]=t.checked; refreshSheet(); return; }
+  if(t.id==='histRange'){ state.histRange=t.value; refreshSheet(); return; }
+  if(t.id==='repRec'){ job(t.dataset.jid).recommend=t.value; refreshSheet(); return; }
   if(t.id==='nj-site'){ $('#nj-bay').hidden = t.value==='Field'; $('#nj-loc').hidden = t.value!=='Field'; }
   if(t.classList.contains('plan')){ setPlan(t.dataset.s, t.dataset.d, t.value); rerender(); toast(`${staff[t.dataset.s].name}: plan for ${fmtDow(t.dataset.d)} updated`); return; }
   if(t.classList.contains('dr-on')){ state.poDraft[+t.dataset.i].on=t.checked; openPoNew(); }
@@ -1363,7 +1496,7 @@ document.addEventListener('submit', e => {
     units[j.unit].hm=Math.max(units[j.unit].hm,hm);
     j.log.unshift({d:nowStamp(),t:`Handed over to ${name}, hour meter ${hm.toLocaleString()} h. Customer signed.`});
     j.status='Closed'; j.since=TODAY; j.closed=TODAY;
-    toast(`${j.id} handed over and closed`); rerender(); return;
+    toast(`${j.id} handed over and closed. Final service report is ready.`); rerender(); return;
   }
   if(f.dataset.form==='task'){ const v=$('#newTask').value.trim(); if(!v) return; j.tasks.push({t:v,done:false}); }
   if(f.dataset.form==='note'){ const v=$('#newNote').value.trim(); if(!v) return; j.log.unshift({d:nowStamp(),t:v+' — '+who()}); }

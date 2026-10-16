@@ -379,3 +379,20 @@ Status rules added by these features:
 - *Quality Check → Ready for Pickup* requires the full QC checklist.
 - *Ready for Pickup → Closed* requires the customer handover and signature.
 - Moving a job to a new status resets its "days in status" counter.
+
+### Service reports
+
+**Job service report** (button on every job, Boss and Supervisor):
+
+- Report no. `SR-YYYY-NNNN`, matching the job number. Marked **Interim** while the job is open and **Final** once closed.
+- Contents: customer, machine (model, serial, hour meter in/out), job details and technicians, customer complaint, findings, work carried out, parts used, labour hours, photos grouped before / during / after, QC checklist results, recommendations, and signatures (serviced by, customer acceptance with the signature captured at handover).
+- Options: include selling prices or not (cost prices and margins never appear), include photos, include QC checklist.
+- Recommendations are pre-filled (next service due from the hour meter, outstanding tasks, care advice by job type) and can be edited before sending.
+- Sent as a PDF on the company letterhead by WhatsApp or email. Each send is logged on the job.
+
+**Machine service history report** (button on every machine page, Boss and Supervisor):
+
+- For long-stay machines and fleet owners: every job on the machine for the last 12 months or all records.
+- Summary: number of jobs by type, labour hours, days off work, amount billed (optional).
+- Table of jobs with date, job no., type, hour meter, complaint and work done, days off work.
+- Next scheduled service.
