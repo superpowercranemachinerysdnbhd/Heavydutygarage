@@ -41,7 +41,7 @@ Boss (Owner / Manager)
 | Log labour time | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Request parts for a job | ✓ | ✓ | ✓ | ✓ | ✓ | – |
 | Issue parts from stock | ✓ | ✓ | – | – | – | – |
-| See **selling** price of parts | ✓ | ✓ | ✓ | – | – | – |
+| See **selling** price of parts, job value | ✓ | ✓ | – | – | – | – |
 | See **purchase** price of parts, supplier terms | ✓ | ✓ | – | – | – | – |
 | See labour cost, pay rates, margins and job profit | ✓ | – | – | – | – | – |
 | Create purchase orders | ✓ | ✓ (limit, e.g. RM 5,000) | – | – | – | – |
@@ -50,7 +50,7 @@ Boss (Owner / Manager)
 | Invoicing and financial reports | ✓ | View | – | – | – | – |
 | Staff profiles | ✓ | View (no pay rates) | Own profile | Own profile | Own profile | Own profile |
 
-**Cost visibility rule:** the Boss sees every cost. The Supervisor sees part purchase prices only (needed to buy stock and raise POs), never labour cost, pay rates or margins. Mechanics and crew see no costs.
+**Cost visibility rule:** the Boss sees every cost. The Supervisor sees part purchase prices only (needed to buy stock and raise POs), never labour cost, pay rates or margins. Mechanics and crew see no prices at all, neither cost nor selling price.
 
 Everyone logs in with their own account, which gives a clean audit trail ("who changed this job to Completed, and when").
 
@@ -349,5 +349,4 @@ Before phase 1, load the existing data: current machines in the workshop and yar
 3. Which accounting software is used today?
 4. Do any customers have service contracts (fixed monthly PM) that need separate billing?
 5. Is SST registration in place (affects invoice format)?
-6. Should mechanics see selling prices, or no prices at all?
-7. Is there more than one workshop or yard location?
+6. Is there more than one workshop or yard location?

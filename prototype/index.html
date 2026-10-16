@@ -290,7 +290,7 @@ body[data-role="mechanic"] .cost, body[data-role="mechanic"] .boss, body[data-ro
   </div>
 </header>
 
-<div class="wrap"><p class="sample-note">Prototype with example data (today is set to 16 Oct 2026). Changes you make stay until the page reloads. Switch "Viewing as" to see what each role sees. Boss sees all costs. Supervisor sees part purchase prices but not labour cost or margins. Mechanics see only their own jobs and no costs.</p></div>
+<div class="wrap"><p class="sample-note">Prototype with example data (today is set to 16 Oct 2026). Changes you make stay until the page reloads. Switch "Viewing as" to see what each role sees. Boss sees all costs. Supervisor sees part purchase prices but not labour cost or margins. Mechanics see only their own jobs, with no prices or costs at all.</p></div>
 
 <main class="wrap">
   <section class="view" id="v-dashboard"></section>
@@ -435,13 +435,13 @@ let jobs = [
    complaint:'Engine knocking, low oil pressure. Customer wants full engine overhaul.',diagnosis:'No. 3 con-rod bearing spun. Crankshaft needs regrind (sublet to machine shop).',
    tasks:[{t:'Remove engine',done:true,who:'S2'},{t:'Strip and measure',done:true,who:'S3'},{t:'Crankshaft regrind (sublet)',done:true},{t:'Rebuild engine',done:false,who:'S2'},{t:'Refit and run-in 2 hrs',done:false,who:'S2'}],
    parts:[{p:'P4',q:2},{p:'P10',q:1}],labour:[{s:'S2',d:'2026-09-03',h:8},{s:'S3',d:'2026-09-04',h:8},{s:'S2',d:'2026-10-14',h:6}],photos:[{src:ph('Spun bearing',0),stage:'Before',cap:'No. 3 con-rod bearing'}],
-   log:[{d:'2026-09-02 10:00',t:'Received. Quote RM 38,500 approved 05 Sep.'},{d:'2026-10-09 15:00',t:'Crankshaft back from machine shop.'}]},
+   log:[{d:'2026-09-02 10:00',t:'Received. Customer approved quote on 05 Sep.'},{d:'2026-10-09 15:00',t:'Crankshaft back from machine shop.'}]},
   {id:'J-2026-0401',cat:'FAB',pri:'Normal',status:'In Progress',unit:'U2',site:'Workshop',siteLoc:'Fabrication bay',opened:'2026-10-05',due:'2026-10-22',lead:'S6',team:[],hmIn:12430,
    complaint:'Bucket side cutters worn through, base cracked. Customer asked for rebuild while engine is being overhauled.',diagnosis:'Base plate crack 300 mm. Side cutters 60% worn.',
    tasks:[{t:'Gouge and weld base crack',done:true,who:'S6'},{t:'Fit new side cutters',done:false,who:'S6'},{t:'Hardface wear areas',done:false,who:'S6'},{t:'Fit new teeth',done:false,who:'S6'}],
    parts:[{p:'P8',q:2},{p:'P7',q:5}],labour:[{s:'S6',d:'2026-10-08',h:7}],photos:[{src:ph('Cracked bucket base',25),stage:'Before',cap:''}],log:[{d:'2026-10-05 09:00',t:'Linked to J-2026-0405.'}]},
   {id:'J-2026-0398',cat:'PAINT',pri:'Low',status:'Awaiting Approval',unit:'U5',site:'Workshop',siteLoc:'Paint bay',opened:'2026-09-28',due:'2026-11-06',lead:'S7',team:['S8'],hmIn:18900,
-   complaint:'Full refurbishment repaint before resale.',diagnosis:'Rust on boom base and counterweight. Quote RM 14,800 sent 30 Sep.',
+   complaint:'Full refurbishment repaint before resale.',diagnosis:'Rust on boom base and counterweight. Quote sent 30 Sep.',
    tasks:[{t:'Steam wash and degrease',done:false,who:'S8'},{t:'Sandblast rust areas',done:false,who:'S7'},{t:'Primer and two top coats',done:false,who:'S7'},{t:'Decals and load charts',done:false,who:'S7'}],
    parts:[{p:'P11',q:8}],labour:[],photos:[],log:[{d:'2026-09-30 11:00',t:'Quote sent to Ms. Chong.'},{d:'2026-10-10 10:00',t:'Follow-up call, customer to reply next week.'}]},
   {id:'J-2026-0390',cat:'WARR',pri:'High',status:'Ready for Pickup',unit:'U3',site:'Workshop',siteLoc:'Bay 5',opened:'2026-10-08',due:'2026-10-15',lead:'S3',team:[],hmIn:14150,parent:'J-2026-0311',
@@ -618,8 +618,8 @@ function renderMachinery(){
 }
 function partsForModel(mk){ return Object.entries(parts).filter(([k,p])=>p.fits.includes(mk)||p.fits.includes('ALL')).sort((a,b)=>(a[1].fits.includes('ALL'))-(b[1].fits.includes('ALL'))); }
 function partsTable(mk){
-  return `<div class="tbl-wrap" style="border:0;border-radius:0"><table><thead><tr><th>Part no.</th><th>Description</th><th class="r">On hand</th><th class="r">Sell</th><th class="r cost">Cost</th><th>Bin</th></tr></thead><tbody>
-    ${partsForModel(mk).map(([k,p])=>`<tr><td class="mono">${esc(p.no)}</td><td>${esc(p.desc)}${p.fits.includes('ALL')?' <small class="muted">(general)</small>':''}</td><td class="r num ${p.qty===0?'stock-out':p.qty<p.min?'stock-low':''}">${p.qty} ${p.uom}</td><td class="r num">${RM(p.sell)}</td><td class="r num cost">${RM(p.cost)}</td><td class="mono">${p.bin}</td></tr>`).join('')}
+  return `<div class="tbl-wrap" style="border:0;border-radius:0"><table><thead><tr><th>Part no.</th><th>Description</th><th class="r">On hand</th><th class="r cost">Sell</th><th class="r cost">Cost</th><th>Bin</th></tr></thead><tbody>
+    ${partsForModel(mk).map(([k,p])=>`<tr><td class="mono">${esc(p.no)}</td><td>${esc(p.desc)}${p.fits.includes('ALL')?' <small class="muted">(general)</small>':''}</td><td class="r num ${p.qty===0?'stock-out':p.qty<p.min?'stock-low':''}">${p.qty} ${p.uom}</td><td class="r num cost">${RM(p.sell)}</td><td class="r num cost">${RM(p.cost)}</td><td class="mono">${p.bin}</td></tr>`).join('')}
   </tbody></table></div>`;
 }
 function unitDetail(k){
@@ -673,8 +673,8 @@ function renderInventory(){
       <label><input type="checkbox" id="invLow" ${state.invLow?'checked':''}> Below minimum only</label>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Part no.</th><th>Description</th><th>Fits</th><th>Supplier</th><th class="r cost">Purchase</th><th class="r">Selling</th><th class="r boss">Margin</th><th class="r">On hand</th><th class="r">Min</th><th>Bin</th></tr></thead>
-      <tbody>${list.map(([k,p])=>`<tr><td class="mono">${esc(p.no)}</td><td>${esc(p.desc)}<br><small class="muted">${esc(p.cat)}</small></td><td>${p.fits.includes('ALL')?'<span class="muted">All</span>':p.fits.map(f=>esc(models[f].model)).join(', ')}</td><td>${esc(suppliers[p.sup].name)}</td><td class="r num cost">${RM(p.cost)}</td><td class="r num">${RM(p.sell)}</td><td class="r num boss">${Math.round((p.sell-p.cost)/p.sell*100)}%</td><td class="r num ${p.qty===0?'stock-out':p.qty<p.min?'stock-low':''}">${p.qty} ${p.uom}${p.onOrder?`<br><small class="muted">+${p.onOrder} on order</small>`:''}</td><td class="r num">${p.min}</td><td class="mono">${p.bin}</td></tr>`).join('')||'<tr><td colspan="10" class="muted">No parts match.</td></tr>'}</tbody>
+      <thead><tr><th>Part no.</th><th>Description</th><th>Fits</th><th>Supplier</th><th class="r cost">Purchase</th><th class="r cost">Selling</th><th class="r boss">Margin</th><th class="r">On hand</th><th class="r">Min</th><th>Bin</th></tr></thead>
+      <tbody>${list.map(([k,p])=>`<tr><td class="mono">${esc(p.no)}</td><td>${esc(p.desc)}<br><small class="muted">${esc(p.cat)}</small></td><td>${p.fits.includes('ALL')?'<span class="muted">All</span>':p.fits.map(f=>esc(models[f].model)).join(', ')}</td><td>${esc(suppliers[p.sup].name)}</td><td class="r num cost">${RM(p.cost)}</td><td class="r num cost">${RM(p.sell)}</td><td class="r num boss">${Math.round((p.sell-p.cost)/p.sell*100)}%</td><td class="r num ${p.qty===0?'stock-out':p.qty<p.min?'stock-low':''}">${p.qty} ${p.uom}${p.onOrder?`<br><small class="muted">+${p.onOrder} on order</small>`:''}</td><td class="r num">${p.min}</td><td class="mono">${p.bin}</td></tr>`).join('')||'<tr><td colspan="10" class="muted">No parts match.</td></tr>'}</tbody>
     </table></div>
     <div class="cost" style="display:flex;flex-direction:column;gap:8px"><h3>Suppliers</h3><div class="tbl-wrap"><table><thead><tr><th>Supplier</th><th>Location</th><th>Phone</th><th>Terms</th><th>Lead time</th><th class="r">Parts</th></tr></thead><tbody>
       ${Object.entries(suppliers).map(([k,s])=>`<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.city)}</td><td class="mono">${esc(s.contact)}</td><td>${esc(s.terms)}</td><td>${esc(s.lead)}</td><td class="r num">${Object.values(parts).filter(p=>p.sup===k).length}</td></tr>`).join('')}
@@ -742,7 +742,7 @@ function openJob(id){
       ${canEdit?`<form class="filters" data-form="labour" data-jid="${j.id}"><select class="field" id="labS">${[j.lead,...j.team].filter(Boolean).concat(state.role==='mechanic'?[]:staffOpts.filter(s=>s!==j.lead&&!j.team.includes(s))).map(s=>`<option value="${s}">${esc(staff[s].name)}</option>`).join('')}</select><input type="number" id="labH" min="0.25" step="0.25" placeholder="Hours" style="width:90px"><button class="btn small">Log time</button></form>`:''}
     </div></div>
     <div class="sect"><h3>Parts</h3>
-      ${j.parts.length?`<div class="tbl-wrap" style="border:0;border-radius:0"><table><thead><tr><th>Part</th><th class="r">Qty</th><th class="r">In stock</th><th class="r">Sell</th><th class="r cost">Cost</th></tr></thead><tbody>${j.parts.map(x=>{const p=parts[x.p];return `<tr><td><span class="mono">${esc(p.no)}</span><br>${esc(p.desc)}</td><td class="r num">${x.q} ${p.uom}</td><td class="r num ${p.qty<x.q?'stock-out':''}">${p.qty}</td><td class="r num">${RM(p.sell*x.q)}</td><td class="r num cost">${RM(p.cost*x.q)}</td></tr>`;}).join('')}</tbody></table></div>`:'<div class="in muted">No parts on this job.</div>'}
+      ${j.parts.length?`<div class="tbl-wrap" style="border:0;border-radius:0"><table><thead><tr><th>Part</th><th class="r">Qty</th><th class="r">In stock</th><th class="r cost">Sell</th><th class="r cost">Cost</th></tr></thead><tbody>${j.parts.map(x=>{const p=parts[x.p];return `<tr><td><span class="mono">${esc(p.no)}</span><br>${esc(p.desc)}</td><td class="r num">${x.q} ${p.uom}</td><td class="r num ${p.qty<x.q?'stock-out':''}">${p.qty}</td><td class="r num cost">${RM(p.sell*x.q)}</td><td class="r num cost">${RM(p.cost*x.q)}</td></tr>`;}).join('')}</tbody></table></div>`:'<div class="in muted">No parts on this job.</div>'}
       ${state.role==='mechanic'?'':`<div class="totals"><span>Parts</span><b>${RM(t.pSell)}</b><span>Labour ${t.hrs} h × ${RM(LABOUR_RATE)}${j.cat==='WARR'?' (warranty, not charged)':''}</span><b>${RM(t.lSell)}</b><span><b>Job value so far</b></span><b>${RM(t.total)}</b><span class="cost muted">Parts purchase cost</span><b class="cost muted">${RM(t.pCost)}</b><span class="boss muted">Labour cost (pay rates)</span><b class="boss muted">${RM(t.lCost)}</b><span class="boss"><b>Gross margin</b></span><b class="boss">${RM(t.total-t.pCost-t.lCost)}${t.total?` (${Math.round((t.total-t.pCost-t.lCost)/t.total*100)}%)`:''}</b></div>`}
     </div>
     <div class="sect"><h3>Activity</h3><div class="in">
