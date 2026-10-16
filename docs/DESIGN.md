@@ -42,12 +42,15 @@ Boss (Owner / Manager)
 | Request parts for a job | ✓ | ✓ | ✓ | ✓ | ✓ | – |
 | Issue parts from stock | ✓ | ✓ | – | – | – | – |
 | See **selling** price of parts | ✓ | ✓ | ✓ | – | – | – |
-| See **purchase** price, margins, supplier terms | ✓ | ✓ | – | – | – | – |
+| See **purchase** price of parts, supplier terms | ✓ | ✓ | – | – | – | – |
+| See labour cost, pay rates, margins and job profit | ✓ | – | – | – | – | – |
 | Create purchase orders | ✓ | ✓ (limit, e.g. RM 5,000) | – | – | – | – |
 | Approve POs above limit, quotes, discounts | ✓ | – | – | – | – | – |
 | Quality check & close job | ✓ | ✓ | – | – | – | – |
 | Invoicing and financial reports | ✓ | View | – | – | – | – |
-| Staff profiles, pay rates | ✓ | View (no pay) | Own profile | Own profile | Own profile | Own profile |
+| Staff profiles | ✓ | View (no pay rates) | Own profile | Own profile | Own profile | Own profile |
+
+**Cost visibility rule:** the Boss sees every cost. The Supervisor sees part purchase prices only (needed to buy stock and raise POs), never labour cost, pay rates or margins. Mechanics and crew see no costs.
 
 Everyone logs in with their own account, which gives a clean audit trail ("who changed this job to Completed, and when").
 
@@ -200,7 +203,7 @@ Two levels:
 - **Workload:** current jobs, hours logged this week, utilisation (billable vs. clocked hours)
 - **Performance:** jobs completed, comebacks, average job duration by category
 - **Leave and attendance**
-- **Pay rates** (Boss only), used for internal job costing
+- **Pay rates** (Boss only), used for internal labour costing and margin. Hidden from the Supervisor.
 
 ### 5.7 Customers, quotes and invoicing
 
@@ -213,7 +216,7 @@ Two levels:
 ### 5.8 Reports
 
 - Jobs by category, status and mechanic over a period
-- Revenue and gross margin by category (which line of business earns most: hydraulics, fabrication, painting…)
+- Revenue and gross margin by category (Boss only) (which line of business earns most: hydraulics, fabrication, painting…)
 - Mechanic utilisation and productivity
 - Turnaround time per category, and on-time completion rate
 - Comeback rate per mechanic and per job category

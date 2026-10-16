@@ -290,7 +290,7 @@ body[data-role="mechanic"] .cost, body[data-role="mechanic"] .boss, body[data-ro
   </div>
 </header>
 
-<div class="wrap"><p class="sample-note">Prototype with example data (today is set to 16 Oct 2026). Changes you make stay until the page reloads. Switch "Viewing as" to see what each role sees: mechanics see only their own jobs and no cost prices.</p></div>
+<div class="wrap"><p class="sample-note">Prototype with example data (today is set to 16 Oct 2026). Changes you make stay until the page reloads. Switch "Viewing as" to see what each role sees. Boss sees all costs. Supervisor sees part purchase prices but not labour cost or margins. Mechanics see only their own jobs and no costs.</p></div>
 
 <main class="wrap">
   <section class="view" id="v-dashboard"></section>
@@ -673,8 +673,8 @@ function renderInventory(){
       <label><input type="checkbox" id="invLow" ${state.invLow?'checked':''}> Below minimum only</label>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Part no.</th><th>Description</th><th>Fits</th><th>Supplier</th><th class="r cost">Purchase</th><th class="r">Selling</th><th class="r cost">Margin</th><th class="r">On hand</th><th class="r">Min</th><th>Bin</th></tr></thead>
-      <tbody>${list.map(([k,p])=>`<tr><td class="mono">${esc(p.no)}</td><td>${esc(p.desc)}<br><small class="muted">${esc(p.cat)}</small></td><td>${p.fits.includes('ALL')?'<span class="muted">All</span>':p.fits.map(f=>esc(models[f].model)).join(', ')}</td><td>${esc(suppliers[p.sup].name)}</td><td class="r num cost">${RM(p.cost)}</td><td class="r num">${RM(p.sell)}</td><td class="r num cost">${Math.round((p.sell-p.cost)/p.sell*100)}%</td><td class="r num ${p.qty===0?'stock-out':p.qty<p.min?'stock-low':''}">${p.qty} ${p.uom}${p.onOrder?`<br><small class="muted">+${p.onOrder} on order</small>`:''}</td><td class="r num">${p.min}</td><td class="mono">${p.bin}</td></tr>`).join('')||'<tr><td colspan="10" class="muted">No parts match.</td></tr>'}</tbody>
+      <thead><tr><th>Part no.</th><th>Description</th><th>Fits</th><th>Supplier</th><th class="r cost">Purchase</th><th class="r">Selling</th><th class="r boss">Margin</th><th class="r">On hand</th><th class="r">Min</th><th>Bin</th></tr></thead>
+      <tbody>${list.map(([k,p])=>`<tr><td class="mono">${esc(p.no)}</td><td>${esc(p.desc)}<br><small class="muted">${esc(p.cat)}</small></td><td>${p.fits.includes('ALL')?'<span class="muted">All</span>':p.fits.map(f=>esc(models[f].model)).join(', ')}</td><td>${esc(suppliers[p.sup].name)}</td><td class="r num cost">${RM(p.cost)}</td><td class="r num">${RM(p.sell)}</td><td class="r num boss">${Math.round((p.sell-p.cost)/p.sell*100)}%</td><td class="r num ${p.qty===0?'stock-out':p.qty<p.min?'stock-low':''}">${p.qty} ${p.uom}${p.onOrder?`<br><small class="muted">+${p.onOrder} on order</small>`:''}</td><td class="r num">${p.min}</td><td class="mono">${p.bin}</td></tr>`).join('')||'<tr><td colspan="10" class="muted">No parts match.</td></tr>'}</tbody>
     </table></div>
     <div class="cost" style="display:flex;flex-direction:column;gap:8px"><h3>Suppliers</h3><div class="tbl-wrap"><table><thead><tr><th>Supplier</th><th>Location</th><th>Phone</th><th>Terms</th><th>Lead time</th><th class="r">Parts</th></tr></thead><tbody>
       ${Object.entries(suppliers).map(([k,s])=>`<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.city)}</td><td class="mono">${esc(s.contact)}</td><td>${esc(s.terms)}</td><td>${esc(s.lead)}</td><td class="r num">${Object.values(parts).filter(p=>p.sup===k).length}</td></tr>`).join('')}
@@ -738,12 +738,12 @@ function openJob(id){
     </div></div>
     <div class="sect"><h3>Team &amp; labour</h3><div class="in">
       <div style="display:flex;gap:10px;flex-wrap:wrap">${j.lead?[j.lead,...j.team].map((s,i)=>`<span style="display:inline-flex;gap:6px;align-items:center">${avatar(s)} ${esc(staff[s].name)} <span class="muted">${i===0?'Lead':esc(staff[s].role)}</span></span>`).join(''):'<span class="due over">No one assigned yet</span>'}</div>
-      ${j.labour.length?`<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Person</th><th class="r">Hours</th><th class="r cost">Internal cost</th></tr></thead><tbody>${j.labour.map(l=>`<tr><td class="num">${fmtD(l.d)}</td><td>${esc(staff[l.s].name)}</td><td class="r num">${l.h}</td><td class="r num cost">${RM(l.h*staff[l.s].rate)}</td></tr>`).join('')}</tbody></table></div>`:''}
+      ${j.labour.length?`<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Person</th><th class="r">Hours</th><th class="r boss">Labour cost</th></tr></thead><tbody>${j.labour.map(l=>`<tr><td class="num">${fmtD(l.d)}</td><td>${esc(staff[l.s].name)}</td><td class="r num">${l.h}</td><td class="r num boss">${RM(l.h*staff[l.s].rate)}</td></tr>`).join('')}</tbody></table></div>`:''}
       ${canEdit?`<form class="filters" data-form="labour" data-jid="${j.id}"><select class="field" id="labS">${[j.lead,...j.team].filter(Boolean).concat(state.role==='mechanic'?[]:staffOpts.filter(s=>s!==j.lead&&!j.team.includes(s))).map(s=>`<option value="${s}">${esc(staff[s].name)}</option>`).join('')}</select><input type="number" id="labH" min="0.25" step="0.25" placeholder="Hours" style="width:90px"><button class="btn small">Log time</button></form>`:''}
     </div></div>
     <div class="sect"><h3>Parts</h3>
       ${j.parts.length?`<div class="tbl-wrap" style="border:0;border-radius:0"><table><thead><tr><th>Part</th><th class="r">Qty</th><th class="r">In stock</th><th class="r">Sell</th><th class="r cost">Cost</th></tr></thead><tbody>${j.parts.map(x=>{const p=parts[x.p];return `<tr><td><span class="mono">${esc(p.no)}</span><br>${esc(p.desc)}</td><td class="r num">${x.q} ${p.uom}</td><td class="r num ${p.qty<x.q?'stock-out':''}">${p.qty}</td><td class="r num">${RM(p.sell*x.q)}</td><td class="r num cost">${RM(p.cost*x.q)}</td></tr>`;}).join('')}</tbody></table></div>`:'<div class="in muted">No parts on this job.</div>'}
-      ${state.role==='mechanic'?'':`<div class="totals"><span>Parts</span><b>${RM(t.pSell)}</b><span>Labour ${t.hrs} h × ${RM(LABOUR_RATE)}${j.cat==='WARR'?' (warranty, not charged)':''}</span><b>${RM(t.lSell)}</b><span><b>Job value so far</b></span><b>${RM(t.total)}</b><span class="cost muted">Internal cost (parts + labour)</span><b class="cost muted">${RM(t.pCost+t.lCost)}</b></div>`}
+      ${state.role==='mechanic'?'':`<div class="totals"><span>Parts</span><b>${RM(t.pSell)}</b><span>Labour ${t.hrs} h × ${RM(LABOUR_RATE)}${j.cat==='WARR'?' (warranty, not charged)':''}</span><b>${RM(t.lSell)}</b><span><b>Job value so far</b></span><b>${RM(t.total)}</b><span class="cost muted">Parts purchase cost</span><b class="cost muted">${RM(t.pCost)}</b><span class="boss muted">Labour cost (pay rates)</span><b class="boss muted">${RM(t.lCost)}</b><span class="boss"><b>Gross margin</b></span><b class="boss">${RM(t.total-t.pCost-t.lCost)}${t.total?` (${Math.round((t.total-t.pCost-t.lCost)/t.total*100)}%)`:''}</b></div>`}
     </div>
     <div class="sect"><h3>Activity</h3><div class="in">
       ${canEdit?`<form class="filters" data-form="note" data-jid="${j.id}"><input type="text" id="newNote" placeholder="Add a note or update" style="flex:1 1 220px"><button class="btn small">Post</button></form>`:''}
@@ -758,7 +758,7 @@ function openStaff(s){
     <div class="sect"><h3>Profile <span class="state ${st.k}">${st.t}</span></h3><div class="facts">
       <div><span class="label">Phone</span><b class="mono">${esc(p.phone)}</b></div>
       <div><span class="label">Joined</span><b>${fmtDY(p.joined)}</b></div>
-      <div class="cost boss"><span class="label">Pay rate</span><b class="num">${RM(p.rate)}/h</b></div>
+      <div class="boss"><span class="label">Pay rate</span><b class="num">${RM(p.rate)}/h</b></div>
       <div><span class="label">Emergency contact</span><b class="muted">Not recorded</b></div>
     </div></div>
     <div class="sect"><h3>Skills</h3><div class="in"><div class="tags">${p.skills.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div></div></div>
