@@ -350,3 +350,32 @@ Before phase 1, load the existing data: current machines in the workshop and yar
 4. Do any customers have service contracts (fixed monthly PM) that need separate billing?
 5. Is SST registration in place (affects invoice format)?
 6. Is there more than one workshop or yard location?
+
+---
+
+## 11. Agreed additions (October 2026)
+
+These were chosen by the owner from the improvement list and are shown working in the prototype.
+
+| # | Feature | How it works | Who |
+|---|---|---|---|
+| 1 | **Parts request & approval** | Mechanic taps *Request part* on the job (part list filtered to the machine model). Supervisor sees requests on the dashboard and in Parts → Requests, then **Issues** (stock goes down, part is added to the job, movement recorded) or **Rejects**. Issuing more than is on the shelf is blocked. | Request: crew on the job. Issue/reject: Supervisor, Boss |
+| 2 | **QC checklist before release** | Every job gets a QC list (5 standard checks + 1 per category, e.g. "Pressure readings recorded against spec" for hydraulics). The job cannot move to *Ready for Pickup* until every item is ticked. | Supervisor, Boss |
+| 4 | **Customer sign-off on handover** | On *Ready for Pickup*: customer name, hour meter out and signature drawn on the phone/tablet. Confirming closes the job and updates the machine's hour meter. A job cannot be closed without it. | Supervisor, Boss |
+| 6 | **Today's plan** | Dashboard panel: each crew member with a job picker for today. Planning someone onto a job adds them to the job team. Mechanics see "Your plan today". | Set by Supervisor, Boss |
+| 7 | **Bay status** | Dashboard "Workshop floor": Bay 1–5, fabrication bay, paint bay, long-stay yards A/B and field jobs, each showing machine, job, status and lead. Free bays are marked. The New Job form shows which bays are in use. | Everyone |
+| 8 | **Days in status** | Every job card and the jobs list show "4 d in Awaiting Parts". Amber/red when a job sits too long (Received 1/2 days, In Progress 7/14 days, others 3/7 days). Stuck jobs go to *Needs attention*. | Everyone |
+| 9 | **Purchase orders** | *Create purchase order* pre-fills parts below minimum and not already on order, picks the cheapest supplier per line, and raises one PO per supplier. POs over **RM 5,000** raised by the Supervisor wait for Boss approval. *Receive goods* (full or partial) adds stock, reduces on-order and updates the purchase price. Late POs are flagged. | Supervisor, Boss |
+| 10 | **Stock movement history** | Every receive, issue and stock-take adjustment is logged with date, quantity, reference (job or PO) and person. Viewable per part or for all parts. | Supervisor, Boss (mechanics see stock levels only) |
+| 11 | **Supplier price comparison** | Each part keeps the last quoted price from every supplier. Part page shows them side by side with the lowest marked; the stock list hints when another supplier is cheaper. | Supervisor, Boss |
+| 12 | **Machine QR label** | Each machine page shows a printable QR sticker (model, serial, owner). Scanning it in the app opens the machine's history, open jobs and parts list. | Everyone |
+| 15 | **Weekly schedule** | Team page grid: one row per crew member, Mon–Sat, job or leave per day, with week navigation. Today's column feeds the dashboard plan. | Edit: Supervisor, Boss. Mechanics see their own row |
+| 16 | **Comebacks per mechanic** | A warranty/comeback job links to the original job; the comeback is counted against the original lead mechanic on the team card, profile and productivity report. | Boss only |
+| 17 | **Monthly reports** | Revenue, parts cost, labour cost and gross margin by job category; revenue by month; margin % trend; crew utilisation (billable vs clocked hours), jobs closed and comebacks. | Boss only |
+| 18 | **Daily 6 pm summary** | WhatsApp (or email) to the Boss every day: jobs closed, new jobs, emergencies, jobs by stage, overdue, parts issued value, POs raised and waiting approval, crew on jobs, top items needing attention. | Boss |
+
+Status rules added by these features:
+
+- *Quality Check → Ready for Pickup* requires the full QC checklist.
+- *Ready for Pickup → Closed* requires the customer handover and signature.
+- Moving a job to a new status resets its "days in status" counter.
