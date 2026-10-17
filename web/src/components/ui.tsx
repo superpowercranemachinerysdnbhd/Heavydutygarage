@@ -26,7 +26,6 @@ export function daysInStatus(since: Date): number {
 }
 export function dueInfo(j: { status: Status; dueDate: string; closedAt: string | null }, t: T, locale: Locale): { cls: string; text: string } {
   if (j.status === "closed") return { cls: "", text: t("due.closed", { date: fmtDate(j.closedAt ?? j.dueDate, false, locale) }) };
-  if (j.status === "ready_for_pickup") return { cls: "", text: t("due.ready") };
   const n = daysBetween(today(), j.dueDate);
   if (n < 0) return { cls: "over", text: t("due.overdue", { n: -n }) };
   if (n === 0) return { cls: "soon", text: t("due.today") };

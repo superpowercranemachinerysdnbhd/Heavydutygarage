@@ -103,6 +103,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
         </div>
         <div><h4>{t("rep.complaint")}</h4><p>{job.complaint}</p></div>
         <div><h4>{t("rep.findings")}</h4><p>{job.diagnosis || "—"}</p></div>
+        <div><h4>{t("rep.workDone")}</h4><p style={{ whiteSpace: "pre-line" }}>{job.workDone || "—"}</p></div>
         <div><h4>{t("rep.work")}</h4>{tasks.filter((x) => x.doneAt).length ? <ul>{tasks.filter((x) => x.doneAt).map((x) => <li key={x.id}>{x.description}</li>)}</ul> : <p>—</p>}</div>
         <div><h4>{t("rep.parts")}</h4>{issued.length ? (
           <div className="dt"><table><thead><tr><th>{t("parts.partNo")}</th><th>{t("parts.description")}</th><th className="r">{t("po.qty")}</th>{o.prices && <><th className="r">{t("po.unitPrice")}</th><th className="r">{t("col.amount")}</th></>}</tr></thead>
@@ -117,7 +118,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           <div key={s} className="photos" style={{ marginBottom: 8 }}>{l.map((p) => <figure key={p.id} className="photo"><img src={`/api/photos/${p.id}`} alt={p.caption ?? stageLabel(t, s)} /><figcaption><span className="stage">{stageLabel(t, s)}</span> {p.caption}</figcaption></figure>)}</div>
         ))}</div>}
         {o.qc && qc.length > 0 && <div><h4>{t("job.qc")}</h4><div className="dt"><table><tbody>{qc.map((q) => {
-          const pending = !q.passedAt && !["quality_check", "ready_for_pickup", "closed"].includes(job.status);
+          const pending = !q.passedAt && job.status !== "closed";
           return <tr key={q.id}><td>{q.itemKey ? t(qcMessageKey(q.itemKey)) : q.item}</td><td className={`r ${q.passedAt ? "ok" : pending ? "" : "no"}`}>{q.passedAt ? t("rep.pass") : pending ? t("rep.pending") : t("rep.notDone")}</td></tr>;
         })}</tbody></table></div></div>}
         <div><h4>{t("rep.recommendations")}</h4><p className="rec">{rec || "—"}</p></div>

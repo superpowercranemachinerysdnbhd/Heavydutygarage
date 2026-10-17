@@ -28,7 +28,7 @@ export default async function EditJobPage({ params, searchParams }: { params: Pr
   const [row] = Number.isInteger(id) ? await db.select({ job: schema.jobs, unit: schema.machineUnits, model: schema.machineModels }).from(schema.jobs)
     .innerJoin(schema.machineUnits, eq(schema.jobs.unitId, schema.machineUnits.id)).innerJoin(schema.machineModels, eq(schema.machineUnits.modelId, schema.machineModels.id))
     .where(eq(schema.jobs.id, id)) : [];
-  if (!row || row.job.status === "closed") notFound();
+  if (!row) notFound();
   const { job, unit, model } = row;
   return (
     <div className="page" style={{ maxWidth: 900 }}>

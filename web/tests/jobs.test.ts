@@ -6,35 +6,31 @@ import { translator } from "../src/i18n/index";
 
 const base = { isOnJob: true, qcTotal: 6, qcPassed: 6, signedOff: false } as const;
 
-test("mechanic can move own job between crew statuses only", () => {
+test("mechanic can move own job between crew stages only", () => {
   assert.equal(checkTransition({ ...base, role: "mechanic", from: "received", to: "in_progress" }).ok, true);
-  assert.equal(checkTransition({ ...base, role: "mechanic", from: "in_progress", to: "quality_check" }).ok, true);
-  assert.equal(checkTransition({ ...base, role: "mechanic", from: "quality_check", to: "ready_for_pickup" }).ok, false);
   assert.equal(checkTransition({ ...base, role: "mechanic", from: "in_progress", to: "awaiting_parts" }).ok, true);
+  assert.equal(checkTransition({ ...base, role: "mechanic", from: "in_progress", to: "closed" }).ok, false);
   assert.equal(checkTransition({ ...base, role: "mechanic", from: "in_progress", to: "received" }).ok, false);
   assert.equal(checkTransition({ ...base, role: "mechanic", isOnJob: false, from: "received", to: "in_progress" }).ok, false);
 });
 
-test("release needs the full QC checklist", () => {
-  const r = checkTransition({ ...base, role: "supervisor", from: "quality_check", to: "ready_for_pickup", qcPassed: 5 });
+test("completing needs every quality check ticked (if the job has any)", () => {
+  const r = checkTransition({ ...base, role: "supervisor", from: "in_progress", to: "closed", qcPassed: 5 });
   assert.equal(r.ok, false);
-  assert.equal(checkTransition({ ...base, role: "supervisor", from: "quality_check", to: "ready_for_pickup" }).ok, true);
+  assert.equal((r as { reason: string }).reason, "tr.qc");
+  assert.equal(checkTransition({ ...base, role: "supervisor", from: "in_progress", to: "closed" }).ok, true);
+  assert.equal(checkTransition({ ...base, role: "supervisor", from: "in_progress", to: "closed", qcTotal: 0, qcPassed: 0 }).ok, true);
 });
 
-test("closing needs QC and customer sign-off", () => {
-  assert.equal(checkTransition({ ...base, role: "boss", from: "ready_for_pickup", to: "closed" }).ok, false);
-  assert.equal(checkTransition({ ...base, role: "boss", from: "ready_for_pickup", to: "closed", signedOff: true }).ok, true);
-  assert.equal(checkTransition({ ...base, role: "boss", from: "in_progress", to: "closed", qcPassed: 0, signedOff: true }).ok, false);
+test("a completed job can't be moved (it is reopened instead); sign-off is not needed to complete", () => {
+  assert.equal(checkTransition({ ...base, role: "boss", from: "closed", to: "in_progress" }).ok, false);
+  assert.equal(checkTransition({ ...base, role: "boss", from: "awaiting_parts", to: "closed", signedOff: false }).ok, true);
 });
 
-test("release is blocked while tasks are open", () => {
-  const r = checkTransition({ ...base, role: "supervisor", from: "quality_check", to: "ready_for_pickup", tasksOpen: 1 });
+test("completing is blocked while tasks are open", () => {
+  const r = checkTransition({ ...base, role: "supervisor", from: "in_progress", to: "closed", tasksOpen: 1 });
   assert.equal(r.ok, false);
   assert.equal((r as { reason: string }).reason, "tr.tasksOpen");
-});
-
-test("closed jobs cannot be reopened", () => {
-  assert.equal(checkTransition({ ...base, role: "boss", from: "closed", to: "in_progress" }).ok, false);
 });
 
 test("job numbers run per year", () => {

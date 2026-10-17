@@ -59,6 +59,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const qcDone = qc.filter((q) => q.passedAt).length;
   const due = dueInfo(job, t, locale);
   const hidden = (n: string, v: string | number) => <input type="hidden" name={n} value={v} />;
+  const canWrite = open || can(user.role, "job.editDetails");
   const qcText = (q: (typeof qc)[number]) => (q.itemKey ? t(qcMessageKey(q.itemKey)) : q.item);
 
   return (
@@ -70,7 +71,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           <h1>{model.make} {model.model}</h1>
           <span className="mono">{unitRef(unit)} · {customer.name}</span>
         </div>
-        {can(user.role, "job.editDetails") && open && <Link className="btn small primary" href={`/jobs/${job.id}/edit`}>{t("job.edit")}</Link>}
+        {can(user.role, "job.editDetails") && <Link className="btn small primary" href={`/jobs/${job.id}/edit`}>{t("job.edit")}</Link>}
+        {!open && can(user.role, "job.anyStatus") && <form action={A.reopenJob}>{hidden("jobId", job.id)}<SubmitButton className="btn small">{t("job.reopen")}</SubmitButton></form>}
         <a className="btn small" href="#chat">{t("chat.jobChat")}</a>
         {can(user.role, "job.report") && <Link className="btn small" href={`/jobs/${job.id}/report`}>{open ? t("job.interimReport") : t("job.report")}</Link>}
       </div>
@@ -92,13 +94,18 @@ export default async function JobPage({ params, searchParams }: { params: Promis
 
       <div className="job-cols">
         <div className="stack">
-          <section className="sect"><h3>{t("job.complaintDiag")}</h3><div className="in">
+          <section className="sect" id="writeup"><h3>{t("job.writeup")}</h3><div className="in">
             <div><span className="label">{t("job.complaint")}{job.reportedBy ? ` · ${t("job.reportedBy", { name: job.reportedBy })}` : ""}</span><p style={{ margin: "2px 0 0" }}>{job.complaint}</p></div>
-            <form action={A.saveDiagnosis} className="stack" style={{ gap: 6 }}>
+            <form action={A.saveWriteup} className="form" style={{ gridTemplateColumns: "1fr" }}>
               {hidden("jobId", job.id)}
-              <label className="label" htmlFor="diagnosis">{t("job.diagnosis")}</label>
-              <textarea id="diagnosis" name="diagnosis" rows={3} defaultValue={job.diagnosis} disabled={!open} placeholder={t("job.diagnosisPh")} />
-              {open && <div><SubmitButton>{t("job.saveDiagnosis")}</SubmitButton></div>}
+              <label>{t("job.diagnosis")}<textarea name="diagnosis" rows={3} defaultValue={job.diagnosis} disabled={!canWrite} placeholder={t("job.diagnosisPh")} /></label>
+              <label>{t("job.workDone")}<textarea name="workDone" rows={4} defaultValue={job.workDone} disabled={!canWrite} placeholder={t("job.workDonePh")} /></label>
+              <label>{t("job.recommendations")}<textarea name="recommendations" rows={2} defaultValue={job.recommendations ?? ""} disabled={!canWrite} placeholder={t("job.recommendationsPh")} /></label>
+              <div className="form" style={{ gridTemplateColumns: "minmax(0,1fr) 170px", gap: 10 }}>
+                <label>{t("job.followUp")}<textarea name="followUp" rows={2} defaultValue={job.followUp ?? ""} disabled={!canWrite} placeholder={t("job.followUpPh")} /></label>
+                <label>{t("job.followUpDate")}<input type="date" name="followUpDate" defaultValue={job.followUpDate ?? ""} disabled={!canWrite} /></label>
+              </div>
+              {canWrite && <div><SubmitButton className="btn small primary">{t("job.saveWriteup")}</SubmitButton></div>}
             </form>
           </div></section>
 
@@ -242,7 +249,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {qc.map((q) => (
               <div key={q.id} className={`task ${q.passedAt ? "done" : ""}`}>
                 <form action={A.toggleQc}>{hidden("jobId", job.id)}{hidden("qcId", q.id)}
-                  <button className="tick" disabled={!can(user.role, "job.qc") || job.status !== "quality_check"} aria-label={`${t("job.qc")}: ${qcText(q)}`}>{q.passedAt ? "✓" : ""}</button></form>
+                  <button className="tick" disabled={!can(user.role, "job.qc") || !open} aria-label={`${t("job.qc")}: ${qcText(q)}`}>{q.passedAt ? "✓" : ""}</button></form>
                 <span>{qcText(q)}</span>
                 {open && can(user.role, "job.qc") && !q.passedAt && <form action={A.removeQcItem} style={{ marginLeft: "auto" }}>{hidden("jobId", job.id)}{hidden("qcId", q.id)}<button className="linkbtn muted" aria-label={`${t("common.remove")}: ${qcText(q)}`}>✕</button></form>}
               </div>
@@ -257,10 +264,10 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               </form>
               {suggestions.length > 0 && <form action={A.addQcItem}>{hidden("jobId", job.id)}{hidden("standard", 1)}<SubmitButton className="linkbtn">{`+ ${t("qc.addStandard")} (${suggestions.length})`}</SubmitButton></form>}
             </>)}
-            <small className="muted">{job.status === "quality_check" ? t("job.qcHelpNow") : idx > STATUSES.indexOf("quality_check") ? t("job.qcPassed") : t("job.qcLater")}</small>
+            <small className="muted">{open ? t("job.qcHelpNow") : t("job.qcPassed")}</small>
           </div></section>
 
-          {(job.status === "ready_for_pickup" || job.signoffAt) && (
+          {job.status === "closed" && (
             <section className="sect"><h3>{t("job.handover")} {job.signoffAt && <span className="pill ok">{t("job.signed")}</span>}</h3>
               {job.signoffAt ? (
                 <div className="facts">

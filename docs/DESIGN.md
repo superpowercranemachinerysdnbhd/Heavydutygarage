@@ -480,3 +480,10 @@ How it works: the built-in entries stay in code (`src/lib/lists.ts`) and keep th
   - *From our stock*: requested by the crew or issued by the Supervisor from any stock part (parts that fit the machine are listed first). Stock and average cost update as before.
   - *Bought for this job*: parts bought from a supplier for this job only (not stock): description, part no., supplier, quantity, cost, selling price (blank = cost + markup set in Settings, default 25%), invoice no. and date. Head Manager and Supervisor only; mechanics see the lines without prices.
 - Both kinds count in the job value, gross margin, dashboard value of open jobs and the customer's service report.
+
+## 19. Four job stages and the job report
+
+- **Stages:** Received → In Progress → Pending Parts → **Completed**. Quality Check and Ready are no longer stages (existing jobs moved: Quality Check → In Progress, Ready → Completed). Crew move their jobs between In Progress and Pending Parts; the Head Manager or Supervisor marks a job Completed once every task is done and every quality check on the job is ticked. Checks can be ticked any time before completion.
+- **Customer handover** (name, hour meter, signature) is recorded after the job is Completed, when the customer collects.
+- **Job report** on every job: customer complaint, diagnosis / findings, **work carried out**, **recommendations to the customer** (both printed on the service report) and **follow-up / status remarks** with a follow-up date (internal). Follow-ups that are due appear in the dashboard's attention list until the remark is cleared.
+- **Completed jobs can be edited** by the Head Manager and Supervisor (Edit job and the job report) and **reopened** (back to In Progress) if more work is needed.

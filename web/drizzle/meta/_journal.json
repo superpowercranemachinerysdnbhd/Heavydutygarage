@@ -50,6 +50,13 @@
       "when": 1792230931252,
       "tag": "0006_job_purchases",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792238777576,
+      "tag": "0007_four_stages_writeup",
+      "breakpoints": true
     }
   ]
 }

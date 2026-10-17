@@ -5,19 +5,20 @@ import type { MessageKey, Vars } from "@/i18n";
 
 /** Job category code: built-in (EMG, DIAG, PM, …) or added in Settings. Names and colours: lib/lists. */
 export type Category = string;
-export type Status = "received" | "in_progress" | "awaiting_parts" | "quality_check" | "ready_for_pickup" | "closed";
+/** Job stages: Received → In Progress → Pending Parts → Completed ("closed"). The database enum still holds retired values. */
+export type Status = "received" | "in_progress" | "awaiting_parts" | "closed";
 export type Priority = "critical" | "high" | "normal" | "low";
 
-export const STATUSES: Status[] = ["received", "in_progress", "awaiting_parts", "quality_check", "ready_for_pickup", "closed"];
+export const STATUSES: Status[] = ["received", "in_progress", "awaiting_parts", "closed"];
 export const PRIORITIES: Priority[] = ["critical", "high", "normal", "low"];
 /** CSS class per priority (styling only). */
 export const PRIORITY_CLASS: Record<Priority, string> = { critical: "Critical", high: "High", normal: "Normal", low: "Low" };
 
 /** Jobs still being worked on (a mechanic's jobs "on hand"): not yet Ready or Closed. */
-export const ON_HAND: Status[] = ["received", "in_progress", "awaiting_parts", "quality_check"];
+export const ON_HAND: Status[] = ["received", "in_progress", "awaiting_parts"];
 
 /** Statuses crew members (not boss/supervisor) may move their own job between. */
-export const CREW_STATUSES: Status[] = ["in_progress", "awaiting_parts", "quality_check"];
+export const CREW_STATUSES: Status[] = ["in_progress", "awaiting_parts"];
 
 export const qcMessageKey = (k: string) => `qc.${k}` as MessageKey;
 
@@ -34,10 +35,10 @@ export function checkTransition(args: {
     if (!isOnJob) return { ok: false, reason: "tr.notOnJob" };
     if (!CREW_STATUSES.includes(to)) return { ok: false, reason: "tr.supOnly", vars: { status: to } };
   }
-  const releasing = to === "ready_for_pickup" || to === "closed";
-  if (releasing && tasksOpen > 0) return { ok: false, reason: "tr.tasksOpen", vars: { n: tasksOpen } };
-  if (releasing && (qcTotal === 0 || qcPassed < qcTotal)) return { ok: false, reason: "tr.qc" };
-  if (to === "closed" && !signedOff) return { ok: false, reason: "tr.signoff" };
+  // Completing: every task done and every quality check (if the job has any) ticked. Customer sign-off can follow later.
+  if (to === "closed" && tasksOpen > 0) return { ok: false, reason: "tr.tasksOpen", vars: { n: tasksOpen } };
+  if (to === "closed" && qcPassed < qcTotal) return { ok: false, reason: "tr.qc" };
+  void signedOff;
   return { ok: true };
 }
 

@@ -226,6 +226,33 @@ export async function updateDetails(form: FormData) {
   back(user, jobId, { ok: "ok.detailsSaved" });
 }
 
+/** The job write-up: diagnosis, work carried out, recommendations to the customer and internal follow-up.
+ *  Anyone on the job while it is open; the Head Manager and Supervisor also after it is completed. */
+export async function saveWriteup(form: FormData) {
+  const user = await requireUser();
+  const jobId = num(form, "jobId");
+  const { job } = await access(jobId, user);
+  if (job.status === "closed" && !can(user.role, "job.editDetails")) back(user, jobId, { error: "err.jobClosed", hash: "writeup" });
+  const fu = str(form, "followUpDate");
+  await db.update(jobs).set({
+    diagnosis: str(form, "diagnosis"), workDone: str(form, "workDone"), recommendations: str(form, "recommendations") || null,
+    followUp: str(form, "followUp") || null, followUpDate: /^\d{4}-\d{2}-\d{2}$/.test(fu) && str(form, "followUp") ? fu : null,
+  }).where(eq(jobs.id, jobId));
+  await addActivity(jobId, user.id, "act.writeup", { name: user.name });
+  back(user, jobId, { ok: "ok.writeupSaved", hash: "writeup" });
+}
+
+/** Reopen a completed job (Head Manager or Supervisor), e.g. to add work or parts. */
+export async function reopenJob(form: FormData) {
+  const user = await requirePermission("job.anyStatus");
+  const jobId = num(form, "jobId");
+  const { job } = await access(jobId, user);
+  if (job.status !== "closed") back(user, jobId);
+  await db.update(jobs).set({ status: "in_progress", statusSince: new Date(), closedAt: null }).where(eq(jobs.id, jobId));
+  await addActivity(jobId, user.id, "act.reopened", { name: user.name });
+  back(user, jobId, { ok: "ok.reopened" });
+}
+
 export async function saveDiagnosis(form: FormData) {
   const user = await requireUser();
   const jobId = num(form, "jobId");
@@ -266,7 +293,7 @@ export async function toggleQc(form: FormData) {
   const user = await requirePermission("job.qc");
   const jobId = num(form, "jobId"), qcId = num(form, "qcId");
   const { job } = await access(jobId, user);
-  if (job.status !== "quality_check") back(user, jobId, { error: "err.qcOnlyInQc" });
+  if (job.status === "closed") back(user, jobId, { error: "err.jobClosed", hash: "qc" });
   const [q] = await db.select().from(schema.jobQc).where(and(eq(schema.jobQc.id, qcId), eq(schema.jobQc.jobId, jobId)));
   if (!q) back(user, jobId, { error: "err.qcNotFound" });
   await db.update(schema.jobQc).set(q.passedAt ? { passedAt: null, passedBy: null } : { passedAt: new Date(), passedBy: user.id }).where(eq(schema.jobQc.id, qcId));
@@ -329,7 +356,7 @@ export async function handover(form: FormData) {
   const jobId = num(form, "jobId");
   const { job } = await access(jobId, user);
   const name = str(form, "name"), hm = num(form, "hourMeter"), sig = str(form, "signature");
-  if (job.status !== "ready_for_pickup") back(user, jobId, { error: "err.handoverStatus" });
+  if (job.status !== "closed" || job.signoffAt) back(user, jobId, { error: "err.handoverStatus" });
   if (!name || !(hm > 0)) back(user, jobId, { error: "err.handoverFields" });
   const m = sig.match(/^data:image\/png;base64,([A-Za-z0-9+/=]+)$/);
   if (!m || m[1].length < 200) back(user, jobId, { error: "err.signature" });
@@ -340,7 +367,6 @@ export async function handover(form: FormData) {
   await db.transaction(async (tx) => {
     await tx.update(jobs).set({
       signoffName: name, signoffHourMeter: hm, signoffAt: new Date(), signoffBy: user.id, signaturePath,
-      status: "closed", statusSince: new Date(), closedAt: today(),
     }).where(eq(jobs.id, jobId));
     const [unit] = await tx.select().from(schema.machineUnits).where(eq(schema.machineUnits.id, job.unitId));
     await tx.update(schema.machineUnits).set({ hourMeter: Math.max(unit.hourMeter, hm), location: "Customer site", arrivedAt: null }).where(eq(schema.machineUnits.id, job.unitId));

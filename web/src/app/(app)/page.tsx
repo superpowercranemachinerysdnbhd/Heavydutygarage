@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { and, isNotNull, lte } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { can, CREW_ROLES } from "@/lib/permissions";
@@ -58,12 +59,12 @@ export default async function Dashboard() {
   const d = today();
   const emg = open.filter((j) => j.category === "EMG").length;
   const overdue = open.filter((j) => dueInfo(j, t, locale).cls === "over");
-  const dueWeek = open.filter((j) => j.dueDate >= d && j.dueDate <= addDays(d, 6) && j.status !== "ready_for_pickup").length;
+  const dueWeek = open.filter((j) => j.dueDate >= d && j.dueDate <= addDays(d, 6) ).length;
   const sortJobs = (a: JobRow, b: JobRow) => PRIORITIES.indexOf(a.priority) - PRIORITIES.indexOf(b.priority) || a.dueDate.localeCompare(b.dueDate);
 
   // Crew today: who is on which active job (phase 3 adds a planned schedule).
   const crew = staff.filter((s) => CREW_ROLES.includes(s.role));
-  const activeJobs = open.filter((j) => ["in_progress", "awaiting_parts", "quality_check"].includes(j.status)).sort(sortJobs);
+  const activeJobs = open.filter((j) => ["in_progress", "awaiting_parts"].includes(j.status)).sort(sortJobs);
   const crewState = crew.map((s) => {
     const j = activeJobs.find((x) => x.leadId === s.id || x.teamIds.includes(s.id));
     const k = j ? (j.siteType === "field" ? "field" : "on") : "idle";
@@ -85,6 +86,12 @@ export default async function Dashboard() {
     });
   }
 
+  if (all) {
+    // Follow-ups that are due (open or completed jobs), set in each job's write-up.
+    const fu = await db.select({ id: schema.jobs.id, jobNo: schema.jobs.jobNo, note: schema.jobs.followUp, date: schema.jobs.followUpDate }).from(schema.jobs)
+      .where(and(isNotNull(schema.jobs.followUp), lte(schema.jobs.followUpDate, d)));
+    fu.forEach((f) => attention.push({ sev: "var(--info)", text: t("att.followUp", { no: f.jobNo, note: (f.note ?? "").slice(0, 80), date: fmtDate(f.date, false, locale) }), href: `/jobs/${f.id}#writeup` }));
+  }
   attention.push(...(await purchasingAlerts(user, locale)));
 
   return (
@@ -116,7 +123,7 @@ export default async function Dashboard() {
         <div className="stack" style={{ gap: 8 }}>
           <div className="label">{t("dash.board")}</div>
           <div className="board">
-            {STATUSES.slice(0, 5).map((s) => {
+            {STATUSES.slice(0, 3).map((s) => {
               const list = open.filter((j) => j.status === s).sort(sortJobs);
               return <div key={s} className="col"><div className="col-head"><h3>{statusLabel(t, s)}</h3><span className="num">{list.length}</span></div>
                 {list.map((j) => <JobCard key={j.id} j={j} names={names} t={t} locale={locale} />)}{list.length === 0 && <div className="empty-col">{t("dash.nothing")}</div>}</div>;

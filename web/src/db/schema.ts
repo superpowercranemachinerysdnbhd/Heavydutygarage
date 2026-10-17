@@ -121,6 +121,11 @@ export const jobs = pgTable("jobs", {
   reportedBy: varchar("reported_by", { length: 120 }),
   diagnosis: text("diagnosis").notNull().default(""),
   recommendations: text("recommendations"),
+  /** What was done, written by the mechanic or supervisor; printed on the service report. */
+  workDone: text("work_done").notNull().default(""),
+  /** Internal follow-up / status remarks and when to follow up (shows on the dashboard when due). */
+  followUp: text("follow_up"),
+  followUpDate: date("follow_up_date"),
   leadId: integer("lead_id").references(() => staff.id),
   hourMeterIn: integer("hour_meter_in"),
   openedAt: date("opened_at").notNull(),
