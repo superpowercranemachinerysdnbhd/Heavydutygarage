@@ -24,8 +24,9 @@ export function Notice({ error, ok }: { error?: string; ok?: string }) {
 export function daysInStatus(since: Date): number {
   return Math.max(0, daysBetween(dateOf(since), today()));
 }
-export function dueInfo(j: { status: Status; dueDate: string; closedAt: string | null }, t: T, locale: Locale): { cls: string; text: string } {
+export function dueInfo(j: { status: Status; dueDate: string | null; closedAt: string | null }, t: T, locale: Locale): { cls: string; text: string } {
   if (j.status === "closed") return { cls: "", text: t("due.closed", { date: fmtDate(j.closedAt ?? j.dueDate, false, locale) }) };
+  if (!j.dueDate) return { cls: "", text: t("due.none") };
   const n = daysBetween(today(), j.dueDate);
   if (n < 0) return { cls: "over", text: t("due.overdue", { n: -n }) };
   if (n === 0) return { cls: "soon", text: t("due.today") };

@@ -51,6 +51,8 @@ async function ensureOnTeam(jobId: number, staffId: number, leadId: number | nul
 /** Where the job is done: the "where" list (a bay/area, or outside with an address). Older forms send siteType + bay. */
 function locationFrom(form: FormData): { siteType: "workshop" | "field"; siteLocation: string } {
   const where = str(form, "where");
+  // "__tbd": not decided yet, stored as a workshop job with no bay.
+  if (where === "__tbd") return { siteType: "workshop", siteLocation: "" };
   if (where) return where === "__outside" ? { siteType: "field", siteLocation: str(form, "siteAddress") } : { siteType: "workshop", siteLocation: where };
   const siteType = str(form, "siteType") === "field" ? "field" : "workshop";
   return { siteType, siteLocation: siteType === "field" ? str(form, "siteAddress") : str(form, "bay") };
@@ -91,9 +93,9 @@ export async function createJob(form: FormData) {
   if (!newMachine && !unitId) fail("err.chooseMachine");
   await ensureLists();
   if (!isCategory(category) || !PRIORITIES.includes(priority)) fail("err.catPri");
-  if (!siteLocation) fail(siteType === "field" ? "err.siteAddress" : "err.bay");
-  if (siteType === "workshop" && !bayCodes().includes(siteLocation)) fail("err.bay");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) fail("err.due");
+  if (!siteLocation && siteType === "field") fail("err.siteAddress");
+  if (siteType === "workshop" && siteLocation && !bayCodes().includes(siteLocation)) fail("err.bay");
+  if (dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) fail("err.due");
   if (!complaint) fail("err.complaint");
   const before = photosFrom(form);
   if ("error" in before) fail(before.error, before.vars);
@@ -126,14 +128,14 @@ export async function createJob(form: FormData) {
     const [row] = await tx.insert(jobs).values({
       jobNo, category, priority, status: "received", unitId, siteType, siteLocation, complaint,
       reportedBy: str(form, "reportedBy") || null, leadId, hourMeterIn: Number.isFinite(hourMeter) && hourMeter > 0 ? hourMeter : unit.hourMeter,
-      openedAt: d, dueDate, parentJobId, createdBy: user.id,
+      openedAt: d, dueDate: dueDate || null, parentJobId, createdBy: user.id,
     }).returning({ id: jobs.id });
     // Quality checks are chosen per job on the job page (suggestions come from Settings).
     const params = { no: jobNo, name: user.name };
     await tx.insert(schema.jobActivity).values({ jobId: row.id, staffId: user.id, key: "act.created", params, text: activityText(en, { key: "act.created", params, text: "" }) });
     const unitUpdate: Partial<typeof schema.machineUnits.$inferInsert> = {};
     if (Number.isFinite(hourMeter) && hourMeter > unit.hourMeter) unitUpdate.hourMeter = hourMeter;
-    if (siteType === "workshop") { unitUpdate.location = `Workshop · ${siteLocation}`; if (!unit.arrivedAt) unitUpdate.arrivedAt = d; }
+    if (siteType === "workshop" && siteLocation) { unitUpdate.location = `Workshop · ${siteLocation}`; if (!unit.arrivedAt) unitUpdate.arrivedAt = d; }
     if (Object.keys(unitUpdate).length) await tx.update(schema.machineUnits).set(unitUpdate).where(eq(schema.machineUnits.id, unitId));
     return row.id;
   });
@@ -209,17 +211,17 @@ export async function updateDetails(form: FormData) {
   const { siteType, siteLocation } = locationFrom(form);
   const hm = str(form, "hourMeterIn");
   if (!(isCategory(category) || category === job.category) || !PRIORITIES.includes(priority)) fail("err.catPri");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) fail("err.due");
-  if (!siteLocation) fail(siteType === "field" ? "err.siteAddress" : "err.bay");
-  if (siteType === "workshop" && !bayCodes().includes(siteLocation) && siteLocation !== job.siteLocation) fail("err.bay");
+  if (dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) fail("err.due");
+  if (!siteLocation && siteType === "field") fail("err.siteAddress");
+  if (siteType === "workshop" && siteLocation && !bayCodes().includes(siteLocation) && siteLocation !== job.siteLocation) fail("err.bay");
   const complaint = str(form, "complaint");
   if (!complaint) fail("err.complaint");
   if (hm && !(Number.isInteger(Number(hm)) && Number(hm) >= 0)) fail("err.yearHm");
   await db.update(jobs).set({
-    category, priority, dueDate, siteType, siteLocation, complaint,
+    category, priority, dueDate: dueDate || null, siteType, siteLocation, complaint,
     reportedBy: str(form, "reportedBy") || null, ...(hm ? { hourMeterIn: Number(hm) } : {}),
   }).where(eq(jobs.id, jobId));
-  if (siteType === "workshop" && siteLocation !== job.siteLocation) {
+  if (siteType === "workshop" && siteLocation && siteLocation !== job.siteLocation) {
     await db.update(schema.machineUnits).set({ location: `Workshop · ${siteLocation}` }).where(eq(schema.machineUnits.id, job.unitId));
   }
   await addActivity(jobId, user.id, "act.details", { name: user.name });

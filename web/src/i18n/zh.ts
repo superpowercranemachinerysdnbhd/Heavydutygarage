@@ -1020,4 +1020,7 @@ export const zh: Messages = {
   "act.reopened": "{name} 重新开启了工单。",
   "att.followUp": "跟进 {no}（{date}）：{note}",
   "rep.workDone": "已完成的工作",
+  "due.none": "未定交期",
+  "loc.tbd": "未决定",
+  "f.dueOptional": "目标日期（可选）",
 };

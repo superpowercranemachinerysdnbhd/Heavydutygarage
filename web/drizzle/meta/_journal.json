@@ -57,6 +57,13 @@
       "when": 1792238777576,
       "tag": "0007_four_stages_writeup",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792248631378,
+      "tag": "0008_optional_due",
+      "breakpoints": true
     }
   ]
 }

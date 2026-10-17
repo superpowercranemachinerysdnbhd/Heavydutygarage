@@ -11,7 +11,7 @@ const { jobs, jobTeam, machineUnits, machineModels, customers, staff } = schema;
 
 export type JobRow = {
   id: number; jobNo: string; category: typeof jobs.$inferSelect["category"]; priority: typeof jobs.$inferSelect["priority"];
-  status: Status; statusSince: Date; siteType: "workshop" | "field"; siteLocation: string; openedAt: string; dueDate: string;
+  status: Status; statusSince: Date; siteType: "workshop" | "field"; siteLocation: string; openedAt: string; dueDate: string | null;
   closedAt: string | null; complaint: string; leadId: number | null; leadName: string | null; unitId: number;
   make: string; model: string; serialNo: string | null; plateNo: string | null; unitPhotoPath: string | null; customerName: string; teamIds: number[]; labourHours: number; partsValue: number;
 };

@@ -67,7 +67,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       <div className="crumbs"><Link href="/jobs">{t("nav.jobs")}</Link> / {job.jobNo}</div>
       <div className="job-head">
         <div className="job-head-main">
-          <span className="job-head-no">{job.jobNo} · {job.siteType === "field" ? t("job.fieldService") : t("job.workshop")} · {placeLabel(t, job.siteLocation)}</span>
+          <span className="job-head-no">{job.jobNo} · {job.siteLocation ? `${job.siteType === "field" ? t("job.fieldService") : t("job.workshop")} · ${placeLabel(t, job.siteLocation)}` : t("loc.tbd")}</span>
           {/* The plate number is how the workshop knows a machine; make and model when it has none. */}
           <h1 className={unit.plateNo ? "plate" : ""}>{unit.plateNo || `${model.make} ${model.model}`}</h1>
           <span className="job-head-sub">{unit.plateNo ? `${model.make} ${model.model}` : unit.serialNo ?? ""}{(unit.plateNo || unit.serialNo) ? " · " : ""}{customer.name}</span>

@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" ALTER COLUMN "due_date" DROP NOT NULL;

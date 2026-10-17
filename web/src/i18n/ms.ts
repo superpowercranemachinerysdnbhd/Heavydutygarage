@@ -1020,4 +1020,7 @@ export const ms: Messages = {
   "act.reopened": "Kerja dibuka semula oleh {name}.",
   "att.followUp": "Susulan {no} ({date}): {note}",
   "rep.workDone": "Kerja yang dilakukan",
+  "due.none": "Tiada tarikh akhir",
+  "loc.tbd": "Belum ditentukan",
+  "f.dueOptional": "Tarikh sasaran (pilihan)",
 };

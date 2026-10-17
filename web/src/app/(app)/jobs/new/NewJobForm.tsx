@@ -37,6 +37,7 @@ export default function NewJobForm({ action, units, leads, busyBays, emergency, 
   machineOptions: MachineOptions;
 }) {
   const t = useT();
+  void defaultDue;
   const [cat, setCat] = useState<Category>(() => { const c = categoryCodes(); return emergency && c.includes("EMG") ? "EMG" : c.includes("DIAG") ? "DIAG" : c[0] ?? ""; });
   const [mode, setMode] = useState<"existing" | "new">(units.length ? "existing" : "new");
   return (
@@ -51,7 +52,7 @@ export default function NewJobForm({ action, units, leads, busyBays, emergency, 
       <label>{t("f.category")}<select className="field" name="category" value={cat} onChange={(e) => setCat(e.target.value as Category)}>{categoryCodes().map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select></label>
       <label>{t("f.priority")}<select className="field" name="priority" key={cat} defaultValue={catPriority(cat)}>{PRIORITIES.map((p) => <option key={p} value={p}>{priLabel(t, p)}</option>)}</select></label>
       <WherePicker defaultWhere={emergency ? OUTSIDE : undefined} busy={busyBays} />
-      <label>{t("f.due")}<input type="date" name="dueDate" defaultValue={emergency ? today : defaultDue} min={today} required /></label>
+      <label>{t("f.dueOptional")}<input type="date" name="dueDate" defaultValue={emergency ? today : ""} min={today} /></label>
       <label>{t("f.lead")}<select className="field" name="leadId" defaultValue=""><option value="">{t("f.assignLater")}</option>{leads.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}</select></label>
       <label>{t("f.hourMeterIn")}<input type="number" name="hourMeter" min={0} placeholder={t("f.reading")} /></label>
       <label>{t("f.reportedBy")}<input type="text" name="reportedBy" placeholder={t("f.reportedByPh")} /></label>

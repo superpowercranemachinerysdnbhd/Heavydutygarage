@@ -43,6 +43,7 @@ export function fromAcceptLanguage(header: string | null | undefined): Locale {
 
 /** Translate stored place names such as "Bay 2", "Workshop · Paint bay" or "Customer site". */
 export function placeLabel(t: T, s: string): string {
+  if (!s) return t("loc.tbd");
   return findItem("bay", s)?.label || builtinPlaceLabel(t, s);
 }
 

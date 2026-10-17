@@ -129,7 +129,8 @@ export const jobs = pgTable("jobs", {
   leadId: integer("lead_id").references(() => staff.id),
   hourMeterIn: integer("hour_meter_in"),
   openedAt: date("opened_at").notNull(),
-  dueDate: date("due_date").notNull(),
+  /** Optional: many jobs are logged before anyone decides when they will be done. */
+  dueDate: date("due_date"),
   closedAt: date("closed_at"),
   parentJobId: integer("parent_job_id"),
   signoffName: varchar("signoff_name", { length: 120 }),

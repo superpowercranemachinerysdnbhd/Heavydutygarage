@@ -1040,6 +1040,9 @@ export const en = {
   "act.reopened": "Job reopened by {name}.",
   "att.followUp": "Follow up {no} ({date}): {note}",
   "rep.workDone": "Work carried out",
+  "due.none": "No due date",
+  "loc.tbd": "Not decided yet",
+  "f.dueOptional": "Target date (optional)",
 } as const;
 
 export type MessageKey = keyof typeof en;

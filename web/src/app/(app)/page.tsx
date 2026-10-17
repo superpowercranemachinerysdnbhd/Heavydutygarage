@@ -44,7 +44,7 @@ export default async function Dashboard() {
   // Crew: only the jobs on hand, as boxes, most urgent first.
   if (!all) {
     const mine = open.filter((j) => ON_HAND.includes(j.status))
-      .sort((a, b) => PRIORITIES.indexOf(a.priority) - PRIORITIES.indexOf(b.priority) || a.dueDate.localeCompare(b.dueDate));
+      .sort((a, b) => PRIORITIES.indexOf(a.priority) - PRIORITIES.indexOf(b.priority) || (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999"));
     const covers = await coverPhotos(mine.map((j) => j.id));
     return (
       <div className="page">
@@ -59,8 +59,8 @@ export default async function Dashboard() {
   const d = today();
   const emg = open.filter((j) => j.category === "EMG").length;
   const overdue = open.filter((j) => dueInfo(j, t, locale).cls === "over");
-  const dueWeek = open.filter((j) => j.dueDate >= d && j.dueDate <= addDays(d, 6) ).length;
-  const sortJobs = (a: JobRow, b: JobRow) => PRIORITIES.indexOf(a.priority) - PRIORITIES.indexOf(b.priority) || a.dueDate.localeCompare(b.dueDate);
+  const dueWeek = open.filter((j) => j.dueDate && j.dueDate >= d && j.dueDate <= addDays(d, 6)).length;
+  const sortJobs = (a: JobRow, b: JobRow) => PRIORITIES.indexOf(a.priority) - PRIORITIES.indexOf(b.priority) || (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999");
 
   // Crew today: who is on which active job (phase 3 adds a planned schedule).
   const crew = staff.filter((s) => CREW_ROLES.includes(s.role));
@@ -113,7 +113,7 @@ export default async function Dashboard() {
         <div className="stack" style={{ gap: 8 }}>
           <div className="label">{t("dash.floor")}</div>
           <div className="floor">
-            {[...new Set([...bayCodes(), ...open.filter((j) => j.siteType === "workshop").map((j) => j.siteLocation)])].map((b) => <BayTile key={b} t={t} name={placeLabel(t, b)} jobs={open.filter((j) => j.siteType === "workshop" && j.siteLocation === b)} />)}
+            {[...new Set([...bayCodes(), ...open.filter((j) => j.siteType === "workshop" && j.siteLocation).map((j) => j.siteLocation)])].map((b) => <BayTile key={b} t={t} name={placeLabel(t, b)} jobs={open.filter((j) => j.siteType === "workshop" && j.siteLocation === b)} />)}
             {open.filter((j) => j.siteType === "field").map((j) => <BayTile key={j.id} t={t} name={t("dash.field", { place: j.siteLocation.split(",")[0] })} jobs={[j]} field />)}
           </div>
         </div>

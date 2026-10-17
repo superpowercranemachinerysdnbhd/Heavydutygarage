@@ -487,3 +487,9 @@ How it works: the built-in entries stay in code (`src/lib/lists.ts`) and keep th
 - **Customer handover** (name, hour meter, signature) is recorded after the job is Completed, when the customer collects.
 - **Job report** on every job: customer complaint, diagnosis / findings, **work carried out**, **recommendations to the customer** (both printed on the service report) and **follow-up / status remarks** with a follow-up date (internal). Follow-ups that are due appear in the dashboard's attention list until the remark is cleared.
 - **Completed jobs can be edited** by the Head Manager and Supervisor (Edit job and the job report) and **reopened** (back to In Progress) if more work is needed.
+
+## 20. Jobs logged before they are planned
+
+- The **target date is optional** (New job and Edit job). Jobs without one show "No due date", are never overdue, and sort after dated jobs.
+- The location list starts with **"Not decided yet"** (now the default on New job; emergencies default to Outside job). Lead already defaults to "Assign later".
+- So a job can be logged with just the machine and the complaint. It sits in **Received** until someone decides when and where; then Edit job fills in the date, bay and lead, and the job moves to In Progress when work starts.
