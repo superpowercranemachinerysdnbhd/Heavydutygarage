@@ -7,7 +7,9 @@ import { fmtDate } from "@/lib/format";
 import { Notice } from "@/components/ui";
 import { getI18n } from "@/i18n/server";
 import SubmitButton from "@/components/SubmitButton";
-import { addKnownIssue } from "../../actions";
+import { addKnownIssue, updateModel } from "../../actions";
+import { can } from "@/lib/permissions";
+import MachineTypeOptions from "@/components/MachineTypeOptions";
 import { machineTypeLabel, unitRef } from "@/lib/machine-types";
 
 export async function generateMetadata() {
@@ -15,7 +17,7 @@ export async function generateMetadata() {
 }
 
 export default async function ModelPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string }> }) {
-  await requireUser();
+  const user = await requireUser();
   const { t, locale } = await getI18n();
   const id = Number((await params).id);
   const sp = await searchParams;
@@ -50,6 +52,19 @@ export default async function ModelPage({ params, searchParams }: { params: Prom
           {units.length === 0 && <div className="issue muted">{t("mod.noUnits")}</div>}
         </div>
       </div>
+      {can(user.role, "machine.manage") && (
+        <details className="panel"><summary className="panel-head" style={{ cursor: "pointer" }}><h3>{t("mod.edit")}</h3></summary>
+          <form action={updateModel} className="form" style={{ padding: 14 }}>
+            <input type="hidden" name="modelId" value={m.id} />
+            <label>{t("mod.make")}<input name="make" required defaultValue={m.make} /></label>
+            <label>{t("mod.model")}<input name="model" required defaultValue={m.model} /></label>
+            <label>{t("mod.type")}<select className="field" name="type" required defaultValue={m.type}><MachineTypeOptions t={t} keep={m.type} /></select></label>
+            <label>{t("mod.intervals")}<input name="intervals" defaultValue={m.serviceIntervals.join(", ")} placeholder="250, 500, 1000, 2000" /></label>
+            <label className="full">{t("mod.specs")}<textarea name="specs" rows={4} defaultValue={Object.entries(m.specs).map(([k, v]) => `${k}: ${v}`).join("\n")} /></label>
+            <div className="full"><SubmitButton className="btn primary">{t("common.save")}</SubmitButton></div>
+          </form>
+        </details>
+      )}
     </div>
   );
 }

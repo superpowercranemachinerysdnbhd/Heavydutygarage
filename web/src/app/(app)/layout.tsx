@@ -5,6 +5,8 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { unreadTotal } from "@/lib/chat";
+import { ensureLists } from "@/lib/lists-server";
+import ListsProvider from "@/components/ListsProvider";
 import { getI18n } from "@/i18n/server";
 import { roleLabel } from "@/i18n/labels";
 import { logout } from "@/app/login/actions";
@@ -21,7 +23,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ...(can(user.role, "po.create") ? [{ href: "/purchasing", label: t("nav.purchasing") }] : []),
     ...(can(user.role, "customer.manage") ? [{ href: "/customers", label: t("nav.customers") }] : []),
     { href: "/team", label: t("nav.team") },
+    ...(can(user.role, "settings.manage") ? [{ href: "/settings", label: t("nav.settings") }] : []),
   ];
+  const lists = await ensureLists();
   const chatUnread = await unreadTotal(user);
   return (
     <>
@@ -42,7 +46,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Nav items={items} chatUnread={chatUnread} />
         </div>
       </header>
-      <main className="wrap">{children}</main>
+      <main className="wrap"><ListsProvider lists={lists}>{children}</ListsProvider></main>
     </>
   );
 }

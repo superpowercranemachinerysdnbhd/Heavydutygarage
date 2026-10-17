@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { activeSuppliers } from "@/lib/catalog";
 import { latestPricesByPart, listParts } from "@/lib/inventory";
-import { isLowStock, PO_APPROVAL_LIMIT, PRICE_WARN_PCT, suggestOrderQty } from "@/lib/stock";
+import { isLowStock, poApprovalLimit, PRICE_WARN_PCT, suggestOrderQty } from "@/lib/stock";
 import { getI18n } from "@/i18n/server";
 import PurchasingTabs from "@/components/PurchasingTabs";
 import PoBuilder from "./PoBuilder";
@@ -47,7 +47,7 @@ export default async function NewPoPage({ searchParams }: { searchParams: Promis
         suppliers={sups.filter((s) => s.active).map((s) => ({ id: s.id, name: s.name }))}
         initial={initial} initialJobId={initialJobId}
         jobs={jobs.map((j) => ({ id: j.id, label: `${j.jobNo} · ${j.complaint.slice(0, 50)}` }))}
-        approvalLimit={PO_APPROVAL_LIMIT} canApprove={can(user.role, "po.approve")} warnPct={PRICE_WARN_PCT} />
+        approvalLimit={poApprovalLimit()} canApprove={can(user.role, "po.approve")} warnPct={PRICE_WARN_PCT} />
     </div>
   );
 }

@@ -1,8 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useT } from "@/i18n/client";
-import type { MessageKey } from "@/i18n";
-import { MACHINE_GROUPS } from "@/lib/machine-types";
+import MachineTypeOptions from "./MachineTypeOptions";
 
 export type MachineInit = {
   machineType?: string | null; make?: string; model?: string; customerId?: number; plateNo?: string | null; serialNo?: string | null;
@@ -42,11 +41,7 @@ export default function MachineFields({ init = {}, companies, makes, models, sho
     <label>{t("u.type")}
       <select className="field" name="machineType" defaultValue={init.machineType ?? ""} required>
         <option value="" disabled>{t("common.choose")}</option>
-        {MACHINE_GROUPS.map((g) => (
-          <optgroup key={g.group} label={t(`mgroup.${g.group}` as MessageKey)}>
-            {g.types.map((k) => <option key={k} value={k}>{t(`mtype.${k}` as MessageKey)}</option>)}
-          </optgroup>
-        ))}
+        <MachineTypeOptions t={t} keep={init.machineType} />
       </select>
     </label>
     <CompanyPicker companies={companies} defaultId={init.customerId} />

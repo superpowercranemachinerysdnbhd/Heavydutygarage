@@ -1,18 +1,18 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { CATEGORY_KEYS } from "@/lib/jobs";
-import { LABOUR_RATE, addDays, daysBetween, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
+import { categoryCodes } from "@/lib/lists";
+import { labourRate, addDays, daysBetween, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
 import { listJobs } from "@/lib/queries";
 import { getI18n } from "@/i18n/server";
 import { LOCALES, isLocale, placeLabel, translator, type Locale } from "@/i18n";
 import { catLabel, langLabel, statusLabel } from "@/i18n/labels";
 import PrintButton from "@/components/PrintButton";
 import { machineTypeLabel, unitRef } from "@/lib/machine-types";
+import DocBrand from "@/components/DocBrand";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("hist.title") };
@@ -35,9 +35,9 @@ export default async function HistoryReport({ params, searchParams }: { params: 
   const d = today(), from = all ? "0000-00-00" : addDays(d, -365);
   const list = (await listJobs(user, { unitId: id })).filter((j) => j.openedAt >= from);
   const down = (j: (typeof list)[number]) => Math.max(1, daysBetween(j.openedAt, j.closedAt ?? d));
-  const value = (j: (typeof list)[number]) => (j.category === "WARR" ? 0 : j.labourHours * LABOUR_RATE + j.partsValue);
+  const value = (j: (typeof list)[number]) => (j.category === "WARR" ? 0 : j.labourHours * labourRate() + j.partsValue);
   const hrs = list.reduce((a, j) => a + j.labourHours, 0), days = list.reduce((a, j) => a + down(j), 0), billed = list.reduce((a, j) => a + value(j), 0);
-  const byCat = CATEGORY_KEYS.map((k) => [k, list.filter((j) => j.category === k).length] as const).filter(([, n]) => n);
+  const byCat = [...new Set([...categoryCodes({ all: true }), ...list.map((j) => j.category)])].map((k) => [k, list.filter((j) => j.category === k).length] as const).filter(([, n]) => n);
   const q = (c: Partial<{ range: string; prices: boolean; lang: Locale }>) => {
     const v = { range: all ? "all" : "12", prices, lang, ...c };
     return `?${new URLSearchParams({ range: v.range, prices: v.prices ? "1" : "0", lang: v.lang })}`;
@@ -62,8 +62,7 @@ export default async function HistoryReport({ params, searchParams }: { params: 
       </div>
       <article className="doc" aria-label={t("hist.title")} lang={lang === "zh" ? "zh-Hans" : lang}>
         <div className="doc-head">
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}><Image src="/logo.jpg" alt="" width={64} height={64} />
-            <div><div className="doc-brand">{t("app.name")}</div><small>{t("rep.tagline")}</small></div></div>
+          <DocBrand t={t} />
           <div className="doc-meta"><b>{t("hist.title")}</b><span>{unitRef(unit)}</span><span>{fmtDate(d, true, lang)}</span></div>
         </div>
         <div className="doc-grid">

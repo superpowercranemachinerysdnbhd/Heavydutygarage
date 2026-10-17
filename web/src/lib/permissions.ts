@@ -35,7 +35,8 @@ export type Action =
   | "po.approve"         // approve purchase orders above the limit
   | "price.set"          // set selling prices and markup rules
   | "staff.view"         // see all staff profiles (without pay)
-  | "staff.manage";      // create staff, set pay and passwords
+  | "staff.manage"       // create staff, set pay and passwords
+  | "settings.manage";   // edit lists (categories, machine types, bays, QC) and workshop settings
 
 const GRANTS: Record<Action, Role[]> = {
   "job.viewAll": ["boss", "supervisor"],
@@ -57,6 +58,7 @@ const GRANTS: Record<Action, Role[]> = {
   "price.set": ["boss"],
   "staff.view": ["boss", "supervisor"],
   "staff.manage": ["boss"],
+  "settings.manage": ["boss"],
 };
 
 export function can(role: Role, action: Action): boolean {

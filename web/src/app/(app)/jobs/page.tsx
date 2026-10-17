@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { CATEGORY_KEYS, STATUSES, ageLevel, type Category, type Status } from "@/lib/jobs";
+import { STATUSES, ageLevel, type Category, type Status } from "@/lib/jobs";
 import { listJobs } from "@/lib/queries";
 import { getI18n } from "@/i18n/server";
 import { catLabel, statusLabel } from "@/i18n/labels";
 import { CatChip, Pri, daysInStatus, dueInfo } from "@/components/ui";
 import { unitRef } from "@/lib/machine-types";
+import { categoryCodes } from "@/lib/lists";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("jobs.title") };
@@ -20,7 +21,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   let list = await listJobs(user);
   if (status === "open") list = list.filter((j) => j.status !== "closed");
   else if (STATUSES.includes(status as Status)) list = list.filter((j) => j.status === status);
-  if (sp.cat && CATEGORY_KEYS.includes(sp.cat as Category)) list = list.filter((j) => j.category === sp.cat);
+  if (sp.cat) list = list.filter((j) => j.category === sp.cat);
   const q = (sp.q ?? "").trim().toLowerCase();
   if (q) list = list.filter((j) => [j.jobNo, j.make, j.model, j.serialNo, j.plateNo, j.customerName, j.complaint].join(" ").toLowerCase().includes(q));
 
@@ -29,7 +30,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       <div className="view-head"><h2>{can(user.role, "job.viewAll") ? t("jobs.title") : t("jobs.mine")}</h2>{can(user.role, "job.create") && <Link className="btn primary" href="/jobs/new">{t("dash.newJob")}</Link>}</div>
       <form className="filters" method="get">
         <input type="search" name="q" defaultValue={sp.q ?? ""} placeholder={t("jobs.searchPh")} style={{ flex: "1 1 240px" }} aria-label={t("common.search")} />
-        <select className="field" name="cat" defaultValue={sp.cat ?? ""} aria-label={t("f.category")}><option value="">{t("jobs.allCats")}</option>{CATEGORY_KEYS.map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select>
+        <select className="field" name="cat" defaultValue={sp.cat ?? ""} aria-label={t("f.category")}><option value="">{t("jobs.allCats")}</option>{categoryCodes({ all: true }).map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select>
         <select className="field" name="status" defaultValue={status} aria-label={t("col.status")}><option value="open">{t("jobs.allOpen")}</option><option value="all">{t("jobs.all")}</option>{STATUSES.map((s) => <option key={s} value={s}>{statusLabel(t, s)}</option>)}</select>
         <button className="btn">{t("common.filter")}</button>
       </form>

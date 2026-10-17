@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { BAYS, CATEGORIES, CATEGORY_KEYS, PRIORITIES, type Category } from "@/lib/jobs";
+import { PRIORITIES, type Category } from "@/lib/jobs";
+import { bayCodes, catPriority, categoryCodes } from "@/lib/lists";
 import { placeLabel } from "@/i18n";
 import { useT } from "@/i18n/client";
 import { catLabel, priLabel } from "@/i18n/labels";
@@ -34,7 +35,7 @@ export default function NewJobForm({ action, units, leads, busyBays, emergency, 
   machineOptions: MachineOptions;
 }) {
   const t = useT();
-  const [cat, setCat] = useState<Category>(emergency ? "EMG" : "DIAG");
+  const [cat, setCat] = useState<Category>(() => { const c = categoryCodes(); return emergency && c.includes("EMG") ? "EMG" : c.includes("DIAG") ? "DIAG" : c[0] ?? ""; });
   const [site, setSite] = useState(emergency ? "field" : "workshop");
   const [mode, setMode] = useState<"existing" | "new">(units.length ? "existing" : "new");
   return (
@@ -46,11 +47,11 @@ export default function NewJobForm({ action, units, leads, busyBays, emergency, 
       </div>
       {mode === "existing" ? <MachinePicker units={units} unitId={unitId} /> : <MachineFields {...machineOptions} showHourMeter={false} />}
       <div className="form-sect">{t("f.jobSection")}</div>
-      <label>{t("f.category")}<select className="field" name="category" value={cat} onChange={(e) => setCat(e.target.value as Category)}>{CATEGORY_KEYS.map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select></label>
-      <label>{t("f.priority")}<select className="field" name="priority" key={cat} defaultValue={CATEGORIES[cat].defaultPriority}>{PRIORITIES.map((p) => <option key={p} value={p}>{priLabel(t, p)}</option>)}</select></label>
+      <label>{t("f.category")}<select className="field" name="category" value={cat} onChange={(e) => setCat(e.target.value as Category)}>{categoryCodes().map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select></label>
+      <label>{t("f.priority")}<select className="field" name="priority" key={cat} defaultValue={catPriority(cat)}>{PRIORITIES.map((p) => <option key={p} value={p}>{priLabel(t, p)}</option>)}</select></label>
       <label>{t("f.location")}<select className="field" name="siteType" value={site} onChange={(e) => setSite(e.target.value)}><option value="workshop">{t("f.workshop")}</option><option value="field">{t("f.fieldSite")}</option></select></label>
       {site === "workshop"
-        ? <label>{t("f.bay")}<select className="field" name="bay">{BAYS.map((b) => <option key={b} value={b}>{placeLabel(t, b)}{busyBays.includes(b) ? ` ${t("f.inUse")}` : ""}</option>)}</select></label>
+        ? <label>{t("f.bay")}<select className="field" name="bay">{bayCodes().map((b) => <option key={b} value={b}>{placeLabel(t, b)}{busyBays.includes(b) ? ` ${t("f.inUse")}` : ""}</option>)}</select></label>
         : <label>{t("f.siteAddress")}<input type="text" name="siteAddress" required placeholder={t("f.siteAddressPh")} /></label>}
       <label>{t("f.due")}<input type="date" name="dueDate" defaultValue={emergency ? today : defaultDue} min={today} required /></label>
       <label>{t("f.lead")}<select className="field" name="leadId" defaultValue=""><option value="">{t("f.assignLater")}</option>{leads.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}</select></label>

@@ -5,12 +5,14 @@ import { and, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requirePermission, requireUser, type CurrentUser } from "@/lib/auth";
 import { can, canWorkOnJob, LEAD_ROLES } from "@/lib/permissions";
-import { BAYS, CATEGORY_KEYS, PRIORITIES, STATUSES, checkTransition, nextJobNo, qcTemplate, type Category, type Priority, type Status } from "@/lib/jobs";
+import { PRIORITIES, STATUSES, checkTransition, nextJobNo, type Category, type Priority, type Status } from "@/lib/jobs";
 import { today } from "@/lib/format";
 import { addActivity } from "@/lib/queries";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, saveFile } from "@/lib/storage";
 import { issueToJob } from "@/lib/inventory";
 import { saveMachine } from "@/lib/machines";
+import { bayCodes, isCategory, qcTemplate } from "@/lib/lists";
+import { ensureLists } from "@/lib/lists-server";
 import { translator, type MessageKey, type Vars } from "@/i18n";
 import { activityText, statusLabel } from "@/i18n/labels";
 
@@ -63,9 +65,10 @@ export async function createJob(form: FormData) {
   const parentNo = str(form, "parentJobNo");
   const fail = (e: MessageKey, vars?: Vars): never => redirect(`/jobs/new?error=${encodeURIComponent(t(e, vars))}`);
   if (!newMachine && !unitId) fail("err.chooseMachine");
-  if (!CATEGORY_KEYS.includes(category) || !PRIORITIES.includes(priority)) fail("err.catPri");
+  await ensureLists();
+  if (!isCategory(category) || !PRIORITIES.includes(priority)) fail("err.catPri");
   if (!siteLocation) fail(siteType === "field" ? "err.siteAddress" : "err.bay");
-  if (siteType === "workshop" && !BAYS.includes(siteLocation)) fail("err.bay");
+  if (siteType === "workshop" && !bayCodes().includes(siteLocation)) fail("err.bay");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) fail("err.due");
   if (!complaint) fail("err.complaint");
 
@@ -99,7 +102,7 @@ export async function createJob(form: FormData) {
       reportedBy: str(form, "reportedBy") || null, leadId, hourMeterIn: Number.isFinite(hourMeter) && hourMeter > 0 ? hourMeter : unit.hourMeter,
       openedAt: d, dueDate, parentJobId, createdBy: user.id,
     }).returning({ id: jobs.id });
-    await tx.insert(schema.jobQc).values(qcTemplate(category).map((k, i) => ({ jobId: row.id, seq: i, itemKey: k, item: en(`qc.${k}` as MessageKey) })));
+    await tx.insert(schema.jobQc).values(qcTemplate(category, en).map((q, i) => ({ jobId: row.id, seq: i, ...q })));
     const params = { no: jobNo, name: user.name };
     await tx.insert(schema.jobActivity).values({ jobId: row.id, staffId: user.id, key: "act.created", params, text: activityText(en, { key: "act.created", params, text: "" }) });
     const unitUpdate: Partial<typeof schema.machineUnits.$inferInsert> = {};
@@ -168,11 +171,12 @@ export async function removeTeamMember(form: FormData) {
 export async function updateDetails(form: FormData) {
   const user = await requirePermission("job.editDetails");
   const jobId = num(form, "jobId");
-  await access(jobId, user);
+  const { job } = await access(jobId, user);
+  await ensureLists();
   const category = str(form, "category") as Category, priority = str(form, "priority") as Priority, dueDate = str(form, "dueDate");
   const siteType = str(form, "siteType") === "field" ? "field" : "workshop";
   const siteLocation = siteType === "field" ? str(form, "siteAddress") : str(form, "bay");
-  if (!CATEGORY_KEYS.includes(category) || !PRIORITIES.includes(priority) || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate) || !siteLocation) back(user, jobId, { error: "err.details" });
+  if (!(isCategory(category) || category === job.category) || !PRIORITIES.includes(priority) || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate) || !siteLocation) back(user, jobId, { error: "err.details" });
   await db.update(jobs).set({ category, priority, dueDate, siteType, siteLocation, complaint: str(form, "complaint") || undefined }).where(eq(jobs.id, jobId));
   await addActivity(jobId, user.id, "act.details", { name: user.name });
   back(user, jobId, { ok: "ok.detailsSaved" });

@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ageLevel, checkTransition, nextJobNo, qcTemplate } from "../src/lib/jobs";
+import { ageLevel, checkTransition, nextJobNo } from "../src/lib/jobs";
+import { qcTemplate } from "../src/lib/lists";
+import { translator } from "../src/i18n/index";
 
 const base = { isOnJob: true, qcTotal: 6, qcPassed: 6, signedOff: false } as const;
 
@@ -50,7 +52,7 @@ test("days-in-status thresholds", () => {
 });
 
 test("QC list has a category check plus the standard checks", () => {
-  const q = qcTemplate("HYD");
+  const q = qcTemplate("HYD", translator("en"));
   assert.equal(q.length, 6);
-  assert.equal(q[0], "HYD");
+  assert.equal(q[0].itemKey, "HYD");
 });

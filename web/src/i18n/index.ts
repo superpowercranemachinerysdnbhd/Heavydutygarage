@@ -1,4 +1,5 @@
 /** Languages, message lookup and helpers. Safe to import from server and client code. */
+import { findItem } from "@/lib/lists";
 import { en, type MessageKey, type Messages } from "./en";
 import { ms } from "./ms";
 import { zh } from "./zh";
@@ -42,6 +43,11 @@ export function fromAcceptLanguage(header: string | null | undefined): Locale {
 
 /** Translate stored place names such as "Bay 2", "Workshop · Paint bay" or "Customer site". */
 export function placeLabel(t: T, s: string): string {
+  return findItem("bay", s)?.label || builtinPlaceLabel(t, s);
+}
+
+/** Translated name of a built-in place ("Bay 2" → "Petak 2"); other text is returned as typed. */
+export function builtinPlaceLabel(t: T, s: string): string {
   if (s === "Customer site") return t("loc.customerSite");
   if (s.startsWith("Workshop · ")) return `${t("loc.workshop")} · ${placeLabel(t, s.slice("Workshop · ".length))}`;
   let m = s.match(/^Bay (\d+)$/);

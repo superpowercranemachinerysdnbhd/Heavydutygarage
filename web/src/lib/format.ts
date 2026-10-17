@@ -1,3 +1,4 @@
+import { settings } from "./lists";
 import { INTL_LOCALE, type Locale } from "@/i18n";
 
 export const TZ = "Asia/Kuala_Lumpur";
@@ -33,4 +34,5 @@ export function rm(n: number): string {
 export function initials(name: string): string {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 }
-export const LABOUR_RATE = Number(process.env.LABOUR_RATE ?? 95);
+/** Labour charge per hour (RM), set by the Head Manager in Settings. */
+export const labourRate = () => settings().labourRate;

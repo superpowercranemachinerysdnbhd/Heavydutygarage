@@ -1,7 +1,9 @@
 /** Stock and pricing rules. Pure functions only, so they can be tested without a database. */
+import { settings } from "./lists";
 import { can, type Role } from "./permissions";
 
-export const PO_APPROVAL_LIMIT = Number(process.env.PO_APPROVAL_LIMIT ?? 5000);
+/** POs above this total (RM) need Head Manager approval. Set in Settings. */
+export const poApprovalLimit = () => settings().poApprovalLimit;
 /** Warn when a new price differs from the last price from the same supplier by more than this. */
 export const PRICE_WARN_PCT = 10;
 
@@ -37,7 +39,7 @@ export function isBigPriceChange(oldPrice: number | null | undefined, newPrice: 
 
 /** A PO raised by someone without approval rights and over the limit waits for the Boss. */
 export function needsApproval(role: Role, total: number): boolean {
-  return !can(role, "po.approve") && total > PO_APPROVAL_LIMIT;
+  return !can(role, "po.approve") && total > poApprovalLimit();
 }
 
 /** How many to order: enough to get back above minimum, at least the reorder quantity. */

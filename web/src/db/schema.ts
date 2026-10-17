@@ -108,7 +108,8 @@ export const machineUnits = pgTable("machine_units", {
 export const jobs = pgTable("jobs", {
   id: serial("id").primaryKey(),
   jobNo: varchar("job_no", { length: 20 }).notNull(),
-  category: jobCategoryEnum("category").notNull(),
+  /** Job category code (built-in such as "EMG", or one added in Settings). */
+  category: varchar("category", { length: 30 }).notNull(),
   priority: priorityEnum("priority").notNull().default("normal"),
   // The enum keeps two retired values (diagnosing, awaiting_approval) that no job uses since migration 0004.
   status: jobStatusEnum("status").$type<JobStatus>().notNull().default("received"),
@@ -390,3 +391,26 @@ export const chatReads = pgTable("chat_reads", {
   staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
   lastReadId: integer("last_read_id").notNull().default(0),
 }, (t) => [uniqueIndex("chat_reads_idx").on(t.threadId, t.staffId)]);
+
+/* ---------- settings (Head Manager) ---------- */
+/** Changes to the built-in lists and custom entries. See lib/lists for the built-ins. */
+export const listItems = pgTable("list_items", {
+  id: serial("id").primaryKey(),
+  list: varchar("list", { length: 20 }).$type<"job_category" | "machine_type" | "bay" | "qc_item">().notNull(),
+  code: varchar("code", { length: 60 }).notNull(),
+  label: varchar("label", { length: 120 }),
+  grp: varchar("grp", { length: 60 }),
+  color: varchar("color", { length: 30 }),
+  priority: priorityEnum("priority"),
+  sort: integer("sort").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  updatedBy: integer("updated_by").references(() => staff.id),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("list_items_list_code_idx").on(t.list, t.code)]);
+
+export const appSettings = pgTable("app_settings", {
+  key: varchar("key", { length: 40 }).primaryKey(),
+  value: text("value").notNull(),
+  updatedBy: integer("updated_by").references(() => staff.id),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

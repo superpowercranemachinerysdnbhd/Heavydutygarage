@@ -3,23 +3,10 @@
 import { can, type Role } from "./permissions";
 import type { MessageKey, Vars } from "@/i18n";
 
-export type Category = "EMG" | "DIAG" | "PM" | "MINOR" | "MAJOR" | "HYD" | "FAB" | "PAINT" | "WARR";
-/** Job stages. (The database enum still has the retired "diagnosing" and "awaiting_approval"; migration 0004 moved jobs off them.) */
+/** Job category code: built-in (EMG, DIAG, PM, …) or added in Settings. Names and colours: lib/lists. */
+export type Category = string;
 export type Status = "received" | "in_progress" | "awaiting_parts" | "quality_check" | "ready_for_pickup" | "closed";
 export type Priority = "critical" | "high" | "normal" | "low";
-
-export const CATEGORIES: Record<Category, { color: string; defaultPriority: Priority }> = {
-  EMG: { color: "var(--c-emg)", defaultPriority: "critical" },
-  DIAG: { color: "var(--c-diag)", defaultPriority: "high" },
-  PM: { color: "var(--c-pm)", defaultPriority: "normal" },
-  MINOR: { color: "var(--c-minor)", defaultPriority: "normal" },
-  MAJOR: { color: "var(--c-major)", defaultPriority: "normal" },
-  HYD: { color: "var(--c-hyd)", defaultPriority: "high" },
-  FAB: { color: "var(--c-fab)", defaultPriority: "normal" },
-  PAINT: { color: "var(--c-paint)", defaultPriority: "low" },
-  WARR: { color: "var(--c-warr)", defaultPriority: "high" },
-};
-export const CATEGORY_KEYS = Object.keys(CATEGORIES) as Category[];
 
 export const STATUSES: Status[] = ["received", "in_progress", "awaiting_parts", "quality_check", "ready_for_pickup", "closed"];
 export const PRIORITIES: Priority[] = ["critical", "high", "normal", "low"];
@@ -29,14 +16,6 @@ export const PRIORITY_CLASS: Record<Priority, string> = { critical: "Critical", 
 /** Statuses crew members (not boss/supervisor) may move their own job between. */
 export const CREW_STATUSES: Status[] = ["in_progress", "awaiting_parts", "quality_check"];
 
-export const BAYS = ["Bay 1", "Bay 2", "Bay 3", "Bay 4", "Bay 5", "Fabrication bay", "Paint bay", "Long-stay yard A", "Long-stay yard B"];
-
-const QC_BASE = ["testRun", "leakCheck", "allTasks", "afterPhotos", "cleanUp"] as const;
-export type QcKey = Category | (typeof QC_BASE)[number];
-/** QC checklist item keys for a category: one category check plus the standard checks. */
-export function qcTemplate(cat: Category): QcKey[] {
-  return [cat, ...QC_BASE];
-}
 export const qcMessageKey = (k: string) => `qc.${k}` as MessageKey;
 
 export type TransitionCheck = { ok: true } | { ok: false; reason: MessageKey; vars?: Vars };

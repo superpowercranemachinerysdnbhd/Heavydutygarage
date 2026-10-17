@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { CATEGORIES, PRIORITY_CLASS, ageLevel, type Category, type Priority, type Status } from "@/lib/jobs";
+import { catColor } from "@/lib/lists";
+import { PRIORITY_CLASS, ageLevel, type Category, type Priority, type Status } from "@/lib/jobs";
 import { dateOf, daysBetween, fmtDate, initials, today } from "@/lib/format";
 import type { JobRow } from "@/lib/queries";
 import { placeLabel, type Locale, type T } from "@/i18n";
 import { catLabel, priLabel, statusLabel } from "@/i18n/labels";
 
 export function CatChip({ cat, t }: { cat: Category; t: T }) {
-  return <span className="chip" style={{ ["--cat" as string]: CATEGORIES[cat].color }}><span className="dot" />{catLabel(t, cat)}</span>;
+  return <span className="chip" style={{ ["--cat" as string]: catColor(cat) }}><span className="dot" />{catLabel(t, cat)}</span>;
 }
 export function Pri({ p, t }: { p: Priority; t: T }) {
   return <span className={`pri ${PRIORITY_CLASS[p]}`}>{priLabel(t, p)}</span>;
@@ -41,7 +42,7 @@ export function JobCard({ j, names, t, locale }: { j: JobRow; names: Map<number,
   const due = dueInfo(j, t, locale);
   const people = [j.leadId, ...j.teamIds.filter((x) => x !== j.leadId)].filter((x): x is number => !!x);
   return (
-    <Link href={`/jobs/${j.id}`} className="card" style={{ ["--cat" as string]: CATEGORIES[j.category].color }}>
+    <Link href={`/jobs/${j.id}`} className="card" style={{ ["--cat" as string]: catColor(j.category) }}>
       <div className="card-top"><span className="mono">{j.jobNo}</span><Pri p={j.priority} t={t} /></div>
       <div className="mach">{j.plateNo && <b className="mono">{j.plateNo} · </b>}{j.make} {j.model}</div>
       <div className="cust">{j.customerName} · {j.siteType === "field" ? t("card.field") : ""}{placeLabel(t, j.siteLocation)}</div>

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { can, CREW_ROLES } from "@/lib/permissions";
-import { BAYS, CATEGORIES, PRIORITIES, STATUSES, ageLevel } from "@/lib/jobs";
-import { LABOUR_RATE, addDays, daysBetween, fmtDate, rm, today } from "@/lib/format";
+import { PRIORITIES, STATUSES, ageLevel } from "@/lib/jobs";
+import { labourRate, addDays, daysBetween, fmtDate, rm, today } from "@/lib/format";
 import { activeStaff, listJobs, type JobRow } from "@/lib/queries";
 import { getI18n } from "@/i18n/server";
 import { placeLabel, type T } from "@/i18n";
@@ -11,6 +11,7 @@ import { roleLabel, statusLabel } from "@/i18n/labels";
 import { Avatar, JobCard, daysInStatus, dueInfo } from "@/components/ui";
 import { purchasingAlerts } from "@/lib/alerts";
 import { unitRef } from "@/lib/machine-types";
+import { bayCodes, catColor } from "@/lib/lists";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("nav.dashboard") };
@@ -20,7 +21,7 @@ function BayTile({ name, jobs, field, t }: { name: string; jobs: JobRow[]; field
   if (!jobs.length) return <div className="bay free"><span className="label">{name}</span><span className="muted">{t("dash.free")}</span></div>;
   const j = jobs[0];
   return (
-    <Link href={`/jobs/${j.id}`} className={`bay ${field ? "field" : ""}`} style={{ ["--cat" as string]: CATEGORIES[j.category].color }}>
+    <Link href={`/jobs/${j.id}`} className={`bay ${field ? "field" : ""}`} style={{ ["--cat" as string]: catColor(j.category) }}>
       <span className="label">{name}</span><b>{j.make} {j.model}</b>
       <small>{j.jobNo.slice(-4)} · {statusLabel(t, j.status)}{jobs.length > 1 ? ` · ${t("dash.more", { n: jobs.length - 1 })}` : ""}</small>
       <small>{j.leadName ?? <span className="due over">{t("dash.unassigned")}</span>}</small>
@@ -54,7 +55,7 @@ export default async function Dashboard() {
     return { s, j, k, label: t(k === "field" ? "state.field" : k === "on" ? "state.on" : "state.idle") };
   });
   const busy = crewState.filter((c) => c.j).length;
-  const wip = open.reduce((a, j) => a + (j.category === "WARR" ? 0 : j.labourHours * LABOUR_RATE + j.partsValue), 0);
+  const wip = open.reduce((a, j) => a + (j.category === "WARR" ? 0 : j.labourHours * labourRate() + j.partsValue), 0);
 
   const attention: { sev: string; text: string; href: string }[] = [];
   open.filter((j) => j.priority === "critical" && !j.leadId).forEach((j) => attention.push({ sev: "var(--crit)", text: t("att.emgUnassigned", { no: j.jobNo, machine: `${j.make} ${j.model}`, place: placeLabel(t, j.siteLocation) }), href: `/jobs/${j.id}` }));
@@ -90,7 +91,7 @@ export default async function Dashboard() {
         <div className="stack" style={{ gap: 8 }}>
           <div className="label">{t("dash.floor")}</div>
           <div className="floor">
-            {BAYS.map((b) => <BayTile key={b} t={t} name={placeLabel(t, b)} jobs={open.filter((j) => j.siteType === "workshop" && j.siteLocation === b)} />)}
+            {bayCodes().map((b) => <BayTile key={b} t={t} name={placeLabel(t, b)} jobs={open.filter((j) => j.siteType === "workshop" && j.siteLocation === b)} />)}
             {open.filter((j) => j.siteType === "field").map((j) => <BayTile key={j.id} t={t} name={t("dash.field", { place: j.siteLocation.split(",")[0] })} jobs={[j]} field />)}
           </div>
         </div>

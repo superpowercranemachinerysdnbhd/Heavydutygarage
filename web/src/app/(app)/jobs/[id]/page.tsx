@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can, canWorkOnJob, CREW_ROLES, LEAD_ROLES } from "@/lib/permissions";
-import { BAYS, CATEGORY_KEYS, CREW_STATUSES, PRIORITIES, STATUSES, qcMessageKey } from "@/lib/jobs";
-import { LABOUR_RATE, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
+import { CREW_STATUSES, PRIORITIES, STATUSES, qcMessageKey } from "@/lib/jobs";
+import { labourRate, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
 import { activeStaff, getJob } from "@/lib/queries";
 import { jobPartsFor, partsForModel, requestsFor } from "@/lib/inventory";
 import { getI18n } from "@/i18n/server";
@@ -16,6 +16,7 @@ import ChatRoom from "@/components/ChatRoom";
 import { jobThreadId, messagesFor } from "@/lib/chat";
 import * as A from "../actions";
 import { unitRef } from "@/lib/machine-types";
+import { bayCodes, categoryCodes } from "@/lib/lists";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const j = await getJob(Number((await params).id));
@@ -48,7 +49,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const crew = staffList.filter((s) => CREW_ROLES.includes(s.role));
   const hours = labour.reduce((a, l) => a + Number(l.hours), 0);
   const labourCost = labour.reduce((a, l) => a + Number(l.hours) * Number(l.payRate), 0);
-  const charge = job.category === "WARR" ? 0 : hours * LABOUR_RATE;
+  const charge = job.category === "WARR" ? 0 : hours * labourRate();
   const qcDone = qc.filter((q) => q.passedAt).length;
   const due = dueInfo(job, t, locale);
   const hidden = (n: string, v: string | number) => <input type="hidden" name={n} value={v} />;
@@ -281,7 +282,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
 
           {can(user.role, "money.selling") && (
             <section className="sect"><h3>{t("job.value")}</h3><div className="totals" style={{ borderTop: 0 }}>
-              <span>{t("job.labourCharge", { h: hours, rate: rm(LABOUR_RATE) })}{job.category === "WARR" ? t("job.warrantyNoCharge") : ""}</span><b>{rm(charge)}</b>
+              <span>{t("job.labourCharge", { h: hours, rate: rm(labourRate()) })}{job.category === "WARR" ? t("job.warrantyNoCharge") : ""}</span><b>{rm(charge)}</b>
               <span>{t("job.parts")}{job.category === "WARR" ? t("job.warrantyNoCharge") : ""}</span><b>{rm(job.category === "WARR" ? 0 : partsSell)}</b>
               <span><b>{t("job.total")}</b></span><b>{rm(charge + (job.category === "WARR" ? 0 : partsSell))}</b>
               {can(user.role, "money.cost") && <><span className="muted">{t("job.partsCost")}</span><b className="muted">{rm(partsCost)}</b></>}
@@ -296,11 +297,11 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             <details className="sect"><summary style={{ padding: "10px 14px", cursor: "pointer", fontFamily: "var(--f-display)", textTransform: "uppercase", letterSpacing: ".05em", fontWeight: 600 }}>{t("job.editDetails")}</summary>
               <form action={A.updateDetails} className="in form" style={{ gridTemplateColumns: "1fr" }}>
                 {hidden("jobId", job.id)}
-                <label>{t("f.category")}<select className="field" name="category" defaultValue={job.category}>{CATEGORY_KEYS.map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select></label>
+                <label>{t("f.category")}<select className="field" name="category" defaultValue={job.category}>{[...new Set([...categoryCodes(), job.category])].map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select></label>
                 <label>{t("f.priority")}<select className="field" name="priority" defaultValue={job.priority}>{PRIORITIES.map((p) => <option key={p} value={p}>{priLabel(t, p)}</option>)}</select></label>
                 <label>{t("f.due")}<input type="date" name="dueDate" defaultValue={job.dueDate} required /></label>
                 <label>{t("f.location")}<select className="field" name="siteType" defaultValue={job.siteType}><option value="workshop">{t("f.workshop")}</option><option value="field">{t("f.fieldSite")}</option></select></label>
-                <label>{t("job.bayWorkshop")}<select className="field" name="bay" defaultValue={job.siteType === "workshop" ? job.siteLocation : BAYS[0]}>{BAYS.map((b) => <option key={b} value={b}>{placeLabel(t, b)}</option>)}</select></label>
+                <label>{t("job.bayWorkshop")}<select className="field" name="bay" defaultValue={job.siteType === "workshop" ? job.siteLocation : bayCodes()[0]}>{[...new Set([...bayCodes(), ...(job.siteType === "workshop" ? [job.siteLocation] : [])])].map((b) => <option key={b} value={b}>{placeLabel(t, b)}</option>)}</select></label>
                 <label>{t("job.siteField")}<input type="text" name="siteAddress" defaultValue={job.siteType === "field" ? job.siteLocation : ""} /></label>
                 <label>{t("f.complaint")}<textarea name="complaint" rows={3} defaultValue={job.complaint} /></label>
                 <div><SubmitButton className="btn small primary">{t("job.saveDetails")}</SubmitButton></div>

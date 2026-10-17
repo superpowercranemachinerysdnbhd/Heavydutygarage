@@ -450,3 +450,17 @@ Changes asked for by the Head Manager after first use:
 - **"Owner" / "Customer" is now "Company"** everywhere it means the company that owns the machine.
 - **Five job stages:** Received → In Progress → Waiting Parts → Quality Check → Ready (then Closed after handover). Diagnosing and Awaiting Approval were removed; existing jobs moved to In Progress and Received. Crew can move their own job between In Progress, Waiting Parts and Quality Check.
 - **Dashboard:** the value of open jobs is shown to the Head Manager only.
+
+## 16. Settings (Head Manager only)
+
+A **Settings** tab, visible only to the Head Manager, makes the fixed lists editable in the app:
+
+| Section | What can be changed |
+|---|---|
+| Workshop details & rates | Company name, address, phone and SSM no. printed on reports and POs; labour charge per hour; PO approval limit |
+| Job categories | Add, rename, colour, default priority, hide, reorder |
+| Machine types | Add (into a group or a new group), rename, move between groups, hide, reorder |
+| Bays & work areas | Add, rename, hide, reorder |
+| Quality check list | Add, rename, hide, reorder (applies to new jobs) |
+
+How it works: the built-in entries stay in code (`src/lib/lists.ts`) and keep their translations; changes and new entries are stored in `list_items` / `app_settings` and merged on top. Renamed entries show the typed name in every language; leaving a built-in name unchanged keeps it translated. Hidden entries disappear from drop-downs but old records keep them. The server loads the lists at start-up (`src/instrumentation.ts`) and reloads after every change; the app layout passes them to the browser. Job categories are now stored as text so new ones can be added. The model library can also be edited (make, model, type, specs, service intervals).

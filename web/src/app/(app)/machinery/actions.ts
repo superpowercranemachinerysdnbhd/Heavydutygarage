@@ -1,5 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db, schema } from "@/db";
 import { requirePermission, requireUser } from "@/lib/auth";
@@ -18,6 +19,27 @@ export async function createModel(form: FormData) {
   const [row] = await db.insert(schema.machineModels).values({ make, model, type, specs, serviceIntervals: intervals }).returning({ id: schema.machineModels.id });
   revalidatePath("/machinery/models");
   redirect(`/machinery/models/${row.id}?ok=${encodeURIComponent(t("mod.added"))}`);
+}
+
+const specsFrom = (form: FormData) => {
+  const specs: Record<string, string> = {};
+  for (const line of str(form, "specs").split("\n")) { const [k, ...v] = line.split(":"); if (k?.trim() && v.join(":").trim()) specs[k.trim()] = v.join(":").trim(); }
+  return specs;
+};
+const intervalsFrom = (form: FormData) => str(form, "intervals").split(/[,\s/]+/).map(Number).filter((n) => Number.isInteger(n) && n > 0);
+
+export async function updateModel(form: FormData) {
+  const t = translator((await requirePermission("machine.manage")).locale);
+  const id = Number(form.get("modelId"));
+  const make = str(form, "make"), model = str(form, "model"), type = str(form, "type");
+  const back = (q: string): never => redirect(`/machinery/models/${id}?${q}`);
+  if (!make || !model || !type) back("error=" + encodeURIComponent(t("err.modelFields")));
+  const M = schema.machineModels;
+  const [dup] = await db.select({ id: M.id }).from(M).where(and(sql`lower(${M.make}) = lower(${make})`, sql`lower(${M.model}) = lower(${model})`, ne(M.id, id)));
+  if (dup) back("error=" + encodeURIComponent(t("mod.duplicate")));
+  await db.update(M).set({ make, model, type, specs: specsFrom(form), serviceIntervals: intervalsFrom(form) }).where(eq(M.id, id));
+  revalidatePath("/machinery", "layout");
+  back("ok=" + encodeURIComponent(t("mod.saved")));
 }
 
 export async function addKnownIssue(form: FormData) {

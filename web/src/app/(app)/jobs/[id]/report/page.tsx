@@ -1,10 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { qcMessageKey } from "@/lib/jobs";
-import { LABOUR_RATE, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
+import { labourRate, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
 import { getJob, type JobDetail } from "@/lib/queries";
 import { jobPartsFor } from "@/lib/inventory";
 import { getI18n } from "@/i18n/server";
@@ -15,6 +14,7 @@ import PrintButton from "@/components/PrintButton";
 import SubmitButton from "@/components/SubmitButton";
 import { saveRecommendations } from "../../actions";
 import { machineTypeLabel } from "@/lib/machine-types";
+import DocBrand from "@/components/DocBrand";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("rep.title") };
@@ -50,7 +50,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const hours = [...byPerson.values()].reduce((a, b) => a + b, 0);
   const issued = await jobPartsFor(job.id);
   const partsTotal = warr ? 0 : issued.reduce((a, x) => a + x.qty * x.unitPrice, 0);
-  const labourTotal = warr ? 0 : hours * LABOUR_RATE;
+  const labourTotal = warr ? 0 : hours * labourRate();
   const rec = job.recommendations ?? defaultRecommendations(d, t, lang);
   const stages = (["before", "during", "after", "qc"] as const).map((s) => [s, photos.filter((p) => p.stage === s)] as const).filter(([, l]) => l.length);
   const techs = [lead, ...team].filter(Boolean).map((p) => p!.name);
@@ -87,10 +87,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
 
       <article className="doc" aria-label={t("rep.title")} lang={lang === "zh" ? "zh-Hans" : lang}>
         <div className="doc-head">
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <Image src="/logo.jpg" alt="" width={64} height={64} />
-            <div><div className="doc-brand">{t("app.name")}</div><small>{t("rep.tagline")}</small></div>
-          </div>
+          <DocBrand t={t} />
           <div className="doc-meta"><b>{t("rep.title")}</b><span>{no}</span><span>{fmtDate(final ? job.closedAt ?? today() : today(), true, lang)}</span></div>
         </div>
         <span className={`stamp ${final ? "final" : ""}`}>{final ? t("rep.final") : t("rep.interim")}</span>
@@ -108,7 +105,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
         ) : <p>{t("rep.noParts")}</p>}</div>
         <div><h4>{t("rep.labour")}</h4>{byPerson.size ? (
           <div className="dt"><table><thead><tr><th>{t("col.technician")}</th><th className="r">{t("col.hours")}</th>{o.prices && <th className="r">{t("col.amount")}</th>}</tr></thead>
-            <tbody>{[...byPerson].map(([n, h]) => <tr key={n}><td>{n}</td><td className="r">{h}</td>{o.prices && <td className="r">{warr ? t("rep.noCharge") : rm(h * LABOUR_RATE)}</td>}</tr>)}</tbody></table></div>
+            <tbody>{[...byPerson].map(([n, h]) => <tr key={n}><td>{n}</td><td className="r">{h}</td>{o.prices && <td className="r">{warr ? t("rep.noCharge") : rm(h * labourRate())}</td>}</tr>)}</tbody></table></div>
         ) : <p>—</p>}</div>
         {o.prices && <div className="tot"><span>{t("rep.parts")}</span><b>{warr ? t("rep.noCharge") : rm(partsTotal)}</b><span>{t("rep.labourHrs", { h: hours })}</span><b>{warr ? t("rep.noCharge") : rm(labourTotal)}</b><span><b>{t("rep.total")}</b></span><b>{rm(partsTotal + labourTotal)}</b></div>}
         {o.photos && stages.length > 0 && <div><h4>{t("rep.photos")}</h4>{stages.map(([s, l]) => (

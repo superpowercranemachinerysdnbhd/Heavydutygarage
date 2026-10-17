@@ -4,7 +4,8 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { CATEGORIES, type Category } from "@/lib/jobs";
+import type { Category } from "@/lib/jobs";
+import { catColor } from "@/lib/lists";
 import { daysBetween, fmtDate, today } from "@/lib/format";
 import { listJobs, machineFormOptions } from "@/lib/queries";
 import { machinePhotoUrl, machineTypeLabel, unitRef } from "@/lib/machine-types";
@@ -68,11 +69,11 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
         <div className="panel-head" style={{ flexWrap: "wrap" }}><h3>{t("mach.history")}</h3>
           <div className="chipbar">
             <Link className="chip" href={`/machinery/${id}`} aria-pressed={!sp.cat} style={{ textDecoration: "none" }}>{t("mach.all")}</Link>
-            {cats.map((c) => <Link key={c} className="chip" href={`/machinery/${id}?cat=${c}`} aria-pressed={sp.cat === c} style={{ ["--cat" as string]: CATEGORIES[c as Category].color, textDecoration: "none" }}>{catLabel(t, c as Category)}</Link>)}
+            {cats.map((c) => <Link key={c} className="chip" href={`/machinery/${id}?cat=${c}`} aria-pressed={sp.cat === c} style={{ ["--cat" as string]: catColor(c as Category), textDecoration: "none" }}>{catLabel(t, c as Category)}</Link>)}
           </div></div>
         <ul className="timeline">
           {shown.map((j) => (
-            <li key={j.id} style={{ ["--cat" as string]: CATEGORIES[j.category].color }}>
+            <li key={j.id} style={{ ["--cat" as string]: catColor(j.category) }}>
               <span className="tl-date">{fmtDate(j.openedAt, true, locale)}</span><span className="tl-mark" />
               <div className="tl-body"><Link href={`/jobs/${j.id}`}><b>{j.complaint}</b></Link><small>{j.jobNo} · {catLabel(t, j.category)} · {j.leadName ?? t("dash.unassigned")} · {statusLabel(t, j.status)}</small></div>
             </li>

@@ -3,9 +3,10 @@ import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { daysBetween, fmtDate, today } from "@/lib/format";
 import { unitsWithNames } from "@/lib/queries";
-import { MACHINE_GROUPS, groupOf, machinePhotoUrl, machineTypeLabel, unitRef } from "@/lib/machine-types";
+import { groupOf, machinePhotoUrl, machineTypeLabel, unitRef } from "@/lib/machine-types";
 import { getI18n } from "@/i18n/server";
-import { placeLabel, type MessageKey } from "@/i18n";
+import { placeLabel } from "@/i18n";
+import MachineTypeOptions from "@/components/MachineTypeOptions";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("mach.title") };
@@ -30,12 +31,7 @@ export default async function MachineryPage({ searchParams }: { searchParams: Pr
         <input type="search" name="q" defaultValue={sp.q ?? ""} placeholder={t("mach.searchPh")} style={{ flex: "1 1 240px" }} aria-label={t("common.search")} />
         <select className="field" name="type" defaultValue={type} aria-label={t("u.type")}>
           <option value="">{t("mach.allTypes")}</option>
-          {MACHINE_GROUPS.map((g) => (
-            <optgroup key={g.group} label={t(`mgroup.${g.group}` as MessageKey)}>
-              <option value={g.group}>{t(`mgroup.${g.group}` as MessageKey)} ({t("mach.all")})</option>
-              {g.types.map((k) => <option key={k} value={k}>{t(`mtype.${k}` as MessageKey)}</option>)}
-            </optgroup>
-          ))}
+          <MachineTypeOptions t={t} groupChoice />
         </select>
         <button className="btn">{t("common.search")}</button>
       </form>

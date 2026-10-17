@@ -3,6 +3,8 @@ import { and, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type { MessageKey } from "@/i18n";
 import { hasIdentity, isMachineType, normalisePlate } from "./machine-types";
+import { findItem } from "./lists";
+import { ensureLists } from "./lists-server";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, saveFile } from "./storage";
 
 /** Saving a machine from one form: the company and the model library entry are created on the way if they are new.
@@ -59,7 +61,9 @@ export async function saveMachine(form: FormData, opts: { unitId?: number; full?
   const plateNo = str(form, "plateNo") ? normalisePlate(str(form, "plateNo")) : null;
   const serialNo = str(form, "serialNo") || null;
   const year = optInt(form, "year"), hourMeter = optInt(form, "hourMeter");
-  if (!isMachineType(category)) return { ok: false, error: "err.machineType" };
+  await ensureLists();
+  // Hidden types stay valid for machines that already have them (editing keeps the record as it is).
+  if (!isMachineType(category) && !(opts.unitId && category && (findItem("machine_type", category) || category.length <= 60))) return { ok: false, error: "err.machineType" };
   if (!make || !model) return { ok: false, error: "err.unitModelOwner" };
   if (!hasIdentity({ plateNo, serialNo })) return { ok: false, error: "err.plateOrSerial" };
   if (Number.isNaN(year) || Number.isNaN(hourMeter) || (hourMeter ?? 0) < 0) return { ok: false, error: "err.yearHm" };

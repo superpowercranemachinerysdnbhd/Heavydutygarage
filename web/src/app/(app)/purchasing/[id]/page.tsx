@@ -1,17 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { fmtDate, fmtDateTime, rm, today } from "@/lib/format";
 import { getPo } from "@/lib/purchasing";
-import { PO_APPROVAL_LIMIT } from "@/lib/stock";
+import { poApprovalLimit } from "@/lib/stock";
 import { getI18n } from "@/i18n/server";
 import { Notice } from "@/components/ui";
 import PoStatus from "@/components/PoStatus";
 import PrintButton from "@/components/PrintButton";
 import SubmitButton from "@/components/SubmitButton";
 import { approvePo, cancelPo, receivePo } from "../actions";
+import DocBrand from "@/components/DocBrand";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("po.title") };
@@ -39,7 +39,7 @@ export default async function PoPage({ params, searchParams }: { params: Promise
         <div className="view-head"><h2>{po.poNo} <span className="muted" style={{ fontSize: "1rem" }}>{supplier.name}</span></h2><PoStatus status={po.status} t={t} />{late && <span className="due over">{t("po.late")}</span>}<PrintButton /></div>
         <Notice error={sp.error} ok={sp.ok} />
         {po.status === "awaiting_approval" && (
-          <div className="notice">{t("po.waitingBoss", { limit: rm(PO_APPROVAL_LIMIT) })}
+          <div className="notice">{t("po.waitingBoss", { limit: rm(poApprovalLimit()) })}
             {can(user.role, "po.approve") && <div className="btnrow" style={{ marginTop: 8 }}>
               <form action={approvePo}>{hidden}<SubmitButton className="btn small primary">{t("po.approve")}</SubmitButton></form>
               <form action={cancelPo}>{hidden}<SubmitButton>{t("po.decline")}</SubmitButton></form></div>}
@@ -64,8 +64,7 @@ export default async function PoPage({ params, searchParams }: { params: Promise
 
       <article className="doc" aria-label={t("po.document")}>
         <div className="doc-head">
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}><Image src="/logo.jpg" alt="" width={64} height={64} />
-            <div><div className="doc-brand">{t("app.name")}</div><small>{t("rep.tagline")}</small></div></div>
+          <DocBrand t={t} />
           <div className="doc-meta"><b>{t("po.document")}</b><span>{po.poNo}</span><span>{fmtDate(po.orderDate, true, locale)}</span></div>
         </div>
         <div className="doc-grid">

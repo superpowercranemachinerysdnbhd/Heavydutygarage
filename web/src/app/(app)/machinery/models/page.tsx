@@ -7,8 +7,8 @@ import { Notice } from "@/components/ui";
 import { getI18n } from "@/i18n/server";
 import SubmitButton from "@/components/SubmitButton";
 import { createModel } from "../actions";
-import type { MessageKey } from "@/i18n";
-import { MACHINE_GROUPS, machineTypeLabel } from "@/lib/machine-types";
+import { machineTypeLabel } from "@/lib/machine-types";
+import MachineTypeOptions from "@/components/MachineTypeOptions";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("mod.title") };
@@ -38,7 +38,7 @@ export default async function ModelsPage({ searchParams }: { searchParams: Promi
             <label>{t("mod.make")}<input name="make" required placeholder="Komatsu" /></label>
             <label>{t("mod.model")}<input name="model" required placeholder="PC200-8" /></label>
             <label>{t("mod.type")}<select className="field" name="type" required defaultValue=""><option value="" disabled>{t("common.choose")}</option>
-              {MACHINE_GROUPS.map((g) => <optgroup key={g.group} label={t(`mgroup.${g.group}` as MessageKey)}>{g.types.map((k) => <option key={k} value={k}>{t(`mtype.${k}` as MessageKey)}</option>)}</optgroup>)}</select></label>
+              <MachineTypeOptions t={t} /></select></label>
             <label>{t("mod.intervals")}<input name="intervals" placeholder="250, 500, 1000, 2000" /></label>
             <label className="full">{t("mod.specs")}<textarea name="specs" rows={4} placeholder={"Operating weight: 20 t\nEngine: SAA6D107E-1\nEngine oil: 23 L"} /></label>
             <div className="full"><SubmitButton className="btn primary">{t("mod.addBtn")}</SubmitButton></div>
