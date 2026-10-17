@@ -968,4 +968,7 @@ export const ms: Messages = {
   "jobs.yesterday": "Semalam",
   "jobs.opened": "Dibuka {date}",
   "jobs.noPhoto": "Belum ada foto",
+  "dash.onHand": "{n} kerja dalam tangan. Tekan kerja untuk kemas kini.",
+  "dash.noneOnHand": "Tiada kerja dalam tangan sekarang. Penyelia akan memberi kerja seterusnya.",
+  "jobs.onHand": "Kerja dalam tangan",
 };

@@ -988,6 +988,9 @@ export const en = {
   "jobs.yesterday": "Yesterday",
   "jobs.opened": "Opened {date}",
   "jobs.noPhoto": "No photo yet",
+  "dash.onHand": "{n} job(s) on hand. Tap a job to update it.",
+  "dash.noneOnHand": "No jobs on hand right now. The Supervisor will assign your next job.",
+  "jobs.onHand": "My jobs on hand",
 } as const;
 
 export type MessageKey = keyof typeof en;

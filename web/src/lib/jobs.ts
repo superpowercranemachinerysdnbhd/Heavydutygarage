@@ -13,6 +13,9 @@ export const PRIORITIES: Priority[] = ["critical", "high", "normal", "low"];
 /** CSS class per priority (styling only). */
 export const PRIORITY_CLASS: Record<Priority, string> = { critical: "Critical", high: "High", normal: "Normal", low: "Low" };
 
+/** Jobs still being worked on (a mechanic's jobs "on hand"): not yet Ready or Closed. */
+export const ON_HAND: Status[] = ["received", "in_progress", "awaiting_parts", "quality_check"];
+
 /** Statuses crew members (not boss/supervisor) may move their own job between. */
 export const CREW_STATUSES: Status[] = ["in_progress", "awaiting_parts", "quality_check"];
 

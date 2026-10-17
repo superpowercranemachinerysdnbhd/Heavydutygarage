@@ -968,4 +968,7 @@ export const zh: Messages = {
   "jobs.yesterday": "昨天",
   "jobs.opened": "{date} 开单",
   "jobs.noPhoto": "还没有照片",
+  "dash.onHand": "手上有 {n} 张工单，点击工单更新进度。",
+  "dash.noneOnHand": "目前手上没有工单，主管会安排下一份工作。",
+  "jobs.onHand": "我手上的工单",
 };

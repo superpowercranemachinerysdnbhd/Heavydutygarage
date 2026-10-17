@@ -2,9 +2,10 @@ import Link from "next/link";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { can, CREW_ROLES } from "@/lib/permissions";
-import { PRIORITIES, STATUSES, ageLevel } from "@/lib/jobs";
+import { ON_HAND, PRIORITIES, STATUSES, ageLevel } from "@/lib/jobs";
 import { labourRate, addDays, daysBetween, fmtDate, rm, today } from "@/lib/format";
-import { activeStaff, listJobs, type JobRow } from "@/lib/queries";
+import { activeStaff, coverPhotos, listJobs, type JobRow } from "@/lib/queries";
+import JobBox from "@/components/JobBox";
 import { getI18n } from "@/i18n/server";
 import { placeLabel, type T } from "@/i18n";
 import { roleLabel, statusLabel } from "@/i18n/labels";
@@ -39,6 +40,20 @@ export default async function Dashboard() {
     all ? db.select({ id: schema.machineUnits.id, arrivedAt: schema.machineUnits.arrivedAt, serialNo: schema.machineUnits.serialNo, plateNo: schema.machineUnits.plateNo }).from(schema.machineUnits) : Promise.resolve([]),
     all ? db.select({ staffId: schema.certifications.staffId, name: schema.certifications.name, expiry: schema.certifications.expiry }).from(schema.certifications) : Promise.resolve([]),
   ]);
+  // Crew: only the jobs on hand, as boxes, most urgent first.
+  if (!all) {
+    const mine = open.filter((j) => ON_HAND.includes(j.status))
+      .sort((a, b) => PRIORITIES.indexOf(a.priority) - PRIORITIES.indexOf(b.priority) || a.dueDate.localeCompare(b.dueDate));
+    const covers = await coverPhotos(mine.map((j) => j.id));
+    return (
+      <div className="page">
+        <div className="view-head"><h2>{t("dash.myJobs", { name: user.name })} <span className="muted" style={{ fontFamily: "var(--f-body)", fontSize: ".9rem", fontWeight: 400 }}>{fmtDate(today(), true, locale)}</span></h2></div>
+        <p className="muted" style={{ margin: 0 }}>{t("dash.onHand", { n: mine.length })}</p>
+        <div className="jgrid">{mine.map((j) => <JobBox key={j.id} j={j} cover={covers.get(j.id)} t={t} locale={locale} />)}</div>
+        {mine.length === 0 && <div className="panel empty">{t("dash.noneOnHand")}</div>}
+      </div>
+    );
+  }
   const names = new Map(staff.map((s) => [s.id, s.name]));
   const d = today();
   const emg = open.filter((j) => j.category === "EMG").length;

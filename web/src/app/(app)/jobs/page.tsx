@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { STATUSES, ageLevel, type Category, type Status } from "@/lib/jobs";
+import { ON_HAND, STATUSES, ageLevel, type Category, type Status } from "@/lib/jobs";
 import { coverPhotos, listJobs } from "@/lib/queries";
 import { addDays, fmtDate, today } from "@/lib/format";
 import { getI18n } from "@/i18n/server";
 import { catLabel, statusLabel } from "@/i18n/labels";
 import { CatChip, Pri, daysInStatus, dueInfo } from "@/components/ui";
+import JobBox from "@/components/JobBox";
 import { machinePhotoUrl, unitRef } from "@/lib/machine-types";
 import { catColor, categoryCodes } from "@/lib/lists";
 
@@ -18,9 +19,11 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const user = await requireUser();
   const { t, locale } = await getI18n();
   const sp = await searchParams;
-  const status = sp.status ?? "open";
+  const crew = !can(user.role, "job.viewAll");
+  const status = crew ? "onhand" : sp.status ?? "open";
   let list = await listJobs(user);
-  if (status === "open") list = list.filter((j) => j.status !== "closed");
+  if (status === "onhand") list = list.filter((j) => ON_HAND.includes(j.status));
+  else if (status === "open") list = list.filter((j) => j.status !== "closed");
   else if (STATUSES.includes(status as Status)) list = list.filter((j) => j.status === status);
   if (sp.cat) list = list.filter((j) => j.category === sp.cat);
   const q = (sp.q ?? "").trim().toLowerCase();
@@ -35,11 +38,11 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="page">
-      <div className="view-head"><h2>{can(user.role, "job.viewAll") ? t("jobs.title") : t("jobs.mine")}</h2>{can(user.role, "job.create") && <Link className="btn primary" href="/jobs/new">{t("dash.newJob")}</Link>}</div>
+      <div className="view-head"><h2>{crew ? t("jobs.onHand") : t("jobs.title")}</h2>{can(user.role, "job.create") && <Link className="btn primary" href="/jobs/new">{t("dash.newJob")}</Link>}</div>
       <form className="filters" method="get">
         <input type="search" name="q" defaultValue={sp.q ?? ""} placeholder={t("jobs.searchPh")} style={{ flex: "1 1 240px" }} aria-label={t("common.search")} />
         <select className="field" name="cat" defaultValue={sp.cat ?? ""} aria-label={t("f.category")}><option value="">{t("jobs.allCats")}</option>{categoryCodes({ all: true }).map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select>
-        <select className="field" name="status" defaultValue={status} aria-label={t("col.status")}><option value="open">{t("jobs.allOpen")}</option><option value="all">{t("jobs.all")}</option>{STATUSES.map((s) => <option key={s} value={s}>{statusLabel(t, s)}</option>)}</select>
+        {!crew && <select className="field" name="status" defaultValue={status} aria-label={t("col.status")}><option value="open">{t("jobs.allOpen")}</option><option value="all">{t("jobs.all")}</option>{STATUSES.map((s) => <option key={s} value={s}>{statusLabel(t, s)}</option>)}</select>}
         <input type="hidden" name="view" value={view} />
         <button className="btn">{t("common.filter")}</button>
         <span className="seg" role="group" aria-label={t("jobs.cards")}>
@@ -50,21 +53,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       {view === "cards" ? (
         <div className="jgrid">
           {sorted.map((j) => {
-            const due = dueInfo(j, t, locale);
-            const cover = covers.get(j.id);
-            const img = cover ? `/api/photos/${cover}` : machinePhotoUrl(j.unitId, j.unitPhotoPath);
             return (
-              <Link key={j.id} href={`/jobs/${j.id}`} className="jcard plain" style={{ ["--cat" as string]: catColor(j.category) }}>
-                {img ? <img src={img} alt="" loading="lazy" /> : <span className="jcard-nophoto">{t("jobs.noPhoto")}</span>}
-                <div className="jcard-body">
-                  <div className="jcard-top"><span className="jcard-date">{dayLabel(j.openedAt)}</span><Pri p={j.priority} t={t} /></div>
-                  <b className="jcard-id">{j.plateNo ? <span className="mono">{j.plateNo}</span> : `${j.make} ${j.model}`}</b>
-                  {j.plateNo && <small>{j.make} {j.model}</small>}
-                  <small className="muted">{j.customerName} · <span className="mono">{j.jobNo}</span></small>
-                  <div className="jcard-tags"><CatChip cat={j.category} t={t} /><span className="pill mute">{statusLabel(t, j.status)}</span></div>
-                  <div className="jcard-foot"><span className={`due ${due.cls}`}>{due.text}</span><span>{j.leadName ?? <span className="due over">{t("dash.unassigned")}</span>}</span></div>
-                </div>
-              </Link>
+              <JobBox key={j.id} j={j} cover={covers.get(j.id)} t={t} locale={locale} />
             );
           })}
           {list.length === 0 && <div className="empty">{t("jobs.none")}</div>}
