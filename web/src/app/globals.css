@@ -516,3 +516,4 @@ select.lang.on-light{color:var(--ink);border-color:var(--line)}
 .set-move .linkbtn:disabled{opacity:.25;cursor:default}
 .set-add{padding:10px 14px 14px;background:var(--surface-2);border-radius:0 0 6px 6px}
 section.panel[id]{scroll-margin-top:12px}
+.mach-photo.mach-thumb{width:100%;height:auto;aspect-ratio:4/3}
