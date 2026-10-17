@@ -4,7 +4,7 @@
  *  merged lists (lib/lists-server) and the app layout hands them to the browser (ListsProvider). Pure module. */
 import type { MessageKey, T } from "@/i18n";
 
-export type ListName = "job_category" | "machine_type" | "bay" | "qc_item";
+export type ListName = "job_category" | "machine_type" | "bay" | "qc_item" | "service_item";
 export type Priority = "critical" | "high" | "normal" | "low";
 
 export type ListItem = {
@@ -15,13 +15,15 @@ export type ListItem = {
   grp: string | null;
   /** job_category only. */
   color: string | null; priority: Priority | null;
+  /** service_item only: default interval in months. */
+  num: number | null;
   sort: number; active: boolean; builtin: boolean;
 };
 export type Settings = { labourRate: number; poApprovalLimit: number; jobPurchaseMarkup: number; companyName: string; companyAddress: string; companyPhone: string; companyReg: string };
 export type Lists = { items: ListItem[]; settings: Settings };
 
 const B = (list: ListName, code: string, sort: number, extra: Partial<ListItem> = {}): ListItem =>
-  ({ list, code, label: null, grp: null, color: null, priority: null, sort, active: true, builtin: true, ...extra });
+  ({ list, code, label: null, grp: null, color: null, priority: null, num: null, sort, active: true, builtin: true, ...extra });
 
 /** Built-in categories use theme colours (they adjust for dark mode); a colour picked in Settings is stored as hex. */
 const CATS: [string, string, Priority][] = [
@@ -44,6 +46,11 @@ export const MACHINE_GROUPS_BUILTIN = [
 ] as const;
 export const BUILTIN_GROUPS: string[] = MACHINE_GROUPS_BUILTIN.map((g) => g.group);
 const BAY_NAMES = ["Bay 1", "Bay 2", "Bay 3", "Bay 4", "Fabrication bay", "Paint bay", "Open yard", "Long-stay yard A", "Long-stay yard B"];
+/** Machine service items and their usual interval in months (date-based: many machines have no hour meter). */
+const SERVICE_ITEMS: [string, number][] = [
+  ["engine_oil", 3], ["hydraulic_oil", 12], ["transmission_oil", 12], ["differential_oil", 12], ["greasing", 1],
+  ["aircon", 6], ["brake", 6], ["coolant", 24], ["fuel_filter", 6], ["air_filter", 6], ["swing_gear_oil", 12], ["wire_rope", 6],
+];
 const QC_CODES = ["testRun", "leakCheck", "allTasks", "afterPhotos", "cleanUp"];
 
 const env = (k: string) => (typeof process !== "undefined" ? process.env?.[k] : undefined);
@@ -57,6 +64,7 @@ export const BUILTIN: ListItem[] = [
   ...MACHINE_GROUPS_BUILTIN.flatMap((g, gi) => g.types.map((code, i) => B("machine_type", code, gi * 100 + i, { grp: g.group }))),
   ...BAY_NAMES.map((code, i) => B("bay", code, i)),
   ...QC_CODES.map((code, i) => B("qc_item", code, i)),
+  ...SERVICE_ITEMS.map(([code, months], i) => B("service_item", code, i, { num: months })),
 ];
 
 /** Built-ins with the stored changes applied, plus custom entries. */
@@ -64,7 +72,7 @@ export function mergeLists(stored: Omit<ListItem, "builtin">[], settings: Partia
   const key = (i: { list: string; code: string }) => `${i.list}:${i.code}`;
   const byKey = new Map(stored.map((s) => [key(s), s]));
   const items = [
-    ...BUILTIN.map((b) => { const s = byKey.get(key(b)); return s ? { ...b, ...s, builtin: true, grp: s.grp ?? b.grp, color: s.color ?? b.color, priority: s.priority ?? b.priority } : b; }),
+    ...BUILTIN.map((b) => { const s = byKey.get(key(b)); return s ? { ...b, ...s, builtin: true, grp: s.grp ?? b.grp, color: s.color ?? b.color, priority: s.priority ?? b.priority, num: s.num ?? b.num } : b; }),
     ...stored.filter((s) => !BUILTIN.some((b) => key(b) === key(s))).map((s) => ({ ...s, builtin: false })),
   ].sort((a, b) => a.sort - b.sort || a.code.localeCompare(b.code));
   return { items, settings: { ...DEFAULT_SETTINGS, ...settings } };
@@ -89,7 +97,7 @@ export function itemLabel(t: T, list: ListName, code: string | null | undefined)
   const it = findItem(list, code);
   if (it?.label) return it.label;
   if (it?.builtin || !it) {
-    const k = { job_category: `cat.${code}`, machine_type: `mtype.${code}`, qc_item: `qc.${code}`, bay: "" }[list];
+    const k = { job_category: `cat.${code}`, machine_type: `mtype.${code}`, qc_item: `qc.${code}`, service_item: `svc.${code}`, bay: "" }[list];
     if (k) { const s = t(k as MessageKey); if (s !== k) return s; }
   }
   return code;

@@ -5,7 +5,7 @@ import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { categoryCodes } from "@/lib/lists";
-import { labourRate, addDays, daysBetween, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
+import { labourRate, addDays, daysBetween, fmtDate, fmtDateTime, rm, today, hmText } from "@/lib/format";
 import { listJobs } from "@/lib/queries";
 import { getI18n } from "@/i18n/server";
 import { LOCALES, isLocale, placeLabel, translator, type Locale } from "@/i18n";
@@ -66,7 +66,7 @@ export default async function HistoryReport({ params, searchParams }: { params: 
           <div className="doc-meta"><b>{t("hist.title")}</b><span>{unitRef(unit)}</span><span>{fmtDate(d, true, lang)}</span></div>
         </div>
         <div className="doc-grid">
-          <div><h4>{t("rep.machine")}</h4><dl><dt>{t("rep.model")}</dt><dd>{model.make} {model.model} · {machineTypeLabel(t, unit.category ?? model.type)}</dd><dt>{t("rep.serial")}</dt><dd>{unit.serialNo ?? "—"}</dd><dt>{t("rep.yearPlate")}</dt><dd>{unit.year ?? "—"} · {unit.plateNo ?? "—"}</dd><dt>{t("rep.hourMeter")}</dt><dd>{unit.hourMeter.toLocaleString()} h</dd></dl></div>
+          <div><h4>{t("rep.machine")}</h4><dl><dt>{t("rep.model")}</dt><dd>{model.make} {model.model} · {machineTypeLabel(t, unit.category ?? model.type)}</dd><dt>{t("rep.serial")}</dt><dd>{unit.serialNo ?? "—"}</dd><dt>{t("rep.yearPlate")}</dt><dd>{unit.year ?? "—"} · {unit.plateNo ?? "—"}</dd><dt>{t("rep.hourMeter")}</dt><dd>{hmText(unit.hourMeter)}</dd></dl></div>
           <div><h4>{t("hist.owner")}</h4><dl><dt>{t("rep.company")}</dt><dd>{customer.name}</dd><dt>{t("rep.contact")}</dt><dd>{customer.contactName ?? "—"} · {customer.phone ?? ""}</dd><dt>{t("rep.location")}</dt><dd>{placeLabel(t, unit.location)}</dd>{unit.arrivedAt && <><dt>{t("hist.withUsSince")}</dt><dd>{t("hist.daysN", { date: fmtDate(unit.arrivedAt, true, lang), n: daysBetween(unit.arrivedAt, d) })}</dd></>}</dl></div>
         </div>
         <div><h4>{t("hist.summary", { period: all ? t("hist.all") : t("hist.12m") })}</h4>

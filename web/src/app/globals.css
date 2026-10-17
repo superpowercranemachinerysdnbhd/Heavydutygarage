@@ -543,3 +543,8 @@ section.panel[id]{scroll-margin-top:12px}
 
 /* Job page: stage change row stays on one line on phones (the steps above already show the stage) */
 @media (max-width:700px){.status-move{flex-wrap:nowrap}.status-move .status-now{display:none}.status-move select{flex:1;min-width:0}}
+.svc-edit{padding:10px 14px 14px}
+.svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 12px}
+.svc-check{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.92rem;padding:4px 0}
+.svc-check input{width:18px;height:18px;flex:none}
+.svc-check .pill{font-size:.68rem}

@@ -493,3 +493,23 @@ How it works: the built-in entries stay in code (`src/lib/lists.ts`) and keep th
 - The **target date is optional** (New job and Edit job). Jobs without one show "No due date", are never overdue, and sort after dated jobs.
 - The location list starts with **"Not decided yet"** (now the default on New job; emergencies default to Outside job). Lead already defaults to "Assign later".
 - So a job can be logged with just the machine and the complaint. It sits in **Received** until someone decides when and where; then Edit job fills in the date, bay and lead, and the job moves to In Progress when work starts.
+
+## 21. Machine service schedule and optional hour meter
+
+Many machines have no working hour meter, so the hour meter is **optional** everywhere: at handover after a job is
+completed, when adding a machine and on the job report. An empty reading shows as "—".
+
+Servicing is tracked **by date** per machine (`machine_services`, one row per machine and service item):
+last done, interval in months, next due (calculated from last done + interval, or typed in), notes and the job that did it.
+
+- **Service items** are an editable list (Settings → Service items), each with a default interval: engine oil & filter
+  (3 months), hydraulic oil, transmission oil, differential gear oil, swing gear oil (12), greasing (1), air-con, brakes,
+  fuel filter, air filter, wire rope (6), coolant (24). The Head Manager can rename, hide, reorder or add items.
+- **Machine page → Service schedule**: add the standard items in one tap, add or update any item, "Done today",
+  remove. Each row shows a due pill: overdue, due within 14 days, OK, or no date yet.
+- **Job page → Services done on this job**: tick the items serviced and the date; the machine's schedule moves on
+  (next due = date + interval) and the job is recorded against it.
+- **Dashboard** attention list shows services overdue or due within 14 days; the **Machinery list** shows each
+  machine's next service.
+- Managing the schedule needs `machine.manage` (Head Manager, Supervisor); recording on a job is open to anyone
+  working the job. No prices are involved.

@@ -402,12 +402,14 @@ export const chatReads = pgTable("chat_reads", {
 /** Changes to the built-in lists and custom entries. See lib/lists for the built-ins. */
 export const listItems = pgTable("list_items", {
   id: serial("id").primaryKey(),
-  list: varchar("list", { length: 20 }).$type<"job_category" | "machine_type" | "bay" | "qc_item">().notNull(),
+  list: varchar("list", { length: 20 }).$type<"job_category" | "machine_type" | "bay" | "qc_item" | "service_item">().notNull(),
   code: varchar("code", { length: 60 }).notNull(),
   label: varchar("label", { length: 120 }),
   grp: varchar("grp", { length: 60 }),
   color: varchar("color", { length: 30 }),
   priority: priorityEnum("priority"),
+  /** service_item: default interval in months. */
+  num: integer("num"),
   sort: integer("sort").notNull().default(0),
   active: boolean("active").notNull().default(true),
   updatedBy: integer("updated_by").references(() => staff.id),
@@ -438,3 +440,17 @@ export const jobPurchases = pgTable("job_purchases", {
   addedBy: integer("added_by").references(() => staff.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("job_purchases_job_idx").on(t.jobId)]);
+
+/** A machine's service schedule: one row per service item (hydraulic oil, greasing, air-con…). Date-based. */
+export const machineServices = pgTable("machine_services", {
+  id: serial("id").primaryKey(),
+  unitId: integer("unit_id").notNull().references(() => machineUnits.id, { onDelete: "cascade" }),
+  item: varchar("item", { length: 60 }).notNull(),
+  intervalMonths: integer("interval_months"),
+  lastDone: date("last_done"),
+  nextDue: date("next_due"),
+  notes: text("notes"),
+  lastJobId: integer("last_job_id").references(() => jobs.id, { onDelete: "set null" }),
+  updatedBy: integer("updated_by").references(() => staff.id),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("machine_services_unit_item_idx").on(t.unitId, t.item), index("machine_services_due_idx").on(t.nextDue)]);

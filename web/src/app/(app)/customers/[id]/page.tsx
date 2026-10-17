@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, hmText } from "@/lib/format";
 import { listJobs, unitsWithNames } from "@/lib/queries";
 import { getI18n } from "@/i18n/server";
 import { placeLabel } from "@/i18n";
@@ -37,7 +37,7 @@ export default async function CustomerPage({ params, searchParams }: { params: P
       <Notice error={sp.error} ok={sp.ok} />
       <div className="two">
         <div className="panel"><div className="panel-head"><h3>{t("cust.machines")}</h3></div>
-          {units.map((u) => <Link key={u.id} href={`/machinery/${u.id}`} className="li plain"><div className="li-main"><b>{u.make} {u.model}</b><small className="mono">{unitRef(u)}</small><small>{placeLabel(t, u.location)} · {u.hourMeter.toLocaleString()} h</small></div></Link>)}
+          {units.map((u) => <Link key={u.id} href={`/machinery/${u.id}`} className="li plain"><div className="li-main"><b>{u.make} {u.model}</b><small className="mono">{unitRef(u)}</small><small>{placeLabel(t, u.location)} · {hmText(u.hourMeter)}</small></div></Link>)}
           {units.length === 0 && <div className="empty">{t("cust.noMachines")}</div>}
         </div>
         <form action={updateCustomer} className="panel"><div className="panel-head"><h3>{t("cust.details")}</h3></div>

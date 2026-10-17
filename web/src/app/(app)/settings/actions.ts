@@ -7,9 +7,9 @@ import { BUILTIN, builtinHex, findItem, listItems, newCode, type ListName, type 
 import { loadLists } from "@/lib/lists-server";
 import { builtinPlaceLabel, translator, type MessageKey, type T } from "@/i18n";
 
-const LISTS: ListName[] = ["job_category", "machine_type", "bay", "qc_item"];
+const LISTS: ListName[] = ["job_category", "machine_type", "bay", "qc_item", "service_item"];
 const PRIORITIES: Priority[] = ["critical", "high", "normal", "low"];
-const ANCHOR: Record<ListName, string> = { job_category: "categories", machine_type: "types", bay: "bays", qc_item: "qc" };
+const ANCHOR: Record<ListName, string> = { job_category: "categories", machine_type: "types", bay: "bays", qc_item: "qc", service_item: "services" };
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 
 function done(t: T, anchor: string, msg: { ok?: MessageKey; error?: MessageKey }): never {
@@ -21,7 +21,7 @@ function done(t: T, anchor: string, msg: { ok?: MessageKey; error?: MessageKey }
 /** The built-in name in the editor's language; typing it unchanged keeps the entry translated for everyone. */
 function builtinName(t: T, list: ListName, code: string): string {
   if (list === "bay") return builtinPlaceLabel(t, code);
-  const k = { job_category: `cat.${code}`, machine_type: `mtype.${code}`, qc_item: `qc.${code}` }[list];
+  const k = { job_category: `cat.${code}`, machine_type: `mtype.${code}`, qc_item: `qc.${code}`, service_item: `svc.${code}` }[list];
   return t(k as MessageKey);
 }
 
@@ -33,6 +33,7 @@ function itemFields(form: FormData, list: ListName) {
     color: list === "job_category" && /^#[0-9a-f]{6}$/i.test(color) ? color : null,
     priority: list === "job_category" && PRIORITIES.includes(priority) ? priority : null,
     grp: list === "machine_type" ? grp.slice(0, 60) || null : null,
+    num: list === "service_item" && Number.isInteger(Number(str(form, "num"))) && Number(str(form, "num")) > 0 ? Number(str(form, "num")) : null,
   };
 }
 
@@ -92,7 +93,7 @@ export async function moveItem(form: FormData) {
   await db.transaction(async (tx) => {
     for (const [n, c] of order.entries()) {
       const it = all.find((x) => x.code === c)!;
-      await tx.insert(schema.listItems).values({ list, code: c, label: it.label, grp: it.grp, color: it.builtin ? null : it.color, priority: it.builtin ? null : it.priority, active: it.active, sort: n, updatedBy: user.id })
+      await tx.insert(schema.listItems).values({ list, code: c, label: it.label, grp: it.grp, color: it.builtin ? null : it.color, priority: it.builtin ? null : it.priority, num: it.builtin ? null : it.num, active: it.active, sort: n, updatedBy: user.id })
         .onConflictDoUpdate({ target: [schema.listItems.list, schema.listItems.code], set: { sort: n } });
     }
   });

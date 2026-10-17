@@ -66,8 +66,17 @@ const u4 = await U({ category: "rough_terrain_crane", engineModel: "Mitsubishi 6
 const u5 = await U({ category: "wheel_loader", engineModel: "Volvo D8J", modelId: l120.id, customerId: port.id, serialNo: "VCE0L120H00013377", year: 2020, hourMeter: 6890, location: "Customer site" });
 const kato = await M({ make: "Kato", model: "NK-250E", type: "truck_crane", specs: { Capacity: "25 t" }, serviceIntervals: [250, 500] });
 const fd30 = await M({ make: "Toyota", model: "8FD30", type: "forklift", specs: { Capacity: "3 t" }, serviceIntervals: [250, 500] });
-await U({ category: "truck_crane", modelId: kato.id, customerId: tunas.id, plateNo: "BKE 8821", year: 2012, hourMeter: 18450, engineModel: "Mitsubishi 8DC9", transmissionModel: "Fuso 6-speed", pumpModel: "KYB KFP2233", location: "Customer site" });
+const kato1 = await U({ category: "truck_crane", modelId: kato.id, customerId: tunas.id, plateNo: "BKE 8821", year: 2012, hourMeter: 18450, engineModel: "Mitsubishi 8DC9", transmissionModel: "Fuso 6-speed", pumpModel: "KYB KFP2233", location: "Customer site" });
 await U({ category: "forklift", modelId: fd30.id, customerId: port.id, serialNo: "8FD30-31842", year: 2019, hourMeter: 4210, engineModel: "Toyota 1DZ-III", location: "Customer site" });
+
+// Service schedule for the Kato truck crane: one overdue, one due soon, the rest fine.
+await db.insert(schema.machineServices).values([
+  { unitId: kato1.id, item: "engine_oil", intervalMonths: 3, lastDone: d(-100), nextDue: d(-8) },
+  { unitId: kato1.id, item: "greasing", intervalMonths: 1, lastDone: d(-20), nextDue: d(10) },
+  { unitId: kato1.id, item: "hydraulic_oil", intervalMonths: 12, lastDone: d(-120), nextDue: d(245) },
+  { unitId: kato1.id, item: "transmission_oil", intervalMonths: 12, lastDone: d(-200), nextDue: d(165) },
+  { unitId: kato1.id, item: "aircon", intervalMonths: 6 },
+]);
 
 let n = 0;
 async function J(v: Omit<typeof schema.jobs.$inferInsert, "jobNo">, extra: { team?: number[]; tasks?: [string, boolean, number?][]; labour?: [number, number, number][]; qcDone?: number } = {}) {

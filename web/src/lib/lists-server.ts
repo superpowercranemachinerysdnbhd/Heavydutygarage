@@ -13,7 +13,7 @@ export async function loadLists(): Promise<Lists> {
     if ((NUM_KEYS as readonly string[]).includes(s.key)) { const n = Number(s.value); if (Number.isFinite(n) && n >= 0) (settings as Record<string, number>)[s.key] = n; }
     else if (["companyName", "companyAddress", "companyPhone", "companyReg"].includes(s.key)) (settings as Record<string, string>)[s.key] = s.value;
   }
-  const merged = mergeLists(rows.map(({ list, code, label, grp, color, priority, sort, active }) => ({ list, code, label, grp, color, priority, sort, active })), settings);
+  const merged = mergeLists(rows.map(({ list, code, label, grp, color, priority, num, sort, active }) => ({ list, code, label, grp, color, priority, num, sort, active })), settings);
   setLists(merged);
   return merged;
 }

@@ -4,7 +4,11 @@ import { and, eq, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db, schema } from "@/db";
 import { requirePermission, requireUser } from "@/lib/auth";
-import { translator } from "@/i18n";
+import { translator, type MessageKey } from "@/i18n";
+import { findItem, listItems } from "@/lib/lists";
+import { nextDueFrom } from "@/lib/service-rules";
+import { markServiceDone } from "@/lib/services";
+import { today } from "@/lib/format";
 import { saveMachine } from "@/lib/machines";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
@@ -67,4 +71,57 @@ export async function updateUnit(form: FormData) {
   if (!r.ok) redirect(`/machinery/${id}?error=${encodeURIComponent(t(r.error))}`);
   revalidatePath(`/machinery/${id}`);
   redirect(`/machinery/${id}?ok=${encodeURIComponent(t("mach.updated"))}`);
+}
+
+/* ---------- service schedule ---------- */
+const isoOrNull = (v: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+const backToServices = (unitId: number, t: (k: MessageKey) => string, msg: { ok?: MessageKey; error?: MessageKey }): never =>
+  redirect(`/machinery/${unitId}?${msg.ok ? `ok=${encodeURIComponent(t(msg.ok))}` : `error=${encodeURIComponent(t(msg.error!))}`}#services`);
+
+/** Add or update one service item on a machine: last done, interval (months), next due (blank = worked out), notes. */
+export async function saveService(form: FormData) {
+  const user = await requirePermission("machine.manage");
+  const t = translator(user.locale);
+  const unitId = Number(form.get("unitId")), item = str(form, "item");
+  if (!unitId || !item || !findItem("service_item", item)) backToServices(unitId, t, { error: "svc.err.item" });
+  const monthsRaw = str(form, "intervalMonths");
+  const months = monthsRaw === "" ? findItem("service_item", item)?.num ?? null : Number(monthsRaw);
+  if (months !== null && !(Number.isInteger(months) && months > 0 && months <= 120)) backToServices(unitId, t, { error: "svc.err.months" });
+  const lastDone = isoOrNull(str(form, "lastDone"));
+  const values = { intervalMonths: months, lastDone, nextDue: nextDueFrom(lastDone, months, isoOrNull(str(form, "nextDue"))), notes: str(form, "notes") || null, updatedBy: user.id, updatedAt: new Date() };
+  const S = schema.machineServices;
+  await db.insert(S).values({ unitId, item, ...values }).onConflictDoUpdate({ target: [S.unitId, S.item], set: values });
+  revalidatePath(`/machinery/${unitId}`);
+  backToServices(unitId, t, { ok: "svc.saved" });
+}
+
+/** Add every service item from Settings that the machine does not have yet (dates left blank). */
+export async function addStandardServices(form: FormData) {
+  const user = await requirePermission("machine.manage");
+  const t = translator(user.locale);
+  const unitId = Number(form.get("unitId"));
+  const S = schema.machineServices;
+  const have = new Set((await db.select({ item: S.item }).from(S).where(eq(S.unitId, unitId))).map((r) => r.item));
+  const add = listItems("service_item").filter((i) => !have.has(i.code));
+  if (add.length) await db.insert(S).values(add.map((i) => ({ unitId, item: i.code, intervalMonths: i.num, updatedBy: user.id })));
+  revalidatePath(`/machinery/${unitId}`);
+  backToServices(unitId, t, { ok: "svc.saved" });
+}
+
+export async function serviceDoneToday(form: FormData) {
+  const user = await requirePermission("machine.manage");
+  const t = translator(user.locale);
+  const unitId = Number(form.get("unitId")), item = str(form, "item");
+  await markServiceDone(unitId, item, today(), user.id, null);
+  revalidatePath(`/machinery/${unitId}`);
+  backToServices(unitId, t, { ok: "svc.doneTodayOk" });
+}
+
+export async function removeService(form: FormData) {
+  const user = await requirePermission("machine.manage");
+  const t = translator(user.locale);
+  const unitId = Number(form.get("unitId")), item = str(form, "item");
+  await db.delete(schema.machineServices).where(and(eq(schema.machineServices.unitId, unitId), eq(schema.machineServices.item, item)));
+  revalidatePath(`/machinery/${unitId}`);
+  backToServices(unitId, t, { ok: "svc.removed" });
 }

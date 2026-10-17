@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { daysBetween, fmtDate, today } from "@/lib/format";
+import { daysBetween, fmtDate, today, hmText } from "@/lib/format";
 import { unitsWithNames } from "@/lib/queries";
 import { groupOf, machinePhotoUrl, machineTypeLabel, unitRef } from "@/lib/machine-types";
 import { getI18n } from "@/i18n/server";
 import { placeLabel } from "@/i18n";
 import MachineTypeOptions from "@/components/MachineTypeOptions";
+import { ServiceDue } from "@/components/ServicePanel";
+import { nextServiceByUnit } from "@/lib/services";
+import { serviceState } from "@/lib/service-rules";
+import { itemLabel } from "@/lib/lists";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("mach.title") };
@@ -18,6 +22,7 @@ export default async function MachineryPage({ searchParams }: { searchParams: Pr
   const sp = await searchParams;
   const q = (sp.q ?? "").trim().toLowerCase();
   const type = sp.type ?? "";
+  const nextSvc = await nextServiceByUnit();
   const units = (await unitsWithNames())
     .filter((u) => !q || [u.plateNo, u.serialNo, u.make, u.model, u.customerName, machineTypeLabel(t, u.type)].join(" ").toLowerCase().includes(q))
     .filter((u) => !type || u.type === type || groupOf(u.type) === type);
@@ -50,8 +55,13 @@ export default async function MachineryPage({ searchParams }: { searchParams: Pr
                 <td className="mono"><b>{unitRef(u)}</b>{u.plateNo && u.serialNo ? <><br /><small className="muted">{u.serialNo}</small></> : null}</td>
                 <td>{u.customerName}</td>
                 <td>{placeLabel(t, u.location)}{stay !== null && stay > 30 && <> <span className="badge-long">{t("mach.days", { n: stay })}</span></>}</td>
-                <td className="r num">{u.hourMeter.toLocaleString()} h</td>
-                <td>{u.nextServiceDate ? `${u.nextServiceType ?? t("hist.serviceDefault")}, ${fmtDate(u.nextServiceDate, false, locale)}` : "—"}</td>
+                <td className="r num">{hmText(u.hourMeter)}</td>
+                <td>{(() => {
+                  // Earliest item on the machine's service schedule; older records may only have the single "next service" field.
+                  const ns = nextSvc.get(u.id);
+                  if (ns) return <><ServiceDue s={{ nextDue: ns.nextDue, state: serviceState(ns.nextDue, d) }} t={t} locale={locale} /><br /><small className="muted">{itemLabel(t, "service_item", ns.item)}</small></>;
+                  return u.nextServiceDate ? `${u.nextServiceType ?? t("hist.serviceDefault")}, ${fmtDate(u.nextServiceDate, false, locale)}` : "—";
+                })()}</td>
               </tr>
             );
           })}

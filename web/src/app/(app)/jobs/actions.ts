@@ -11,7 +11,8 @@ import { addActivity } from "@/lib/queries";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, saveFile } from "@/lib/storage";
 import { issueToJob } from "@/lib/inventory";
 import { saveMachine } from "@/lib/machines";
-import { bayCodes, isCategory, qcSuggestions, settings } from "@/lib/lists";
+import { bayCodes, findItem, isCategory, itemLabel, qcSuggestions, settings } from "@/lib/lists";
+import { markServiceDone } from "@/lib/services";
 import { ensureLists } from "@/lib/lists-server";
 import { translator, type MessageKey, type Vars } from "@/i18n";
 import { activityText, statusLabel } from "@/i18n/labels";
@@ -359,19 +360,20 @@ export async function handover(form: FormData) {
   const { job } = await access(jobId, user);
   const name = str(form, "name"), hm = num(form, "hourMeter"), sig = str(form, "signature");
   if (job.status !== "closed" || job.signoffAt) back(user, jobId, { error: "err.handoverStatus" });
-  if (!name || !(hm > 0)) back(user, jobId, { error: "err.handoverFields" });
+  if (!name) back(user, jobId, { error: "err.handoverFields" });
+  const hmOut = Number.isFinite(hm) && hm > 0 ? hm : null; // optional: some machines have no hour meter
   const m = sig.match(/^data:image\/png;base64,([A-Za-z0-9+/=]+)$/);
   if (!m || m[1].length < 200) back(user, jobId, { error: "err.signature" });
   const png = Buffer.from(m[1], "base64");
   if (png.length > 2 * 1024 * 1024) back(user, jobId, { error: "err.sigLarge" });
   const signaturePath = await saveFile("signatures", png, "png");
-  const params = { customer: name, hm: hm.toLocaleString("en-MY"), name: user.name };
+  const params = { customer: name, hm: hmOut ? `${hmOut.toLocaleString("en-MY")} h` : "—", name: user.name };
   await db.transaction(async (tx) => {
     await tx.update(jobs).set({
-      signoffName: name, signoffHourMeter: hm, signoffAt: new Date(), signoffBy: user.id, signaturePath,
+      signoffName: name, signoffHourMeter: hmOut, signoffAt: new Date(), signoffBy: user.id, signaturePath,
     }).where(eq(jobs.id, jobId));
     const [unit] = await tx.select().from(schema.machineUnits).where(eq(schema.machineUnits.id, job.unitId));
-    await tx.update(schema.machineUnits).set({ hourMeter: Math.max(unit.hourMeter, hm), location: "Customer site", arrivedAt: null }).where(eq(schema.machineUnits.id, job.unitId));
+    await tx.update(schema.machineUnits).set({ ...(hmOut ? { hourMeter: Math.max(unit.hourMeter, hmOut) } : {}), location: "Customer site", arrivedAt: null }).where(eq(schema.machineUnits.id, job.unitId));
     await tx.insert(schema.jobActivity).values({ jobId, staffId: user.id, key: "act.handover", params, text: activityText(translator("en"), { key: "act.handover", params, text: "" }) });
   });
   back(user, jobId, { ok: "ok.handedOver" });
@@ -506,4 +508,19 @@ export async function removeJobPurchase(form: FormData) {
   if (job.status === "closed") back(user, jobId, { error: "tr.closed", hash: "parts" });
   await db.delete(schema.jobPurchases).where(and(eq(schema.jobPurchases.id, id), eq(schema.jobPurchases.jobId, jobId)));
   back(user, jobId, { ok: "jp.removed", hash: "parts" });
+}
+
+/* ---------- services done on this job (updates the machine's service schedule) ---------- */
+export async function recordServices(form: FormData) {
+  const user = await requireUser();
+  const jobId = num(form, "jobId");
+  const { job } = await access(jobId, user);
+  const items = form.getAll("items").map(String).filter((i) => findItem("service_item", i));
+  if (!items.length) back(user, jobId, { error: "svc.err.none", hash: "services" });
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(str(form, "date")) ? str(form, "date") : today();
+  for (const item of items) await markServiceDone(job.unitId, item, date, user.id, jobId);
+  const t = translator("en");
+  await addActivity(jobId, user.id, "act.services", { what: items.map((i) => itemLabel(t, "service_item", i)).join(", "), name: user.name });
+  revalidatePath(`/machinery/${job.unitId}`);
+  back(user, jobId, { ok: "svc.recorded", hash: "services" });
 }

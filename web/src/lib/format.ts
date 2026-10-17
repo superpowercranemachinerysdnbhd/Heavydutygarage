@@ -36,3 +36,8 @@ export function initials(name: string): string {
 }
 /** Labour charge per hour (RM), set by the Head Manager in Settings. */
 export const labourRate = () => settings().labourRate;
+
+/** Hour meter reading for display; "—" for machines without one (0 or empty). */
+export function hmText(n: number | null | undefined): string {
+  return n ? `${n.toLocaleString("en-MY")} h` : "—";
+}

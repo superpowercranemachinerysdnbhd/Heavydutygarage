@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, hmText } from "@/lib/format";
 import { Notice } from "@/components/ui";
 import { getI18n } from "@/i18n/server";
 import SubmitButton from "@/components/SubmitButton";
@@ -48,7 +48,7 @@ export default async function ModelPage({ params, searchParams }: { params: Prom
           </form>
         </div>
         <div className="panel"><div className="panel-head"><h3>{t("mod.units")}</h3></div>
-          {units.map(({ u, c }) => <Link key={u.id} href={`/machinery/${u.id}`} className="li plain"><div className="li-main"><b className="mono">{unitRef(u)}</b><small>{c} · {u.hourMeter.toLocaleString()} h</small></div></Link>)}
+          {units.map(({ u, c }) => <Link key={u.id} href={`/machinery/${u.id}`} className="li plain"><div className="li-main"><b className="mono">{unitRef(u)}</b><small>{c} · {hmText(u.hourMeter)}</small></div></Link>)}
           {units.length === 0 && <div className="issue muted">{t("mod.noUnits")}</div>}
         </div>
       </div>

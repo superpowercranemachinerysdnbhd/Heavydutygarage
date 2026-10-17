@@ -4,8 +4,8 @@ import { catColor, categoryCodes, itemLabel, machineGroups, mergeLists, newCode,
 import { translator } from "../src/i18n/index";
 
 const en = translator("en");
-const row = (list: "job_category" | "machine_type" | "bay" | "qc_item", code: string, extra: Record<string, unknown> = {}) =>
-  ({ list, code, label: null, grp: null, color: null, priority: null, sort: 50, active: true, ...extra });
+const row = (list: "job_category" | "machine_type" | "bay" | "qc_item" | "service_item", code: string, extra: Record<string, unknown> = {}) =>
+  ({ list, code, label: null, grp: null, color: null, priority: null, num: null, sort: 50, active: true, ...extra });
 
 test("built-in lists are there with nothing stored", () => {
   setLists(mergeLists([], {}));

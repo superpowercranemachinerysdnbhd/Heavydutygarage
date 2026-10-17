@@ -13,7 +13,8 @@ import { roleLabel, statusLabel } from "@/i18n/labels";
 import { Avatar, JobCard, daysInStatus, dueInfo } from "@/components/ui";
 import { purchasingAlerts } from "@/lib/alerts";
 import { unitRef } from "@/lib/machine-types";
-import { bayCodes, catColor } from "@/lib/lists";
+import { bayCodes, catColor, itemLabel } from "@/lib/lists";
+import { dueServices } from "@/lib/services";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("nav.dashboard") };
@@ -91,6 +92,14 @@ export default async function Dashboard() {
     const fu = await db.select({ id: schema.jobs.id, jobNo: schema.jobs.jobNo, note: schema.jobs.followUp, date: schema.jobs.followUpDate }).from(schema.jobs)
       .where(and(isNotNull(schema.jobs.followUp), lte(schema.jobs.followUpDate, d)));
     fu.forEach((f) => attention.push({ sev: "var(--info)", text: t("att.followUp", { no: f.jobNo, note: (f.note ?? "").slice(0, 80), date: fmtDate(f.date, false, locale) }), href: `/jobs/${f.id}#writeup` }));
+  }
+  if (all) {
+    // Machine services overdue or due within two weeks (from each machine's service schedule).
+    for (const r of await dueServices()) {
+      const overdueSvc = r.s.nextDue! < d;
+      attention.push({ sev: overdueSvc ? "var(--crit)" : "var(--warn)", href: `/machinery/${r.s.unitId}#services`,
+        text: t(overdueSvc ? "att.serviceOverdue" : "att.serviceDue", { machine: r.plateNo || `${r.make} ${r.model}`, service: itemLabel(t, "service_item", r.s.item), date: fmtDate(r.s.nextDue, false, locale) }) });
+    }
   }
   attention.push(...(await purchasingAlerts(user, locale)));
 

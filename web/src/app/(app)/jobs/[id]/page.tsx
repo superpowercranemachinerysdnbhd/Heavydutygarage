@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can, canWorkOnJob, CREW_ROLES, LEAD_ROLES } from "@/lib/permissions";
 import { CREW_STATUSES, PRIORITIES, STATUSES, qcMessageKey } from "@/lib/jobs";
-import { labourRate, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
+import { labourRate, fmtDate, fmtDateTime, rm, today, hmText } from "@/lib/format";
 import { activeStaff, getJob } from "@/lib/queries";
 import { jobPartsFor, jobPurchasesFor, partsForJob, requestsFor } from "@/lib/inventory";
 import { qcSuggestions, settings } from "@/lib/lists";
@@ -16,6 +16,9 @@ import SignaturePad from "@/components/SignaturePad";
 import SubmitButton from "@/components/SubmitButton";
 import ChatRoom from "@/components/ChatRoom";
 import PhotoInput from "@/components/PhotoInput";
+import { ServiceDue } from "@/components/ServicePanel";
+import { servicesFor } from "@/lib/services";
+import { itemLabel, listItems } from "@/lib/lists";
 import { jobThreadId, messagesFor } from "@/lib/chat";
 import * as A from "../actions";
 import { machineTypeLabel, unitRef } from "@/lib/machine-types";
@@ -60,6 +63,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const due = dueInfo(job, t, locale);
   const hidden = (n: string, v: string | number) => <input type="hidden" name={n} value={v} />;
   const canWrite = open || can(user.role, "job.editDetails");
+  const services = await servicesFor(unit.id);
+  const svcItems = listItems("service_item");
   const qcText = (q: (typeof qc)[number]) => (q.itemKey ? t(qcMessageKey(q.itemKey)) : q.item);
 
   return (
@@ -248,6 +253,29 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             </div>
           </section>
 
+          <section className="sect" id="services"><h3>{t("svc.onJob")} <Link className="btn small" href={`/machinery/${unit.id}#services`} style={subtle}>{t("svc.schedule")}</Link></h3><div className="in">
+            {canWrite ? (
+              <form action={A.recordServices} className="stack" style={{ gap: 8 }}>
+                {hidden("jobId", job.id)}
+                <div className="svc-grid">
+                  {svcItems.map((i) => {
+                    const row = services.find((x) => x.item === i.code);
+                    return (
+                      <label key={i.code} className="svc-check">
+                        <input type="checkbox" name="items" value={i.code} />
+                        <span>{itemLabel(t, "service_item", i.code)}</span>
+                        {row && <ServiceDue s={row} t={t} locale={locale} />}
+                      </label>
+                    );
+                  })}
+                </div>
+                <div className="filters"><label className="label" htmlFor="svc-date">{t("svc.doneOn")}</label><input id="svc-date" type="date" name="date" defaultValue={today()} style={{ width: 170 }} />
+                  <SubmitButton className="btn small primary">{t("svc.record")}</SubmitButton></div>
+                <small className="muted">{t("svc.onJobHelp")}</small>
+              </form>
+            ) : <span className="muted">{services.filter((x) => x.lastJobId === job.id).map((x) => itemLabel(t, "service_item", x.item)).join(", ") || "—"}</span>}
+          </div></section>
+
           <section className="sect" id="qc"><h3>{t("job.qc")} <span className="muted" style={subtle}>{qcDone}/{qc.length}</span></h3><div className="in">
             {qc.map((q) => (
               <div key={q.id} className={`task ${q.passedAt ? "done" : ""}`}>
@@ -275,7 +303,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               {job.signoffAt ? (
                 <div className="facts">
                   <div><span className="label">{t("job.receivedBy")}</span><b>{job.signoffName}</b></div>
-                  <div><span className="label">{t("job.hmOut")}</span><b className="hm">{job.signoffHourMeter?.toLocaleString()} h</b></div>
+                  <div><span className="label">{t("job.hmOut")}</span><b className="hm">{job.signoffHourMeter ? `${job.signoffHourMeter.toLocaleString()} h` : "—"}</b></div>
                   <div><span className="label">{t("job.signed")}</span><b>{fmtDateTime(job.signoffAt, locale)}</b></div>
                   <div style={{ gridColumn: "1/-1" }}><span className="label">{t("job.signature")}</span><img src={`/api/jobs/${job.id}/signature`} alt={t("job.signature")} style={{ maxWidth: 320, background: "#fff", border: "1px solid var(--line)", borderRadius: 4 }} /></div>
                 </div>
@@ -284,7 +312,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                   {hidden("jobId", job.id)}
                   <div className="form">
                     <label>{t("job.receivedByName")}<input type="text" name="name" defaultValue={customer.contactName ?? ""} required /></label>
-                    <label>{t("job.hmOut")}<input type="number" name="hourMeter" defaultValue={unit.hourMeter} min={1} required /></label>
+                    <label>{t("job.hmOutOptional")}<input type="number" name="hourMeter" defaultValue={unit.hourMeter || ""} min={0} /></label>
                   </div>
                   <span className="label">{t("job.signature")}</span>
                   <SignaturePad />
@@ -335,7 +363,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             <div><span className="label">{t("job.model")}</span><b><Link href={`/machinery/${unit.id}`}>{model.make} {model.model}</Link> · {machineTypeLabel(t, unit.category ?? model.type)}</b></div>
             <div><span className="label">{t("u.plate")}</span><b className="mono">{unit.plateNo ?? "—"}</b></div>
             <div><span className="label">{t("job.serial")}</span><b className="mono">{unit.serialNo ?? "—"}</b></div>
-            <div><span className="label">{t("job.hmIn")}</span><b className="hm">{(job.hourMeterIn ?? unit.hourMeter).toLocaleString()} h</b></div>
+            <div><span className="label">{t("job.hmIn")}</span><b className="hm">{hmText(job.hourMeterIn ?? unit.hourMeter)}</b></div>
             <div><span className="label">{t("job.customer")}</span><b>{customer.name}</b></div>
             <div><span className="label">{t("job.contact")}</span><b>{customer.contactName ?? "—"} · <span className="mono">{customer.phone ?? ""}</span></b></div>
             <div><span className="label">{t("job.openedDue")}</span><b>{fmtDate(job.openedAt, false, locale)} → {fmtDate(job.dueDate, false, locale)}</b></div>

@@ -35,6 +35,7 @@ function Row({ t, i, n, first, last, groups }: { t: T; i: ListItem; n: number; f
             {groups.map((g) => <option key={g} value={g}>{groupLabel(t, g)}</option>)}
           </select>
         )}
+        {i.list === "service_item" && <label className="set-check">{t("set.every")} <input type="number" name="num" min={1} max={120} defaultValue={i.num ?? ""} style={{ width: 70 }} /> {t("set.months")}</label>}
         <label className="set-check"><input type="checkbox" name="active" defaultChecked={i.active} /> {t("set.show")}</label>
         <SubmitButton className="btn small">{t("common.save")}</SubmitButton>
         {n > 0 && <small className="muted set-used">{t("set.usedBy", { n })}</small>}
@@ -66,6 +67,7 @@ function ListSection({ t, list, id, title, help, addPh, usage }: { t: T; list: L
           <select className="field" name="grp" defaultValue="" aria-label={t("set.group")}><option value="">{t("set.chooseGroup")}</option>{groups.map((g) => <option key={g} value={g}>{groupLabel(t, g)}</option>)}</select>
           <input name="newGroup" placeholder={t("set.newGroupPh")} aria-label={t("set.newGroupPh")} style={{ maxWidth: 200 }} />
         </>)}
+        {list === "service_item" && <label className="set-check">{t("set.every")} <input type="number" name="num" min={1} max={120} defaultValue={6} style={{ width: 70 }} /> {t("set.months")}</label>}
         <SubmitButton className="btn small primary">{t("common.add")}</SubmitButton>
       </form>
     </section>
@@ -84,7 +86,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <div className="view-head"><h2>{t("set.title")}</h2></div>
       <p className="muted" style={{ margin: 0 }}>{t("set.intro")}</p>
       <nav className="chipbar" aria-label={t("set.title")}>
-        {[["workshop", t("set.workshop")], ["categories", t("set.categories")], ["types", t("set.types")], ["bays", t("set.bays")], ["qc", t("set.qc")]].map(([h, l]) =>
+        {[["workshop", t("set.workshop")], ["categories", t("set.categories")], ["types", t("set.types")], ["services", t("set.services")], ["bays", t("set.bays")], ["qc", t("set.qc")]].map(([h, l]) =>
           <a key={h} className="chip plain" href={`#${h}`}>{l}</a>)}
       </nav>
       <Notice ok={sp.ok} error={sp.error} />
@@ -107,6 +109,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <ListSection t={t} list="job_category" id="categories" title={t("set.categories")} help={t("set.categoriesHelp")} addPh={t("set.addCategory")} usage={usage} />
       <ListSection t={t} list="machine_type" id="types" title={t("set.types")} help={t("set.typesHelp")} addPh={t("set.addType")} usage={usage} />
       <ListSection t={t} list="bay" id="bays" title={t("set.bays")} help={t("set.baysHelp")} addPh={t("set.addBay")} usage={usage} />
+      <ListSection t={t} list="service_item" id="services" title={t("set.services")} help={t("set.servicesHelp")} addPh={t("set.addService")} usage={usage} />
       <ListSection t={t} list="qc_item" id="qc" title={t("set.qc")} help={t("set.qcHelp")} addPh={t("set.addQc")} usage={usage} />
     </div>
   );

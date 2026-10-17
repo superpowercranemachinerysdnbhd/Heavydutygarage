@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import type { Category } from "@/lib/jobs";
 import { catColor } from "@/lib/lists";
-import { daysBetween, fmtDate, today } from "@/lib/format";
+import { daysBetween, fmtDate, today, hmText } from "@/lib/format";
 import { listJobs, machineFormOptions } from "@/lib/queries";
 import { machinePhotoUrl, machineTypeLabel, unitRef } from "@/lib/machine-types";
 import { getI18n } from "@/i18n/server";
@@ -15,6 +15,8 @@ import { catLabel, statusLabel } from "@/i18n/labels";
 import { Notice } from "@/components/ui";
 import UnitForm from "@/components/UnitForm";
 import { updateUnit } from "../actions";
+import ServicePanel from "@/components/ServicePanel";
+import { servicesFor } from "@/lib/services";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("mach.title") };
@@ -35,6 +37,7 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
   const shown = sp.cat ? history.filter((j) => j.category === sp.cat) : history;
   const stay = unit.arrivedAt ? daysBetween(unit.arrivedAt, today()) : null;
   const manage = can(user.role, "machine.manage");
+  const services = await servicesFor(id);
   const options = manage ? await machineFormOptions() : null;
   const photo = machinePhotoUrl(unit.id, unit.photoPath);
   const comp = [[t("u.engineModel"), unit.engineModel], [t("u.transmissionModel"), unit.transmissionModel], [t("u.pumpModel"), unit.pumpModel]] as const;
@@ -55,7 +58,7 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
         <div><span className="label">{t("u.plate")}</span><b className="mono">{unit.plateNo ?? "—"}</b></div>
         <div><span className="label">{t("col.serial")}</span><b className="mono">{unit.serialNo ?? "—"}</b></div>
         <div><span className="label">{t("col.owner")}</span><b>{customer.name}</b></div>
-        <div><span className="label">{t("col.hourMeter")}</span><b className="hm">{unit.hourMeter.toLocaleString()} h</b></div>
+        <div><span className="label">{t("col.hourMeter")}</span><b className="hm">{hmText(unit.hourMeter)}</b></div>
         <div><span className="label">{t("col.location")}</span><b>{placeLabel(t, unit.location)}</b></div>
         <div><span className="label">{t("mach.onPremises")}</span><b>{unit.arrivedAt ? `${fmtDate(unit.arrivedAt, true, locale)} (${t("mach.days", { n: stay ?? 0 })})` : t("mach.notOnPremises")}</b></div>
         <div><span className="label">{t("u.year")}</span><b>{unit.year ?? "—"}</b></div>
@@ -64,6 +67,8 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
         <div><span className="label">{t("mach.nextService")}</span><b>{unit.nextServiceDate ? `${unit.nextServiceType ?? t("hist.serviceDefault")}, ${fmtDate(unit.nextServiceDate, true, locale)}` : "—"}</b></div>
         <div><span className="label">{t("mach.modelPage")}</span><b><Link href={`/machinery/models/${model.id}`}>{t("mach.specsIssues")}</Link></b></div>
       </div></div>{unit.notes && <div className="panel in" style={{ padding: "10px 14px" }}><span className="muted">{unit.notes}</span></div>}
+
+      <ServicePanel unitId={id} services={services} manage={manage} t={t} locale={locale} />
 
       <div className="panel">
         <div className="panel-head" style={{ flexWrap: "wrap" }}><h3>{t("mach.history")}</h3>

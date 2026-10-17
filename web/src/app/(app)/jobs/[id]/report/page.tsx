@@ -63,7 +63,8 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
     const v = { ...o, lang, ...change };
     return `?${new URLSearchParams({ prices: v.prices ? "1" : "0", photos: v.photos ? "1" : "0", qc: v.qc ? "1" : "0", lang: v.lang })}`;
   };
-  const hm = job.signoffHourMeter ? `${t("rep.hmIn", { in: (job.hourMeterIn ?? 0).toLocaleString() })} · ${t("rep.hmOut", { out: job.signoffHourMeter.toLocaleString() })}` : t("rep.hmIn", { in: (job.hourMeterIn ?? 0).toLocaleString() });
+  // Machines without an hour meter show a dash instead of "0 h".
+  const hm = [job.hourMeterIn ? t("rep.hmIn", { in: job.hourMeterIn.toLocaleString() }) : "", job.signoffHourMeter ? t("rep.hmOut", { out: job.signoffHourMeter.toLocaleString() }) : ""].filter(Boolean).join(" · ") || "—";
 
   return (
     <div className="page" style={{ maxWidth: 860, marginInline: "auto" }}>
