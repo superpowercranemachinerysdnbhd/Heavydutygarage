@@ -472,3 +472,11 @@ How it works: the built-in entries stay in code (`src/lib/lists.ts`) and keep th
 - **Before photos** can be added on the New job form. Photos are shrunk on the phone before upload (max 1920 px JPEG) so they send quickly on mobile data.
 - **Jobs in boxes**: the Jobs page shows one box per job, newest first, with its before photo (or the machine photo), plate number, company, category, stage, due date and lead. The table view is one tap away.
 - **Dashboard bays** show the plate number, or make and model when there is no plate.
+
+## 18. Quality checks per job, and parts bought for a job
+
+- **Quality checks are chosen per job.** New jobs start with no checks. On the job page anyone on the job can add a check (type it, or pick from the suggestions); "Add standard checks" adds all suggestions at once. The Head Manager and Supervisor can remove a check that is not ticked. Settings → *Quality check suggestions* holds the suggestion list. A machine is released only when the job has at least one check and all are ticked.
+- **Parts on a job come in two kinds:**
+  - *From our stock*: requested by the crew or issued by the Supervisor from any stock part (parts that fit the machine are listed first). Stock and average cost update as before.
+  - *Bought for this job*: parts bought from a supplier for this job only (not stock): description, part no., supplier, quantity, cost, selling price (blank = cost + markup set in Settings, default 25%), invoice no. and date. Head Manager and Supervisor only; mechanics see the lines without prices.
+- Both kinds count in the job value, gross margin, dashboard value of open jobs and the customer's service report.

@@ -98,6 +98,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <label className="full">{t("set.companyAddress")}<textarea name="companyAddress" rows={2} defaultValue={s.companyAddress} /></label>
           <label>{t("set.labourRate")}<input name="labourRate" type="number" min={0} step="0.01" required defaultValue={s.labourRate} /></label>
           <label>{t("set.poLimit")}<input name="poApprovalLimit" type="number" min={0} step="1" required defaultValue={s.poApprovalLimit} /></label>
+          <label>{t("set.jobMarkup")}<input name="jobPurchaseMarkup" type="number" min={0} step="0.1" required defaultValue={s.jobPurchaseMarkup} /></label>
           <p className="full hint">{t("set.workshopHelp")}</p>
           <div className="full"><SubmitButton className="btn primary">{t("common.save")}</SubmitButton></div>
         </form>

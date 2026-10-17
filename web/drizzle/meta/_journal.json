@@ -43,6 +43,13 @@
       "when": 1792224241661,
       "tag": "0005_settings_lists",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792230931252,
+      "tag": "0006_job_purchases",
+      "breakpoints": true
     }
   ]
 }

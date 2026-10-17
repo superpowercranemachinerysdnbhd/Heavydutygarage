@@ -5,7 +5,7 @@ import { can } from "@/lib/permissions";
 import { qcMessageKey } from "@/lib/jobs";
 import { labourRate, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
 import { getJob, type JobDetail } from "@/lib/queries";
-import { jobPartsFor } from "@/lib/inventory";
+import { jobPartsFor, jobPurchasesFor } from "@/lib/inventory";
 import { getI18n } from "@/i18n/server";
 import { LOCALES, isLocale, placeLabel, translator, type Locale, type T } from "@/i18n";
 import { catLabel, langLabel, stageLabel } from "@/i18n/labels";
@@ -48,7 +48,12 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const byPerson = new Map<string, number>();
   labour.forEach((l) => byPerson.set(l.name, (byPerson.get(l.name) ?? 0) + Number(l.hours)));
   const hours = [...byPerson.values()].reduce((a, b) => a + b, 0);
-  const issued = await jobPartsFor(job.id);
+  const [stockLines, boughtLines] = await Promise.all([jobPartsFor(job.id), jobPurchasesFor(job.id)]);
+  // One parts list for the customer: from stock and bought for the job.
+  const issued = [
+    ...stockLines.map((x) => ({ id: `s${x.id}`, ref: x.oem ?? x.sku, description: x.description, qty: x.qty, uom: x.uom, unitPrice: x.unitPrice })),
+    ...boughtLines.map((x) => ({ id: `b${x.id}`, ref: x.partNo ?? "—", description: x.description, qty: x.qty, uom: x.uom, unitPrice: x.unitPrice })),
+  ];
   const partsTotal = warr ? 0 : issued.reduce((a, x) => a + x.qty * x.unitPrice, 0);
   const labourTotal = warr ? 0 : hours * labourRate();
   const rec = job.recommendations ?? defaultRecommendations(d, t, lang);
@@ -101,7 +106,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
         <div><h4>{t("rep.work")}</h4>{tasks.filter((x) => x.doneAt).length ? <ul>{tasks.filter((x) => x.doneAt).map((x) => <li key={x.id}>{x.description}</li>)}</ul> : <p>—</p>}</div>
         <div><h4>{t("rep.parts")}</h4>{issued.length ? (
           <div className="dt"><table><thead><tr><th>{t("parts.partNo")}</th><th>{t("parts.description")}</th><th className="r">{t("po.qty")}</th>{o.prices && <><th className="r">{t("po.unitPrice")}</th><th className="r">{t("col.amount")}</th></>}</tr></thead>
-            <tbody>{issued.map((x) => <tr key={x.id}><td>{x.oem ?? x.sku}</td><td>{x.description}</td><td className="r">{x.qty} {x.uom}</td>{o.prices && <><td className="r">{warr ? t("rep.noCharge") : rm(x.unitPrice)}</td><td className="r">{warr ? t("rep.noCharge") : rm(x.qty * x.unitPrice)}</td></>}</tr>)}</tbody></table></div>
+            <tbody>{issued.map((x) => <tr key={x.id}><td>{x.ref}</td><td>{x.description}</td><td className="r">{x.qty} {x.uom}</td>{o.prices && <><td className="r">{warr ? t("rep.noCharge") : rm(x.unitPrice)}</td><td className="r">{warr ? t("rep.noCharge") : rm(x.qty * x.unitPrice)}</td></>}</tr>)}</tbody></table></div>
         ) : <p>{t("rep.noParts")}</p>}</div>
         <div><h4>{t("rep.labour")}</h4>{byPerson.size ? (
           <div className="dt"><table><thead><tr><th>{t("col.technician")}</th><th className="r">{t("col.hours")}</th>{o.prices && <th className="r">{t("col.amount")}</th>}</tr></thead>

@@ -414,3 +414,21 @@ export const appSettings = pgTable("app_settings", {
   updatedBy: integer("updated_by").references(() => staff.id),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/** Parts bought from a supplier for one job (not stock): what was bought, from whom, cost and selling price. */
+export const jobPurchases = pgTable("job_purchases", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  description: varchar("description", { length: 200 }).notNull(),
+  partNo: varchar("part_no", { length: 60 }),
+  supplierId: integer("supplier_id").references(() => suppliers.id),
+  supplierName: varchar("supplier_name", { length: 160 }),
+  qty: numeric("qty", { precision: 12, scale: 2 }).notNull(),
+  uom: varchar("uom", { length: 20 }).notNull().default("pc"),
+  unitCost: numeric("unit_cost", { precision: 12, scale: 2 }).notNull(),
+  unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull(),
+  ref: varchar("ref", { length: 60 }),
+  purchasedAt: date("purchased_at").notNull(),
+  addedBy: integer("added_by").references(() => staff.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("job_purchases_job_idx").on(t.jobId)]);

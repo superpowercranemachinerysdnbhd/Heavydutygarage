@@ -103,10 +103,10 @@ export async function moveItem(form: FormData) {
 export async function saveWorkshop(form: FormData) {
   const user = await requirePermission("settings.manage");
   const t = translator(user.locale);
-  const rate = Number(str(form, "labourRate")), limit = Number(str(form, "poApprovalLimit"));
-  if (!Number.isFinite(rate) || rate < 0 || !Number.isFinite(limit) || limit < 0) done(t, "workshop", { error: "set.err.number" });
+  const rate = Number(str(form, "labourRate")), limit = Number(str(form, "poApprovalLimit")), markup = Number(str(form, "jobPurchaseMarkup") || 25);
+  if ([rate, limit, markup].some((n) => !Number.isFinite(n) || n < 0)) done(t, "workshop", { error: "set.err.number" });
   const values: Record<string, string> = {
-    labourRate: String(rate), poApprovalLimit: String(limit),
+    labourRate: String(rate), poApprovalLimit: String(limit), jobPurchaseMarkup: String(markup),
     companyName: str(form, "companyName").slice(0, 120), companyAddress: str(form, "companyAddress").slice(0, 400), companyPhone: str(form, "companyPhone").slice(0, 60), companyReg: str(form, "companyReg").slice(0, 60),
   };
   for (const [key, value] of Object.entries(values)) {

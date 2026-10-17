@@ -36,3 +36,8 @@ export async function getPo(id: number) {
     receipts: receipts.map((r) => ({ ...r.r, by: r.by, lines: rlines.filter((x) => x.receiptId === r.r.id).map((x) => ({ ...x, qty: n(x.qty), poPrice: n(x.poPrice), invoicePrice: n(x.invoicePrice) })) })),
   };
 }
+
+/** Active suppliers, for picking one on a form. */
+export async function activeSuppliers() {
+  return db.select({ id: schema.suppliers.id, name: schema.suppliers.name }).from(schema.suppliers).where(eq(schema.suppliers.active, true)).orderBy(asc(schema.suppliers.name));
+}

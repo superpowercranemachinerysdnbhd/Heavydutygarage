@@ -33,7 +33,8 @@ export async function listJobs(user: CurrentUser, opts: { open?: boolean; unitId
       make: machineModels.make, model: machineModels.model, serialNo: machineUnits.serialNo, plateNo: machineUnits.plateNo, unitPhotoPath: machineUnits.photoPath, customerName: customers.name,
       teamIds: sql<number[]>`coalesce((select array_agg(${jobTeam.staffId}) from ${jobTeam} where ${jobTeam.jobId} = ${jobs.id}), '{}')`,
       labourHours: sql<string>`coalesce((select sum(${schema.labourEntries.hours}) from ${schema.labourEntries} where ${schema.labourEntries.jobId} = ${jobs.id}), 0)`,
-      partsValue: sql<string>`coalesce((select sum(${schema.jobParts.qty} * ${schema.jobParts.unitPrice}) from ${schema.jobParts} where ${schema.jobParts.jobId} = ${jobs.id}), 0)`,
+      partsValue: sql<string>`coalesce((select sum(${schema.jobParts.qty} * ${schema.jobParts.unitPrice}) from ${schema.jobParts} where ${schema.jobParts.jobId} = ${jobs.id}), 0)
+        + coalesce((select sum(${schema.jobPurchases.qty} * ${schema.jobPurchases.unitPrice}) from ${schema.jobPurchases} where ${schema.jobPurchases.jobId} = ${jobs.id}), 0)`,
     })
     .from(jobs)
     .innerJoin(machineUnits, eq(jobs.unitId, machineUnits.id))

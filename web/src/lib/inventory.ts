@@ -61,6 +61,21 @@ export async function partsForModel(modelId: number) {
   return (await listParts()).filter((p) => p.fitsAll || p.modelIds.includes(modelId));
 }
 
+/** Every stock part for a job, with the ones that fit the machine first (`fits`). */
+export async function partsForJob(modelId: number) {
+  const all = (await listParts()).map((p) => ({ ...p, fits: p.fitsAll || p.modelIds.includes(modelId) }));
+  return [...all.filter((p) => p.fits), ...all.filter((p) => !p.fits)];
+}
+
+/** Parts bought from a supplier for one job (not from stock). */
+export async function jobPurchasesFor(jobId: number) {
+  const P = schema.jobPurchases;
+  const rows = await db.select({ p: P, supplier: schema.suppliers.name, by: schema.staff.name }).from(P)
+    .leftJoin(schema.suppliers, eq(P.supplierId, schema.suppliers.id)).leftJoin(schema.staff, eq(P.addedBy, schema.staff.id))
+    .where(eq(P.jobId, jobId)).orderBy(asc(P.purchasedAt), asc(P.id));
+  return rows.map(({ p, supplier, by }) => ({ ...p, supplier: supplier ?? p.supplierName, by, qty: n(p.qty), unitCost: n(p.unitCost), unitPrice: n(p.unitPrice) }));
+}
+
 /** Record a supplier price (never overwrites history). */
 export async function recordPrice(tx: Tx, v: { partId: number; supplierId: number; price: number; source: "quote" | "po" | "invoice" | "import"; ref?: string | null; staffId: number | null; date?: string }) {
   await tx.insert(supplierPrices).values({ partId: v.partId, supplierId: v.supplierId, price: v.price.toFixed(2), priceDate: v.date ?? today(), source: v.source, ref: v.ref ?? null, createdBy: v.staffId });

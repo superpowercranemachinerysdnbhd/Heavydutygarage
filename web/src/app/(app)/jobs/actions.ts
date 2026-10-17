@@ -11,7 +11,7 @@ import { addActivity } from "@/lib/queries";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, saveFile } from "@/lib/storage";
 import { issueToJob } from "@/lib/inventory";
 import { saveMachine } from "@/lib/machines";
-import { bayCodes, isCategory, qcTemplate } from "@/lib/lists";
+import { bayCodes, isCategory, qcSuggestions, settings } from "@/lib/lists";
 import { ensureLists } from "@/lib/lists-server";
 import { translator, type MessageKey, type Vars } from "@/i18n";
 import { activityText, statusLabel } from "@/i18n/labels";
@@ -22,14 +22,14 @@ const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const num = (f: FormData, k: string) => { const v = Number(f.get(k)); return Number.isFinite(v) ? v : NaN; };
 
 /** Return to the job page with a message in the user's language. */
-function back(user: CurrentUser, jobId: number, msg?: { error?: MessageKey; ok?: MessageKey; vars?: Vars }): never {
+function back(user: CurrentUser, jobId: number, msg?: { error?: MessageKey; ok?: MessageKey; vars?: Vars; hash?: string }): never {
   const t = translator(user.locale);
   const vars = { ...(msg?.vars ?? {}) };
   if (typeof vars.status === "string") vars.status = statusLabel(t, vars.status as Status);
   const q = msg?.error ? `?error=${encodeURIComponent(t(msg.error, vars))}` : msg?.ok ? `?ok=${encodeURIComponent(t(msg.ok, vars))}` : "";
   revalidatePath(`/jobs/${jobId}`);
   revalidatePath("/");
-  redirect(`/jobs/${jobId}${q}`);
+  redirect(`/jobs/${jobId}${q}${msg?.hash ? `#${msg.hash}` : ""}`);
 }
 
 /** Load the job and check the user may work on it. */
@@ -128,7 +128,7 @@ export async function createJob(form: FormData) {
       reportedBy: str(form, "reportedBy") || null, leadId, hourMeterIn: Number.isFinite(hourMeter) && hourMeter > 0 ? hourMeter : unit.hourMeter,
       openedAt: d, dueDate, parentJobId, createdBy: user.id,
     }).returning({ id: jobs.id });
-    await tx.insert(schema.jobQc).values(qcTemplate(category, en).map((q, i) => ({ jobId: row.id, seq: i, ...q })));
+    // Quality checks are chosen per job on the job page (suggestions come from Settings).
     const params = { no: jobNo, name: user.name };
     await tx.insert(schema.jobActivity).values({ jobId: row.id, staffId: user.id, key: "act.created", params, text: activityText(en, { key: "act.created", params, text: "" }) });
     const unitUpdate: Partial<typeof schema.machineUnits.$inferInsert> = {};
@@ -416,4 +416,66 @@ export async function rejectRequest(form: FormData) {
   await db.update(schema.partRequests).set({ status: "rejected", handledBy: user.id, handledAt: new Date() }).where(eq(schema.partRequests.id, requestId));
   await addActivity(jobId, user.id, "act.partRejected", { part: r.description, name: user.name });
   back(user, jobId);
+}
+
+/* ---------- quality checks chosen per job ---------- */
+export async function addQcItem(form: FormData) {
+  const user = await requireUser();
+  const jobId = num(form, "jobId");
+  const { job } = await access(jobId, user);
+  if (job.status === "closed") back(user, jobId, { error: "tr.closed", hash: "qc" });
+  const texts = form.get("standard") ? null : [str(form, "item").slice(0, 300)];
+  if (texts && !texts[0]) back(user, jobId, { error: "qc.err.empty", hash: "qc" });
+  const t = translator(user.locale);
+  const sugg = qcSuggestions(job.category, t);
+  const existing = await db.select().from(schema.jobQc).where(eq(schema.jobQc.jobId, jobId));
+  const have = (x: { itemKey: string | null; item: string }) => existing.some((e) => (x.itemKey && e.itemKey === x.itemKey) || e.item.toLowerCase() === x.item.toLowerCase());
+  // Typed text that matches a suggestion keeps its key, so it shows in each reader's language.
+  const rows = texts ? texts.map((item) => sugg.find((g) => g.item.toLowerCase() === item.toLowerCase()) ?? { itemKey: null, item }) : sugg;
+  const fresh = rows.filter((r) => !have(r));
+  let seq = Math.max(-1, ...existing.map((e) => e.seq));
+  if (fresh.length) await db.insert(schema.jobQc).values(fresh.map((r) => ({ jobId, seq: ++seq, itemKey: r.itemKey, item: r.item })));
+  back(user, jobId, { ok: "qc.added", hash: "qc" });
+}
+
+export async function removeQcItem(form: FormData) {
+  const user = await requirePermission("job.qc");
+  const jobId = num(form, "jobId"), qcId = num(form, "qcId");
+  await access(jobId, user);
+  const [q] = await db.select().from(schema.jobQc).where(and(eq(schema.jobQc.id, qcId), eq(schema.jobQc.jobId, jobId)));
+  if (!q) back(user, jobId, { error: "err.qcNotFound", hash: "qc" });
+  if (q.passedAt) back(user, jobId, { error: "qc.err.passed", hash: "qc" });
+  await db.delete(schema.jobQc).where(eq(schema.jobQc.id, qcId));
+  back(user, jobId, { ok: "qc.removed", hash: "qc" });
+}
+
+/* ---------- parts bought for a job (not from stock) ---------- */
+export async function addJobPurchase(form: FormData) {
+  const user = await requirePermission("stock.manage");
+  const jobId = num(form, "jobId");
+  const { job } = await access(jobId, user);
+  if (job.status === "closed") back(user, jobId, { error: "tr.closed", hash: "parts" });
+  const description = str(form, "description").slice(0, 200), qty = Number(str(form, "qty")), cost = Number(str(form, "unitCost"));
+  const priceRaw = str(form, "unitPrice");
+  if (!description || !(qty > 0) || !(cost >= 0)) back(user, jobId, { error: "jp.err.fields", hash: "parts" });
+  const price = priceRaw === "" ? Math.round(cost * (1 + settings().jobPurchaseMarkup / 100) * 100) / 100 : Number(priceRaw);
+  if (!(price >= 0)) back(user, jobId, { error: "jp.err.fields", hash: "parts" });
+  const supplierId = num(form, "supplierId") || null;
+  const date = str(form, "purchasedAt");
+  await db.insert(schema.jobPurchases).values({
+    jobId, description, partNo: str(form, "partNo") || null, supplierId, supplierName: supplierId ? null : str(form, "supplierName") || null,
+    qty: String(qty), uom: str(form, "uom") || "pc", unitCost: cost.toFixed(2), unitPrice: price.toFixed(2), ref: str(form, "ref") || null,
+    purchasedAt: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : today(), addedBy: user.id,
+  });
+  await addActivity(jobId, user.id, "act.bought", { what: `${qty} × ${description}`, name: user.name });
+  back(user, jobId, { ok: "jp.added", hash: "parts" });
+}
+
+export async function removeJobPurchase(form: FormData) {
+  const user = await requirePermission("stock.manage");
+  const jobId = num(form, "jobId"), id = num(form, "purchaseId");
+  const { job } = await access(jobId, user);
+  if (job.status === "closed") back(user, jobId, { error: "tr.closed", hash: "parts" });
+  await db.delete(schema.jobPurchases).where(and(eq(schema.jobPurchases.id, id), eq(schema.jobPurchases.jobId, jobId)));
+  back(user, jobId, { ok: "jp.removed", hash: "parts" });
 }

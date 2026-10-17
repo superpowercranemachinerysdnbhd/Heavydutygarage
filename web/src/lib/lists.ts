@@ -17,7 +17,7 @@ export type ListItem = {
   color: string | null; priority: Priority | null;
   sort: number; active: boolean; builtin: boolean;
 };
-export type Settings = { labourRate: number; poApprovalLimit: number; companyName: string; companyAddress: string; companyPhone: string; companyReg: string };
+export type Settings = { labourRate: number; poApprovalLimit: number; jobPurchaseMarkup: number; companyName: string; companyAddress: string; companyPhone: string; companyReg: string };
 export type Lists = { items: ListItem[]; settings: Settings };
 
 const B = (list: ListName, code: string, sort: number, extra: Partial<ListItem> = {}): ListItem =>
@@ -48,7 +48,7 @@ const QC_CODES = ["testRun", "leakCheck", "allTasks", "afterPhotos", "cleanUp"];
 
 const env = (k: string) => (typeof process !== "undefined" ? process.env?.[k] : undefined);
 export const DEFAULT_SETTINGS: Settings = {
-  labourRate: Number(env("LABOUR_RATE") ?? 95) || 95, poApprovalLimit: Number(env("PO_APPROVAL_LIMIT") ?? 5000) || 5000,
+  labourRate: Number(env("LABOUR_RATE") ?? 95) || 95, poApprovalLimit: Number(env("PO_APPROVAL_LIMIT") ?? 5000) || 5000, jobPurchaseMarkup: 25,
   companyName: "", companyAddress: "", companyPhone: "", companyReg: "",
 };
 
@@ -120,6 +120,11 @@ export function groupLabel(t: T, group: string): string {
 export function qcTemplate(category: string, en: T): { itemKey: string | null; item: string }[] {
   const first = BUILTIN_CATEGORY_CODES.includes(category) ? [{ itemKey: category, item: en(`qc.${category}` as MessageKey) }] : [];
   return [...first, ...listItems("qc_item").map((q) => (q.label ? { itemKey: null, item: q.label } : { itemKey: q.code, item: en(`qc.${q.code}` as MessageKey) }))];
+}
+
+/** Suggested checks for a job (the Settings list, plus the category's own check for built-in categories). */
+export function qcSuggestions(category: string, t: T): { itemKey: string | null; item: string }[] {
+  return qcTemplate(category, t);
 }
 
 /** Code for a new custom entry: readable, unique within its list. */

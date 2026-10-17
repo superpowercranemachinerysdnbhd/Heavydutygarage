@@ -5,7 +5,9 @@ import { can, canWorkOnJob, CREW_ROLES, LEAD_ROLES } from "@/lib/permissions";
 import { CREW_STATUSES, PRIORITIES, STATUSES, qcMessageKey } from "@/lib/jobs";
 import { labourRate, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
 import { activeStaff, getJob } from "@/lib/queries";
-import { jobPartsFor, partsForModel, requestsFor } from "@/lib/inventory";
+import { jobPartsFor, jobPurchasesFor, partsForJob, requestsFor } from "@/lib/inventory";
+import { qcSuggestions, settings } from "@/lib/lists";
+import { activeSuppliers } from "@/lib/purchasing";
 import { getI18n } from "@/i18n/server";
 import { placeLabel, type MessageKey } from "@/i18n";
 import { activityText, catLabel, priLabel, roleLabel, stageLabel, statusLabel } from "@/i18n/labels";
@@ -16,7 +18,7 @@ import ChatRoom from "@/components/ChatRoom";
 import PhotoInput from "@/components/PhotoInput";
 import { jobThreadId, messagesFor } from "@/lib/chat";
 import * as A from "../actions";
-import { unitRef } from "@/lib/machine-types";
+import { machineTypeLabel, unitRef } from "@/lib/machine-types";
 import { bayCodes, categoryCodes } from "@/lib/lists";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -44,8 +46,11 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const statusOptions = sup ? STATUSES.filter((s) => s !== job.status) : CREW_STATUSES.filter((s) => s !== job.status);
   const staffList = sup ? await activeStaff() : [];
   const chatId = await jobThreadId(job.id);
-  const [issued, requests, fitParts, chatInitial] = await Promise.all([jobPartsFor(job.id), requestsFor(job.id), open ? partsForModel(model.id) : Promise.resolve([]), messagesFor(user, chatId)]);
-  const partsSell = issued.reduce((a, x) => a + x.qty * x.unitPrice, 0), partsCost = issued.reduce((a, x) => a + x.qty * x.unitCost, 0);
+  const [issued, bought, requests, stockParts, chatInitial, sups] = await Promise.all([jobPartsFor(job.id), jobPurchasesFor(job.id), requestsFor(job.id), open ? partsForJob(model.id) : Promise.resolve([]), messagesFor(user, chatId),
+    open && can(user.role, "stock.manage") ? activeSuppliers() : Promise.resolve([])]);
+  const suggestions = qcSuggestions(job.category, t).filter((g) => !qc.some((q) => (g.itemKey && q.itemKey === g.itemKey) || q.item.toLowerCase() === g.item.toLowerCase()));
+  const partLines = [...issued, ...bought];
+  const partsSell = partLines.reduce((a, x) => a + x.qty * x.unitPrice, 0), partsCost = partLines.reduce((a, x) => a + x.qty * x.unitCost, 0);
   const q2 = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
   const crew = staffList.filter((s) => CREW_ROLES.includes(s.role));
   const hours = labour.reduce((a, l) => a + Number(l.hours), 0);
@@ -152,16 +157,16 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             )}
           </div></section>
 
-          <section className="sect"><h3>{t("job.parts")} <span className="muted" style={subtle}>{issued.length}</span></h3>
-            {issued.length > 0 && (
-              <div className="tbl-wrap" style={{ border: 0, borderRadius: 0 }}><table>
-                <thead><tr><th>{t("jp.issued")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.selling") && <th className="r">{t("parts.sell")}</th>}{can(user.role, "money.cost") && <th className="r">{t("parts.costCol")}</th>}</tr></thead>
-                <tbody>{issued.map((x) => <tr key={x.id}><td><span className="mono">{x.sku}</span> {x.description}<br /><small className="muted">{fmtDateTime(x.issuedAt, locale)}</small></td><td className="r num">{q2(x.qty)} {x.uom}</td>
-                  {can(user.role, "money.selling") && <td className="r num">{rm(x.qty * x.unitPrice)}</td>}{can(user.role, "money.cost") && <td className="r num">{rm(x.qty * x.unitCost)}</td>}</tr>)}</tbody>
-              </table></div>
-            )}
-            <div className="in" style={issued.length ? { borderTop: "1px solid var(--line)" } : undefined}>
-              <span className="label">{t("jp.requests")}</span>
+          <section className="sect" id="parts"><h3>{t("job.parts")} <span className="muted" style={subtle}>{issued.length + bought.length}</span></h3>
+            <div className="in">
+              <span className="label">{t("jp.internal")}</span>
+              {issued.length > 0 ? (
+                <div className="tbl-wrap"><table>
+                  <thead><tr><th>{t("jp.issued")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.selling") && <th className="r">{t("parts.sell")}</th>}{can(user.role, "money.cost") && <th className="r">{t("parts.costCol")}</th>}</tr></thead>
+                  <tbody>{issued.map((x) => <tr key={x.id}><td><span className="mono">{x.sku}</span> {x.description}<br /><small className="muted">{fmtDateTime(x.issuedAt, locale)}</small></td><td className="r num">{q2(x.qty)} {x.uom}</td>
+                    {can(user.role, "money.selling") && <td className="r num">{rm(x.qty * x.unitPrice)}</td>}{can(user.role, "money.cost") && <td className="r num">{rm(x.qty * x.unitCost)}</td>}</tr>)}</tbody>
+                </table></div>
+              ) : <small className="muted">—</small>}
               {requests.map((r) => (
                 <div key={r.id} className="req">
                   <div><b>{q2(r.qty)} {r.uom} · {r.description}</b> <span className="mono muted">{r.sku}</span><br />
@@ -176,38 +181,82 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                   </div>
                 </div>
               ))}
-              {requests.length === 0 && <span className="muted">{t("jp.noRequests")}</span>}
-              {open && fitParts.length > 0 && (
+              {open && stockParts.length > 0 && (<>
                 <form action={A.requestPart} className="filters" style={{ marginTop: 6 }}>
                   {hidden("jobId", job.id)}
-                  <select className="field" name="partId" required aria-label={t("jp.part")} style={{ flex: "1 1 240px" }} defaultValue=""><option value="" disabled>{t("jp.choosePart")}</option>
-                    {fitParts.map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.description} ({t("jp.inStock", { n: q2(p.onHand), uom: p.uom })})</option>)}</select>
+                  <select className="field" name="partId" required aria-label={t("jp.part")} style={{ flex: "1 1 240px" }} defaultValue=""><option value="" disabled>{t("jp.chooseAny")}</option>
+                    <optgroup label={t("jp.fits")}>{stockParts.filter((p) => p.fits).map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.description} ({t("jp.inStock", { n: q2(p.onHand), uom: p.uom })})</option>)}</optgroup>
+                    <optgroup label={t("jp.otherParts")}>{stockParts.filter((p) => !p.fits).map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.description} ({t("jp.inStock", { n: q2(p.onHand), uom: p.uom })})</option>)}</optgroup></select>
                   <input type="number" name="qty" min="0.01" step="any" defaultValue={1} style={{ width: 80 }} aria-label={t("po.qty")} />
                   <input type="text" name="note" placeholder={t("jp.notePh")} style={{ flex: "1 1 140px" }} aria-label={t("col.note")} />
                   <SubmitButton>{t("jp.request")}</SubmitButton>
                 </form>
+                {can(user.role, "stock.manage") && (
+                  <form action={A.issueDirect} className="filters">
+                    {hidden("jobId", job.id)}
+                    <select className="field" name="partId" required aria-label={t("jp.part")} style={{ flex: "1 1 240px" }} defaultValue=""><option value="" disabled>{t("jp.issueDirect")}</option>
+                      <optgroup label={t("jp.fits")}>{stockParts.filter((p) => p.fits).map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.description} ({t("jp.inStock", { n: q2(p.onHand), uom: p.uom })})</option>)}</optgroup>
+                      <optgroup label={t("jp.otherParts")}>{stockParts.filter((p) => !p.fits).map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.description} ({t("jp.inStock", { n: q2(p.onHand), uom: p.uom })})</option>)}</optgroup></select>
+                    <input type="number" name="qty" min="0.01" step="any" defaultValue={1} style={{ width: 80 }} aria-label={t("po.qty")} />
+                    <SubmitButton className="btn small primary">{t("jp.issue")}</SubmitButton>
+                  </form>
+                )}
+              </>)}
+              {open && stockParts.length === 0 && <small className="muted">{t("jp.noStock")}</small>}
+            </div>
+
+            <div className="in" style={{ borderTop: "1px solid var(--line)" }}>
+              <span className="label">{t("jp.bought")}</span>
+              {bought.length > 0 ? (
+                <div className="tbl-wrap"><table>
+                  <thead><tr><th>{t("jp.desc")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.selling") && <th className="r">{t("parts.sell")}</th>}{can(user.role, "money.cost") && <th className="r">{t("parts.costCol")}</th>}{open && can(user.role, "stock.manage") && <th />}</tr></thead>
+                  <tbody>{bought.map((x) => <tr key={x.id}><td>{x.partNo && <span className="mono">{x.partNo} </span>}{x.description}<br /><small className="muted">{fmtDate(x.purchasedAt, false, locale)}{x.supplier ? ` · ${t("jp.from", { s: x.supplier })}` : ""}{x.ref ? ` · ${x.ref}` : ""}</small></td>
+                    <td className="r num">{q2(x.qty)} {x.uom}</td>
+                    {can(user.role, "money.selling") && <td className="r num">{rm(x.qty * x.unitPrice)}</td>}{can(user.role, "money.cost") && <td className="r num">{rm(x.qty * x.unitCost)}</td>}
+                    {open && can(user.role, "stock.manage") && <td className="r"><form action={A.removeJobPurchase}>{hidden("jobId", job.id)}{hidden("purchaseId", x.id)}<button className="linkbtn muted">{t("jp.remove")}</button></form></td>}</tr>)}</tbody>
+                </table></div>
+              ) : <small className="muted">{t("jp.noBought")}</small>}
+              {open && can(user.role, "stock.manage") && (
+                <details className="add-bought"><summary className="btn small">{t("jp.addBought")}</summary>
+                  <form action={A.addJobPurchase} className="form" style={{ marginTop: 10 }}>
+                    {hidden("jobId", job.id)}
+                    <label className="full">{t("jp.desc")}<input name="description" required placeholder="Hydraulic hose 1/2&quot; x 1.5 m" /></label>
+                    <label>{t("jp.partNo")}<input name="partNo" /></label>
+                    <label>{t("jp.supplier")}<select className="field" name="supplierId" defaultValue=""><option value="">{t("sup.newBelow")}</option>{sups.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
+                    <label>{t("sup.name")}<input name="supplierName" placeholder={t("sup.name")} /></label>
+                    <label>{t("po.qty")}<input type="number" name="qty" min="0.01" step="any" defaultValue={1} required /></label>
+                    <label>{t("parts.uom")}<input name="uom" defaultValue="pc" list="uoms-job" /></label>
+                    <datalist id="uoms-job"><option>pc</option><option>set</option><option>m</option><option>L</option><option>kg</option></datalist>
+                    <label>{t("jp.unitCost")}<input type="number" name="unitCost" min={0} step="0.01" required /></label>
+                    <label>{t("jp.unitPrice")}<input type="number" name="unitPrice" min={0} step="0.01" placeholder={t("jp.sellAuto", { pct: settings().jobPurchaseMarkup })} /></label>
+                    <label>{t("jp.ref")}<input name="ref" /></label>
+                    <label>{t("jp.date")}<input type="date" name="purchasedAt" defaultValue={today()} /></label>
+                    <div className="full"><SubmitButton className="btn small primary">{t("common.add")}</SubmitButton></div>
+                  </form>
+                </details>
               )}
-              {open && can(user.role, "stock.manage") && fitParts.length > 0 && (
-                <form action={A.issueDirect} className="filters">
-                  {hidden("jobId", job.id)}
-                  <select className="field" name="partId" required aria-label={t("jp.part")} style={{ flex: "1 1 240px" }} defaultValue=""><option value="" disabled>{t("jp.issueDirect")}</option>
-                    {fitParts.map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.description} ({t("jp.inStock", { n: q2(p.onHand), uom: p.uom })})</option>)}</select>
-                  <input type="number" name="qty" min="0.01" step="any" defaultValue={1} style={{ width: 80 }} aria-label={t("po.qty")} />
-                  <SubmitButton className="btn small primary">{t("jp.issue")}</SubmitButton>
-                </form>
-              )}
-              {open && fitParts.length === 0 && <small className="muted">{t("jp.noParts")}</small>}
             </div>
           </section>
 
-          <section className="sect"><h3>{t("job.qc")} <span className="muted" style={subtle}>{qcDone}/{qc.length}</span></h3><div className="in">
+          <section className="sect" id="qc"><h3>{t("job.qc")} <span className="muted" style={subtle}>{qcDone}/{qc.length}</span></h3><div className="in">
             {qc.map((q) => (
-              <form key={q.id} action={A.toggleQc} className={`task ${q.passedAt ? "done" : ""}`}>
-                {hidden("jobId", job.id)}{hidden("qcId", q.id)}
-                <button className="tick" disabled={!can(user.role, "job.qc") || job.status !== "quality_check"} aria-label={`${t("job.qc")}: ${qcText(q)}`}>{q.passedAt ? "✓" : ""}</button>
+              <div key={q.id} className={`task ${q.passedAt ? "done" : ""}`}>
+                <form action={A.toggleQc}>{hidden("jobId", job.id)}{hidden("qcId", q.id)}
+                  <button className="tick" disabled={!can(user.role, "job.qc") || job.status !== "quality_check"} aria-label={`${t("job.qc")}: ${qcText(q)}`}>{q.passedAt ? "✓" : ""}</button></form>
                 <span>{qcText(q)}</span>
-              </form>
+                {open && can(user.role, "job.qc") && !q.passedAt && <form action={A.removeQcItem} style={{ marginLeft: "auto" }}>{hidden("jobId", job.id)}{hidden("qcId", q.id)}<button className="linkbtn muted" aria-label={`${t("common.remove")}: ${qcText(q)}`}>✕</button></form>}
+              </div>
             ))}
+            {qc.length === 0 && <small className="muted">{t("qc.none")}</small>}
+            {open && (<>
+              <form action={A.addQcItem} className="filters">
+                {hidden("jobId", job.id)}
+                <input name="item" list="qc-suggest" required placeholder={t("qc.addPh")} aria-label={t("qc.add")} style={{ flex: "1 1 260px" }} />
+                <datalist id="qc-suggest">{suggestions.map((g) => <option key={g.itemKey ?? g.item} value={g.item} />)}</datalist>
+                <SubmitButton>{t("qc.add")}</SubmitButton>
+              </form>
+              {suggestions.length > 0 && <form action={A.addQcItem}>{hidden("jobId", job.id)}{hidden("standard", 1)}<SubmitButton className="linkbtn">{`+ ${t("qc.addStandard")} (${suggestions.length})`}</SubmitButton></form>}
+            </>)}
             <small className="muted">{job.status === "quality_check" ? t("job.qcHelpNow") : idx > STATUSES.indexOf("quality_check") ? t("job.qcPassed") : t("job.qcLater")}</small>
           </div></section>
 
@@ -273,7 +322,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           </div></section>
 
           <section className="sect"><h3>{t("job.machineCustomer")}</h3><div className="facts">
-            <div><span className="label">{t("job.model")}</span><b><Link href={`/machinery/${unit.id}`}>{model.make} {model.model}</Link> · {model.type}</b></div>
+            <div><span className="label">{t("job.model")}</span><b><Link href={`/machinery/${unit.id}`}>{model.make} {model.model}</Link> · {machineTypeLabel(t, unit.category ?? model.type)}</b></div>
             <div><span className="label">{t("u.plate")}</span><b className="mono">{unit.plateNo ?? "—"}</b></div>
             <div><span className="label">{t("job.serial")}</span><b className="mono">{unit.serialNo ?? "—"}</b></div>
             <div><span className="label">{t("job.hmIn")}</span><b className="hm">{(job.hourMeterIn ?? unit.hourMeter).toLocaleString()} h</b></div>
