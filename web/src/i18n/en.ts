@@ -973,6 +973,21 @@ export const en = {
   "mod.edit": "Edit model",
   "mod.saved": "Model saved.",
   "mod.duplicate": "Another model already has this make and model.",
+  // job layout, location picker
+  "bay.openYard": "Open yard",
+  "f.where": "Where is the machine?",
+  "f.workshopGroup": "At our workshop",
+  "f.outside": "Outside job (customer site / field)",
+  "f.beforePhotos": "Before photos (optional)",
+  "f.photosShrunk": "{n} photo(s) ready",
+  "job.edit": "Edit job",
+  "job.editTitle": "Edit {no}",
+  "jobs.cards": "Boxes",
+  "jobs.table": "Table",
+  "jobs.today": "Today",
+  "jobs.yesterday": "Yesterday",
+  "jobs.opened": "Opened {date}",
+  "jobs.noPhoto": "No photo yet",
 } as const;
 
 export type MessageKey = keyof typeof en;

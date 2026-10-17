@@ -48,6 +48,31 @@ async function ensureOnTeam(jobId: number, staffId: number, leadId: number | nul
   await db.insert(jobTeam).values({ jobId, staffId }).onConflictDoNothing();
 }
 
+/** Where the job is done: the "where" list (a bay/area, or outside with an address). Older forms send siteType + bay. */
+function locationFrom(form: FormData): { siteType: "workshop" | "field"; siteLocation: string } {
+  const where = str(form, "where");
+  if (where) return where === "__outside" ? { siteType: "field", siteLocation: str(form, "siteAddress") } : { siteType: "workshop", siteLocation: where };
+  const siteType = str(form, "siteType") === "field" ? "field" : "workshop";
+  return { siteType, siteLocation: siteType === "field" ? str(form, "siteAddress") : str(form, "bay") };
+}
+
+/** Photos attached to a form, checked; an error key if one is not acceptable. */
+function photosFrom(form: FormData): { files: File[] } | { error: MessageKey; vars: Vars } {
+  const files = form.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
+  for (const f of files) {
+    if (!ALLOWED_IMAGE_TYPES[f.type]) return { error: "err.photoType", vars: { file: f.name } };
+    if (f.size > MAX_PHOTO_BYTES) return { error: "err.photoSize", vars: { file: f.name } };
+  }
+  return { files };
+}
+
+async function savePhotos(jobId: number, userId: number, files: File[], stage: "before" | "during" | "after" | "qc", caption: string | null) {
+  for (const f of files) {
+    const path = await saveFile("photos", Buffer.from(await f.arrayBuffer()), ALLOWED_IMAGE_TYPES[f.type]);
+    await db.insert(schema.jobPhotos).values({ jobId, stage, caption, path, contentType: f.type, takenBy: userId });
+  }
+}
+
 /* ---------- create ---------- */
 export async function createJob(form: FormData) {
   const user = await requirePermission("job.create");
@@ -56,8 +81,7 @@ export async function createJob(form: FormData) {
   let unitId = newMachine ? 0 : num(form, "unitId");
   const category = str(form, "category") as Category;
   const priority = str(form, "priority") as Priority;
-  const siteType = str(form, "siteType") === "field" ? "field" : "workshop";
-  const siteLocation = siteType === "field" ? str(form, "siteAddress") : str(form, "bay");
+  const { siteType, siteLocation } = locationFrom(form);
   const dueDate = str(form, "dueDate");
   const complaint = str(form, "complaint");
   const leadId = num(form, "leadId") || null;
@@ -71,6 +95,8 @@ export async function createJob(form: FormData) {
   if (siteType === "workshop" && !bayCodes().includes(siteLocation)) fail("err.bay");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) fail("err.due");
   if (!complaint) fail("err.complaint");
+  const before = photosFrom(form);
+  if ("error" in before) fail(before.error, before.vars);
 
   let parentJobId: number | null = null;
   if (parentNo) {
@@ -111,6 +137,10 @@ export async function createJob(form: FormData) {
     if (Object.keys(unitUpdate).length) await tx.update(schema.machineUnits).set(unitUpdate).where(eq(schema.machineUnits.id, unitId));
     return row.id;
   });
+  if ("files" in before && before.files.length) {
+    await savePhotos(id, user.id, before.files, "before", null);
+    await addActivity(id, user.id, "act.photos", { count: before.files.length, stage: "before", name: user.name });
+  }
   revalidatePath("/");
   redirect(`/jobs/${id}?ok=${encodeURIComponent(t("ok.jobCreated"))}`);
 }
@@ -173,11 +203,25 @@ export async function updateDetails(form: FormData) {
   const jobId = num(form, "jobId");
   const { job } = await access(jobId, user);
   await ensureLists();
+  const t = translator(user.locale);
+  const fail = (e: MessageKey): never => redirect(`/jobs/${jobId}/edit?error=${encodeURIComponent(t(e))}`);
   const category = str(form, "category") as Category, priority = str(form, "priority") as Priority, dueDate = str(form, "dueDate");
-  const siteType = str(form, "siteType") === "field" ? "field" : "workshop";
-  const siteLocation = siteType === "field" ? str(form, "siteAddress") : str(form, "bay");
-  if (!(isCategory(category) || category === job.category) || !PRIORITIES.includes(priority) || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate) || !siteLocation) back(user, jobId, { error: "err.details" });
-  await db.update(jobs).set({ category, priority, dueDate, siteType, siteLocation, complaint: str(form, "complaint") || undefined }).where(eq(jobs.id, jobId));
+  const { siteType, siteLocation } = locationFrom(form);
+  const hm = str(form, "hourMeterIn");
+  if (!(isCategory(category) || category === job.category) || !PRIORITIES.includes(priority)) fail("err.catPri");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) fail("err.due");
+  if (!siteLocation) fail(siteType === "field" ? "err.siteAddress" : "err.bay");
+  if (siteType === "workshop" && !bayCodes().includes(siteLocation) && siteLocation !== job.siteLocation) fail("err.bay");
+  const complaint = str(form, "complaint");
+  if (!complaint) fail("err.complaint");
+  if (hm && !(Number.isInteger(Number(hm)) && Number(hm) >= 0)) fail("err.yearHm");
+  await db.update(jobs).set({
+    category, priority, dueDate, siteType, siteLocation, complaint,
+    reportedBy: str(form, "reportedBy") || null, ...(hm ? { hourMeterIn: Number(hm) } : {}),
+  }).where(eq(jobs.id, jobId));
+  if (siteType === "workshop" && siteLocation !== job.siteLocation) {
+    await db.update(schema.machineUnits).set({ location: `Workshop · ${siteLocation}` }).where(eq(schema.machineUnits.id, job.unitId));
+  }
   await addActivity(jobId, user.id, "act.details", { name: user.name });
   back(user, jobId, { ok: "ok.detailsSaved" });
 }

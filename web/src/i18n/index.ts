@@ -54,6 +54,7 @@ export function builtinPlaceLabel(t: T, s: string): string {
   if (m) return t("bay.n", { n: m[1] });
   if (s === "Fabrication bay") return t("bay.fab");
   if (s === "Paint bay") return t("bay.paint");
+  if (s === "Open yard") return t("bay.openYard");
   m = s.match(/^Long-stay yard (\w+)$/);
   if (m) return t("bay.yard", { x: m[1] });
   return s;

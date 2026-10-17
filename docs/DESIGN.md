@@ -464,3 +464,11 @@ A **Settings** tab, visible only to the Head Manager, makes the fixed lists edit
 | Quality check list | Add, rename, hide, reorder (applies to new jobs) |
 
 How it works: the built-in entries stay in code (`src/lib/lists.ts`) and keep their translations; changes and new entries are stored in `list_items` / `app_settings` and merged on top. Renamed entries show the typed name in every language; leaving a built-in name unchanged keeps it translated. Hidden entries disappear from drop-downs but old records keep them. The server loads the lists at start-up (`src/instrumentation.ts`) and reloads after every change; the app layout passes them to the browser. Job categories are now stored as text so new ones can be added. The model library can also be edited (make, model, type, specs, service intervals).
+
+## 17. Job layout and locations (after first use)
+
+- **Where is the machine?** One list on New job and Edit job: the workshop bays and areas (now including **Open yard**; Bay 5 removed) or **Outside job**, which asks for the site address instead of a bay. The Head Manager can change the list in Settings.
+- **Edit job** button at the top of every open job (Head Manager and Supervisor): category, priority, due date, location, hour meter, reported by and complaint, on its own page.
+- **Before photos** can be added on the New job form. Photos are shrunk on the phone before upload (max 1920 px JPEG) so they send quickly on mobile data.
+- **Jobs in boxes**: the Jobs page shows one box per job, newest first, with its before photo (or the machine photo), plate number, company, category, stage, due date and lead. The table view is one tap away.
+- **Dashboard bays** show the plate number, or make and model when there is no plate.

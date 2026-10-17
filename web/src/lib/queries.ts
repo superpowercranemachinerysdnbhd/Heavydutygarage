@@ -13,7 +13,7 @@ export type JobRow = {
   id: number; jobNo: string; category: typeof jobs.$inferSelect["category"]; priority: typeof jobs.$inferSelect["priority"];
   status: Status; statusSince: Date; siteType: "workshop" | "field"; siteLocation: string; openedAt: string; dueDate: string;
   closedAt: string | null; complaint: string; leadId: number | null; leadName: string | null; unitId: number;
-  make: string; model: string; serialNo: string | null; plateNo: string | null; customerName: string; teamIds: number[]; labourHours: number; partsValue: number;
+  make: string; model: string; serialNo: string | null; plateNo: string | null; unitPhotoPath: string | null; customerName: string; teamIds: number[]; labourHours: number; partsValue: number;
 };
 
 /** Jobs the user may see. Boss and supervisor see all; crew see jobs they lead or are on. */
@@ -30,7 +30,7 @@ export async function listJobs(user: CurrentUser, opts: { open?: boolean; unitId
       id: jobs.id, jobNo: jobs.jobNo, category: jobs.category, priority: jobs.priority, status: jobs.status, statusSince: jobs.statusSince,
       siteType: jobs.siteType, siteLocation: jobs.siteLocation, openedAt: jobs.openedAt, dueDate: jobs.dueDate, closedAt: jobs.closedAt,
       complaint: jobs.complaint, leadId: jobs.leadId, leadName: staff.name, unitId: jobs.unitId,
-      make: machineModels.make, model: machineModels.model, serialNo: machineUnits.serialNo, plateNo: machineUnits.plateNo, customerName: customers.name,
+      make: machineModels.make, model: machineModels.model, serialNo: machineUnits.serialNo, plateNo: machineUnits.plateNo, unitPhotoPath: machineUnits.photoPath, customerName: customers.name,
       teamIds: sql<number[]>`coalesce((select array_agg(${jobTeam.staffId}) from ${jobTeam} where ${jobTeam.jobId} = ${jobs.id}), '{}')`,
       labourHours: sql<string>`coalesce((select sum(${schema.labourEntries.hours}) from ${schema.labourEntries} where ${schema.labourEntries.jobId} = ${jobs.id}), 0)`,
       partsValue: sql<string>`coalesce((select sum(${schema.jobParts.qty} * ${schema.jobParts.unitPrice}) from ${schema.jobParts} where ${schema.jobParts.jobId} = ${jobs.id}), 0)`,
@@ -102,3 +102,13 @@ export async function addActivity(jobId: number, staffId: number | null, key: Me
 }
 
 export { isRole } from "./queries.shared";
+
+/** For each job, the photo to show on its card: the first "before" photo, else its first photo. */
+export async function coverPhotos(jobIds: number[]): Promise<Map<number, number>> {
+  if (!jobIds.length) return new Map();
+  const rows = await db.execute<{ job_id: number; id: number }>(sql`
+    select distinct on (job_id) job_id, id from job_photos
+    where job_id in (${sql.join(jobIds.map((i) => sql`${i}`), sql`, `)})
+    order by job_id, (stage = 'before') desc, id`);
+  return new Map(rows.rows.map((r) => [Number(r.job_id), Number(r.id)]));
+}

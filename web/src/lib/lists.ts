@@ -43,7 +43,7 @@ export const MACHINE_GROUPS_BUILTIN = [
   { group: "equipment", types: ["generator", "compressor", "excavator", "wheel_loader", "other"] },
 ] as const;
 export const BUILTIN_GROUPS: string[] = MACHINE_GROUPS_BUILTIN.map((g) => g.group);
-const BAY_NAMES = ["Bay 1", "Bay 2", "Bay 3", "Bay 4", "Bay 5", "Fabrication bay", "Paint bay", "Long-stay yard A", "Long-stay yard B"];
+const BAY_NAMES = ["Bay 1", "Bay 2", "Bay 3", "Bay 4", "Fabrication bay", "Paint bay", "Open yard", "Long-stay yard A", "Long-stay yard B"];
 const QC_CODES = ["testRun", "leakCheck", "allTasks", "afterPhotos", "cleanUp"];
 
 const env = (k: string) => (typeof process !== "undefined" ? process.env?.[k] : undefined);

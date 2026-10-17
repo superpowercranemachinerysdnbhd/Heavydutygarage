@@ -22,7 +22,7 @@ function BayTile({ name, jobs, field, t }: { name: string; jobs: JobRow[]; field
   const j = jobs[0];
   return (
     <Link href={`/jobs/${j.id}`} className={`bay ${field ? "field" : ""}`} style={{ ["--cat" as string]: catColor(j.category) }}>
-      <span className="label">{name}</span><b>{j.make} {j.model}</b>
+      <span className="label">{name}</span><b className={j.plateNo ? "mono" : ""}>{j.plateNo || `${j.make} ${j.model}`}</b>
       <small>{j.jobNo.slice(-4)} · {statusLabel(t, j.status)}{jobs.length > 1 ? ` · ${t("dash.more", { n: jobs.length - 1 })}` : ""}</small>
       <small>{j.leadName ?? <span className="due over">{t("dash.unassigned")}</span>}</small>
     </Link>
@@ -91,7 +91,7 @@ export default async function Dashboard() {
         <div className="stack" style={{ gap: 8 }}>
           <div className="label">{t("dash.floor")}</div>
           <div className="floor">
-            {bayCodes().map((b) => <BayTile key={b} t={t} name={placeLabel(t, b)} jobs={open.filter((j) => j.siteType === "workshop" && j.siteLocation === b)} />)}
+            {[...new Set([...bayCodes(), ...open.filter((j) => j.siteType === "workshop").map((j) => j.siteLocation)])].map((b) => <BayTile key={b} t={t} name={placeLabel(t, b)} jobs={open.filter((j) => j.siteType === "workshop" && j.siteLocation === b)} />)}
             {open.filter((j) => j.siteType === "field").map((j) => <BayTile key={j.id} t={t} name={t("dash.field", { place: j.siteLocation.split(",")[0] })} jobs={[j]} field />)}
           </div>
         </div>
@@ -113,7 +113,7 @@ export default async function Dashboard() {
             <div className="panel"><div className="panel-head"><h3>{t("dash.crewToday")}</h3><span className="muted" style={{ fontSize: ".8rem" }}>{t("dash.onActive", { n: busy })}</span></div><div className="panel-body">
               {crewState.map(({ s, j, k, label }) => (
                 <Link key={s.id} href={j ? `/jobs/${j.id}` : `/team/${s.id}`} className="crew plain">
-                  <Avatar name={s.name} /><div className="crew-info"><b>{s.name}</b><small>{roleLabel(t, s.role)}{j ? ` · ${j.jobNo.slice(-4)} ${j.model}` : ""}</small></div><span className={`state ${k}`}>{label}</span>
+                  <Avatar name={s.name} /><div className="crew-info"><b>{s.name}</b><small>{roleLabel(t, s.role)}{j ? ` · ${j.jobNo.slice(-4)} ${j.plateNo || j.model}` : ""}</small></div><span className={`state ${k}`}>{label}</span>
                 </Link>
               ))}
               {crew.length === 0 && <div className="empty">{t("dash.addCrew")}</div>}

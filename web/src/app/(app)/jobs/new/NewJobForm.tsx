@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
 import { PRIORITIES, type Category } from "@/lib/jobs";
-import { bayCodes, catPriority, categoryCodes } from "@/lib/lists";
+import { catPriority, categoryCodes } from "@/lib/lists";
+import WherePicker, { OUTSIDE } from "@/components/WherePicker";
+import PhotoInput from "@/components/PhotoInput";
 import { placeLabel } from "@/i18n";
 import { useT } from "@/i18n/client";
 import { catLabel, priLabel } from "@/i18n/labels";
@@ -36,7 +38,6 @@ export default function NewJobForm({ action, units, leads, busyBays, emergency, 
 }) {
   const t = useT();
   const [cat, setCat] = useState<Category>(() => { const c = categoryCodes(); return emergency && c.includes("EMG") ? "EMG" : c.includes("DIAG") ? "DIAG" : c[0] ?? ""; });
-  const [site, setSite] = useState(emergency ? "field" : "workshop");
   const [mode, setMode] = useState<"existing" | "new">(units.length ? "existing" : "new");
   return (
     <form action={action} className="form panel" style={{ padding: 16 }}>
@@ -49,16 +50,14 @@ export default function NewJobForm({ action, units, leads, busyBays, emergency, 
       <div className="form-sect">{t("f.jobSection")}</div>
       <label>{t("f.category")}<select className="field" name="category" value={cat} onChange={(e) => setCat(e.target.value as Category)}>{categoryCodes().map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select></label>
       <label>{t("f.priority")}<select className="field" name="priority" key={cat} defaultValue={catPriority(cat)}>{PRIORITIES.map((p) => <option key={p} value={p}>{priLabel(t, p)}</option>)}</select></label>
-      <label>{t("f.location")}<select className="field" name="siteType" value={site} onChange={(e) => setSite(e.target.value)}><option value="workshop">{t("f.workshop")}</option><option value="field">{t("f.fieldSite")}</option></select></label>
-      {site === "workshop"
-        ? <label>{t("f.bay")}<select className="field" name="bay">{bayCodes().map((b) => <option key={b} value={b}>{placeLabel(t, b)}{busyBays.includes(b) ? ` ${t("f.inUse")}` : ""}</option>)}</select></label>
-        : <label>{t("f.siteAddress")}<input type="text" name="siteAddress" required placeholder={t("f.siteAddressPh")} /></label>}
+      <WherePicker defaultWhere={emergency ? OUTSIDE : undefined} busy={busyBays} />
       <label>{t("f.due")}<input type="date" name="dueDate" defaultValue={emergency ? today : defaultDue} min={today} required /></label>
       <label>{t("f.lead")}<select className="field" name="leadId" defaultValue=""><option value="">{t("f.assignLater")}</option>{leads.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}</select></label>
       <label>{t("f.hourMeterIn")}<input type="number" name="hourMeter" min={0} placeholder={t("f.reading")} /></label>
       <label>{t("f.reportedBy")}<input type="text" name="reportedBy" placeholder={t("f.reportedByPh")} /></label>
       {cat === "WARR" && <label>{t("f.parentJob")}<input type="text" name="parentJobNo" placeholder="J-2026-0311" /></label>}
       <label className="full">{t("f.complaint")}<textarea name="complaint" rows={3} required placeholder={t("f.complaintPh")} /></label>
+      <div className="full"><PhotoInput name="photos" multiple label={t("f.beforePhotos")} /></div>
       <div className="full"><SubmitButton className="btn primary" pendingText={t("new.creating")}>{emergency ? t("new.logEmg") : t("new.create")}</SubmitButton></div>
     </form>
   );

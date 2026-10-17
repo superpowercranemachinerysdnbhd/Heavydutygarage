@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useT } from "@/i18n/client";
 import MachineTypeOptions from "./MachineTypeOptions";
+import PhotoInput from "./PhotoInput";
 
 export type MachineInit = {
   machineType?: string | null; make?: string; model?: string; customerId?: number; plateNo?: string | null; serialNo?: string | null;
@@ -51,7 +52,7 @@ export default function MachineFields({ init = {}, companies, makes, models, sho
     <label>{t("u.serial")}<input name="serialNo" defaultValue={init.serialNo ?? ""} /></label>
     <p className="full hint">{t("u.plateOrSerial")}</p>
     {showHourMeter && <label>{t("u.hm")}<input type="number" name="hourMeter" min={0} defaultValue={init.hourMeter ?? ""} placeholder={t("f.reading")} /></label>}
-    <label>{t("u.photo")}<input type="file" name="photo" accept="image/*" />{init.hasPhoto && <small className="muted">{t("u.photoReplace")}</small>}</label>
+    <div>{<PhotoInput name="photo" label={t("u.photo")} />}{init.hasPhoto && <small className="muted">{t("u.photoReplace")}</small>}</div>
     {!more && <div className="full"><button type="button" className="linkbtn" onClick={() => setMore(true)}>{t("u.moreDetails")}</button></div>}
     {more && (<>
       <label>{t("u.engineModel")}<input name="engineModel" defaultValue={init.engineModel ?? ""} placeholder="Mitsubishi 6D24" /></label>

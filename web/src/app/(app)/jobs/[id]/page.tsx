@@ -13,6 +13,7 @@ import { AgeText, Avatar, CatChip, Notice, Pri, dueInfo } from "@/components/ui"
 import SignaturePad from "@/components/SignaturePad";
 import SubmitButton from "@/components/SubmitButton";
 import ChatRoom from "@/components/ChatRoom";
+import PhotoInput from "@/components/PhotoInput";
 import { jobThreadId, messagesFor } from "@/lib/chat";
 import * as A from "../actions";
 import { unitRef } from "@/lib/machine-types";
@@ -64,6 +65,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           <h1>{model.make} {model.model}</h1>
           <span className="mono">{unitRef(unit)} · {customer.name}</span>
         </div>
+        {can(user.role, "job.editDetails") && open && <Link className="btn small primary" href={`/jobs/${job.id}/edit`}>{t("job.edit")}</Link>}
         <a className="btn small" href="#chat">{t("chat.jobChat")}</a>
         {can(user.role, "job.report") && <Link className="btn small" href={`/jobs/${job.id}/report`}>{open ? t("job.interimReport") : t("job.report")}</Link>}
       </div>
@@ -128,7 +130,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               {hidden("jobId", job.id)}
               <select className="field" name="stage" aria-label={t("job.photoStage")}>{STAGES.map((v) => <option key={v} value={v}>{stageLabel(t, v)}</option>)}</select>
               <input type="text" name="caption" placeholder={t("job.captionPh")} style={{ flex: "1 1 160px" }} aria-label={t("job.captionPh")} />
-              <input type="file" name="photos" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" multiple required aria-label={t("job.photos")} />
+              <PhotoInput name="photos" multiple required ariaLabel={t("job.photos")} />
               <SubmitButton className="btn small primary" pendingText={t("job.uploading")}>{t("job.upload")}</SubmitButton>
             </form>
           </div></section>
@@ -293,21 +295,6 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             </div></section>
           )}
 
-          {can(user.role, "job.editDetails") && open && (
-            <details className="sect"><summary style={{ padding: "10px 14px", cursor: "pointer", fontFamily: "var(--f-display)", textTransform: "uppercase", letterSpacing: ".05em", fontWeight: 600 }}>{t("job.editDetails")}</summary>
-              <form action={A.updateDetails} className="in form" style={{ gridTemplateColumns: "1fr" }}>
-                {hidden("jobId", job.id)}
-                <label>{t("f.category")}<select className="field" name="category" defaultValue={job.category}>{[...new Set([...categoryCodes(), job.category])].map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select></label>
-                <label>{t("f.priority")}<select className="field" name="priority" defaultValue={job.priority}>{PRIORITIES.map((p) => <option key={p} value={p}>{priLabel(t, p)}</option>)}</select></label>
-                <label>{t("f.due")}<input type="date" name="dueDate" defaultValue={job.dueDate} required /></label>
-                <label>{t("f.location")}<select className="field" name="siteType" defaultValue={job.siteType}><option value="workshop">{t("f.workshop")}</option><option value="field">{t("f.fieldSite")}</option></select></label>
-                <label>{t("job.bayWorkshop")}<select className="field" name="bay" defaultValue={job.siteType === "workshop" ? job.siteLocation : bayCodes()[0]}>{[...new Set([...bayCodes(), ...(job.siteType === "workshop" ? [job.siteLocation] : [])])].map((b) => <option key={b} value={b}>{placeLabel(t, b)}</option>)}</select></label>
-                <label>{t("job.siteField")}<input type="text" name="siteAddress" defaultValue={job.siteType === "field" ? job.siteLocation : ""} /></label>
-                <label>{t("f.complaint")}<textarea name="complaint" rows={3} defaultValue={job.complaint} /></label>
-                <div><SubmitButton className="btn small primary">{t("job.saveDetails")}</SubmitButton></div>
-              </form>
-            </details>
-          )}
         </aside>
       </div>
     </div>
