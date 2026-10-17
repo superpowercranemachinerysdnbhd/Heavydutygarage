@@ -2,7 +2,7 @@
 export type Role = "boss" | "supervisor" | "mechanic" | "assistant" | "fabricator" | "painter" | "cleaner";
 
 export const ROLE_LABEL: Record<Role, string> = {
-  boss: "Boss",
+  boss: "Head Manager",
   supervisor: "Supervisor",
   mechanic: "Mechanic",
   assistant: "Assistant Mechanic",
