@@ -43,6 +43,8 @@ At your domain registrar, open the DNS settings and add:
 |---|---|---|
 | A | `app` | the droplet's IPv4 address |
 
+**Domain bought from Wix:** in your Wix account go to **Domains**, click **⋯** next to the domain, choose **Manage DNS Records**, find **A (Host)**, click **+ Add Record**, enter Host name `app` and the droplet's IP address under Points to, then **Save**. Leave the other records alone, so a Wix website on the main domain keeps working.
+
 It usually works within 15 minutes, but can take a few hours. To check, open a terminal on your computer and run `ping app.heavyworksgarage.com`: the address shown should be the droplet's.
 
 ## Step 4. Install the app
