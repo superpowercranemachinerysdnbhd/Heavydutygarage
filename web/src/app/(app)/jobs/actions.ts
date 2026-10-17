@@ -319,7 +319,44 @@ export async function logLabour(form: FormData) {
   await db.insert(schema.labourEntries).values({ jobId, staffId, hours: String(hours), workDate, note: str(form, "note") || null, loggedBy: user.id });
   await ensureOnTeam(jobId, staffId, job.leadId);
   await addActivity(jobId, user.id, "act.labour", { hours, who: s.name });
-  back(user, jobId, { ok: "ok.timeLogged" });
+  back(user, jobId, { ok: "ok.timeLogged", hash: "labour" });
+}
+
+/** A time entry the user may change: supervisors any entry (also on completed jobs, like other job details);
+ *  crew only their own time, while the job is open. */
+async function editableLabour(user: CurrentUser, form: FormData) {
+  const jobId = num(form, "jobId"), entryId = num(form, "entryId");
+  const { job } = await access(jobId, user);
+  const L = schema.labourEntries;
+  const [e] = await db.select().from(L).where(and(eq(L.id, entryId), eq(L.jobId, jobId)));
+  if (!e) back(user, jobId, { error: "lab.err.notFound", hash: "labour" });
+  if (job.status === "closed" && !can(user.role, "job.editDetails")) back(user, jobId, { error: "err.jobClosed", hash: "labour" });
+  if (!can(user.role, "job.assign") && e.staffId !== user.id && e.loggedBy !== user.id) back(user, jobId, { error: "lab.err.notYours", hash: "labour" });
+  return { job, e };
+}
+
+export async function updateLabour(form: FormData) {
+  const user = await requireUser();
+  const { job, e } = await editableLabour(user, form);
+  const hours = num(form, "hours"), workDate = str(form, "workDate") || e.workDate;
+  const staffId = can(user.role, "job.assign") && num(form, "staffId") > 0 ? num(form, "staffId") : e.staffId;
+  if (!(hours > 0 && hours <= 24)) back(user, job.id, { error: "err.hours", hash: "labour" });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(workDate) || workDate > today()) back(user, job.id, { error: "err.futureDate", hash: "labour" });
+  const [s] = await db.select({ name: schema.staff.name }).from(schema.staff).where(eq(schema.staff.id, staffId));
+  if (!s) back(user, job.id, { error: "err.choosePerson", hash: "labour" });
+  await db.update(schema.labourEntries).set({ hours: String(hours), workDate, staffId, note: str(form, "note") || null }).where(eq(schema.labourEntries.id, e.id));
+  if (staffId !== e.staffId) await ensureOnTeam(job.id, staffId, job.leadId);
+  await addActivity(job.id, user.id, "act.labourEdit", { who: s.name, from: Number(e.hours), hours, name: user.name });
+  back(user, job.id, { ok: "lab.saved", hash: "labour" });
+}
+
+export async function removeLabour(form: FormData) {
+  const user = await requireUser();
+  const { job, e } = await editableLabour(user, form);
+  const [s] = await db.select({ name: schema.staff.name }).from(schema.staff).where(eq(schema.staff.id, e.staffId));
+  await db.delete(schema.labourEntries).where(eq(schema.labourEntries.id, e.id));
+  await addActivity(job.id, user.id, "act.labourRemoved", { who: s?.name ?? "", hours: Number(e.hours), name: user.name });
+  back(user, job.id, { ok: "lab.removed", hash: "labour" });
 }
 
 export async function addNote(form: FormData) {

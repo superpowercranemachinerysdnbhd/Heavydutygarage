@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 const STAGES = ["before", "during", "after", "qc"] as const;
 const subtle = { fontFamily: "var(--f-body)", fontSize: ".8rem", textTransform: "none", letterSpacing: 0 } as const;
 
-export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string }> }) {
+export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string; labour?: string }> }) {
   const user = await requireUser();
   const { t, locale } = await getI18n();
   const id = Number((await params).id);
@@ -56,6 +56,10 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const partsSell = partLines.reduce((a, x) => a + x.qty * x.unitPrice, 0), partsCost = partLines.reduce((a, x) => a + x.qty * x.unitCost, 0);
   const q2 = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
   const crew = staffList.filter((s) => CREW_ROLES.includes(s.role));
+  // Time entries: supervisors change any (also after completion); crew their own while the job is open.
+  const canEditLabour = (l: { staffId: number; loggedBy: number | null }) =>
+    (open || can(user.role, "job.editDetails")) && (can(user.role, "job.assign") || l.staffId === user.id || l.loggedBy === user.id);
+  const editing = labour.find((l) => String(l.id) === sp.labour && canEditLabour(l));
   const hours = labour.reduce((a, l) => a + Number(l.hours), 0);
   const labourCost = labour.reduce((a, l) => a + Number(l.hours) * Number(l.payRate), 0);
   const charge = job.category === "WARR" ? 0 : hours * labourRate();
@@ -157,10 +161,25 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             </form>
           </div></section>
 
-          <section className="sect"><h3>{t("job.labour")} <span className="muted" style={subtle}>{hours} h</span></h3><div className="in">
+          <section className="sect" id="labour"><h3>{t("job.labour")} <span className="muted" style={subtle}>{hours} h</span></h3><div className="in">
             {labour.length > 0 && (
-              <div className="tbl-wrap"><table><thead><tr><th>{t("col.date")}</th><th>{t("col.person")}</th><th>{t("col.note")}</th><th className="r">{t("col.hours")}</th>{can(user.role, "money.labourCost") && <th className="r">{t("col.labourCost")}</th>}</tr></thead>
-                <tbody>{labour.map((l) => <tr key={l.id}><td className="num">{fmtDate(l.workDate, false, locale)}</td><td>{l.name}</td><td>{l.note}</td><td className="r num">{Number(l.hours)}</td>{can(user.role, "money.labourCost") && <td className="r num">{rm(Number(l.hours) * Number(l.payRate))}</td>}</tr>)}</tbody></table></div>
+              <div className="tbl-wrap"><table><thead><tr><th>{t("col.date")}</th><th>{t("col.person")}</th><th>{t("col.note")}</th><th className="r">{t("col.hours")}</th>{can(user.role, "money.labourCost") && <th className="r">{t("col.labourCost")}</th>}<th></th></tr></thead>
+                <tbody>{labour.map((l) => <tr key={l.id} className={editing?.id === l.id ? "row-sel" : ""}><td className="num">{fmtDate(l.workDate, false, locale)}</td><td>{l.name}</td><td>{l.note}</td><td className="r num">{Number(l.hours)}</td>{can(user.role, "money.labourCost") && <td className="r num">{rm(Number(l.hours) * Number(l.payRate))}</td>}
+                  <td className="r">{canEditLabour(l) && <Link className="btn small" href={`/jobs/${job.id}?labour=${l.id}#labour`}>{t("lab.edit")}</Link>}</td></tr>)}</tbody></table></div>
+            )}
+            {editing && (
+              <div className="lab-edit">
+                <form action={A.updateLabour} className="filters">
+                  {hidden("jobId", job.id)}{hidden("entryId", editing.id)}
+                  {sup ? <select className="field" name="staffId" aria-label={t("col.person")} defaultValue={editing.staffId}>{[...crew, ...(crew.some((s) => s.id === editing.staffId) ? [] : [{ id: editing.staffId, name: editing.name }])].map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select> : <span className="muted">{editing.name}</span>}
+                  <input type="date" name="workDate" defaultValue={editing.workDate} max={today()} aria-label={t("col.date")} required />
+                  <input type="number" name="hours" min="0.25" max="24" step="0.25" defaultValue={Number(editing.hours)} style={{ width: 90 }} required aria-label={t("col.hours")} />
+                  <input type="text" name="note" defaultValue={editing.note ?? ""} placeholder={t("job.whatDone")} style={{ flex: "1 1 160px" }} aria-label={t("col.note")} />
+                  <SubmitButton className="btn small primary">{t("common.save")}</SubmitButton>
+                  <Link className="btn small" href={`/jobs/${job.id}#labour`}>{t("common.cancel")}</Link>
+                </form>
+                <form action={A.removeLabour}>{hidden("jobId", job.id)}{hidden("entryId", editing.id)}<SubmitButton className="linkbtn muted">{t("lab.remove")}</SubmitButton></form>
+              </div>
             )}
             {open && (
               <form action={A.logLabour} className="filters">

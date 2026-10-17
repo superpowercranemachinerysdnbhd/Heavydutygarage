@@ -544,6 +544,9 @@ section.panel[id]{scroll-margin-top:12px}
 /* Job page: stage change row stays on one line on phones (the steps above already show the stage) */
 @media (max-width:700px){.status-move{flex-wrap:nowrap}.status-move .status-now{display:none}.status-move select{flex:1;min-width:0}}
 .svc-edit{padding:10px 14px 14px}
+.lab-edit{display:flex;flex-direction:column;gap:6px;margin-top:10px;padding:10px;border:1px solid var(--accent);border-radius:8px}
+.lab-edit form:last-child{align-self:flex-start}
+tr.row-sel td{background:var(--accent-soft, rgba(58,123,213,.08))}
 .svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 12px}
 .svc-check{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.92rem;padding:4px 0}
 .svc-check input{width:18px;height:18px;flex:none}

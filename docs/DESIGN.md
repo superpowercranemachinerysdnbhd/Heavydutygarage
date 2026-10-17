@@ -516,3 +516,9 @@ last done, interval in months, next due (calculated from last done + interval, o
   machine's next service.
 - Managing the schedule needs `machine.manage` (Head Manager, Supervisor); recording on a job is open to anyone
   working the job. No prices are involved.
+
+## 22. Correcting labour time
+
+Each labour line on a job has an **Edit** button: change date, hours and note (and the person, for supervisors), or
+remove the line. Supervisors and the Head Manager can change any line, also on completed jobs; crew can change only their
+own time while the job is open. Every change is written to the job's activity log (old and new hours, who changed it).

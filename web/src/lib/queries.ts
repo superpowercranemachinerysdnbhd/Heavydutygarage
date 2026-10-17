@@ -59,7 +59,7 @@ export async function getJob(id: number) {
     db.select({ id: staff.id, name: staff.name, role: staff.role }).from(jobTeam).innerJoin(staff, eq(jobTeam.staffId, staff.id)).where(eq(jobTeam.jobId, id)),
     db.select().from(schema.jobTasks).where(eq(schema.jobTasks.jobId, id)).orderBy(asc(schema.jobTasks.seq), asc(schema.jobTasks.id)),
     db.select().from(schema.jobQc).where(eq(schema.jobQc.jobId, id)).orderBy(asc(schema.jobQc.seq)),
-    db.select({ id: schema.labourEntries.id, staffId: schema.labourEntries.staffId, name: staff.name, workDate: schema.labourEntries.workDate, hours: schema.labourEntries.hours, note: schema.labourEntries.note, payRate: staff.payRate })
+    db.select({ id: schema.labourEntries.id, staffId: schema.labourEntries.staffId, name: staff.name, workDate: schema.labourEntries.workDate, hours: schema.labourEntries.hours, note: schema.labourEntries.note, loggedBy: schema.labourEntries.loggedBy, payRate: staff.payRate })
       .from(schema.labourEntries).innerJoin(staff, eq(schema.labourEntries.staffId, staff.id)).where(eq(schema.labourEntries.jobId, id)).orderBy(asc(schema.labourEntries.workDate), asc(schema.labourEntries.id)),
     db.select().from(schema.jobPhotos).where(eq(schema.jobPhotos.jobId, id)).orderBy(asc(schema.jobPhotos.createdAt)),
     db.select({ id: schema.jobActivity.id, text: schema.jobActivity.text, key: schema.jobActivity.key, params: schema.jobActivity.params, createdAt: schema.jobActivity.createdAt, name: staff.name })
