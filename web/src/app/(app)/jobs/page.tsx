@@ -6,6 +6,7 @@ import { listJobs } from "@/lib/queries";
 import { getI18n } from "@/i18n/server";
 import { catLabel, statusLabel } from "@/i18n/labels";
 import { CatChip, Pri, daysInStatus, dueInfo } from "@/components/ui";
+import { unitRef } from "@/lib/machine-types";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("jobs.title") };
@@ -21,7 +22,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   else if (STATUSES.includes(status as Status)) list = list.filter((j) => j.status === status);
   if (sp.cat && CATEGORY_KEYS.includes(sp.cat as Category)) list = list.filter((j) => j.category === sp.cat);
   const q = (sp.q ?? "").trim().toLowerCase();
-  if (q) list = list.filter((j) => [j.jobNo, j.make, j.model, j.serialNo, j.customerName, j.complaint].join(" ").toLowerCase().includes(q));
+  if (q) list = list.filter((j) => [j.jobNo, j.make, j.model, j.serialNo, j.plateNo, j.customerName, j.complaint].join(" ").toLowerCase().includes(q));
 
   return (
     <div className="page">
@@ -41,7 +42,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
               <tr key={j.id}>
                 <td className="mono"><Link href={`/jobs/${j.id}`}>{j.jobNo}</Link></td>
                 <td><CatChip cat={j.category} t={t} /></td>
-                <td><b>{j.make} {j.model}</b><br /><small className="muted mono">{j.serialNo}</small></td>
+                <td><b>{j.make} {j.model}</b><br /><small className="muted mono">{unitRef(j)}</small></td>
                 <td>{j.customerName}</td>
                 <td>{statusLabel(t, j.status)}<br /><Pri p={j.priority} t={t} /></td>
                 <td className={`num age ${ageLevel(j.status, d)}`}>{j.status === "closed" ? "—" : t("mach.days", { n: d })}</td>

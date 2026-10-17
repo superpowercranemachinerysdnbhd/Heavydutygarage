@@ -14,6 +14,7 @@ import { Notice } from "@/components/ui";
 import PrintButton from "@/components/PrintButton";
 import SubmitButton from "@/components/SubmitButton";
 import { saveRecommendations } from "../../actions";
+import { machineTypeLabel } from "@/lib/machine-types";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("rep.title") };
@@ -95,7 +96,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
         <span className={`stamp ${final ? "final" : ""}`}>{final ? t("rep.final") : t("rep.interim")}</span>
         <div className="doc-grid">
           <div><h4>{t("rep.customer")}</h4><dl><dt>{t("rep.company")}</dt><dd>{customer.name}</dd><dt>{t("rep.contact")}</dt><dd>{customer.contactName ?? "—"}</dd><dt>{t("rep.phone")}</dt><dd>{customer.phone ?? "—"}</dd></dl></div>
-          <div><h4>{t("rep.machine")}</h4><dl><dt>{t("rep.model")}</dt><dd>{model.make} {model.model} · {model.type}</dd><dt>{t("rep.serial")}</dt><dd>{unit.serialNo}</dd><dt>{t("rep.yearPlate")}</dt><dd>{unit.year ?? "—"} · {unit.plateNo ?? "—"}</dd><dt>{t("rep.hourMeter")}</dt><dd>{hm}</dd></dl></div>
+          <div><h4>{t("rep.machine")}</h4><dl><dt>{t("rep.model")}</dt><dd>{model.make} {model.model} · {machineTypeLabel(t, unit.category ?? model.type)}</dd><dt>{t("rep.serial")}</dt><dd>{unit.serialNo ?? "—"}</dd><dt>{t("rep.yearPlate")}</dt><dd>{unit.year ?? "—"} · {unit.plateNo ?? "—"}</dd><dt>{t("rep.hourMeter")}</dt><dd>{hm}</dd></dl></div>
           <div><h4>{t("rep.job")}</h4><dl><dt>{t("rep.jobNo")}</dt><dd>{job.jobNo}</dd><dt>{t("rep.type")}</dt><dd>{catLabel(t, job.category)}</dd><dt>{t("rep.location")}</dt><dd>{job.siteType === "field" ? t("rep.onSite") : t("loc.workshop")}: {placeLabel(t, job.siteLocation)}</dd><dt>{t("rep.received")}</dt><dd>{fmtDate(job.openedAt, true, lang)}</dd><dt>{t("rep.completed")}</dt><dd>{job.closedAt ? fmtDate(job.closedAt, true, lang) : "—"}</dd><dt>{t("rep.technicians")}</dt><dd>{techs.join(", ") || "—"}</dd></dl></div>
         </div>
         <div><h4>{t("rep.complaint")}</h4><p>{job.complaint}</p></div>

@@ -48,22 +48,26 @@ const tunas = await C({ name: "Tunas Crane Rental (demo)", contactName: "Ms. Cho
 const port = await C({ name: "Port Klang Logistics (demo)", contactName: "Mr. Ravi", phone: "03-0000 4444" });
 
 const M = async (v: typeof schema.machineModels.$inferInsert) => (await db.insert(schema.machineModels).values(v).returning())[0];
-const cat320 = await M({ make: "Caterpillar", model: "320D2", type: "Excavator", specs: { "Operating weight": "20.5 t", Engine: "CAT C7.1", "Engine oil": "15 L" }, serviceIntervals: [250, 500, 1000, 2000] });
-const pc200 = await M({ make: "Komatsu", model: "PC200-8", type: "Excavator", specs: { "Operating weight": "20 t", Engine: "SAA6D107E-1", "Hydraulic tank": "135 L" }, serviceIntervals: [250, 500, 1000, 2000] });
-const zx200 = await M({ make: "Hitachi", model: "ZX200-5G", type: "Excavator", specs: { Engine: "Isuzu 4HK1" }, serviceIntervals: [250, 500, 1000, 2000] });
-const gr500 = await M({ make: "Tadano", model: "GR-500EX", type: "Rough-terrain crane", specs: { Capacity: "50 t", Boom: "5-section, 42 m" }, serviceIntervals: [250, 500, 1000] });
-const l120 = await M({ make: "Volvo", model: "L120H", type: "Wheel loader", specs: { Engine: "Volvo D8J", Bucket: "3.6 m³" }, serviceIntervals: [500, 1000, 2000] });
+const cat320 = await M({ make: "Caterpillar", model: "320D2", type: "excavator", specs: { "Operating weight": "20.5 t", Engine: "CAT C7.1", "Engine oil": "15 L" }, serviceIntervals: [250, 500, 1000, 2000] });
+const pc200 = await M({ make: "Komatsu", model: "PC200-8", type: "excavator", specs: { "Operating weight": "20 t", Engine: "SAA6D107E-1", "Hydraulic tank": "135 L" }, serviceIntervals: [250, 500, 1000, 2000] });
+const zx200 = await M({ make: "Hitachi", model: "ZX200-5G", type: "excavator", specs: { Engine: "Isuzu 4HK1" }, serviceIntervals: [250, 500, 1000, 2000] });
+const gr500 = await M({ make: "Tadano", model: "GR-500EX", type: "rough_terrain_crane", specs: { Capacity: "50 t", Boom: "5-section, 42 m" }, serviceIntervals: [250, 500, 1000] });
+const l120 = await M({ make: "Volvo", model: "L120H", type: "wheel_loader", specs: { Engine: "Volvo D8J", Bucket: "3.6 m³" }, serviceIntervals: [500, 1000, 2000] });
 await db.insert(schema.knownIssues).values([
   { modelId: pc200.id, title: "Main pump not building pressure", fix: "Check PC-EPC solenoid and servo before strip-down. Piston shoe leakage needs the main pump seal kit.", addedBy: raj.id },
   { modelId: gr500.id, title: "Intermittent outrigger fault", fix: "Check proximity sensor and harness at the outrigger beam; water ingress is common.", addedBy: haf.id },
 ]);
 
 const U = async (v: typeof schema.machineUnits.$inferInsert) => (await db.insert(schema.machineUnits).values(v).returning())[0];
-const u1 = await U({ modelId: cat320.id, customerId: bina.id, serialNo: "CAT0320DXKJB01234", year: 2017, hourMeter: 9850, location: "Workshop · Bay 2", arrivedAt: d(-2), nextServiceDate: d(19), nextServiceType: "10,000 hr service" });
-const u2 = await U({ modelId: zx200.id, customerId: bina.id, serialNo: "HCMDCD70P00056789", year: 2015, hourMeter: 12430, location: "Workshop · Long-stay yard A", arrivedAt: d(-44) });
-const u3 = await U({ modelId: pc200.id, customerId: kuari.id, serialNo: "PC200-8 #350123", year: 2013, hourMeter: 14210, location: "Customer site", nextServiceDate: d(12), nextServiceType: "250 hr service" });
-const u4 = await U({ modelId: gr500.id, customerId: tunas.id, serialNo: "GR-500EX-545678", year: 2018, plateNo: "WXY 1234", hourMeter: 6420, location: "Workshop · Bay 4", arrivedAt: d(-4) });
-const u5 = await U({ modelId: l120.id, customerId: port.id, serialNo: "VCE0L120H00013377", year: 2020, hourMeter: 6890, location: "Customer site" });
+const u1 = await U({ category: "excavator", engineModel: "CAT C7.1", pumpModel: "Kawasaki K5V140", modelId: cat320.id, customerId: bina.id, serialNo: "CAT0320DXKJB01234", year: 2017, hourMeter: 9850, location: "Workshop · Bay 2", arrivedAt: d(-2), nextServiceDate: d(19), nextServiceType: "10,000 hr service" });
+const u2 = await U({ category: "excavator", engineModel: "Isuzu 4HK1", modelId: zx200.id, customerId: bina.id, serialNo: "HCMDCD70P00056789", year: 2015, hourMeter: 12430, location: "Workshop · Long-stay yard A", arrivedAt: d(-44) });
+const u3 = await U({ category: "excavator", engineModel: "Komatsu SAA6D107E-1", pumpModel: "Komatsu HPV95", modelId: pc200.id, customerId: kuari.id, serialNo: "PC200-8 #350123", year: 2013, hourMeter: 14210, location: "Customer site", nextServiceDate: d(12), nextServiceType: "250 hr service" });
+const u4 = await U({ category: "rough_terrain_crane", engineModel: "Mitsubishi 6M60", transmissionModel: "Tadano 3-speed powershift", modelId: gr500.id, customerId: tunas.id, serialNo: "GR-500EX-545678", year: 2018, plateNo: "WXY 1234", hourMeter: 6420, location: "Workshop · Bay 4", arrivedAt: d(-4) });
+const u5 = await U({ category: "wheel_loader", engineModel: "Volvo D8J", modelId: l120.id, customerId: port.id, serialNo: "VCE0L120H00013377", year: 2020, hourMeter: 6890, location: "Customer site" });
+const kato = await M({ make: "Kato", model: "NK-250E", type: "truck_crane", specs: { Capacity: "25 t" }, serviceIntervals: [250, 500] });
+const fd30 = await M({ make: "Toyota", model: "8FD30", type: "forklift", specs: { Capacity: "3 t" }, serviceIntervals: [250, 500] });
+await U({ category: "truck_crane", modelId: kato.id, customerId: tunas.id, plateNo: "BKE 8821", year: 2012, hourMeter: 18450, engineModel: "Mitsubishi 8DC9", transmissionModel: "Fuso 6-speed", pumpModel: "KYB KFP2233", location: "Customer site" });
+await U({ category: "forklift", modelId: fd30.id, customerId: port.id, serialNo: "8FD30-31842", year: 2019, hourMeter: 4210, engineModel: "Toyota 1DZ-III", location: "Customer site" });
 
 let n = 0;
 async function J(v: Omit<typeof schema.jobs.$inferInsert, "jobNo">, extra: { team?: number[]; tasks?: [string, boolean, number?][]; labour?: [number, number, number][]; qcDone?: number } = {}) {
@@ -93,7 +97,7 @@ const fabJob = await J({ category: "FAB", status: "in_progress", unitId: u2.id, 
   { tasks: [["Gouge and weld base crack", true, azm.id], ["Fit new side cutters", false, azm.id], ["Hardface wear areas", false, azm.id]], labour: [[azm.id, 7, 8]] });
 await J({ category: "WARR", priority: "high", status: "ready_for_pickup", unitId: u3.id, siteLocation: "Bay 5", complaint: "Oil leak at swing motor after repair in August.", diagnosis: "O-ring pinched during last assembly. Replaced under warranty.", leadId: lim.id, hourMeterIn: 14150, openedAt: d(-8), dueDate: d(-1), statusSince: ago(2), parentJobId: old.id },
   { tasks: [["Replace swing motor O-ring", true, lim.id], ["Leak test 1 hr", true, lim.id]], labour: [[lim.id, 3, 7]], qcDone: 6 });
-await J({ category: "PAINT", priority: "low", status: "awaiting_approval", unitId: u2.id, siteLocation: "Paint bay", complaint: "Touch-up and repaint boom before return.", leadId: kum.id, hourMeterIn: 12430, openedAt: d(-5), dueDate: d(21), statusSince: ago(4) });
+await J({ category: "PAINT", priority: "low", status: "received", unitId: u2.id, siteLocation: "Paint bay", complaint: "Touch-up and repaint boom before return.", leadId: kum.id, hourMeterIn: 12430, openedAt: d(-5), dueDate: d(21), statusSince: ago(4) });
 
 /* ---------- Phase 2 demo: categories, suppliers, parts, prices, purchase orders, stock ---------- */
 const CAT = async (name: string, markup: number, target: number) => (await db.insert(schema.partCategories).values({ name, markupPct: String(markup), targetMarginPct: String(target) }).returning())[0];

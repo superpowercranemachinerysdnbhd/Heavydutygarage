@@ -15,6 +15,7 @@ import SubmitButton from "@/components/SubmitButton";
 import ChatRoom from "@/components/ChatRoom";
 import { jobThreadId, messagesFor } from "@/lib/chat";
 import * as A from "../actions";
+import { unitRef } from "@/lib/machine-types";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const j = await getJob(Number((await params).id));
@@ -60,7 +61,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         <div style={{ flex: 1, minWidth: 0 }}>
           <span className="mono">{job.jobNo} · {job.siteType === "field" ? t("job.fieldService") : t("job.workshop")} · {placeLabel(t, job.siteLocation)}</span>
           <h1>{model.make} {model.model}</h1>
-          <span className="mono">{unit.serialNo} · {customer.name}</span>
+          <span className="mono">{unitRef(unit)} · {customer.name}</span>
         </div>
         <a className="btn small" href="#chat">{t("chat.jobChat")}</a>
         {can(user.role, "job.report") && <Link className="btn small" href={`/jobs/${job.id}/report`}>{open ? t("job.interimReport") : t("job.report")}</Link>}
@@ -270,7 +271,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
 
           <section className="sect"><h3>{t("job.machineCustomer")}</h3><div className="facts">
             <div><span className="label">{t("job.model")}</span><b><Link href={`/machinery/${unit.id}`}>{model.make} {model.model}</Link> · {model.type}</b></div>
-            <div><span className="label">{t("job.serial")}</span><b className="mono">{unit.serialNo}</b></div>
+            <div><span className="label">{t("u.plate")}</span><b className="mono">{unit.plateNo ?? "—"}</b></div>
+            <div><span className="label">{t("job.serial")}</span><b className="mono">{unit.serialNo ?? "—"}</b></div>
             <div><span className="label">{t("job.hmIn")}</span><b className="hm">{(job.hourMeterIn ?? unit.hourMeter).toLocaleString()} h</b></div>
             <div><span className="label">{t("job.customer")}</span><b>{customer.name}</b></div>
             <div><span className="label">{t("job.contact")}</span><b>{customer.contactName ?? "—"} · <span className="mono">{customer.phone ?? ""}</span></b></div>

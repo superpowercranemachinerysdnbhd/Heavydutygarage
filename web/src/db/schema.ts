@@ -2,6 +2,8 @@ import {
   pgTable, pgEnum, serial, integer, text, varchar, boolean, date, timestamp, numeric, jsonb, uniqueIndex, index,
 } from "drizzle-orm/pg-core";
 
+import type { Status as JobStatus } from "@/lib/jobs";
+
 export const roleEnum = pgEnum("role", ["boss", "supervisor", "mechanic", "assistant", "fabricator", "painter", "cleaner"]);
 export const jobCategoryEnum = pgEnum("job_category", ["EMG", "DIAG", "PM", "MINOR", "MAJOR", "HYD", "FAB", "PAINT", "WARR"]);
 export const jobStatusEnum = pgEnum("job_status", [
@@ -82,9 +84,17 @@ export const machineUnits = pgTable("machine_units", {
   id: serial("id").primaryKey(),
   modelId: integer("model_id").notNull().references(() => machineModels.id),
   customerId: integer("customer_id").notNull().references(() => customers.id),
-  serialNo: varchar("serial_no", { length: 80 }).notNull(),
-  engineNo: varchar("engine_no", { length: 80 }),
+  /** Machine type key (see lib/machine-types). Falls back to the model's type for older records. */
+  category: varchar("category", { length: 40 }),
+  /** Plate number is the usual reference; machines without one are identified by serial number. At least one is required. */
   plateNo: varchar("plate_no", { length: 30 }),
+  serialNo: varchar("serial_no", { length: 80 }),
+  engineNo: varchar("engine_no", { length: 80 }),
+  engineModel: varchar("engine_model", { length: 80 }),
+  transmissionModel: varchar("transmission_model", { length: 80 }),
+  pumpModel: varchar("pump_model", { length: 80 }),
+  photoPath: varchar("photo_path", { length: 200 }),
+  photoType: varchar("photo_type", { length: 40 }),
   year: integer("year"),
   hourMeter: integer("hour_meter").notNull().default(0),
   location: varchar("location", { length: 160 }).notNull().default("Customer site"),
@@ -100,7 +110,8 @@ export const jobs = pgTable("jobs", {
   jobNo: varchar("job_no", { length: 20 }).notNull(),
   category: jobCategoryEnum("category").notNull(),
   priority: priorityEnum("priority").notNull().default("normal"),
-  status: jobStatusEnum("status").notNull().default("received"),
+  // The enum keeps two retired values (diagnosing, awaiting_approval) that no job uses since migration 0004.
+  status: jobStatusEnum("status").$type<JobStatus>().notNull().default("received"),
   statusSince: timestamp("status_since", { withTimezone: true }).notNull().defaultNow(),
   unitId: integer("unit_id").notNull().references(() => machineUnits.id),
   siteType: siteTypeEnum("site_type").notNull().default("workshop"),

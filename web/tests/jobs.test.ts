@@ -5,11 +5,12 @@ import { ageLevel, checkTransition, nextJobNo, qcTemplate } from "../src/lib/job
 const base = { isOnJob: true, qcTotal: 6, qcPassed: 6, signedOff: false } as const;
 
 test("mechanic can move own job between crew statuses only", () => {
-  assert.equal(checkTransition({ ...base, role: "mechanic", from: "diagnosing", to: "in_progress" }).ok, true);
+  assert.equal(checkTransition({ ...base, role: "mechanic", from: "received", to: "in_progress" }).ok, true);
   assert.equal(checkTransition({ ...base, role: "mechanic", from: "in_progress", to: "quality_check" }).ok, true);
   assert.equal(checkTransition({ ...base, role: "mechanic", from: "quality_check", to: "ready_for_pickup" }).ok, false);
-  assert.equal(checkTransition({ ...base, role: "mechanic", from: "in_progress", to: "awaiting_parts" }).ok, false);
-  assert.equal(checkTransition({ ...base, role: "mechanic", isOnJob: false, from: "diagnosing", to: "in_progress" }).ok, false);
+  assert.equal(checkTransition({ ...base, role: "mechanic", from: "in_progress", to: "awaiting_parts" }).ok, true);
+  assert.equal(checkTransition({ ...base, role: "mechanic", from: "in_progress", to: "received" }).ok, false);
+  assert.equal(checkTransition({ ...base, role: "mechanic", isOnJob: false, from: "received", to: "in_progress" }).ok, false);
 });
 
 test("release needs the full QC checklist", () => {

@@ -13,6 +13,7 @@ import { CatChip, Notice } from "@/components/ui";
 import CustomerFields from "@/components/CustomerFields";
 import SubmitButton from "@/components/SubmitButton";
 import { updateCustomer } from "../actions";
+import { unitRef } from "@/lib/machine-types";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("cust.title") };
@@ -36,7 +37,7 @@ export default async function CustomerPage({ params, searchParams }: { params: P
       <Notice error={sp.error} ok={sp.ok} />
       <div className="two">
         <div className="panel"><div className="panel-head"><h3>{t("cust.machines")}</h3></div>
-          {units.map((u) => <Link key={u.id} href={`/machinery/${u.id}`} className="li plain"><div className="li-main"><b>{u.make} {u.model}</b><small className="mono">{u.serialNo}</small><small>{placeLabel(t, u.location)} · {u.hourMeter.toLocaleString()} h</small></div></Link>)}
+          {units.map((u) => <Link key={u.id} href={`/machinery/${u.id}`} className="li plain"><div className="li-main"><b>{u.make} {u.model}</b><small className="mono">{unitRef(u)}</small><small>{placeLabel(t, u.location)} · {u.hourMeter.toLocaleString()} h</small></div></Link>)}
           {units.length === 0 && <div className="empty">{t("cust.noMachines")}</div>}
         </div>
         <form action={updateCustomer} className="panel"><div className="panel-head"><h3>{t("cust.details")}</h3></div>

@@ -12,6 +12,7 @@ import { getI18n } from "@/i18n/server";
 import { LOCALES, isLocale, placeLabel, translator, type Locale } from "@/i18n";
 import { catLabel, langLabel, statusLabel } from "@/i18n/labels";
 import PrintButton from "@/components/PrintButton";
+import { machineTypeLabel, unitRef } from "@/lib/machine-types";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("hist.title") };
@@ -45,7 +46,7 @@ export default async function HistoryReport({ params, searchParams }: { params: 
   return (
     <div className="page" style={{ maxWidth: 900, marginInline: "auto" }}>
       <div className="no-print stack">
-        <div className="crumbs"><Link href={`/machinery/${id}`}>{unit.serialNo}</Link> / {ui("mach.historyReport")}</div>
+        <div className="crumbs"><Link href={`/machinery/${id}`}>{unitRef(unit)}</Link> / {ui("mach.historyReport")}</div>
         <div className="docbar">
           <div className="filters"><span className="label">{ui("rep.language")}</span>
             {LOCALES.map((l) => <Link key={l} className="btn small" href={q({ lang: l })} aria-pressed={lang === l}>{lang === l ? "✓ " : ""}{langLabel(ui, l)}</Link>)}
@@ -63,10 +64,10 @@ export default async function HistoryReport({ params, searchParams }: { params: 
         <div className="doc-head">
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}><Image src="/logo.jpg" alt="" width={64} height={64} />
             <div><div className="doc-brand">{t("app.name")}</div><small>{t("rep.tagline")}</small></div></div>
-          <div className="doc-meta"><b>{t("hist.title")}</b><span>{unit.serialNo}</span><span>{fmtDate(d, true, lang)}</span></div>
+          <div className="doc-meta"><b>{t("hist.title")}</b><span>{unitRef(unit)}</span><span>{fmtDate(d, true, lang)}</span></div>
         </div>
         <div className="doc-grid">
-          <div><h4>{t("rep.machine")}</h4><dl><dt>{t("rep.model")}</dt><dd>{model.make} {model.model} · {model.type}</dd><dt>{t("rep.serial")}</dt><dd>{unit.serialNo}</dd><dt>{t("rep.yearPlate")}</dt><dd>{unit.year ?? "—"} · {unit.plateNo ?? "—"}</dd><dt>{t("rep.hourMeter")}</dt><dd>{unit.hourMeter.toLocaleString()} h</dd></dl></div>
+          <div><h4>{t("rep.machine")}</h4><dl><dt>{t("rep.model")}</dt><dd>{model.make} {model.model} · {machineTypeLabel(t, unit.category ?? model.type)}</dd><dt>{t("rep.serial")}</dt><dd>{unit.serialNo ?? "—"}</dd><dt>{t("rep.yearPlate")}</dt><dd>{unit.year ?? "—"} · {unit.plateNo ?? "—"}</dd><dt>{t("rep.hourMeter")}</dt><dd>{unit.hourMeter.toLocaleString()} h</dd></dl></div>
           <div><h4>{t("hist.owner")}</h4><dl><dt>{t("rep.company")}</dt><dd>{customer.name}</dd><dt>{t("rep.contact")}</dt><dd>{customer.contactName ?? "—"} · {customer.phone ?? ""}</dd><dt>{t("rep.location")}</dt><dd>{placeLabel(t, unit.location)}</dd>{unit.arrivedAt && <><dt>{t("hist.withUsSince")}</dt><dd>{t("hist.daysN", { date: fmtDate(unit.arrivedAt, true, lang), n: daysBetween(unit.arrivedAt, d) })}</dd></>}</dl></div>
         </div>
         <div><h4>{t("hist.summary", { period: all ? t("hist.all") : t("hist.12m") })}</h4>

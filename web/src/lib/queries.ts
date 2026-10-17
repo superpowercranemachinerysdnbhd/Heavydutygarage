@@ -13,7 +13,7 @@ export type JobRow = {
   id: number; jobNo: string; category: typeof jobs.$inferSelect["category"]; priority: typeof jobs.$inferSelect["priority"];
   status: Status; statusSince: Date; siteType: "workshop" | "field"; siteLocation: string; openedAt: string; dueDate: string;
   closedAt: string | null; complaint: string; leadId: number | null; leadName: string | null; unitId: number;
-  make: string; model: string; serialNo: string; customerName: string; teamIds: number[]; labourHours: number; partsValue: number;
+  make: string; model: string; serialNo: string | null; plateNo: string | null; customerName: string; teamIds: number[]; labourHours: number; partsValue: number;
 };
 
 /** Jobs the user may see. Boss and supervisor see all; crew see jobs they lead or are on. */
@@ -30,7 +30,7 @@ export async function listJobs(user: CurrentUser, opts: { open?: boolean; unitId
       id: jobs.id, jobNo: jobs.jobNo, category: jobs.category, priority: jobs.priority, status: jobs.status, statusSince: jobs.statusSince,
       siteType: jobs.siteType, siteLocation: jobs.siteLocation, openedAt: jobs.openedAt, dueDate: jobs.dueDate, closedAt: jobs.closedAt,
       complaint: jobs.complaint, leadId: jobs.leadId, leadName: staff.name, unitId: jobs.unitId,
-      make: machineModels.make, model: machineModels.model, serialNo: machineUnits.serialNo, customerName: customers.name,
+      make: machineModels.make, model: machineModels.model, serialNo: machineUnits.serialNo, plateNo: machineUnits.plateNo, customerName: customers.name,
       teamIds: sql<number[]>`coalesce((select array_agg(${jobTeam.staffId}) from ${jobTeam} where ${jobTeam.jobId} = ${jobs.id}), '{}')`,
       labourHours: sql<string>`coalesce((select sum(${schema.labourEntries.hours}) from ${schema.labourEntries} where ${schema.labourEntries.jobId} = ${jobs.id}), 0)`,
       partsValue: sql<string>`coalesce((select sum(${schema.jobParts.qty} * ${schema.jobParts.unitPrice}) from ${schema.jobParts} where ${schema.jobParts.jobId} = ${jobs.id}), 0)`,
@@ -77,12 +77,23 @@ export async function activeStaff() {
 export async function unitsWithNames() {
   return db
     .select({ id: machineUnits.id, serialNo: machineUnits.serialNo, plateNo: machineUnits.plateNo, hourMeter: machineUnits.hourMeter, location: machineUnits.location,
-      arrivedAt: machineUnits.arrivedAt, make: machineModels.make, model: machineModels.model, type: machineModels.type, customerId: customers.id, customerName: customers.name,
+      arrivedAt: machineUnits.arrivedAt, make: machineModels.make, model: machineModels.model, type: sql<string>`coalesce(${machineUnits.category}, ${machineModels.type})`,
+      customerId: customers.id, customerName: customers.name, photoPath: machineUnits.photoPath,
       nextServiceDate: machineUnits.nextServiceDate, nextServiceType: machineUnits.nextServiceType })
     .from(machineUnits)
     .innerJoin(machineModels, eq(machineUnits.modelId, machineModels.id))
     .innerJoin(customers, eq(machineUnits.customerId, customers.id))
-    .orderBy(asc(machineModels.make), asc(machineModels.model), asc(machineUnits.serialNo));
+    .orderBy(asc(machineModels.make), asc(machineModels.model), asc(sql`coalesce(${machineUnits.plateNo}, ${machineUnits.serialNo})`));
+}
+
+/** Choices for the machine form: companies, plus makes and models already in the library (typing suggestions). */
+export async function machineFormOptions() {
+  const [companies, models] = await Promise.all([
+    db.select({ id: customers.id, name: customers.name }).from(customers).orderBy(asc(customers.name)),
+    db.select({ make: machineModels.make, model: machineModels.model }).from(machineModels),
+  ]);
+  const uniq = (xs: string[]) => [...new Set(xs)].sort((a, b) => a.localeCompare(b));
+  return { companies, makes: uniq(models.map((m) => m.make)), models: uniq(models.map((m) => m.model)) };
 }
 
 /** Record an activity entry. Stored as a message key + params so everyone reads it in their own language. */

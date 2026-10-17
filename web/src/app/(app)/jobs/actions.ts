@@ -10,6 +10,7 @@ import { today } from "@/lib/format";
 import { addActivity } from "@/lib/queries";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, saveFile } from "@/lib/storage";
 import { issueToJob } from "@/lib/inventory";
+import { saveMachine } from "@/lib/machines";
 import { translator, type MessageKey, type Vars } from "@/i18n";
 import { activityText, statusLabel } from "@/i18n/labels";
 
@@ -49,7 +50,8 @@ async function ensureOnTeam(jobId: number, staffId: number, leadId: number | nul
 export async function createJob(form: FormData) {
   const user = await requirePermission("job.create");
   const t = translator(user.locale);
-  const unitId = num(form, "unitId");
+  const newMachine = str(form, "machineMode") === "new";
+  let unitId = newMachine ? 0 : num(form, "unitId");
   const category = str(form, "category") as Category;
   const priority = str(form, "priority") as Priority;
   const siteType = str(form, "siteType") === "field" ? "field" : "workshop";
@@ -60,15 +62,13 @@ export async function createJob(form: FormData) {
   const hourMeter = num(form, "hourMeter");
   const parentNo = str(form, "parentJobNo");
   const fail = (e: MessageKey, vars?: Vars): never => redirect(`/jobs/new?error=${encodeURIComponent(t(e, vars))}`);
-  if (!unitId) fail("err.chooseMachine");
+  if (!newMachine && !unitId) fail("err.chooseMachine");
   if (!CATEGORY_KEYS.includes(category) || !PRIORITIES.includes(priority)) fail("err.catPri");
   if (!siteLocation) fail(siteType === "field" ? "err.siteAddress" : "err.bay");
   if (siteType === "workshop" && !BAYS.includes(siteLocation)) fail("err.bay");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) fail("err.due");
   if (!complaint) fail("err.complaint");
 
-  const [unit] = await db.select().from(schema.machineUnits).where(eq(schema.machineUnits.id, unitId));
-  if (!unit) fail("err.machineNotFound");
   let parentJobId: number | null = null;
   if (parentNo) {
     const [p] = await db.select({ id: jobs.id }).from(jobs).where(eq(jobs.jobNo, parentNo.toUpperCase()));
@@ -79,6 +79,14 @@ export async function createJob(form: FormData) {
     const [l] = await db.select({ role: schema.staff.role }).from(schema.staff).where(eq(schema.staff.id, leadId));
     if (!l || !LEAD_ROLES.includes(l.role)) fail("err.leadRole");
   }
+  // New machine (and new company) entered on this form: save it first, after the job fields have been checked.
+  if (newMachine) {
+    const saved = await saveMachine(form);
+    if (!saved.ok) fail(saved.error);
+    else unitId = saved.id;
+  }
+  const [unit] = await db.select().from(schema.machineUnits).where(eq(schema.machineUnits.id, unitId));
+  if (!unit) fail("err.machineNotFound");
 
   const d = today();
   const en = translator("en");
@@ -87,7 +95,7 @@ export async function createJob(form: FormData) {
     const existing = await tx.select({ no: jobs.jobNo }).from(jobs).where(sql`${jobs.jobNo} like ${`J-${d.slice(0, 4)}-%`}`);
     const jobNo = nextJobNo(Number(d.slice(0, 4)), existing.map((r) => r.no));
     const [row] = await tx.insert(jobs).values({
-      jobNo, category, priority, status: leadId ? "diagnosing" : "received", unitId, siteType, siteLocation, complaint,
+      jobNo, category, priority, status: "received", unitId, siteType, siteLocation, complaint,
       reportedBy: str(form, "reportedBy") || null, leadId, hourMeterIn: Number.isFinite(hourMeter) && hourMeter > 0 ? hourMeter : unit.hourMeter,
       openedAt: d, dueDate, parentJobId, createdBy: user.id,
     }).returning({ id: jobs.id });
@@ -127,9 +135,8 @@ export async function assignLead(form: FormData) {
     const [l] = await db.select({ name: schema.staff.name, role: schema.staff.role }).from(schema.staff).where(eq(schema.staff.id, leadId));
     if (!l || !LEAD_ROLES.includes(l.role)) back(user, jobId, { error: "err.leadRole" });
     await db.delete(jobTeam).where(and(eq(jobTeam.jobId, jobId), eq(jobTeam.staffId, leadId)));
-    const autoDiag = job.status === "received";
-    await db.update(jobs).set({ leadId, ...(autoDiag ? { status: "diagnosing" as const, statusSince: new Date() } : {}) }).where(eq(jobs.id, jobId));
-    await addActivity(jobId, user.id, autoDiag ? "act.leadDiag" : "act.lead", { lead: l.name, name: user.name });
+    await db.update(jobs).set({ leadId }).where(eq(jobs.id, jobId));
+    await addActivity(jobId, user.id, "act.lead", { lead: l.name, name: user.name });
   } else {
     await db.update(jobs).set({ leadId: null }).where(eq(jobs.id, jobId));
     await addActivity(jobId, user.id, "act.leadNone", { name: user.name });

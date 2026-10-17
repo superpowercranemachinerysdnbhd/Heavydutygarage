@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { asc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { CATEGORIES, type Category } from "@/lib/jobs";
 import { daysBetween, fmtDate, today } from "@/lib/format";
-import { listJobs } from "@/lib/queries";
+import { listJobs, machineFormOptions } from "@/lib/queries";
+import { machinePhotoUrl, machineTypeLabel, unitRef } from "@/lib/machine-types";
 import { getI18n } from "@/i18n/server";
 import { placeLabel } from "@/i18n";
 import { catLabel, statusLabel } from "@/i18n/labels";
@@ -33,31 +34,35 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
   const shown = sp.cat ? history.filter((j) => j.category === sp.cat) : history;
   const stay = unit.arrivedAt ? daysBetween(unit.arrivedAt, today()) : null;
   const manage = can(user.role, "machine.manage");
-  const [models, customers] = manage ? await Promise.all([
-    db.select().from(schema.machineModels).orderBy(asc(schema.machineModels.make)), db.select().from(schema.customers).orderBy(asc(schema.customers.name)),
-  ]) : [[], []];
+  const options = manage ? await machineFormOptions() : null;
+  const photo = machinePhotoUrl(unit.id, unit.photoPath);
+  const comp = [[t("u.engineModel"), unit.engineModel], [t("u.transmissionModel"), unit.transmissionModel], [t("u.pumpModel"), unit.pumpModel]] as const;
 
   return (
     <div className="page">
-      <div className="crumbs"><Link href="/machinery">{t("mach.title")}</Link> / {unit.serialNo}</div>
+      <div className="crumbs"><Link href="/machinery">{t("mach.title")}</Link> / {unitRef(unit)}</div>
       <div className="view-head">
-        <h2>{model.make} {model.model} <span className="muted" style={{ fontSize: "1rem" }}>{model.type}</span></h2>
+        <h2>{unit.plateNo && <span className="mono">{unit.plateNo} · </span>}{model.make} {model.model} <span className="muted" style={{ fontSize: "1rem" }}>{machineTypeLabel(t, unit.category ?? model.type)}</span></h2>
         {stay !== null && stay > 30 && <span className="badge-long">{t("mach.withUs", { n: stay })}</span>}
         {can(user.role, "job.report") && <Link className="btn" href={`/machinery/${id}/history`}>{t("mach.historyReport")}</Link>}
         {can(user.role, "job.create") && <Link className="btn primary" href={`/jobs/new?unit=${id}`}>{t("mach.newJob")}</Link>}
       </div>
       <Notice error={sp.error} ok={sp.ok} />
-      <div className="panel"><div className="facts">
-        <div><span className="label">{t("col.serial")}</span><b className="mono">{unit.serialNo}</b></div>
+      <div className="panel mach-top">
+        {photo ? <a href={photo} target="_blank" rel="noreferrer"><img className="mach-photo" src={photo} alt={`${model.make} ${model.model}`} /></a> : <div className="mach-photo mach-thumb none" role="img" aria-label={t("mach.noPhoto")} />}
+        <div className="facts">
+        <div><span className="label">{t("u.plate")}</span><b className="mono">{unit.plateNo ?? "—"}</b></div>
+        <div><span className="label">{t("col.serial")}</span><b className="mono">{unit.serialNo ?? "—"}</b></div>
         <div><span className="label">{t("col.owner")}</span><b>{customer.name}</b></div>
         <div><span className="label">{t("col.hourMeter")}</span><b className="hm">{unit.hourMeter.toLocaleString()} h</b></div>
         <div><span className="label">{t("col.location")}</span><b>{placeLabel(t, unit.location)}</b></div>
         <div><span className="label">{t("mach.onPremises")}</span><b>{unit.arrivedAt ? `${fmtDate(unit.arrivedAt, true, locale)} (${t("mach.days", { n: stay ?? 0 })})` : t("mach.notOnPremises")}</b></div>
-        <div><span className="label">{t("u.year")} / {t("u.plate")}</span><b>{unit.year ?? "—"} · {unit.plateNo ?? "—"}</b></div>
+        <div><span className="label">{t("u.year")}</span><b>{unit.year ?? "—"}</b></div>
+        {comp.map(([label, v]) => <div key={label}><span className="label">{label}</span><b className="mono">{v ?? "—"}</b></div>)}
         <div><span className="label">{t("mach.engineNo")}</span><b className="mono">{unit.engineNo ?? "—"}</b></div>
         <div><span className="label">{t("mach.nextService")}</span><b>{unit.nextServiceDate ? `${unit.nextServiceType ?? t("hist.serviceDefault")}, ${fmtDate(unit.nextServiceDate, true, locale)}` : "—"}</b></div>
         <div><span className="label">{t("mach.modelPage")}</span><b><Link href={`/machinery/models/${model.id}`}>{t("mach.specsIssues")}</Link></b></div>
-      </div>{unit.notes && <div className="in" style={{ padding: "0 14px 14px" }}><span className="muted">{unit.notes}</span></div>}</div>
+      </div></div>{unit.notes && <div className="panel in" style={{ padding: "10px 14px" }}><span className="muted">{unit.notes}</span></div>}
 
       <div className="panel">
         <div className="panel-head" style={{ flexWrap: "wrap" }}><h3>{t("mach.history")}</h3>
@@ -78,7 +83,8 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
 
       {manage && (
         <details className="panel"><summary className="panel-head" style={{ cursor: "pointer" }}><h3>{t("mach.edit")}</h3></summary>
-          <UnitForm t={t} action={updateUnit} submit={t("mach.saveChanges")} unit={unit} models={models.map((m) => ({ id: m.id, label: `${m.make} ${m.model} · ${m.type}` }))} customers={customers.map((c) => ({ id: c.id, label: c.name }))} />
+          <UnitForm t={t} action={updateUnit} submit={t("mach.saveChanges")} options={options!}
+            unit={{ ...unit, machineType: unit.category ?? (model.type as string), make: model.make, model: model.model, hasPhoto: !!unit.photoPath }} />
         </details>
       )}
     </div>

@@ -437,3 +437,16 @@ The app runs in **English, Bahasa Melayu and 中文**, with more languages added
 - Live updates by polling every 4 seconds while the screen is open (no extra server needed). Unread counts are kept per person per chat.
 - Job notes and the activity history stay the formal record; chat is for quick talk. Prices should not be posted in chats mechanics can read, and the app reminds people who see prices.
 - Later options: push notifications on phones, WhatsApp bridge (Phase 5).
+
+## 15. Simpler machines and jobs (October 2026, after go-live)
+
+Changes asked for by the Head Manager after first use:
+
+- **One-page new job.** New job lets you pick a machine already in the system (search by plate, serial, model or company) or enter a **new machine** on the same page. A new **company** can be added in place too. The model library fills itself: a new make + model is added automatically.
+- **Machines are identified by plate number.** Machines without a plate use the serial / chassis number. At least one is required, and a plate can only belong to one machine (stored upper case, e.g. `WXY 1234`).
+- **Machine types**, grouped: Mobile crane (Truck, Rough Terrain, All Terrain), Cranes & lifting (Crawler crane, Lorry crane, Skylift, Scissor lift, Forklift), Lorries & vehicles (Lorry, Cargo lorry, Low loader, Prime mover, Car), Equipment & others (Generator, Air compressor, Excavator, Wheel loader, Other). The machine list filters by type or group.
+- **Component models** on each machine: engine model, transmission model, hydraulic pump model (optional).
+- **Machine photo** as a profile picture, shown in the machine list and on the machine page.
+- **"Owner" / "Customer" is now "Company"** everywhere it means the company that owns the machine.
+- **Five job stages:** Received → In Progress → Waiting Parts → Quality Check → Ready (then Closed after handover). Diagnosing and Awaiting Approval were removed; existing jobs moved to In Progress and Received. Crew can move their own job between In Progress, Waiting Parts and Quality Check.
+- **Dashboard:** the value of open jobs is shown to the Head Manager only.

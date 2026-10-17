@@ -10,6 +10,7 @@ import { placeLabel, type T } from "@/i18n";
 import { roleLabel, statusLabel } from "@/i18n/labels";
 import { Avatar, JobCard, daysInStatus, dueInfo } from "@/components/ui";
 import { purchasingAlerts } from "@/lib/alerts";
+import { unitRef } from "@/lib/machine-types";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("nav.dashboard") };
@@ -34,7 +35,7 @@ export default async function Dashboard() {
   const [open, staff, units, certs] = await Promise.all([
     listJobs(user, { open: true }),
     activeStaff(),
-    all ? db.select({ id: schema.machineUnits.id, arrivedAt: schema.machineUnits.arrivedAt, serialNo: schema.machineUnits.serialNo }).from(schema.machineUnits) : Promise.resolve([]),
+    all ? db.select({ id: schema.machineUnits.id, arrivedAt: schema.machineUnits.arrivedAt, serialNo: schema.machineUnits.serialNo, plateNo: schema.machineUnits.plateNo }).from(schema.machineUnits) : Promise.resolve([]),
     all ? db.select({ staffId: schema.certifications.staffId, name: schema.certifications.name, expiry: schema.certifications.expiry }).from(schema.certifications) : Promise.resolve([]),
   ]);
   const names = new Map(staff.map((s) => [s.id, s.name]));
@@ -46,7 +47,7 @@ export default async function Dashboard() {
 
   // Crew today: who is on which active job (phase 3 adds a planned schedule).
   const crew = staff.filter((s) => CREW_ROLES.includes(s.role));
-  const activeJobs = open.filter((j) => ["diagnosing", "in_progress", "quality_check"].includes(j.status)).sort(sortJobs);
+  const activeJobs = open.filter((j) => ["in_progress", "awaiting_parts", "quality_check"].includes(j.status)).sort(sortJobs);
   const crewState = crew.map((s) => {
     const j = activeJobs.find((x) => x.leadId === s.id || x.teamIds.includes(s.id));
     const k = j ? (j.siteType === "field" ? "field" : "on") : "idle";
@@ -58,11 +59,10 @@ export default async function Dashboard() {
   const attention: { sev: string; text: string; href: string }[] = [];
   open.filter((j) => j.priority === "critical" && !j.leadId).forEach((j) => attention.push({ sev: "var(--crit)", text: t("att.emgUnassigned", { no: j.jobNo, machine: `${j.make} ${j.model}`, place: placeLabel(t, j.siteLocation) }), href: `/jobs/${j.id}` }));
   overdue.forEach((j) => attention.push({ sev: "var(--crit)", text: t("att.overdue", { no: j.jobNo, date: fmtDate(j.dueDate, false, locale) }), href: `/jobs/${j.id}` }));
-  open.filter((j) => !["received", "awaiting_approval"].includes(j.status) && ageLevel(j.status, daysInStatus(j.statusSince)) === "crit")
+  open.filter((j) => j.status !== "received" && ageLevel(j.status, daysInStatus(j.statusSince)) === "crit")
     .forEach((j) => attention.push({ sev: "var(--warn)", text: t("att.stuck", { no: j.jobNo, n: daysInStatus(j.statusSince), status: statusLabel(t, j.status) }), href: `/jobs/${j.id}` }));
-  open.filter((j) => j.status === "awaiting_approval").forEach((j) => attention.push({ sev: "var(--warn)", text: t("att.approval", { no: j.jobNo, n: daysInStatus(j.statusSince) }), href: `/jobs/${j.id}` }));
   if (all) {
-    units.filter((u) => u.arrivedAt && daysBetween(u.arrivedAt, d) > 30).forEach((u) => attention.push({ sev: "var(--warn)", text: t("att.longStay", { serial: u.serialNo, n: daysBetween(u.arrivedAt!, d) }), href: `/machinery/${u.id}` }));
+    units.filter((u) => u.arrivedAt && daysBetween(u.arrivedAt, d) > 30).forEach((u) => attention.push({ sev: "var(--warn)", text: t("att.longStay", { serial: unitRef(u), n: daysBetween(u.arrivedAt!, d) }), href: `/machinery/${u.id}` }));
     certs.filter((c) => c.expiry && daysBetween(d, c.expiry) < 45).forEach((c) => {
       const left = daysBetween(d, c.expiry!);
       attention.push({ sev: left < 0 ? "var(--crit)" : "var(--warn)", text: t(left < 0 ? "att.certExpired" : "att.certExpires", { name: names.get(c.staffId) ?? "", cert: c.name, date: fmtDate(c.expiry, false, locale) }), href: `/team/${c.staffId}` });
@@ -83,7 +83,7 @@ export default async function Dashboard() {
         <div className={`kpi ${overdue.length ? "alert" : ""}`}><b>{overdue.length}</b><span>{t("kpi.overdue")}</span></div>
         <div className="kpi"><b>{dueWeek}</b><span>{t("kpi.dueWeek")}</span></div>
         {all && <div className="kpi"><b>{busy}/{crew.length}</b><span>{t("kpi.crew")}</span></div>}
-        {can(user.role, "money.selling") && <div className="kpi"><b style={{ fontSize: "1.45rem" }}>{rm(wip).replace(".00", "")}</b><span>{t("kpi.labour")}</span></div>}
+        {can(user.role, "money.labourCost") && <div className="kpi"><b style={{ fontSize: "1.45rem" }}>{rm(wip).replace(".00", "")}</b><span>{t("kpi.labour")}</span></div>}
       </div>
 
       {all && (
@@ -100,7 +100,7 @@ export default async function Dashboard() {
         <div className="stack" style={{ gap: 8 }}>
           <div className="label">{t("dash.board")}</div>
           <div className="board">
-            {STATUSES.slice(0, 7).map((s) => {
+            {STATUSES.slice(0, 5).map((s) => {
               const list = open.filter((j) => j.status === s).sort(sortJobs);
               return <div key={s} className="col"><div className="col-head"><h3>{statusLabel(t, s)}</h3><span className="num">{list.length}</span></div>
                 {list.map((j) => <JobCard key={j.id} j={j} names={names} t={t} locale={locale} />)}{list.length === 0 && <div className="empty-col">{t("dash.nothing")}</div>}</div>;

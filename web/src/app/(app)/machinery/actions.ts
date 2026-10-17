@@ -1,14 +1,12 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requirePermission, requireUser } from "@/lib/auth";
-import { translator, type MessageKey } from "@/i18n";
+import { translator } from "@/i18n";
+import { saveMachine } from "@/lib/machines";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
-const optInt = (f: FormData, k: string) => { const v = str(f, k); return v === "" ? null : Number.isInteger(Number(v)) ? Number(v) : NaN; };
-const optDate = (f: FormData, k: string) => { const v = str(f, k); return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null; };
 
 export async function createModel(form: FormData) {
   const t = translator((await requirePermission("machine.manage")).locale);
@@ -32,35 +30,19 @@ export async function addKnownIssue(form: FormData) {
   redirect(`/machinery/models/${modelId}?ok=${encodeURIComponent(t("mod.issueAdded"))}`);
 }
 
-function unitValues(form: FormData) {
-  return {
-    modelId: Number(form.get("modelId")), customerId: Number(form.get("customerId")), serialNo: str(form, "serialNo"),
-    engineNo: str(form, "engineNo") || null, plateNo: str(form, "plateNo") || null, year: optInt(form, "year"),
-    hourMeter: optInt(form, "hourMeter") ?? 0, location: str(form, "location") || "Customer site", arrivedAt: optDate(form, "arrivedAt"),
-    nextServiceDate: optDate(form, "nextServiceDate"), nextServiceType: str(form, "nextServiceType") || null, notes: str(form, "notes") || null,
-  };
-}
-function unitProblem(v: ReturnType<typeof unitValues>): MessageKey | null {
-  if (!v.modelId || !v.customerId) return "err.unitModelOwner";
-  if (!v.serialNo) return "err.serial";
-  if (Number.isNaN(v.year) || Number.isNaN(v.hourMeter) || (v.hourMeter ?? 0) < 0) return "err.yearHm";
-  return null;
-}
-
 export async function createUnit(form: FormData) {
   const t = translator((await requirePermission("machine.manage")).locale);
-  const v = unitValues(form), p = unitProblem(v);
-  if (p) redirect("/machinery/new?error=" + encodeURIComponent(t(p)));
-  const [row] = await db.insert(schema.machineUnits).values(v).returning({ id: schema.machineUnits.id });
+  const r = await saveMachine(form, { full: true });
+  if (!r.ok) redirect("/machinery/new?error=" + encodeURIComponent(t(r.error)));
   revalidatePath("/machinery");
-  redirect(`/machinery/${row.id}?ok=${encodeURIComponent(t("mach.added"))}`);
+  redirect(`/machinery/${r.id}?ok=${encodeURIComponent(t("mach.added"))}`);
 }
 
 export async function updateUnit(form: FormData) {
   const t = translator((await requirePermission("machine.manage")).locale);
-  const id = Number(form.get("unitId")), v = unitValues(form), p = unitProblem(v);
-  if (p) redirect(`/machinery/${id}?error=${encodeURIComponent(t(p))}`);
-  await db.update(schema.machineUnits).set(v).where(eq(schema.machineUnits.id, id));
+  const id = Number(form.get("unitId"));
+  const r = await saveMachine(form, { unitId: id, full: true });
+  if (!r.ok) redirect(`/machinery/${id}?error=${encodeURIComponent(t(r.error))}`);
   revalidatePath(`/machinery/${id}`);
   redirect(`/machinery/${id}?ok=${encodeURIComponent(t("mach.updated"))}`);
 }

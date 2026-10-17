@@ -8,6 +8,7 @@ import { Notice } from "@/components/ui";
 import { getI18n } from "@/i18n/server";
 import SubmitButton from "@/components/SubmitButton";
 import { addKnownIssue } from "../../actions";
+import { machineTypeLabel, unitRef } from "@/lib/machine-types";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("mod.title") };
@@ -27,7 +28,7 @@ export default async function ModelPage({ params, searchParams }: { params: Prom
   return (
     <div className="page">
       <div className="crumbs"><Link href="/machinery">{t("mach.title")}</Link> / <Link href="/machinery/models">{t("mod.title")}</Link> / {m.make} {m.model}</div>
-      <h2>{m.make} {m.model} <span className="muted" style={{ fontSize: "1rem" }}>{m.type}</span></h2>
+      <h2>{m.make} {m.model} <span className="muted" style={{ fontSize: "1rem" }}>{machineTypeLabel(t, m.type)}</span></h2>
       <Notice error={sp.error} ok={sp.ok} />
       <div className="panel"><div className="facts">
         {Object.entries(m.specs).map(([k, v]) => <div key={k}><span className="label">{k}</span><b>{v}</b></div>)}
@@ -45,7 +46,7 @@ export default async function ModelPage({ params, searchParams }: { params: Prom
           </form>
         </div>
         <div className="panel"><div className="panel-head"><h3>{t("mod.units")}</h3></div>
-          {units.map(({ u, c }) => <Link key={u.id} href={`/machinery/${u.id}`} className="li plain"><div className="li-main"><b className="mono">{u.serialNo}</b><small>{c} · {u.hourMeter.toLocaleString()} h</small></div></Link>)}
+          {units.map(({ u, c }) => <Link key={u.id} href={`/machinery/${u.id}`} className="li plain"><div className="li-main"><b className="mono">{unitRef(u)}</b><small>{c} · {u.hourMeter.toLocaleString()} h</small></div></Link>)}
           {units.length === 0 && <div className="issue muted">{t("mod.noUnits")}</div>}
         </div>
       </div>

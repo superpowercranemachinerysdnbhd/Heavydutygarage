@@ -43,7 +43,7 @@ export function JobCard({ j, names, t, locale }: { j: JobRow; names: Map<number,
   return (
     <Link href={`/jobs/${j.id}`} className="card" style={{ ["--cat" as string]: CATEGORIES[j.category].color }}>
       <div className="card-top"><span className="mono">{j.jobNo}</span><Pri p={j.priority} t={t} /></div>
-      <div className="mach">{j.make} {j.model}</div>
+      <div className="mach">{j.plateNo && <b className="mono">{j.plateNo} · </b>}{j.make} {j.model}</div>
       <div className="cust">{j.customerName} · {j.siteType === "field" ? t("card.field") : ""}{placeLabel(t, j.siteLocation)}</div>
       <CatChip cat={j.category} t={t} />
       <AgeText status={j.status} since={j.statusSince} t={t} />

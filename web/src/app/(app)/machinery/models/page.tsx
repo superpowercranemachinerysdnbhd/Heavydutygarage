@@ -7,6 +7,8 @@ import { Notice } from "@/components/ui";
 import { getI18n } from "@/i18n/server";
 import SubmitButton from "@/components/SubmitButton";
 import { createModel } from "../actions";
+import type { MessageKey } from "@/i18n";
+import { MACHINE_GROUPS, machineTypeLabel } from "@/lib/machine-types";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("mod.title") };
@@ -26,7 +28,7 @@ export default async function ModelsPage({ searchParams }: { searchParams: Promi
       <Notice error={sp.error} />
       <div className="tbl-wrap"><table>
         <thead><tr><th>{t("col.makeModel")}</th><th>{t("col.type")}</th><th>{t("col.intervals")}</th><th className="r">{t("col.machinesOnFile")}</th></tr></thead>
-        <tbody>{models.map(({ m, units }) => <tr key={m.id}><td><Link href={`/machinery/models/${m.id}`}><b>{m.make} {m.model}</b></Link></td><td>{m.type}</td><td className="mono">{m.serviceIntervals.length ? m.serviceIntervals.join(" / ") + " h" : "—"}</td><td className="r num">{units}</td></tr>)}
+        <tbody>{models.map(({ m, units }) => <tr key={m.id}><td><Link href={`/machinery/models/${m.id}`}><b>{m.make} {m.model}</b></Link></td><td>{machineTypeLabel(t, m.type)}</td><td className="mono">{m.serviceIntervals.length ? m.serviceIntervals.join(" / ") + " h" : "—"}</td><td className="r num">{units}</td></tr>)}
           {models.length === 0 && <tr><td colSpan={4} className="muted">{t("mod.none")}</td></tr>}</tbody>
       </table></div>
       {can(user.role, "machine.manage") && (
@@ -35,8 +37,8 @@ export default async function ModelsPage({ searchParams }: { searchParams: Promi
           <div className="form" style={{ padding: 14 }}>
             <label>{t("mod.make")}<input name="make" required placeholder="Komatsu" /></label>
             <label>{t("mod.model")}<input name="model" required placeholder="PC200-8" /></label>
-            <label>{t("mod.type")}<input name="type" required placeholder="Excavator" list="types" /></label>
-            <datalist id="types"><option>Excavator</option><option>Rough-terrain crane</option><option>Mobile crane</option><option>Wheel loader</option><option>Forklift</option><option>Bulldozer</option><option>Motor grader</option><option>Backhoe loader</option></datalist>
+            <label>{t("mod.type")}<select className="field" name="type" required defaultValue=""><option value="" disabled>{t("common.choose")}</option>
+              {MACHINE_GROUPS.map((g) => <optgroup key={g.group} label={t(`mgroup.${g.group}` as MessageKey)}>{g.types.map((k) => <option key={k} value={k}>{t(`mtype.${k}` as MessageKey)}</option>)}</optgroup>)}</select></label>
             <label>{t("mod.intervals")}<input name="intervals" placeholder="250, 500, 1000, 2000" /></label>
             <label className="full">{t("mod.specs")}<textarea name="specs" rows={4} placeholder={"Operating weight: 20 t\nEngine: SAA6D107E-1\nEngine oil: 23 L"} /></label>
             <div className="full"><SubmitButton className="btn primary">{t("mod.addBtn")}</SubmitButton></div>

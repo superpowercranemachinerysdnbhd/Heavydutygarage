@@ -29,6 +29,13 @@
       "when": 1792135728367,
       "tag": "0003_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792222810082,
+      "tag": "0004_machines_companies",
+      "breakpoints": true
     }
   ]
 }

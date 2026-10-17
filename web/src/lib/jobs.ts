@@ -4,7 +4,8 @@ import { can, type Role } from "./permissions";
 import type { MessageKey, Vars } from "@/i18n";
 
 export type Category = "EMG" | "DIAG" | "PM" | "MINOR" | "MAJOR" | "HYD" | "FAB" | "PAINT" | "WARR";
-export type Status = "received" | "diagnosing" | "awaiting_approval" | "awaiting_parts" | "in_progress" | "quality_check" | "ready_for_pickup" | "closed";
+/** Job stages. (The database enum still has the retired "diagnosing" and "awaiting_approval"; migration 0004 moved jobs off them.) */
+export type Status = "received" | "in_progress" | "awaiting_parts" | "quality_check" | "ready_for_pickup" | "closed";
 export type Priority = "critical" | "high" | "normal" | "low";
 
 export const CATEGORIES: Record<Category, { color: string; defaultPriority: Priority }> = {
@@ -20,13 +21,13 @@ export const CATEGORIES: Record<Category, { color: string; defaultPriority: Prio
 };
 export const CATEGORY_KEYS = Object.keys(CATEGORIES) as Category[];
 
-export const STATUSES: Status[] = ["received", "diagnosing", "awaiting_approval", "awaiting_parts", "in_progress", "quality_check", "ready_for_pickup", "closed"];
+export const STATUSES: Status[] = ["received", "in_progress", "awaiting_parts", "quality_check", "ready_for_pickup", "closed"];
 export const PRIORITIES: Priority[] = ["critical", "high", "normal", "low"];
 /** CSS class per priority (styling only). */
 export const PRIORITY_CLASS: Record<Priority, string> = { critical: "Critical", high: "High", normal: "Normal", low: "Low" };
 
 /** Statuses crew members (not boss/supervisor) may move their own job between. */
-export const CREW_STATUSES: Status[] = ["diagnosing", "in_progress", "quality_check"];
+export const CREW_STATUSES: Status[] = ["in_progress", "awaiting_parts", "quality_check"];
 
 export const BAYS = ["Bay 1", "Bay 2", "Bay 3", "Bay 4", "Bay 5", "Fabrication bay", "Paint bay", "Long-stay yard A", "Long-stay yard B"];
 
