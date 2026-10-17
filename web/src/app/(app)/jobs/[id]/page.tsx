@@ -66,15 +66,18 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     <div className="page">
       <div className="crumbs"><Link href="/jobs">{t("nav.jobs")}</Link> / {job.jobNo}</div>
       <div className="job-head">
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <span className="mono">{job.jobNo} · {job.siteType === "field" ? t("job.fieldService") : t("job.workshop")} · {placeLabel(t, job.siteLocation)}</span>
-          <h1>{model.make} {model.model}</h1>
-          <span className="mono">{unitRef(unit)} · {customer.name}</span>
+        <div className="job-head-main">
+          <span className="job-head-no">{job.jobNo} · {job.siteType === "field" ? t("job.fieldService") : t("job.workshop")} · {placeLabel(t, job.siteLocation)}</span>
+          {/* The plate number is how the workshop knows a machine; make and model when it has none. */}
+          <h1 className={unit.plateNo ? "plate" : ""}>{unit.plateNo || `${model.make} ${model.model}`}</h1>
+          <span className="job-head-sub">{unit.plateNo ? `${model.make} ${model.model}` : unit.serialNo ?? ""}{(unit.plateNo || unit.serialNo) ? " · " : ""}{customer.name}</span>
         </div>
-        {can(user.role, "job.editDetails") && <Link className="btn small primary" href={`/jobs/${job.id}/edit`}>{t("job.edit")}</Link>}
-        {!open && can(user.role, "job.anyStatus") && <form action={A.reopenJob}>{hidden("jobId", job.id)}<SubmitButton className="btn small">{t("job.reopen")}</SubmitButton></form>}
-        <a className="btn small" href="#chat">{t("chat.jobChat")}</a>
-        {can(user.role, "job.report") && <Link className="btn small" href={`/jobs/${job.id}/report`}>{open ? t("job.interimReport") : t("job.report")}</Link>}
+        <div className="job-head-actions">
+          {can(user.role, "job.editDetails") && <Link className="btn small primary" href={`/jobs/${job.id}/edit`}>{t("job.edit")}</Link>}
+          {!open && can(user.role, "job.anyStatus") && <form action={A.reopenJob}>{hidden("jobId", job.id)}<SubmitButton className="btn small">{t("job.reopen")}</SubmitButton></form>}
+          <a className="btn small" href="#chat">{t("chat.jobChat")}</a>
+          {can(user.role, "job.report") && <Link className="btn small" href={`/jobs/${job.id}/report`}>{open ? t("job.interimReport") : t("job.report")}</Link>}
+        </div>
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
         <CatChip cat={job.category} t={t} /><Pri p={job.priority} t={t} /><span className={`due ${due.cls}`}>{due.text}</span><AgeText status={job.status} since={job.statusSince} t={t} />
@@ -83,9 +86,9 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       <Notice error={sp.error} ok={sp.ok} />
       <div className="steps">{STATUSES.map((s, i) => <div key={s} className={`step ${i < idx ? "done" : i === idx ? "cur" : ""}`}>{statusLabel(t, s)}</div>)}</div>
       {open && statusOptions.length > 0 && (
-        <form action={A.setStatus} className="filters">
+        <form action={A.setStatus} className="filters status-move">
           {hidden("jobId", job.id)}
-          <span className="label">{t("job.statusNow", { status: statusLabel(t, job.status) })}</span>
+          <span className="label status-now">{t("job.statusNow", { status: statusLabel(t, job.status) })}</span>
           <label className="label" htmlFor="to">{t("job.moveTo")}</label>
           <select className="field" id="to" name="to">{statusOptions.map((s) => <option key={s} value={s}>{statusLabel(t, s)}</option>)}</select>
           <SubmitButton className="btn small primary">{t("job.move")}</SubmitButton>

@@ -382,9 +382,14 @@ main{padding-block:16px 48px}
 .notice{padding:10px 14px;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-size:.88rem}
 .notice.err{border-color:var(--crit);color:var(--crit);background:color-mix(in srgb,var(--crit) 8%,var(--surface))}
 .notice.ok{border-color:var(--ok);color:var(--ok);background:color-mix(in srgb,var(--ok) 8%,var(--surface))}
-.job-head{background:var(--steel);color:var(--steel-ink);border-radius:6px;padding:16px 18px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
-.job-head h1{font-size:1.8rem;line-height:1.1}
-.job-head .mono{color:var(--steel-muted)}
+.job-head{background:var(--steel);color:var(--steel-ink);border-radius:6px;padding:16px 18px;display:flex;gap:12px 16px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between}
+.job-head-main{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:2px}
+.job-head h1{font-size:1.8rem;line-height:1.15;overflow-wrap:anywhere}
+.job-head h1.plate{font-family:var(--f-mono,ui-monospace,monospace);letter-spacing:.04em;font-size:2rem}
+.job-head-no{font-family:var(--f-mono,ui-monospace,monospace);font-size:.82rem;color:var(--steel-muted)}
+.job-head-sub{color:var(--steel-ink);opacity:.85;font-size:.95rem}
+.job-head-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+@media (max-width:700px){.job-head{flex-direction:column;padding:14px}.job-head-main{flex:none;width:100%}.job-head-actions{width:100%}.job-head h1.plate{font-size:1.7rem}}
 .job-cols{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
 @media (max-width:1000px){.job-cols{grid-template-columns:minmax(0,1fr)}}
 .stack{display:flex;flex-direction:column;gap:14px;min-width:0}
@@ -535,3 +540,6 @@ section.panel[id]{scroll-margin-top:12px}
 .seg a{padding:6px 12px;font-weight:500;font-size:.85rem}
 .seg a[aria-current="page"]{background:var(--steel);color:var(--steel-ink)}
 @media (max-width:520px){.jgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.jcard-id{font-size:1rem}.jcard-foot{flex-direction:column;gap:0}}
+
+/* Job page: stage change row stays on one line on phones (the steps above already show the stage) */
+@media (max-width:700px){.status-move{flex-wrap:nowrap}.status-move .status-now{display:none}.status-move select{flex:1;min-width:0}}
