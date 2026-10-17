@@ -33,7 +33,8 @@ function itemFields(form: FormData, list: ListName) {
     color: list === "job_category" && /^#[0-9a-f]{6}$/i.test(color) ? color : null,
     priority: list === "job_category" && PRIORITIES.includes(priority) ? priority : null,
     grp: list === "machine_type" ? grp.slice(0, 60) || null : null,
-    num: list === "service_item" && Number.isInteger(Number(str(form, "num"))) && Number(str(form, "num")) > 0 ? Number(str(form, "num")) : null,
+    num: list === "job_category" ? (form.get("serviceJob") ? 1 : 0)
+      : list === "service_item" && Number.isInteger(Number(str(form, "num"))) && Number(str(form, "num")) > 0 ? Number(str(form, "num")) : null,
   };
 }
 

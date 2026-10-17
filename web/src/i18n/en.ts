@@ -943,7 +943,7 @@ export const en = {
   "set.labourRate": "Labour charge (RM per hour)",
   "set.poLimit": "PO approval needed above (RM)",
   "set.workshopHelp": "Company name, address and phone print at the top of service reports, history reports and purchase orders.",
-  "set.categoriesHelp": "The colour shows on job cards. The priority is filled in for you when a new job uses this category.",
+  "set.categoriesHelp": "The colour shows on job cards. The priority is filled in for you when a new job uses this category. Tick Service job for categories where the crew records services (oil, greasing…) on the job.",
   "set.typesHelp": "Types appear under their group when adding a machine. Truck, Rough Terrain and All Terrain cranes are in Mobile crane.",
   "set.baysHelp": "Bays and areas you can put a machine in when it is at the workshop.",
   "set.qcHelp": "These are suggestions. On each job you choose which checks to add, or type your own.",
@@ -1094,6 +1094,8 @@ export const en = {
   "set.addService": "New service, e.g. Slewing bearing grease",
   "set.every": "Every",
   "set.months": "months",
+  "set.serviceJob": "Service job",
+  "set.serviceJobHelp": "Job pages in this category show \"Services done on this job\". It also shows on any job when the machine has a service due.",
 } as const;
 
 export type MessageKey = keyof typeof en;

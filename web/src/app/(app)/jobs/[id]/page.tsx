@@ -18,7 +18,7 @@ import ChatRoom from "@/components/ChatRoom";
 import PhotoInput from "@/components/PhotoInput";
 import { ServiceDue } from "@/components/ServicePanel";
 import { servicesFor } from "@/lib/services";
-import { itemLabel, listItems } from "@/lib/lists";
+import { isServiceCategory, itemLabel, listItems } from "@/lib/lists";
 import { jobThreadId, messagesFor } from "@/lib/chat";
 import * as A from "../actions";
 import { machineTypeLabel, unitRef } from "@/lib/machine-types";
@@ -65,6 +65,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const canWrite = open || can(user.role, "job.editDetails");
   const services = await servicesFor(unit.id);
   const svcItems = listItems("service_item");
+  // Services done: on service jobs, when the machine has a service due, or when this job already recorded one.
+  const showServices = isServiceCategory(job.category) || services.some((x) => x.state === "overdue" || x.state === "soon" || x.lastJobId === job.id);
   const qcText = (q: (typeof qc)[number]) => (q.itemKey ? t(qcMessageKey(q.itemKey)) : q.item);
 
   return (
@@ -253,7 +255,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             </div>
           </section>
 
-          <section className="sect" id="services"><h3>{t("svc.onJob")} <Link className="btn small" href={`/machinery/${unit.id}#services`} style={subtle}>{t("svc.schedule")}</Link></h3><div className="in">
+          {showServices && <section className="sect" id="services"><h3>{t("svc.onJob")} <Link className="btn small" href={`/machinery/${unit.id}#services`} style={subtle}>{t("svc.schedule")}</Link></h3><div className="in">
             {canWrite ? (
               <form action={A.recordServices} className="stack" style={{ gap: 8 }}>
                 {hidden("jobId", job.id)}
@@ -274,7 +276,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                 <small className="muted">{t("svc.onJobHelp")}</small>
               </form>
             ) : <span className="muted">{services.filter((x) => x.lastJobId === job.id).map((x) => itemLabel(t, "service_item", x.item)).join(", ") || "—"}</span>}
-          </div></section>
+          </div></section>}
 
           <section className="sect" id="qc"><h3>{t("job.qc")} <span className="muted" style={subtle}>{qcDone}/{qc.length}</span></h3><div className="in">
             {qc.map((q) => (

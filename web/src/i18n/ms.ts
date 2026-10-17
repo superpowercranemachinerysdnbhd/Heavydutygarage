@@ -923,7 +923,7 @@ export const ms: Messages = {
   "set.labourRate": "Caj upah (RM sejam)",
   "set.poLimit": "PO perlu kelulusan melebihi (RM)",
   "set.workshopHelp": "Nama, alamat dan telefon syarikat dicetak di atas laporan servis, laporan sejarah dan PO.",
-  "set.categoriesHelp": "Warna dipaparkan pada kad kerja. Keutamaan diisi automatik apabila kerja baharu guna kategori ini.",
+  "set.categoriesHelp": "Warna dipaparkan pada kad kerja. Keutamaan diisi automatik apabila kerja baharu guna kategori ini. Tandakan Kerja servis untuk kategori di mana krew merekod servis (minyak, gris…) dalam kerja.",
   "set.typesHelp": "Jenis dipaparkan di bawah kumpulannya semasa menambah mesin. Kren Trak, Rough Terrain dan All Terrain di bawah Kren mudah alih.",
   "set.baysHelp": "Petak dan kawasan untuk meletak mesin di bengkel.",
   "set.qcHelp": "Ini hanya cadangan. Pada setiap kerja anda pilih semakan yang mahu ditambah, atau taip sendiri.",
@@ -1074,4 +1074,6 @@ export const ms: Messages = {
   "set.addService": "Servis baharu, cth. Gris galas slewing",
   "set.every": "Setiap",
   "set.months": "bulan",
+  "set.serviceJob": "Kerja servis",
+  "set.serviceJobHelp": "Halaman kerja kategori ini memaparkan \"Servis dibuat dalam kerja ini\". Ia juga dipaparkan pada mana-mana kerja jika mesin ada servis yang perlu dibuat.",
 };

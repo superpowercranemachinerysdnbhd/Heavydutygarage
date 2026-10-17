@@ -923,7 +923,7 @@ export const zh: Messages = {
   "set.labourRate": "工时费（每小时 RM）",
   "set.poLimit": "采购单超过此金额需批准（RM）",
   "set.workshopHelp": "公司名称、地址和电话会印在维修报告、历史报告和采购单顶部。",
-  "set.categoriesHelp": "颜色显示在工单卡片上。新工单选此类别时会自动填入优先级。",
+  "set.categoriesHelp": "颜色显示在工单卡片上。新工单选此类别时会自动填入优先级。 勾选“保养工单”的类别，员工可在工单上记录保养（换油、打黄油等）。",
   "set.typesHelp": "添加机器时，类型显示在其分组下。汽车、越野和全地面起重机属于移动式起重机。",
   "set.baysHelp": "机器在车间时可安排的工位和区域。",
   "set.qcHelp": "这些只是建议。每张工单可自行选择要加的检查项，或自己输入。",
@@ -1074,4 +1074,6 @@ export const zh: Messages = {
   "set.addService": "新保养项目，例如：回转支承加脂",
   "set.every": "每",
   "set.months": "个月",
+  "set.serviceJob": "保养工单",
+  "set.serviceJobHelp": "此类别的工单页面会显示“本工单完成的保养”。若机器有保养到期，任何工单也会显示。",
 };

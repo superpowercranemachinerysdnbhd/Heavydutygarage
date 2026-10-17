@@ -509,6 +509,9 @@ last done, interval in months, next due (calculated from last done + interval, o
   remove. Each row shows a due pill: overdue, due within 14 days, OK, or no date yet.
 - **Job page → Services done on this job**: tick the items serviced and the date; the machine's schedule moves on
   (next due = date + interval) and the job is recorded against it.
+  The section shows only on **service jobs** (categories ticked "Service job" in Settings; built-in: Preventive
+  Maintenance and Hydraulic Service), on any job whose machine has a service overdue or due within 14 days, and on a job
+  that already recorded a service. Other jobs (breakdowns, repairs) stay clean.
 - **Dashboard** attention list shows services overdue or due within 14 days; the **Machinery list** shows each
   machine's next service.
 - Managing the schedule needs `machine.manage` (Head Manager, Supervisor); recording on a job is open to anyone

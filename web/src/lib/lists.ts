@@ -15,7 +15,7 @@ export type ListItem = {
   grp: string | null;
   /** job_category only. */
   color: string | null; priority: Priority | null;
-  /** service_item only: default interval in months. */
+  /** service_item: default interval in months. job_category: 1 = service job (the job page offers "Services done"), 0 = not. */
   num: number | null;
   sort: number; active: boolean; builtin: boolean;
 };
@@ -26,6 +26,8 @@ const B = (list: ListName, code: string, sort: number, extra: Partial<ListItem> 
   ({ list, code, label: null, grp: null, color: null, priority: null, num: null, sort, active: true, builtin: true, ...extra });
 
 /** Built-in categories use theme colours (they adjust for dark mode); a colour picked in Settings is stored as hex. */
+/** Built-in categories that are service jobs: their job pages show "Services done on this job". */
+const SERVICE_CATS = ["PM", "HYD"];
 const CATS: [string, string, Priority][] = [
   ["EMG", "#c4342b", "critical"], ["DIAG", "#2d68a6", "high"], ["PM", "#2c7d3f", "normal"], ["MINOR", "#1b8a8a", "normal"],
   ["MAJOR", "#5146a8", "normal"], ["HYD", "#d06a12", "high"], ["FAB", "#8a5a2b", "normal"], ["PAINT", "#b0357c", "low"], ["WARR", "#6b7480", "high"],
@@ -60,7 +62,7 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 export const BUILTIN: ListItem[] = [
-  ...CATS.map(([code, , priority], i) => B("job_category", code, i, { color: `var(--c-${code.toLowerCase()})`, priority })),
+  ...CATS.map(([code, , priority], i) => B("job_category", code, i, { color: `var(--c-${code.toLowerCase()})`, priority, num: SERVICE_CATS.includes(code) ? 1 : 0 })),
   ...MACHINE_GROUPS_BUILTIN.flatMap((g, gi) => g.types.map((code, i) => B("machine_type", code, gi * 100 + i, { grp: g.group }))),
   ...BAY_NAMES.map((code, i) => B("bay", code, i)),
   ...QC_CODES.map((code, i) => B("qc_item", code, i)),
@@ -108,6 +110,7 @@ export const categoryCodes = (opts: { all?: boolean } = {}) => listItems("job_ca
 export const isCategory = (x: unknown): x is string => typeof x === "string" && listItems("job_category").some((i) => i.code === x);
 export const catColor = (code: string) => findItem("job_category", code)?.color ?? "#6b7684";
 export const catPriority = (code: string): Priority => findItem("job_category", code)?.priority ?? "normal";
+export const isServiceCategory = (code: string) => findItem("job_category", code)?.num === 1;
 
 /* ---------- bays and work areas ---------- */
 export const bayCodes = () => listItems("bay").map((i) => i.code);

@@ -35,6 +35,7 @@ function Row({ t, i, n, first, last, groups }: { t: T; i: ListItem; n: number; f
             {groups.map((g) => <option key={g} value={g}>{groupLabel(t, g)}</option>)}
           </select>
         )}
+        {i.list === "job_category" && <label className="set-check" title={t("set.serviceJobHelp")}><input type="checkbox" name="serviceJob" defaultChecked={i.num === 1} /> {t("set.serviceJob")}</label>}
         {i.list === "service_item" && <label className="set-check">{t("set.every")} <input type="number" name="num" min={1} max={120} defaultValue={i.num ?? ""} style={{ width: 70 }} /> {t("set.months")}</label>}
         <label className="set-check"><input type="checkbox" name="active" defaultChecked={i.active} /> {t("set.show")}</label>
         <SubmitButton className="btn small">{t("common.save")}</SubmitButton>
@@ -67,6 +68,7 @@ function ListSection({ t, list, id, title, help, addPh, usage }: { t: T; list: L
           <select className="field" name="grp" defaultValue="" aria-label={t("set.group")}><option value="">{t("set.chooseGroup")}</option>{groups.map((g) => <option key={g} value={g}>{groupLabel(t, g)}</option>)}</select>
           <input name="newGroup" placeholder={t("set.newGroupPh")} aria-label={t("set.newGroupPh")} style={{ maxWidth: 200 }} />
         </>)}
+        {list === "job_category" && <label className="set-check" title={t("set.serviceJobHelp")}><input type="checkbox" name="serviceJob" /> {t("set.serviceJob")}</label>}
         {list === "service_item" && <label className="set-check">{t("set.every")} <input type="number" name="num" min={1} max={120} defaultValue={6} style={{ width: 70 }} /> {t("set.months")}</label>}
         <SubmitButton className="btn small primary">{t("common.add")}</SubmitButton>
       </form>
