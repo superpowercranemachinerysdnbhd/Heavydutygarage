@@ -222,5 +222,21 @@ for (const [threadId, staffId] of [[teamT.id, sup.id], [teamT.id, boss.id], [pum
   await db.insert(schema.holidays).values([{ day: "2026-11-08", name: "Deepavali" }, { day: "2026-12-25", name: "Christmas Day" }]).onConflictDoNothing();
 }
 
+/* ---------- attendance: the last two weeks (Mon–Sat), mostly present ---------- */
+{
+  const { weekday } = await import("../src/lib/calendar");
+  const people = [sup, raj, lim, haf, sur, azm, kum, siti];
+  const rows: (typeof schema.attendance.$inferInsert)[] = [];
+  for (let n = 14; n >= 1; n--) {
+    const day = d(-n);
+    if (weekday(day) === 6) continue;
+    people.forEach((p, i) => {
+      const status = p === sur && n === 3 ? "mc" : p === lim && n % 5 === 0 ? "late" : p === kum && n === 6 ? "leave" : p === azm && n === 9 ? "absent" : "present";
+      rows.push({ staffId: p.id, day, status, timeIn: status === "late" ? "08:40" : status === "present" ? `0${7 + (i % 2)}:${i % 2 ? "05" : "55"}` : null, timeOut: status === "present" || status === "late" ? "17:30" : null, note: status === "absent" ? "No call, no show" : null, updatedBy: sup.id });
+    });
+  }
+  await db.insert(schema.attendance).values(rows);
+}
+
 console.log(`Demo data loaded. Sign in with any demo phone (Boss 0120000000, Supervisor 0120000001, Mechanic 0120000003) and password demo-pass-1.`);
 await pool.end();

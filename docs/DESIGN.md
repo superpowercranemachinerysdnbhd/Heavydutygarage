@@ -579,3 +579,19 @@ months, optional machine and company, notes.
 - Everyone sees events; only the Head Manager and Supervisor add, edit, mark done or delete.
 
 Table: `calendar_events`.
+
+## 27. Attendance
+
+Marked by the Supervisor (or Head Manager): **Team → Attendance**.
+
+- **Daily sheet**: everyone except the Head Manager, one row each: Present / Late / Half day / Leave / MC / Absent / Off,
+  optional time in and out, and a note. Leave, MC and Off from the Calendar crew plan are filled in (shown as "from crew
+  plan" until saved). **Mark the other N present** marks everyone not yet marked in one tap. One **Save attendance**
+  for the whole day. Days up to today only.
+- **Monthly summary**: per person days worked (Present and Late = 1, Half day = ½), Late, MC, Leave, Absent, and a
+  day-by-day grid (tap a day to open its sheet). **Download for Excel** gives a CSV of the month.
+- Crew see **My attendance**: their own month, read-only.
+- The dashboard's **Act now** reminds the Supervisor when today's attendance has not been taken (not on Sundays or
+  public holidays).
+
+Table: `attendance` (one row per person per day).

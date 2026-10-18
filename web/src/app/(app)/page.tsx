@@ -17,6 +17,9 @@ import { unitRef } from "@/lib/machine-types";
 import { bayCodes, catColor, eventColor, itemLabel } from "@/lib/lists";
 import { eventTitle, isLate, upcomingEvents } from "@/lib/events";
 import { dueServices } from "@/lib/services";
+import { attendanceBetween } from "@/lib/attendance-server";
+import { holidaysBetween } from "@/lib/calendar-server";
+import { weekday } from "@/lib/calendar";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("nav.dashboard") };
@@ -85,7 +88,7 @@ export default async function Dashboard() {
   // Not started: oldest first, so jobs left hanging come to the top.
   const notStarted = open.filter((j) => j.status === "received").sort((a, b) => a.openedAt.localeCompare(b.openedAt) || a.id - b.id);
 
-  const [taskRows, openRequests, services, fu, purchasing, events] = await Promise.all([
+  const [taskRows, openRequests, services, fu, purchasing, events, attToday, holToday] = await Promise.all([
     db.select({ jobId: schema.jobTasks.jobId, n: sql<number>`count(*)::int`, done: sql<number>`count(${schema.jobTasks.doneAt})::int` }).from(schema.jobTasks)
       .innerJoin(schema.jobs, eq(schema.jobTasks.jobId, schema.jobs.id)).where(sql`${schema.jobs.status} <> 'closed'`).groupBy(schema.jobTasks.jobId),
     requestsFor(undefined, true),
@@ -94,6 +97,8 @@ export default async function Dashboard() {
       .where(and(isNotNull(schema.jobs.followUp), lte(schema.jobs.followUpDate, d))),
     purchasingAlerts(user, locale),
     upcomingEvents(7),
+    attendanceBetween(d, d),
+    holidaysBetween(d, d),
   ]);
   const lateEvents = events.filter((e) => isLate(e, d)), soonEvents = events.filter((e) => !isLate(e, d));
   const tasks = new Map(taskRows.map((r) => [r.jobId, r]));
@@ -107,6 +112,8 @@ export default async function Dashboard() {
   open.filter((j) => dueInfo(j, t, locale).cls === "over").forEach((j) => now.push({ sev: "var(--crit)", text: t("att.overdue", { no: plate(j), date: fmtDate(j.dueDate, false, locale) }), href: `/jobs/${j.id}` }));
   open.filter((j) => j.status !== "received" && ageLevel(j.status, daysInStatus(j.statusSince)) === "crit")
     .forEach((j) => now.push({ sev: "var(--warn)", text: t("att.stuck", { no: plate(j), n: daysInStatus(j.statusSince), status: statusLabel(t, j.status) }), href: `/jobs/${j.id}` }));
+  // Attendance not taken yet on a working day.
+  if (can(user.role, "job.assign") && !attToday.length && weekday(d) !== 6 && !holToday.size) now.push({ sev: "var(--info)", text: t("att.notTaken"), href: "/team/attendance" });
   for (const a of purchasing) (a.now ? now : later).push(a);
   lateEvents.forEach((e) => now.push({ sev: "var(--warn)", text: t("att.eventLate", { what: eventTitle(e), date: fmtDate(e.endDay ?? e.day, false, locale) }), href: `/calendar/event/${e.id}` }));
   fu.forEach((f) => later.push({ sev: "var(--info)", text: t("att.followUp", { no: f.jobNo, note: (f.note ?? "").slice(0, 80), date: fmtDate(f.date, false, locale) }), href: `/jobs/${f.id}#writeup` }));

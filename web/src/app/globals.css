@@ -665,3 +665,31 @@ details.panel[open]>summary h3::before{content:"▾ "}
 .ev-card-actions{display:flex;gap:12px;align-items:center;padding:0 14px 14px;flex-wrap:wrap}
 .svc-line .evdot{width:9px;height:9px;border-radius:50%;background:var(--cat);align-self:center}
 .svc-line.done-line span{text-decoration:line-through;color:var(--muted)}
+
+/* ---------- Attendance ---------- */
+.att-sheet{display:flex;flex-direction:column}
+.att-row{display:grid;grid-template-columns:170px minmax(0,1fr);gap:6px 14px;padding:10px 14px;border-top:1px solid var(--line);align-items:center}
+.att-row:first-child{border-top:0}
+.att-row.unmarked{background:color-mix(in srgb,var(--warn) 6%,var(--surface))}
+.att-who{display:flex;flex-direction:column;min-width:0}
+.att-who small{font-size:.74rem}
+.att-pick{display:flex;flex-wrap:wrap;gap:5px}
+.att-opt{position:relative;cursor:pointer}
+.att-opt input{position:absolute;opacity:0;pointer-events:none}
+.att-opt span{display:inline-block;padding:5px 10px;border:1px solid var(--line);border-radius:16px;font-size:.8rem;font-weight:600;color:var(--muted);background:var(--surface)}
+.att-opt input:focus-visible+span{outline:2px solid var(--accent);outline-offset:1px}
+.att-opt input:checked+span{color:#fff;border-color:transparent;background:var(--sc,var(--ink))}
+.att-opt.s-present{--sc:var(--ok)}.att-opt.s-late{--sc:var(--warn)}.att-opt.s-half{--sc:#8a6d1f}.att-opt.s-leave{--sc:var(--info)}.att-opt.s-mc{--sc:#5146a8}.att-opt.s-absent{--sc:var(--crit)}.att-opt.s-off{--sc:#6b7480}
+.att-extra{grid-column:2;display:flex;gap:6px;flex-wrap:wrap}
+.att-extra input[type=time]{width:110px;font-size:.8rem;padding:4px 6px}
+.att-extra input:not([type]){flex:1 1 160px;font-size:.8rem;padding:4px 8px}
+@media (max-width:700px){.att-row{grid-template-columns:minmax(0,1fr)}.att-extra{grid-column:1}}
+.att-month{font-size:.8rem}
+.att-month th:first-child{min-width:150px;text-align:left}
+.att-month tbody th{font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink)}
+.att-month tbody th b,.att-month tbody th small{display:block}
+.att-month .dcol{padding:6px 3px;text-align:center;min-width:28px;font-size:.72rem;font-weight:700}
+.att-month .dcol.sun{background:var(--surface-2)}
+.att-month th.dcol.today{box-shadow:inset 0 -3px 0 var(--accent)}
+.att-month td.s-present{color:var(--ok)}.att-month td.s-late{color:var(--warn)}.att-month td.s-absent{color:var(--crit);background:color-mix(in srgb,var(--crit) 10%,var(--surface))}
+.att-month td.s-mc,.att-month td.s-leave{color:var(--info);background:color-mix(in srgb,var(--info) 8%,var(--surface))}

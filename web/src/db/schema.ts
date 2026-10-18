@@ -491,3 +491,16 @@ export const calendarEvents = pgTable("calendar_events", {
   createdBy: integer("created_by").references(() => staff.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("calendar_events_day_idx").on(t.day), index("calendar_events_unit_idx").on(t.unitId)]);
+
+/** Daily attendance, marked by the Supervisor (one row per person per day). */
+export const attendance = pgTable("attendance", {
+  id: serial("id").primaryKey(),
+  staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+  day: date("day").notNull(),
+  status: varchar("status", { length: 10 }).$type<"present" | "late" | "half" | "leave" | "mc" | "absent" | "off">().notNull(),
+  timeIn: varchar("time_in", { length: 5 }),
+  timeOut: varchar("time_out", { length: 5 }),
+  note: text("note"),
+  updatedBy: integer("updated_by").references(() => staff.id),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("attendance_staff_day_idx").on(t.staffId, t.day), index("attendance_day_idx").on(t.day)]);
