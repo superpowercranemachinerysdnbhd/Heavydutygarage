@@ -562,3 +562,20 @@ The dashboard's **Crew today** uses today's plan first (people on leave are grey
 free); without a plan it falls back to the job teams.
 
 Tables: `crew_plan` (staff, day, kind, job; one row per person per day) and `holidays` (day, name).
+
+## 26. Own calendar events
+
+The Head Manager and Supervisor add events to the calendar by hand: **+ Add event**, or tap a day number. Fields: type,
+title (empty = the type's name), date, optional time, optional end date (multi-day, up to 90 days), repeat every 1–36
+months, optional machine and company, notes.
+
+- **Event types** are an editable list (Settings → Calendar event types, with a colour each). Built-in: machine
+  arriving, machine collection / delivery, PUSPAKOM inspection, road tax / insurance renewal, DOSH / PMA inspection,
+  customer visit, meeting, other.
+- **Mark done**: crossed out on the calendar. A repeating event (e.g. PUSPAKOM every 6 months) adds its next date when
+  marked done.
+- Events not done after their date show red on the calendar and in the dashboard's **Act now**; the next 7 days show in
+  the dashboard's **Events this week**. A machine's page lists its events (PUSPAKOM, road tax, DOSH) with **+ Add event**.
+- Everyone sees events; only the Head Manager and Supervisor add, edit, mark done or delete.
+
+Table: `calendar_events`.

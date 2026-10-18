@@ -213,6 +213,12 @@ for (const [threadId, staffId] of [[teamT.id, sup.id], [teamT.id, boss.id], [pum
   }
   P.push({ staffId: kum.id, day: week[5], kind: "leave" }, { staffId: siti.id, day: week[5], kind: "off" });
   await db.insert(schema.crewPlan).values(P);
+  await db.insert(schema.calendarEvents).values([
+    { day: d(5), time: "09:00", type: "puspakom", title: "PUSPAKOM inspection", unitId: kato1.id, customerId: tunas.id, repeatMonths: 6, notes: "PUSPAKOM Shah Alam. Bring grant and insurance cover note.", createdBy: sup.id },
+    { day: d(1), type: "machine_in", title: "Tadano GR-600 arriving on low loader", customerId: tunas.id, notes: "Park at Open yard. Customer reports slewing noise.", createdBy: sup.id },
+    { day: d(-3), type: "dosh", title: "DOSH PMA inspection", unitId: u4.id, customerId: tunas.id, repeatMonths: 12, createdBy: boss.id },
+    { day: d(9), endDay: d(10), type: "visit", title: "Kuari Selatan site visit (2 days)", customerId: kuari.id, createdBy: boss.id },
+  ]);
   await db.insert(schema.holidays).values([{ day: "2026-11-08", name: "Deepavali" }, { day: "2026-12-25", name: "Christmas Day" }]).onConflictDoNothing();
 }
 

@@ -14,7 +14,8 @@ import { requestsFor } from "@/lib/inventory";
 import { Avatar, daysInStatus, dueInfo } from "@/components/ui";
 import { purchasingAlerts } from "@/lib/alerts";
 import { unitRef } from "@/lib/machine-types";
-import { bayCodes, catColor, itemLabel } from "@/lib/lists";
+import { bayCodes, catColor, eventColor, itemLabel } from "@/lib/lists";
+import { eventTitle, isLate, upcomingEvents } from "@/lib/events";
 import { dueServices } from "@/lib/services";
 import { planBetween } from "@/lib/calendar-server";
 
@@ -85,7 +86,7 @@ export default async function Dashboard() {
   // Not started: oldest first, so jobs left hanging come to the top.
   const notStarted = open.filter((j) => j.status === "received").sort((a, b) => a.openedAt.localeCompare(b.openedAt) || a.id - b.id);
 
-  const [taskRows, openRequests, services, fu, purchasing, todayPlan] = await Promise.all([
+  const [taskRows, openRequests, services, fu, purchasing, todayPlan, events] = await Promise.all([
     db.select({ jobId: schema.jobTasks.jobId, n: sql<number>`count(*)::int`, done: sql<number>`count(${schema.jobTasks.doneAt})::int` }).from(schema.jobTasks)
       .innerJoin(schema.jobs, eq(schema.jobTasks.jobId, schema.jobs.id)).where(sql`${schema.jobs.status} <> 'closed'`).groupBy(schema.jobTasks.jobId),
     requestsFor(undefined, true),
@@ -94,7 +95,9 @@ export default async function Dashboard() {
       .where(and(isNotNull(schema.jobs.followUp), lte(schema.jobs.followUpDate, d))),
     purchasingAlerts(user, locale),
     planBetween(d, d),
+    upcomingEvents(7),
   ]);
+  const lateEvents = events.filter((e) => isLate(e, d)), soonEvents = events.filter((e) => !isLate(e, d));
   const tasks = new Map(taskRows.map((r) => [r.jobId, r]));
   const requested = (id: number) => openRequests.filter((r) => r.jobId === id).length;
 
@@ -123,6 +126,7 @@ export default async function Dashboard() {
   open.filter((j) => j.status !== "received" && ageLevel(j.status, daysInStatus(j.statusSince)) === "crit")
     .forEach((j) => now.push({ sev: "var(--warn)", text: t("att.stuck", { no: plate(j), n: daysInStatus(j.statusSince), status: statusLabel(t, j.status) }), href: `/jobs/${j.id}` }));
   for (const a of purchasing) (a.now ? now : later).push(a);
+  lateEvents.forEach((e) => now.push({ sev: "var(--warn)", text: t("att.eventLate", { what: eventTitle(e), date: fmtDate(e.endDay ?? e.day, false, locale) }), href: `/calendar/event/${e.id}` }));
   fu.forEach((f) => later.push({ sev: "var(--info)", text: t("att.followUp", { no: f.jobNo, note: (f.note ?? "").slice(0, 80), date: fmtDate(f.date, false, locale) }), href: `/jobs/${f.id}#writeup` }));
   units.filter((u) => u.arrivedAt && daysBetween(u.arrivedAt, d) > 30).forEach((u) => later.push({ sev: "var(--warn)", text: t("att.longStay", { serial: unitRef(u), n: daysBetween(u.arrivedAt!, d) }), href: `/machinery/${u.id}` }));
   certs.filter((c) => c.expiry && daysBetween(d, c.expiry) < 45).forEach((c) => {
@@ -198,6 +202,19 @@ export default async function Dashboard() {
         </div>
 
         <div className="rail">
+          <section className="panel" id="events">
+            <div className="panel-head"><h3>{t("dash.events")}</h3>{can(user.role, "job.assign") ? <Link href="/calendar/event/new" className="muted" style={{ fontSize: ".8rem" }}>{t("ev.add")}</Link> : <Link href="/calendar?view=month" className="muted" style={{ fontSize: ".8rem" }}>{t("nav.calendar")}</Link>}</div>
+            <div className="panel-body">
+              {soonEvents.map((e) => (
+                <Link key={e.id} href={`/calendar/event/${e.id}`} className="svc-line plain" style={{ ["--cat" as string]: eventColor(e.type) }}>
+                  <i className="evdot" /><span>{eventTitle(e)}</span>
+                  <small className={e.day === d ? "due soon" : "muted"}>{e.day === d ? t("jobs.today") : fmtDate(e.day, false, locale)}{e.time ? ` ${e.time}` : ""}</small>
+                </Link>
+              ))}
+              {soonEvents.length === 0 && <div className="empty">{t("dash.noEvents")}</div>}
+            </div>
+          </section>
+
           <section className="panel" id="services">
             <div className="panel-head"><h3>{t("dash.servicesSoon")}</h3><Link href="/machinery" className="muted" style={{ fontSize: ".8rem" }}>{t("nav.machinery")}</Link></div>
             <div className="panel-body">

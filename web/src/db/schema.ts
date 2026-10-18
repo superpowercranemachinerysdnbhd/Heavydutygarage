@@ -402,7 +402,7 @@ export const chatReads = pgTable("chat_reads", {
 /** Changes to the built-in lists and custom entries. See lib/lists for the built-ins. */
 export const listItems = pgTable("list_items", {
   id: serial("id").primaryKey(),
-  list: varchar("list", { length: 20 }).$type<"job_category" | "machine_type" | "bay" | "qc_item" | "service_item">().notNull(),
+  list: varchar("list", { length: 20 }).$type<"job_category" | "machine_type" | "bay" | "qc_item" | "service_item" | "event_type">().notNull(),
   code: varchar("code", { length: 60 }).notNull(),
   label: varchar("label", { length: 120 }),
   grp: varchar("grp", { length: 60 }),
@@ -472,3 +472,22 @@ export const holidays = pgTable("holidays", {
   day: date("day").primaryKey(),
   name: varchar("name", { length: 80 }).notNull(),
 });
+
+/** Workshop events added by hand on the calendar: machine arriving, PUSPAKOM due, DOSH inspection, visits…
+ *  Repeating events (every N months) create the next one when marked done. */
+export const calendarEvents = pgTable("calendar_events", {
+  id: serial("id").primaryKey(),
+  day: date("day").notNull(),
+  endDay: date("end_day"),
+  time: varchar("time", { length: 5 }),
+  type: varchar("type", { length: 30 }).notNull(),
+  title: varchar("title", { length: 120 }).notNull(),
+  unitId: integer("unit_id").references(() => machineUnits.id, { onDelete: "set null" }),
+  customerId: integer("customer_id").references(() => customers.id, { onDelete: "set null" }),
+  notes: text("notes"),
+  repeatMonths: integer("repeat_months"),
+  doneAt: timestamp("done_at", { withTimezone: true }),
+  doneBy: integer("done_by").references(() => staff.id),
+  createdBy: integer("created_by").references(() => staff.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("calendar_events_day_idx").on(t.day), index("calendar_events_unit_idx").on(t.unitId)]);

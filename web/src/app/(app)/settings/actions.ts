@@ -7,9 +7,9 @@ import { BUILTIN, builtinHex, findItem, listItems, newCode, type ListName, type 
 import { loadLists } from "@/lib/lists-server";
 import { builtinPlaceLabel, translator, type MessageKey, type T } from "@/i18n";
 
-const LISTS: ListName[] = ["job_category", "machine_type", "bay", "qc_item", "service_item"];
+const LISTS: ListName[] = ["job_category", "machine_type", "bay", "qc_item", "service_item", "event_type"];
 const PRIORITIES: Priority[] = ["critical", "high", "normal", "low"];
-const ANCHOR: Record<ListName, string> = { job_category: "categories", machine_type: "types", bay: "bays", qc_item: "qc", service_item: "services" };
+const ANCHOR: Record<ListName, string> = { job_category: "categories", machine_type: "types", bay: "bays", qc_item: "qc", service_item: "services", event_type: "events" };
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 
 function done(t: T, anchor: string, msg: { ok?: MessageKey; error?: MessageKey }): never {
@@ -21,7 +21,7 @@ function done(t: T, anchor: string, msg: { ok?: MessageKey; error?: MessageKey }
 /** The built-in name in the editor's language; typing it unchanged keeps the entry translated for everyone. */
 function builtinName(t: T, list: ListName, code: string): string {
   if (list === "bay") return builtinPlaceLabel(t, code);
-  const k = { job_category: `cat.${code}`, machine_type: `mtype.${code}`, qc_item: `qc.${code}`, service_item: `svc.${code}` }[list];
+  const k = { job_category: `cat.${code}`, machine_type: `mtype.${code}`, qc_item: `qc.${code}`, service_item: `svc.${code}`, event_type: `evt.${code}` }[list];
   return t(k as MessageKey);
 }
 
@@ -30,7 +30,7 @@ function itemFields(form: FormData, list: ListName) {
   const priority = str(form, "priority") as Priority;
   const grp = str(form, "newGroup") || str(form, "grp");
   return {
-    color: list === "job_category" && /^#[0-9a-f]{6}$/i.test(color) ? color : null,
+    color: (list === "job_category" || list === "event_type") && /^#[0-9a-f]{6}$/i.test(color) ? color : null,
     priority: list === "job_category" && PRIORITIES.includes(priority) ? priority : null,
     grp: list === "machine_type" ? grp.slice(0, 60) || null : null,
     num: list === "job_category" ? (form.get("serviceJob") ? 1 : 0)

@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { can, CREW_ROLES } from "@/lib/permissions";
 import { addDays, fmtDate, today } from "@/lib/format";
 import { activeStaff, listJobs, type JobRow } from "@/lib/queries";
-import { catColor, itemLabel } from "@/lib/lists";
+import { catColor, eventColor, itemLabel } from "@/lib/lists";
 import { ABSENCE, isDay, isMonth, monthGrid, planWeekStart, shiftMonth, weekDays, weekStart, weekday, type PlanKind } from "@/lib/calendar";
 import { eventsBetween, holidaysBetween, planBetween, type CalEvent } from "@/lib/calendar-server";
 import { getI18n } from "@/i18n/server";
@@ -18,7 +18,7 @@ export async function generateMetadata() {
 }
 
 type SP = { view?: string; m?: string; w?: string; show?: string; ok?: string; error?: string };
-const TYPES = ["job", "service", "followup", "po", "absence"] as const;
+const TYPES = ["event", "job", "service", "followup", "po", "absence"] as const;
 const hidden = (n: string, v: string) => <input type="hidden" name={n} value={v} />;
 const plate = (j: JobRow) => j.plateNo || j.serialNo || `${j.make} ${j.model}`;
 const dayName = (iso: string, locale: Locale, style: "short" | "long" = "short") =>
@@ -33,9 +33,11 @@ function evText(t: T, e: CalEvent): string {
     case "followup": return `${t("cal.followUp")}: ${e.title}`;
     case "po": return `${e.title} · ${e.sub}`;
     case "absence": return `${e.title} · ${absenceLabel(t, e.code)}`;
+    case "event": return `${e.time ? `${e.time} ` : ""}${e.title}`;
   }
 }
-const evColor = (e: CalEvent) => (e.type === "job" ? catColor(e.code) : e.color);
+const evColor = (e: CalEvent) => (e.type === "job" ? catColor(e.code) : e.type === "event" ? eventColor(e.code) : e.color);
+const evClass = (e: CalEvent) => ["ev plain", e.type === "service" && "pm", (e.type === "overdue" || e.late) && "over", e.type === "absence" && "away", e.done && "done", e.type === "event" && "own"].filter(Boolean).join(" ");
 const evType = (e: CalEvent) => (e.type === "overdue" ? "job" : e.type);
 
 export default async function CalendarPage({ searchParams }: { searchParams: Promise<SP> }) {
@@ -83,6 +85,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
         <h3 className="cal-title">{title}</h3>
         <Link className="btn small" href={`/calendar?m=${shiftMonth(m, 1)}${keep}`} aria-label={t("cal.next")}>›</Link>
         {m !== d.slice(0, 7) && <Link className="btn small" href={`/calendar?m=${d.slice(0, 7)}${keep}`}>{t("cal.today")}</Link>}
+        {planner && <Link className="btn small primary" href={`/calendar/event/new?day=${m === d.slice(0, 7) ? d : `${m}-01`}`}>{t("ev.add")}</Link>}
         <div className="chipbar cal-filter" style={{ marginLeft: "auto" }}>
           {available.map((ty) => (
             <Link key={ty} href={toggle(ty)} className={`chip plain filt ${shown.has(ty) ? "on" : ""}`} aria-pressed={shown.has(ty)}>{t(`cal.t.${ty}` as MessageKey)}</Link>
@@ -97,9 +100,10 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
           const cls = [x.startsWith(m) ? "" : "out", x === d ? "today" : "", weekday(x) === 6 ? "sun" : "", hol.has(x) ? "hol" : ""].join(" ");
           return (
             <div key={x} className={`day ${cls}`}>
-              <span className="dnum">{Number(x.slice(8))}{hol.has(x) && <small className="hol-name"> {hol.get(x)}</small>}</span>
+              {planner ? <Link href={`/calendar/event/new?day=${x}`} className="dnum plain" title={t("ev.addOn", { date: fmtDate(x, false, locale) })}>{Number(x.slice(8))}{hol.has(x) && <small className="hol-name"> {hol.get(x)}</small>}</Link>
+                : <span className="dnum">{Number(x.slice(8))}{hol.has(x) && <small className="hol-name"> {hol.get(x)}</small>}</span>}
               {list.slice(0, 4).map((e, i) => (
-                <Link key={i} href={e.href} className={`ev plain ${e.type === "service" ? "pm" : ""} ${e.type === "overdue" ? "over" : ""} ${e.type === "absence" ? "away" : ""}`} style={{ ["--cat" as string]: evColor(e) }} title={evText(t, e)}>{evText(t, e)}</Link>
+                <Link key={i} href={e.href} className={evClass(e)} style={{ ["--cat" as string]: evColor(e) }} title={evText(t, e)}>{evText(t, e)}</Link>
               ))}
               {list.length > 4 && <small className="muted more">{t("dash.more", { n: list.length - 4 })}</small>}
             </div>
@@ -114,7 +118,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
             <div className="ag-list">
               {hol.has(x) && <span className="ag-hol">{hol.get(x)}</span>}
               {(byDay.get(x) ?? []).map((e, i) => (
-                <Link key={i} href={e.href} className={`ev plain ${e.type === "service" ? "pm" : ""} ${e.type === "overdue" ? "over" : ""} ${e.type === "absence" ? "away" : ""}`} style={{ ["--cat" as string]: evColor(e) }}>{evText(t, e)}</Link>
+                <Link key={i} href={e.href} className={evClass(e)} style={{ ["--cat" as string]: evColor(e) }}>{evText(t, e)}</Link>
               ))}
             </div>
           </div>
@@ -124,6 +128,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 
       <div className="legend">
         <span style={{ ["--cat" as string]: "var(--c-emg)" }}><i />{t("cal.lg.job")}</span>
+        <span><i style={{ background: "var(--surface)", border: "2px solid var(--ink)" }} />{t("cal.lg.event")}</span>
         <span><i style={{ background: "transparent", border: "1px dashed var(--c-pm)" }} />{t("cal.t.service")}</span>
         {planner && <span style={{ ["--cat" as string]: "var(--c-minor)" }}><i />{t("cal.t.po")}</span>}
         <span style={{ ["--cat" as string]: "var(--muted)" }}><i />{t("cal.t.absence")}</span>

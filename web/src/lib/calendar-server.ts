@@ -4,14 +4,17 @@ import { db, schema } from "@/db";
 import type { CurrentUser } from "./auth";
 import { can } from "./permissions";
 import { listJobs } from "./queries";
-import { today } from "./format";
+import { addDays, today } from "./format";
+import { eventTitle, eventsOverlapping } from "./events";
 import type { PlanKind } from "./calendar";
 
 export type CalEvent = {
-  day: string; type: "job" | "overdue" | "service" | "followup" | "po" | "absence";
+  day: string; type: "job" | "overdue" | "service" | "followup" | "po" | "absence" | "event";
   title: string; sub: string; href: string; color: string;
-  /** job: category code; service: item code; absence: plan kind. */
+  /** job: category code; service: item code; absence: plan kind; event: event type. */
   code: string;
+  /** event: done, or past and not done. */
+  done?: boolean; late?: boolean; time?: string | null;
 };
 
 const plateOf = (r: { plateNo: string | null; serialNo: string | null; make: string; model: string }) => r.plateNo || r.serialNo || `${r.make} ${r.model}`;
@@ -49,8 +52,14 @@ export async function eventsBetween(user: CurrentUser, from: string, to: string)
   const away = await db.select({ day: P.day, kind: P.kind, staffId: P.staffId, name: schema.staff.name }).from(P).innerJoin(schema.staff, eq(P.staffId, schema.staff.id))
     .where(and(ne(P.kind, "job"), between(P.day, from, to), all ? undefined : eq(P.staffId, user.id)));
   for (const a of away) out.push({ day: a.day, type: "absence", code: a.kind, title: a.name, sub: "", href: all ? `/calendar?view=week&w=${a.day}` : "/calendar", color: "var(--muted)" });
-  const order = { overdue: 0, job: 1, service: 2, po: 3, followup: 4, absence: 5 };
-  return out.sort((a, b) => a.day.localeCompare(b.day) || order[a.type] - order[b.type] || a.title.localeCompare(b.title));
+  // Own events, shown on every day they cover (multi-day events up to 31 days).
+  for (const e of await eventsOverlapping(from, to)) {
+    const last = e.endDay && e.endDay > e.day ? (e.endDay < addDays(e.day, 31) ? e.endDay : addDays(e.day, 31)) : e.day;
+    for (let day = e.day > from ? e.day : from; day <= last && day <= to; day = addDays(day, 1))
+      out.push({ day, type: "event", code: e.type, title: eventTitle(e), sub: e.plateNo ?? "", href: `/calendar/event/${e.id}`, color: "", done: !!e.doneAt, late: !e.doneAt && last < d, time: day === e.day ? e.time : null });
+  }
+  const order = { overdue: 0, event: 1, job: 2, service: 3, po: 4, followup: 5, absence: 6 };
+  return out.sort((a, b) => a.day.localeCompare(b.day) || order[a.type] - order[b.type] || (a.time ?? "").localeCompare(b.time ?? "") || a.title.localeCompare(b.title));
 }
 
 export async function holidaysBetween(from: string, to: string): Promise<Map<string, string>> {

@@ -17,6 +17,8 @@ import UnitForm from "@/components/UnitForm";
 import { updateUnit } from "../actions";
 import ServicePanel from "@/components/ServicePanel";
 import { servicesFor } from "@/lib/services";
+import { eventsForUnit, isLate } from "@/lib/events";
+import { eventColor } from "@/lib/lists";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("mach.title") };
@@ -37,7 +39,7 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
   const shown = sp.cat ? history.filter((j) => j.category === sp.cat) : history;
   const stay = unit.arrivedAt ? daysBetween(unit.arrivedAt, today()) : null;
   const manage = can(user.role, "machine.manage");
-  const services = await servicesFor(id);
+  const [services, events] = await Promise.all([servicesFor(id), eventsForUnit(id)]);
   const options = manage ? await machineFormOptions() : null;
   const photo = machinePhotoUrl(unit.id, unit.photoPath);
   const comp = [[t("u.engineModel"), unit.engineModel], [t("u.transmissionModel"), unit.transmissionModel], [t("u.pumpModel"), unit.pumpModel]] as const;
@@ -69,6 +71,18 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
       </div></div>{unit.notes && <div className="panel in" style={{ padding: "10px 14px" }}><span className="muted">{unit.notes}</span></div>}
 
       <ServicePanel unitId={id} services={services} manage={manage} t={t} locale={locale} />
+      <section className="panel" id="events">
+        <div className="panel-head"><h3>{t("ev.forMachine")}</h3>{can(user.role, "job.assign") && <Link className="btn small" href={`/calendar/event/new?unit=${id}`}>{t("ev.add")}</Link>}</div>
+        <div className="panel-body">
+          {events.map((e) => (
+            <Link key={e.id} href={`/calendar/event/${e.id}`} className={`svc-line plain ${e.doneAt ? "done-line" : ""}`} style={{ ["--cat" as string]: eventColor(e.type) }}>
+              <i className="evdot" /><span>{e.title}{e.repeatMonths ? ` · ${t("ev.everyN", { n: e.repeatMonths })}` : ""}</span>
+              <small className={isLate(e) ? "due over" : "muted"}>{fmtDate(e.day, true, locale)}{e.doneAt ? ` · ${t("ev.isDone")}` : ""}</small>
+            </Link>
+          ))}
+          {events.length === 0 && <div className="empty">{t("ev.noneForMachine")}</div>}
+        </div>
+      </section>
 
       <div className="panel">
         <div className="panel-head" style={{ flexWrap: "wrap" }}><h3>{t("mach.history")}</h3>

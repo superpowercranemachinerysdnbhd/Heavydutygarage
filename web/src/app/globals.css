@@ -652,3 +652,16 @@ details.panel[open]>summary h3::before{content:"▾ "}
 .status-chips .chip.filt b{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}
 .status-chips .chip.filt.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .status-chips .chip.filt.on b{color:inherit;opacity:.8}
+/* own calendar events */
+.ev.own{background:var(--surface);border:1px solid var(--cat);border-left:4px solid var(--cat);font-weight:600}
+.ev.done{text-decoration:line-through;opacity:.55}
+.cal .dnum.plain{text-decoration:none;align-self:flex-start;border-radius:4px;padding:0 4px;margin:-1px -4px}
+.cal .dnum.plain:hover{background:var(--surface-2);color:var(--ink)}
+.ev-card{border-left:5px solid var(--cat)}
+.ev-card-body{padding:14px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.ev-card-body h3{margin:0;font-size:1.35rem}
+.ev-card-body h3.done{text-decoration:line-through;color:var(--muted)}
+.ev-card-body p{margin:0}
+.ev-card-actions{display:flex;gap:12px;align-items:center;padding:0 14px 14px;flex-wrap:wrap}
+.svc-line .evdot{width:9px;height:9px;border-radius:50%;background:var(--cat);align-self:center}
+.svc-line.done-line span{text-decoration:line-through;color:var(--muted)}

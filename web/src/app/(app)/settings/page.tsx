@@ -23,7 +23,7 @@ function Row({ t, i, n, first, last, groups }: { t: T; i: ListItem; n: number; f
     <li className={`set-row ${i.active ? "" : "off"}`}>
       <form action={saveItem} className="set-form">
         {hidden("list", i.list)}{hidden("code", i.code)}
-        {i.list === "job_category" && <input type="color" name="color" defaultValue={colorHex(i.code)} aria-label={t("set.color")} className="set-color" />}
+        {(i.list === "job_category" || i.list === "event_type") && <input type="color" name="color" defaultValue={colorHex(i.code, i.list)} aria-label={t("set.color")} className="set-color" />}
         <input name="label" defaultValue={name(t, i)} required aria-label={t("set.name")} className="set-name" />
         {i.list === "job_category" && (
           <select className="field" name="priority" defaultValue={i.priority ?? "normal"} aria-label={t("set.defaultPriority")}>
@@ -61,7 +61,7 @@ function ListSection({ t, list, id, title, help, addPh, usage }: { t: T; list: L
       </ul>
       <form action={addItem} className="set-form set-add">
         {hidden("list", list)}
-        {list === "job_category" && <input type="color" name="color" defaultValue="#3a7bd5" aria-label={t("set.color")} className="set-color" />}
+        {(list === "job_category" || list === "event_type") && <input type="color" name="color" defaultValue="#3a7bd5" aria-label={t("set.color")} className="set-color" />}
         <input name="label" required placeholder={addPh} aria-label={addPh} className="set-name" />
         {list === "job_category" && <select className="field" name="priority" defaultValue="normal" aria-label={t("set.defaultPriority")}>{PRIORITIES.map((p) => <option key={p} value={p}>{priLabel(t, p)}</option>)}</select>}
         {list === "machine_type" && (<>
@@ -88,7 +88,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <div className="view-head"><h2>{t("set.title")}</h2></div>
       <p className="muted" style={{ margin: 0 }}>{t("set.intro")}</p>
       <nav className="chipbar" aria-label={t("set.title")}>
-        {[["workshop", t("set.workshop")], ["categories", t("set.categories")], ["types", t("set.types")], ["services", t("set.services")], ["bays", t("set.bays")], ["qc", t("set.qc")]].map(([h, l]) =>
+        {[["workshop", t("set.workshop")], ["categories", t("set.categories")], ["types", t("set.types")], ["services", t("set.services")], ["events", t("set.events")], ["bays", t("set.bays")], ["qc", t("set.qc")]].map(([h, l]) =>
           <a key={h} className="chip plain" href={`#${h}`}>{l}</a>)}
       </nav>
       <Notice ok={sp.ok} error={sp.error} />
@@ -112,6 +112,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <ListSection t={t} list="machine_type" id="types" title={t("set.types")} help={t("set.typesHelp")} addPh={t("set.addType")} usage={usage} />
       <ListSection t={t} list="bay" id="bays" title={t("set.bays")} help={t("set.baysHelp")} addPh={t("set.addBay")} usage={usage} />
       <ListSection t={t} list="service_item" id="services" title={t("set.services")} help={t("set.servicesHelp")} addPh={t("set.addService")} usage={usage} />
+      <ListSection t={t} list="event_type" id="events" title={t("set.events")} help={t("set.eventsHelp")} addPh={t("set.addEvent")} usage={usage} />
       <ListSection t={t} list="qc_item" id="qc" title={t("set.qc")} help={t("set.qcHelp")} addPh={t("set.addQc")} usage={usage} />
     </div>
   );
