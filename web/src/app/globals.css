@@ -611,8 +611,6 @@ details.panel[open]>summary h3::before{content:"▾ "}
 .cal-tabs a.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .cal-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .cal-title{margin:0;font-size:1.15rem;min-width:9ch;text-align:center}
-.chip.filt{color:var(--muted);border-color:var(--line);background:var(--surface);font-size:.75rem;padding:4px 9px;text-decoration:none}
-.chip.filt.on{color:var(--ink);border-color:var(--ink)}
 .month-grid .day.sun{background:var(--surface-2)}
 .month-grid .day.hol{background:var(--hol)}
 .hol-name{color:var(--c-paint);font-family:var(--f-body);font-weight:600;font-size:.68rem}
@@ -648,3 +646,9 @@ details.panel[open]>summary h3::before{content:"▾ "}
 .plan-cell.k-leave,.plan-cell.k-mc,.plan-cell.k-off{background:var(--surface-2)}
 .plan-cell.k-mc select,.plan-cell.k-leave select{color:var(--muted)}
 .plan-where{display:block;font-size:.7rem;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip.filt{color:var(--muted);border-color:var(--line);background:var(--surface);font-size:.75rem;padding:4px 9px;text-decoration:none}
+.chip.filt.on{color:var(--ink);border-color:var(--ink)}
+.status-chips .chip.filt{font-size:.82rem;padding:6px 11px;gap:6px}
+.status-chips .chip.filt b{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}
+.status-chips .chip.filt.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.status-chips .chip.filt.on b{color:inherit;opacity:.8}

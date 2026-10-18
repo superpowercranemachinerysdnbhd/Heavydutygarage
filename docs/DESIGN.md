@@ -540,7 +540,11 @@ servicing is coming up.
 
 The job board moved off the dashboard (it is on the Jobs page). Crew keep their own "My jobs" view.
 
-## 24. Calendar and weekly crew plan
+## 24. Machinery rental module
+
+Hiring out our own fleet (dry hire, wet hire with operator, lowloader transport and long-term contracts) is designed as a module of this system, sharing machines, companies, staff and roles. See [`RENTAL.md`](RENTAL.md) and the prototype [`prototype/rental.html`](../prototype/rental.html).
+
+## 25. Calendar and weekly crew plan
 
 **Calendar → Month** (everyone; crew see only their own jobs and leave): month grid on iPad/computer, a day-by-day list
 on phone. Shows open jobs on their due date (colour = job type), overdue jobs on today in red until moved or completed,

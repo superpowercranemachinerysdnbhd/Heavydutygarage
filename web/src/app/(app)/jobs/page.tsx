@@ -8,6 +8,7 @@ import { getI18n } from "@/i18n/server";
 import { catLabel, statusLabel } from "@/i18n/labels";
 import { CatChip, Pri, daysInStatus, dueInfo } from "@/components/ui";
 import JobBox from "@/components/JobBox";
+import AutoSubmitSelect from "@/components/AutoSubmitSelect";
 import { machinePhotoUrl, unitRef } from "@/lib/machine-types";
 import { catColor, categoryCodes } from "@/lib/lists";
 
@@ -21,15 +22,20 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const sp = await searchParams;
   const crew = !can(user.role, "job.viewAll");
   const status = crew ? "onhand" : sp.status ?? "open";
-  let list = await listJobs(user);
+  const everything = await listJobs(user);
+  // Counts for the status buttons (after the search and job type filters, before the status filter).
+  const q = (sp.q ?? "").trim().toLowerCase();
+  const matching = everything.filter((j) => (!sp.cat || j.category === sp.cat) && (!q || [j.jobNo, j.make, j.model, j.serialNo, j.plateNo, j.customerName, j.complaint].join(" ").toLowerCase().includes(q)));
+  const counts: Record<string, number> = { open: matching.filter((j) => j.status !== "closed").length, all: matching.length };
+  for (const s of STATUSES) counts[s] = matching.filter((j) => j.status === s).length;
+  let list = matching;
   if (status === "onhand") list = list.filter((j) => ON_HAND.includes(j.status));
   else if (status === "open") list = list.filter((j) => j.status !== "closed");
   else if (STATUSES.includes(status as Status)) list = list.filter((j) => j.status === status);
-  if (sp.cat) list = list.filter((j) => j.category === sp.cat);
-  const q = (sp.q ?? "").trim().toLowerCase();
-  if (q) list = list.filter((j) => [j.jobNo, j.make, j.model, j.serialNo, j.plateNo, j.customerName, j.complaint].join(" ").toLowerCase().includes(q));
   const view = sp.view === "table" ? "table" : "cards";
-  const viewHref = (v: string) => `/jobs?${new URLSearchParams({ ...(sp.q ? { q: sp.q } : {}), ...(sp.cat ? { cat: sp.cat } : {}), status, view: v })}`;
+  const hrefWith = (o: { status?: string; view?: string }) =>
+    `/jobs?${new URLSearchParams({ ...(sp.q ? { q: sp.q } : {}), ...(sp.cat ? { cat: sp.cat } : {}), status: o.status ?? status, view: o.view ?? view })}`;
+  const viewHref = (v: string) => hrefWith({ view: v });
   const covers = view === "cards" ? await coverPhotos(list.map((j) => j.id)) : new Map<number, number>();
   // Box view: newest first; each box shows the day the job was opened.
   const sorted = [...list].sort((a, b) => b.openedAt.localeCompare(a.openedAt) || b.id - a.id);
@@ -39,12 +45,22 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   return (
     <div className="page">
       <div className="view-head"><h2>{crew ? t("jobs.onHand") : t("jobs.title")}</h2>{can(user.role, "job.create") && <Link className="btn primary" href="/jobs/new">{t("dash.newJob")}</Link>}</div>
+      {!crew && (
+        <nav className="chipbar status-chips" aria-label={t("col.status")}>
+          {(["open", ...STATUSES, "all"] as const).map((k) => (
+            <Link key={k} href={hrefWith({ status: k })} className={`chip plain filt ${status === k ? "on" : ""}`} aria-current={status === k ? "true" : undefined}>
+              {k === "open" ? t("jobs.allOpen") : k === "all" ? t("jobs.all") : statusLabel(t, k)} <b>{counts[k]}</b>
+            </Link>
+          ))}
+        </nav>
+      )}
       <form className="filters" method="get">
         <input type="search" name="q" defaultValue={sp.q ?? ""} placeholder={t("jobs.searchPh")} style={{ flex: "1 1 240px" }} aria-label={t("common.search")} />
-        <select className="field" name="cat" defaultValue={sp.cat ?? ""} aria-label={t("f.category")}><option value="">{t("jobs.allCats")}</option>{categoryCodes({ all: true }).map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select>
-        {!crew && <select className="field" name="status" defaultValue={status} aria-label={t("col.status")}><option value="open">{t("jobs.allOpen")}</option><option value="all">{t("jobs.all")}</option>{STATUSES.map((s) => <option key={s} value={s}>{statusLabel(t, s)}</option>)}</select>}
+        <AutoSubmitSelect className="field" name="cat" defaultValue={sp.cat ?? ""} aria-label={t("f.category")}><option value="">{t("jobs.allCats")}</option>{categoryCodes({ all: true }).map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</AutoSubmitSelect>
+        {!crew && <input type="hidden" name="status" value={status} />}
         <input type="hidden" name="view" value={view} />
-        <button className="btn">{t("common.filter")}</button>
+        <button className="btn primary">{t("common.search")}</button>
+        {(sp.q || sp.cat || (!crew && status !== "open")) && <Link className="btn" href={`/jobs?view=${view}`}>{t("jobs.clear")}</Link>}
         <span className="seg" role="group" aria-label={t("jobs.cards")}>
           <Link className="plain" href={viewHref("cards")} aria-current={view === "cards" ? "page" : undefined}>{t("jobs.cards")}</Link>
           <Link className="plain" href={viewHref("table")} aria-current={view === "table" ? "page" : undefined}>{t("jobs.table")}</Link>

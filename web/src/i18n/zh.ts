@@ -256,6 +256,7 @@ export const zh: Messages = {
   "jobs.allCats": "所有类别",
   "jobs.allOpen": "所有未结",
   "jobs.all": "全部（含已结案）",
+  "jobs.clear": "清除筛选",
   "jobs.none": "没有符合的工单。",
 
   "new.title": "新建工单",

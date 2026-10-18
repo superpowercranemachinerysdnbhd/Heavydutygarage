@@ -265,6 +265,7 @@ export const en = {
   "jobs.allCats": "All categories",
   "jobs.allOpen": "All open",
   "jobs.all": "All incl. closed",
+  "jobs.clear": "Clear filters",
   "jobs.none": "No jobs match.",
 
   // new job form
