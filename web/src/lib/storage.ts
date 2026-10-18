@@ -11,7 +11,7 @@ export const ALLOWED_IMAGE_TYPES: Record<string, string> = {
 };
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 
-export async function saveFile(folder: "photos" | "signatures" | "chat", data: Buffer, ext: string): Promise<string> {
+export async function saveFile(folder: "photos" | "signatures" | "chat" | "imports", data: Buffer, ext: string): Promise<string> {
   const dir = path.join(/*turbopackIgnore: true*/ ROOT, folder);
   await mkdir(/*turbopackIgnore: true*/ dir, { recursive: true });
   const rel = `${folder}/${randomUUID()}.${ext}`;

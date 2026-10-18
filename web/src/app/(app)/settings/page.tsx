@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
@@ -104,7 +105,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <label>{t("set.poLimit")}<input name="poApprovalLimit" type="number" min={0} step="1" required defaultValue={s.poApprovalLimit} /></label>
           <label>{t("set.jobMarkup")}<input name="jobPurchaseMarkup" type="number" min={0} step="0.1" required defaultValue={s.jobPurchaseMarkup} /></label>
           <p className="full hint">{t("set.workshopHelp")}</p>
-          <div className="full"><SubmitButton className="btn primary">{t("common.save")}</SubmitButton></div>
+          <div className="full filters"><SubmitButton className="btn primary">{t("common.save")}</SubmitButton><Link className="btn" href="/settings/import">{t("as.title")}</Link></div>
         </form>
       </section>
 

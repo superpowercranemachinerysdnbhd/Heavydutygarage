@@ -595,3 +595,22 @@ Marked by the Supervisor (or Head Manager): **Team → Attendance**.
   public holidays).
 
 Table: `attendance` (one row per person per day).
+
+## 28. Import from AppSheet
+
+**Settings → Import from AppSheet** (Head Manager): upload the .xlsx downloaded from the AppSheet Google Sheet (CMMC
+layout: WORK ORDER, ASSETS, LABOR, Bills, USED PARTS, PARTS & INVENTORY, SUPLLIER LIST, TEAM, PREVENTATIVE
+MAINTENANCE, LOCATION). The page shows what is in the file, what is already in the app and what will be added; the
+Head Manager picks which company owns the machines, then imports.
+
+- Nothing is deleted or overwritten; machines are matched by plate (or serial), staff and suppliers by name, parts by
+  part number, work orders by their AppSheet number (`AS-<WO#>`). Importing the same file again adds nothing.
+- Work orders: title + description → complaint; repair actions → work carried out; remarks and supplier refs →
+  internal follow-up; statuses, priorities and MT-categories mapped (Statutory, Damage by customer / operator and
+  Predictive are added as work order categories); lead and second technician; outside vendors noted, not made staff.
+- LABOR → labour hours; Bills → bought for the work order; USED PARTS → parts used (history only, stock not changed).
+- TEAM → staff without login (a placeholder phone; the Head Manager adds the real number to let them sign in), with
+  hourly pay rate. PREVENTATIVE MAINTENANCE → machine service schedule.
+- Photos stay in Google Drive (only file names are in the export).
+
+The .xlsx is read by a small built-in reader (`lib/xlsx.ts`); the mapping rules are in `lib/appsheet-map.ts` (tested).
