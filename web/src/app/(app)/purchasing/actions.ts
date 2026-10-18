@@ -1,4 +1,5 @@
 "use server";
+import { notifyRoles } from "@/lib/notify";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
@@ -61,6 +62,7 @@ export async function createPurchaseOrders(input: { lines: NewPoLine[]; jobId?: 
     return out;
   });
   if (input.jobId) for (const m of made) await addActivity(input.jobId, user.id, "act.poRaised", { po: m.no, name: user.name });
+  for (const m of made.filter((x) => x.awaiting)) await notifyRoles(["boss"], { key: "nt.poApproval", vars: { po: m.no, name: user.name }, url: `/purchasing/${m.id}` }, user.id);
   revalidatePath("/purchasing");
   revalidatePath("/parts");
   return { ids: made.map((m) => m.id), nos: made.map((m) => m.no), awaiting: made.filter((m) => m.awaiting).length };

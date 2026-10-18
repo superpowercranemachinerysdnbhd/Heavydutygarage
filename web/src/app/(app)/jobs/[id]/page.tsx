@@ -90,6 +90,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
         <CatChip cat={job.category} t={t} /><Pri p={job.priority} t={t} /><span className={`due ${due.cls}`}>{due.text}</span><AgeText status={job.status} since={job.statusSince} t={t} />
+        {job.source === "qr" && <span className="pill info">{t("job.fromQr")}</span>}
         {parent && <span className="muted">{t("job.comebackOf")} <Link href={`/jobs/${parent.id}`}>{parent.jobNo}</Link></span>}
       </div>
       <Notice error={sp.error} ok={sp.ok} />

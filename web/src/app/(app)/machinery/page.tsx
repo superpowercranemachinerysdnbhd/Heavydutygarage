@@ -31,6 +31,7 @@ export default async function MachineryPage({ searchParams }: { searchParams: Pr
     <div className="page">
       <div className="view-head"><h2>{t("mach.title")}</h2>
         <Link className="btn" href="/machinery/models">{t("mach.models")}</Link>
+        {can(user.role, "machine.manage") && <Link className="btn" href="/machinery/qr">{t("qr.all")}</Link>}
         {can(user.role, "machine.manage") && <Link className="btn primary" href="/machinery/new">{t("mach.add")}</Link>}</div>
       <form className="filters" method="get">
         <input type="search" name="q" defaultValue={sp.q ?? ""} placeholder={t("mach.searchPh")} style={{ flex: "1 1 240px" }} aria-label={t("common.search")} />

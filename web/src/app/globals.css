@@ -707,3 +707,37 @@ details.panel[open]>summary h3::before{content:"▾ "}
 .rp .bar-col{width:30%;min-width:80px}
 .rp .bar{display:block;height:10px;border-radius:5px;background:var(--accent);min-width:2px}
 @media (max-width:640px){.rp .bar-col{display:none}}
+
+/* ---------- Public fault report (QR sticker) ---------- */
+.fr{max-width:520px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.fr-head{display:flex;align-items:center;gap:10px}
+.fr-head img{border-radius:6px}
+.fr-head b{display:block;font-family:var(--f-display);font-size:1.1rem;letter-spacing:.03em}
+.fr-head small{color:var(--muted);font-size:.75rem}
+.fr-lang{margin-left:auto;display:flex;gap:4px}
+.fr-lang a{padding:4px 8px;border:1px solid var(--line);border-radius:6px;font-size:.78rem;color:var(--muted);text-decoration:none}
+.fr-lang a.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.fr-machine{background:var(--steel,#1a1f26);color:#fff;border-radius:10px;padding:14px 16px}
+.fr-machine small{opacity:.7;text-transform:uppercase;letter-spacing:.08em;font-size:.7rem}
+.fr-machine h1{margin:2px 0;font-size:2rem}
+.fr-form{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.fr-form label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.9rem}
+.fr-form textarea,.fr-form input[type=text],.fr-form input:not([type]),.fr-form input[type=tel]{font-size:1rem}
+.fr-yn{border:0;padding:0;margin:0;display:flex;gap:10px;flex-wrap:wrap}
+.fr-yn legend{font-weight:600;font-size:.9rem;margin-bottom:6px}
+.fr-yn label{flex-direction:row;align-items:center;gap:6px;font-weight:500;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.fr-send{font-size:1.05rem;padding:12px}
+.fr-done{background:var(--surface);border:1px solid var(--ok);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.fr-done h2{margin:0;color:var(--ok)}
+/* QR stickers (print: 2 per row on A4) */
+.qr-sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.qr-sticker{background:#fff;color:#000;border:2px solid #000;border-radius:10px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;break-inside:avoid;page-break-inside:avoid}
+.qr-top b{font-family:var(--f-display);font-size:1rem;letter-spacing:.06em;text-transform:uppercase}
+.qr-code{width:190px;height:190px}
+.qr-code svg{width:100%;height:100%}
+.qr-plate{font-size:1.6rem;font-weight:700;letter-spacing:.04em}
+.qr-machine{font-size:.85rem}
+.qr-scan{display:flex;flex-direction:column;font-size:.8rem;line-height:1.25;margin-top:2px}
+.qr-scan b{font-size:.95rem}
+.qr-url{font-size:.62rem;color:#444;word-break:break-all}
+@media print{.qr-sheet{grid-template-columns:repeat(2,1fr);gap:10mm}.qr-sticker{border-width:1.5px}}

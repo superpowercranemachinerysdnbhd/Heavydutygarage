@@ -7,6 +7,7 @@ import { getI18n } from "@/i18n/server";
 import { translator } from "@/i18n";
 import { roleLabel } from "@/i18n/labels";
 import { Notice } from "@/components/ui";
+import PushToggle from "@/components/PushToggle";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export async function generateMetadata() {
@@ -42,6 +43,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <div><span className="label">{t("account.phone")}</span><b className="mono">{user.phone}</b></div>
         <div style={{ gridColumn: "1/-1" }}><span className="label">{t("common.language")}</span><div><LanguageSwitcher className="on-light" /></div><small className="muted">{t("account.languageHelp")}</small></div>
       </div></div>
+      <section className="panel" id="notifications">
+        <div className="panel-head"><h3>{t("push.title")}</h3></div>
+        <div style={{ padding: 14 }}><PushToggle /></div>
+      </section>
       <form action={changePassword} className="panel">
         <div className="panel-head"><h3>{t("account.changePw")}</h3></div>
         <div className="in form" style={{ padding: 14 }}>

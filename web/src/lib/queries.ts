@@ -13,7 +13,7 @@ export type JobRow = {
   id: number; jobNo: string; category: typeof jobs.$inferSelect["category"]; priority: typeof jobs.$inferSelect["priority"];
   status: Status; statusSince: Date; siteType: "workshop" | "field"; siteLocation: string; openedAt: string; dueDate: string | null;
   closedAt: string | null; complaint: string; leadId: number | null; leadName: string | null; unitId: number;
-  make: string; model: string; serialNo: string | null; plateNo: string | null; unitPhotoPath: string | null; customerName: string; teamIds: number[]; labourHours: number; partsValue: number;
+  make: string; model: string; serialNo: string | null; plateNo: string | null; unitPhotoPath: string | null; customerName: string; teamIds: number[]; labourHours: number; partsValue: number; source: string; reportedBy: string | null;
 };
 
 /** Jobs the user may see. Boss and supervisor see all; crew see jobs they lead or are on. */
@@ -29,7 +29,7 @@ export async function listJobs(user: CurrentUser, opts: { open?: boolean; unitId
     .select({
       id: jobs.id, jobNo: jobs.jobNo, category: jobs.category, priority: jobs.priority, status: jobs.status, statusSince: jobs.statusSince,
       siteType: jobs.siteType, siteLocation: jobs.siteLocation, openedAt: jobs.openedAt, dueDate: jobs.dueDate, closedAt: jobs.closedAt,
-      complaint: jobs.complaint, leadId: jobs.leadId, leadName: staff.name, unitId: jobs.unitId,
+      complaint: jobs.complaint, leadId: jobs.leadId, leadName: staff.name, unitId: jobs.unitId, source: jobs.source, reportedBy: jobs.reportedBy,
       make: machineModels.make, model: machineModels.model, serialNo: machineUnits.serialNo, plateNo: machineUnits.plateNo, unitPhotoPath: machineUnits.photoPath, customerName: customers.name,
       teamIds: sql<number[]>`coalesce((select array_agg(${jobTeam.staffId}) from ${jobTeam} where ${jobTeam.jobId} = ${jobs.id}), '{}')`,
       labourHours: sql<string>`coalesce((select sum(${schema.labourEntries.hours}) from ${schema.labourEntries} where ${schema.labourEntries.jobId} = ${jobs.id}), 0)`,

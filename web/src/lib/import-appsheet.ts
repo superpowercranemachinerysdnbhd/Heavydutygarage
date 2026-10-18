@@ -219,7 +219,7 @@ export async function applyImport(d: AppSheetData, userId: number, ownerId?: num
         statusSince: new Date(`${closed ?? opened}T09:00:00+08:00`), unitId: await ensureUnit(w["ASSET"] || "Unknown"),
         siteType: field ? "field" : "workshop", siteLocation: field ? loc.slice(0, 200) : loc === "GDS" ? "GDS" : "",
         complaint: [w["WORK ORDER TITLE"], w["DESCRIPTION"]].filter(Boolean).join("\n") || "(no description)", reportedBy: w["REQUESTED BY:"] || null,
-        workDone, followUp, leadId: lead, openedAt: opened, closedAt: closed, createdBy: userId,
+        workDone, followUp, leadId: lead, openedAt: opened, closedAt: closed, createdBy: userId, source: "appsheet",
       }).returning({ id: S.jobs.id });
       if (second && second !== lead) await tx.insert(S.jobTeam).values({ jobId: j.id, staffId: second }).onConflictDoNothing();
       jobByWo.set(w["WO#"], { id: j.id, leadId: lead, day: excelDate(w["START DATE"]) ?? opened });

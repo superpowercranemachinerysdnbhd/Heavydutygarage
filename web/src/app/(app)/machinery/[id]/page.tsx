@@ -57,6 +57,7 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
         <h2>{unit.plateNo && <span className="mono">{unit.plateNo} · </span>}{model.make} {model.model} <span className="muted" style={{ fontSize: "1rem" }}>{machineTypeLabel(t, unit.category ?? model.type)}</span></h2>
         {stay !== null && stay > 30 && <span className="badge-long">{t("mach.withUs", { n: stay })}</span>}
         {can(user.role, "job.report") && <Link className="btn" href={`/machinery/${id}/history`}>{t("mach.historyReport")}</Link>}
+        {can(user.role, "machine.manage") && <Link className="btn" href={`/machinery/${id}/qr`}>{t("qr.sticker")}</Link>}
         {can(user.role, "job.create") && <Link className="btn primary" href={`/jobs/new?unit=${id}`}>{t("mach.newJob")}</Link>}
       </div>
       <Notice error={sp.error} ok={sp.ok} />

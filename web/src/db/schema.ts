@@ -1,6 +1,7 @@
 import {
   pgTable, pgEnum, serial, integer, text, varchar, boolean, date, timestamp, numeric, jsonb, uniqueIndex, index,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 import type { Status as JobStatus } from "@/lib/jobs";
 
@@ -104,7 +105,9 @@ export const machineUnits = pgTable("machine_units", {
   nextServiceDate: date("next_service_date"),
   nextServiceType: varchar("next_service_type", { length: 80 }),
   notes: text("notes"),
-}, (t) => [index("units_customer_idx").on(t.customerId)]);
+  /** Secret in the machine's QR sticker: anyone with the sticker can report a fault without signing in. */
+  reportToken: varchar("report_token", { length: 32 }).notNull().default(sql`substr(md5(random()::text || clock_timestamp()::text), 1, 20)`),
+}, (t) => [index("units_customer_idx").on(t.customerId), uniqueIndex("units_report_token_idx").on(t.reportToken)]);
 
 /* ---------- jobs ---------- */
 export const jobs = pgTable("jobs", {
@@ -141,6 +144,8 @@ export const jobs = pgTable("jobs", {
   signoffBy: integer("signoff_by").references(() => staff.id),
   signaturePath: varchar("signature_path", { length: 200 }),
   createdBy: integer("created_by").references(() => staff.id),
+  /** Where the work order came from: the app, an operator's QR fault report, or the AppSheet import. */
+  source: varchar("source", { length: 10 }).notNull().default("app"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("jobs_no_idx").on(t.jobNo), index("jobs_status_idx").on(t.status), index("jobs_unit_idx").on(t.unitId)]);
 
@@ -506,3 +511,14 @@ export const attendance = pgTable("attendance", {
   updatedBy: integer("updated_by").references(() => staff.id),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("attendance_staff_day_idx").on(t.staffId, t.day), index("attendance_day_idx").on(t.day)]);
+
+/** Phone/browser push subscriptions (one per device a person turned notifications on). */
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: serial("id").primaryKey(),
+  staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  device: varchar("device", { length: 120 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("push_endpoint_idx").on(t.endpoint), index("push_staff_idx").on(t.staffId)]);

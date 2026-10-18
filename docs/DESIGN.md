@@ -675,3 +675,26 @@ markup, selling prices and job value):
 - **Maintenance cost** on each machine page: this year / last 12 months / all time.
 - **Reports** (Head Manager): one year at a time — totals, by month (with bars), by machine (most expensive first, % of
   total) and by work order category. A work order counts in the month it was opened (`lib/costs.ts`).
+
+## 35. QR fault reports from operators
+
+Every machine has a secret `report_token` (made automatically). **Machine page → QR sticker** (Head Manager, Supervisor)
+prints a sticker: company, QR code, plate, model and "Scan to report a problem" in BM / English / 中文;
+**Machinery → QR stickers** prints the whole fleet. **Make a new QR code** replaces a lost or misused sticker (the old
+one stops working).
+
+Scanning opens `/r/<token>` with no login (BM by default, EN / 中文 switch): what is wrong, can the machine still work
+safely, up to 4 photos, name and phone. It creates a **Received** work order (`source = qr`): "stopped / not safe" →
+Emergency, High; otherwise Minor repair, Normal; photos as "before"; the operator in "Reported by". It appears in
+**Act now** until someone is assigned, carries a "Reported by operator (QR)" badge, and notifies the Head Manager and
+Supervisor. At most 5 reports per machine per hour.
+
+## 36. Phone notifications (Web Push)
+
+**Account → Phone notifications → Turn on** on each phone/iPad (iPhone/iPad: from the Home Screen app, iOS 16.4+).
+Signing keys are generated once and kept in `app_settings`; subscriptions in `push_subscriptions` (removed when a
+device unsubscribes). Sent for: assignment as lead or team member; emergency work orders and operator fault reports
+(Head Manager, Supervisor); a mechanic moving a work order to Pending Parts or Completed (Supervisor); part requests
+(Supervisor, Head Manager), parts issued or not issued (requester); purchase orders awaiting approval (Head Manager);
+chat messages (direct: the other person; work order chat: lead, team and supervisors). Quiet hours 22:00–07:00 MYT
+(only urgent ones go out). Sending is best-effort and never blocks the action (`lib/notify.ts`, `public/sw.js`).

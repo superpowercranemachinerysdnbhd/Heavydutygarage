@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Heavyworks Garage",
     short_name: "Heavyworks",
-    start_url: "/",
+    start_url: "/jobs",
     display: "standalone",
     background_color: "#1a1f26",
     theme_color: "#1a1f26",

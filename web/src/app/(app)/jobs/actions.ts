@@ -8,6 +8,7 @@ import { can, canWorkOnJob, LEAD_ROLES } from "@/lib/permissions";
 import { PRIORITIES, STATUSES, checkTransition, nextJobNo, type Category, type Priority, type Status } from "@/lib/jobs";
 import { today } from "@/lib/format";
 import { addActivity } from "@/lib/queries";
+import { jobMachine, notifyRoles, notifyStaff } from "@/lib/notify";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, saveFile } from "@/lib/storage";
 import { issueToJob } from "@/lib/inventory";
 import { saveMachine } from "@/lib/machines";
@@ -144,6 +145,9 @@ export async function createJob(form: FormData) {
     await savePhotos(id, user.id, before.files, "before", null);
     await addActivity(id, user.id, "act.photos", { count: before.files.length, stage: "before", name: user.name });
   }
+  const machine = await jobMachine(id);
+  if (leadId) await notifyStaff([leadId], { key: "nt.assigned", vars: { machine, name: user.name }, url: `/jobs/${id}` }, user.id);
+  if (category === "EMG" || priority === "critical") await notifyRoles(["boss", "supervisor"], { key: "nt.emergency", vars: { machine, name: user.name }, url: `/jobs/${id}`, urgent: true }, user.id);
   revalidatePath("/");
   redirect(`/jobs/${id}?ok=${encodeURIComponent(t("ok.jobCreated"))}`);
 }
@@ -160,6 +164,8 @@ export async function setStatus(form: FormData) {
   if (!check.ok) back(user, jobId, { error: check.reason, vars: check.vars });
   await db.update(jobs).set({ status: to, statusSince: new Date(), ...(to === "closed" ? { closedAt: today() } : {}) }).where(eq(jobs.id, jobId));
   await addActivity(jobId, user.id, "act.status", { from: job.status, to, name: user.name });
+  if (!can(user.role, "job.anyStatus") && (to === "awaiting_parts" || to === "closed"))
+    await notifyRoles(["supervisor"], { key: to === "closed" ? "nt.done" : "nt.waitingParts", vars: { machine: await jobMachine(jobId), name: user.name }, url: `/jobs/${jobId}` }, user.id);
   back(user, jobId, { ok: "ok.movedTo", vars: { status: to } });
 }
 
@@ -173,6 +179,7 @@ export async function assignLead(form: FormData) {
     await db.delete(jobTeam).where(and(eq(jobTeam.jobId, jobId), eq(jobTeam.staffId, leadId)));
     await db.update(jobs).set({ leadId }).where(eq(jobs.id, jobId));
     await addActivity(jobId, user.id, "act.lead", { lead: l.name, name: user.name });
+    await notifyStaff([leadId], { key: "nt.assigned", vars: { machine: await jobMachine(jobId), name: user.name }, url: `/jobs/${jobId}` }, user.id);
   } else {
     await db.update(jobs).set({ leadId: null }).where(eq(jobs.id, jobId));
     await addActivity(jobId, user.id, "act.leadNone", { name: user.name });
@@ -188,6 +195,7 @@ export async function addTeamMember(form: FormData) {
   if (!s) back(user, jobId, { error: "err.choosePerson" });
   await ensureOnTeam(jobId, staffId, job.leadId);
   await addActivity(jobId, user.id, "act.teamAdd", { who: s.name, name: user.name });
+  await notifyStaff([staffId], { key: "nt.assigned", vars: { machine: await jobMachine(jobId), name: user.name }, url: `/jobs/${jobId}` }, user.id);
   back(user, jobId);
 }
 
@@ -438,10 +446,11 @@ export async function requestPart(form: FormData) {
   if (!p) back(user, jobId, { error: "err.choosePart" });
   await db.insert(schema.partRequests).values({ jobId, partId, qty: String(qty), note: str(form, "note") || null, requestedBy: user.id });
   await addActivity(jobId, user.id, "act.partRequested", { qty, uom: p.uom, part: p.description, name: user.name });
+  await notifyRoles(["supervisor", "boss"], { key: "nt.partRequest", vars: { machine: await jobMachine(jobId), name: user.name, qty, uom: p.uom, part: p.description }, url: `/jobs/${jobId}#parts` }, user.id);
   back(user, jobId, { ok: "ok.partRequested" });
 }
 
-async function issue(user: CurrentUser, jobId: number, partId: number, qty: number, requestId?: number) {
+async function issue(user: CurrentUser, jobId: number, partId: number, qty: number, requestId?: number, requestedBy?: number | null) {
   const [p] = await db.select({ description: schema.parts.description, uom: schema.parts.uom, onHand: schema.parts.onHand, bin: schema.parts.bin }).from(schema.parts).where(eq(schema.parts.id, partId));
   if (!p) back(user, jobId, { error: "err.choosePart" });
   const ok = await db.transaction(async (tx) => {
@@ -451,6 +460,7 @@ async function issue(user: CurrentUser, jobId: number, partId: number, qty: numb
   });
   if (!ok) back(user, jobId, { error: "err.notEnoughStock", vars: { n: Number(p.onHand), uom: p.uom } });
   await addActivity(jobId, user.id, "act.partIssued", { qty, uom: p.uom, part: p.description, bin: p.bin ?? "—", name: user.name });
+  if (requestedBy) await notifyStaff([requestedBy], { key: "nt.partIssued", vars: { qty, uom: p.uom, part: p.description, bin: p.bin ?? "—" }, url: `/jobs/${jobId}#parts` }, user.id);
   revalidatePath("/parts");
   back(user, jobId, { ok: "ok.partIssued" });
 }
@@ -461,7 +471,7 @@ export async function issueRequest(form: FormData) {
   await access(jobId, user);
   const [r] = await db.select().from(schema.partRequests).where(and(eq(schema.partRequests.id, requestId), eq(schema.partRequests.jobId, jobId)));
   if (!r || r.status !== "requested") back(user, jobId, { error: "err.requestHandled" });
-  await issue(user, jobId, r.partId, Number(r.qty), r.id);
+  await issue(user, jobId, r.partId, Number(r.qty), r.id, r.requestedBy);
 }
 
 export async function issueDirect(form: FormData) {
@@ -482,6 +492,7 @@ export async function rejectRequest(form: FormData) {
   if (!r || r.r.status !== "requested") back(user, jobId, { error: "err.requestHandled" });
   await db.update(schema.partRequests).set({ status: "rejected", handledBy: user.id, handledAt: new Date() }).where(eq(schema.partRequests.id, requestId));
   await addActivity(jobId, user.id, "act.partRejected", { part: r.description, name: user.name });
+  if (r.r.requestedBy) await notifyStaff([r.r.requestedBy], { key: "nt.partRejected", vars: { part: r.description, name: user.name }, url: `/jobs/${jobId}#parts` }, user.id);
   back(user, jobId);
 }
 
