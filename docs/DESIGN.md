@@ -539,3 +539,7 @@ servicing is coming up.
   (compact), **Other reminders** folded (certificates, long-stay machines, follow-ups, stock and price alerts).
 
 The job board moved off the dashboard (it is on the Jobs page). Crew keep their own "My jobs" view.
+
+## 24. Machinery rental module
+
+Hiring out our own fleet (dry hire, wet hire with operator, lowloader transport and long-term contracts) is designed as a module of this system, sharing machines, companies, staff and roles. See [`RENTAL.md`](RENTAL.md) and the prototype [`prototype/rental.html`](../prototype/rental.html).
