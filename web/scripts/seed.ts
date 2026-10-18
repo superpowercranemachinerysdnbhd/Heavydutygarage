@@ -110,9 +110,11 @@ await J({ category: "WARR", priority: "high", status: "closed", closedAt: d(-1),
 await J({ category: "PAINT", priority: "low", status: "received", unitId: u2.id, siteLocation: "Paint bay", complaint: "Touch-up and repaint boom before return.", leadId: kum.id, hourMeterIn: 12430, openedAt: d(-5), dueDate: d(21), statusSince: ago(4) });
 
 /* ---------- Phase 2 demo: categories, suppliers, parts, prices, purchase orders, stock ---------- */
-const CAT = async (name: string, markup: number, target: number) => (await db.insert(schema.partCategories).values({ name, markupPct: String(markup), targetMarginPct: String(target) }).returning())[0];
-const cFilters = await CAT("Filters", 45, 30), cFluids = await CAT("Fluids & lubricants", 35, 22), cSeals = await CAT("Seal kits", 40, 25),
-  cHoses = await CAT("Hoses & fittings", 60, 35), cGet = await CAT("Ground engaging", 45, 25), cWeld = await CAT("Welding", 40, 25), cElec = await CAT("Electrical", 45, 25);
+// The standard categories are already there (migration 0013); demo values are set on them.
+const CAT = async (name: string, markup: number, target: number) => (await db.insert(schema.partCategories).values({ name, markupPct: String(markup), targetMarginPct: String(target) })
+  .onConflictDoUpdate({ target: schema.partCategories.name, set: { markupPct: String(markup), targetMarginPct: String(target) } }).returning())[0];
+const cFilters = await CAT("Filters (oil, fuel, air, hydraulic)", 45, 30), cFluids = await CAT("Oils, grease & lubricants", 35, 22), cSeals = await CAT("Hydraulic seals & seal kits", 40, 25),
+  cHoses = await CAT("Hydraulic hoses & fittings", 60, 35), cGet = await CAT("Ground engaging tools (teeth, cutting edges)", 45, 25), cWeld = await CAT("Welding & fabrication materials", 40, 25), cElec = await CAT("Electrical, sensors & switches", 45, 25);
 const SUP = async (v: typeof schema.suppliers.$inferInsert) => (await db.insert(schema.suppliers).values(v).returning())[0];
 const sinar = await SUP({ name: "Sinar Heavy Parts (demo)", contactName: "Mr. Lee", phone: "03-0000 5000", paymentTerms: "30 days", leadTimeDays: 2 });
 const borneo = await SUP({ name: "Borneo Earthmoving Spares (demo)", contactName: "En. Hakim", phone: "03-0000 5100", paymentTerms: "COD", leadTimeDays: 3 });
