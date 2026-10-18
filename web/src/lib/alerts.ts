@@ -8,7 +8,8 @@ import { listParts, requestsFor } from "./inventory";
 import { isLowStock, marginPct } from "./stock";
 import { translator, type Locale } from "@/i18n";
 
-export type Alert = { sev: string; text: string; href: string };
+/** `now`: something to act on today (dashboard "Act now"); otherwise a background reminder. */
+export type Alert = { sev: string; text: string; href: string; now?: boolean };
 
 /** Parts and purchasing items needing attention, filtered by what the user may act on. */
 export async function purchasingAlerts(user: CurrentUser, locale: Locale): Promise<Alert[]> {
@@ -26,9 +27,9 @@ export async function purchasingAlerts(user: CurrentUser, locale: Locale): Promi
       .where(and(gte(schema.receipts.receivedAt, new Date(addDays(d, -14) + "T00:00:00+08:00")), sql`abs(${schema.receiptLines.invoicePrice} - ${schema.receiptLines.poPrice}) >= 0.005`))
       .groupBy(schema.receipts.poId, schema.purchaseOrders.poNo) : Promise.resolve([]),
   ]);
-  for (const r of reqs) out.push({ sev: "var(--info)", text: t("att.partRequest", { no: r.jobNo, who: r.by ?? "—", qty: r.qty, uom: r.uom, part: r.description }), href: `/jobs/${r.jobId}` });
-  if (can(user.role, "po.approve")) for (const p of pos.filter((x) => x.status === "awaiting_approval")) out.push({ sev: "var(--warn)", text: t("att.poApproval", { po: p.poNo, supplier: p.supplier }), href: `/purchasing/${p.id}` });
-  for (const p of pos.filter((x) => x.status !== "awaiting_approval" && x.eta && x.eta < d)) out.push({ sev: "var(--crit)", text: t("att.poLate", { po: p.poNo, supplier: p.supplier }), href: `/purchasing/${p.id}` });
+  for (const r of reqs) out.push({ sev: "var(--info)", text: t("att.partRequest", { no: r.jobNo, who: r.by ?? "—", qty: r.qty, uom: r.uom, part: r.description }), href: `/jobs/${r.jobId}`, now: true });
+  if (can(user.role, "po.approve")) for (const p of pos.filter((x) => x.status === "awaiting_approval")) out.push({ sev: "var(--warn)", text: t("att.poApproval", { po: p.poNo, supplier: p.supplier }), href: `/purchasing/${p.id}`, now: true });
+  for (const p of pos.filter((x) => x.status !== "awaiting_approval" && x.eta && x.eta < d)) out.push({ sev: "var(--crit)", text: t("att.poLate", { po: p.poNo, supplier: p.supplier }), href: `/purchasing/${p.id}`, now: true });
   const low = parts.filter(isLowStock);
   if (low.length && can(user.role, "po.create")) out.push({ sev: "var(--warn)", text: t("att.lowStock", { n: low.length }), href: "/purchasing/new?suggest=1" });
   if (can(user.role, "money.labourCost")) {

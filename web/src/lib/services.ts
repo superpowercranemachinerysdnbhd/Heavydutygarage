@@ -17,11 +17,11 @@ export async function servicesFor(unitId: number) {
 }
 export type ServiceRow = Awaited<ReturnType<typeof servicesFor>>[number];
 
-/** Services overdue or due within SOON_DAYS, across all machines (dashboard). */
-export async function dueServices(limit = 12) {
+/** Services overdue or due within `days` (default SOON_DAYS), across all machines (dashboard). */
+export async function dueServices(limit = 12, days = SOON_DAYS) {
   const rows = await db.select({ s: S, plateNo: schema.machineUnits.plateNo, serialNo: schema.machineUnits.serialNo, make: schema.machineModels.make, model: schema.machineModels.model })
     .from(S).innerJoin(schema.machineUnits, eq(S.unitId, schema.machineUnits.id)).innerJoin(schema.machineModels, eq(schema.machineUnits.modelId, schema.machineModels.id))
-    .where(and(isNotNull(S.nextDue), lte(S.nextDue, addDays(today(), SOON_DAYS)))).orderBy(asc(S.nextDue)).limit(limit);
+    .where(and(isNotNull(S.nextDue), lte(S.nextDue, addDays(today(), days)))).orderBy(asc(S.nextDue)).limit(limit);
   return rows;
 }
 

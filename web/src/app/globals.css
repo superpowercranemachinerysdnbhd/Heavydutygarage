@@ -551,3 +551,55 @@ tr.row-sel td{background:var(--accent-soft, rgba(58,123,213,.08))}
 .svc-check{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.92rem;padding:4px 0}
 .svc-check input{width:18px;height:18px;flex:none}
 .svc-check .pill{font-size:.68rem}
+
+/* ---------- Today dashboard (Head Manager, Supervisor) ---------- */
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.sum>*{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:2px;color:inherit;text-decoration:none}
+.sum>a:hover{border-color:var(--muted)}
+.sum b{font-family:var(--f-display);font-size:1.9rem;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.sum span{font-size:.8rem;color:var(--muted)}
+.sum .warn b{color:var(--warn)}
+.sum .alert b{color:var(--crit)}
+.panel-head .count{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.actnow{border-color:color-mix(in srgb,var(--crit) 45%,var(--line))}
+.actnow .panel-head{background:color-mix(in srgb,var(--crit) 8%,var(--surface))}
+.jl-list{display:flex;flex-direction:column}
+.jl{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(110px,auto);gap:4px 12px;align-items:center;padding:9px 14px 9px 12px;border-left:4px solid var(--cat,var(--line));border-top:1px solid var(--line);color:inherit;text-decoration:none}
+.jl:first-child{border-top:0}
+.jl:hover{background:var(--surface-2)}
+.jl-id,.jl-where,.jl-side{display:flex;flex-direction:column;min-width:0;gap:1px}
+.jl-id b{font-size:1.02rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jl small{font-size:.76rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jl-where span{font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jl-side{align-items:flex-end;text-align:right}
+.jl small.due.over{color:var(--crit);font-weight:600}
+.jl small.due.soon{color:var(--warn);font-weight:600}
+.prog{display:flex;align-items:center;gap:6px}
+.prog .track{width:64px;height:6px;border-radius:3px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.prog .track span{display:block;height:100%;background:var(--ok)}
+@media (max-width:640px){
+  .jl{grid-template-columns:minmax(0,1fr) auto}
+  .jl-where{grid-column:1;grid-row:2;flex-direction:row;gap:8px}
+  .jl-side{grid-column:2;grid-row:1/3}
+  .sum{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .sum b{font-size:1.5rem}
+  .sum>*{padding:8px 10px}
+}
+.svc-group{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 14px 2px}
+.svc-group.over{color:var(--crit)}
+.svc-line{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:baseline;padding:5px 14px;color:inherit;text-decoration:none;font-size:.85rem}
+.svc-line:hover{background:var(--surface-2)}
+.svc-line span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.svc-line small{font-size:.76rem}
+.svc-line small.due.over{color:var(--crit);font-weight:600}
+.svc-line small.due.soon{color:var(--warn);font-weight:600}
+.bays-mini{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;padding:10px 14px 14px}
+.bays-mini>*{border:1px solid var(--line);border-left:4px solid var(--cat,var(--line));border-radius:5px;padding:5px 8px;display:flex;flex-direction:column;min-width:0;color:inherit;text-decoration:none}
+.bays-mini>.free{border-left-style:dashed;color:var(--muted)}
+.bays-mini small{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bays-mini b{font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bays-mini span{font-size:.8rem}
+details.panel>summary{cursor:pointer;list-style:none}
+details.panel>summary::-webkit-details-marker{display:none}
+details.panel>summary h3::before{content:"▸ ";color:var(--muted)}
+details.panel[open]>summary h3::before{content:"▾ "}
