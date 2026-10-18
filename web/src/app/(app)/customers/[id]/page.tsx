@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { asc, eq, ne } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
@@ -12,7 +12,7 @@ import { statusLabel } from "@/i18n/labels";
 import { CatChip, Notice } from "@/components/ui";
 import CustomerFields from "@/components/CustomerFields";
 import SubmitButton from "@/components/SubmitButton";
-import { updateCustomer } from "../actions";
+import { deleteCustomer, updateCustomer } from "../actions";
 import { unitRef } from "@/lib/machine-types";
 
 export async function generateMetadata() {
@@ -28,6 +28,7 @@ export default async function CustomerPage({ params, searchParams }: { params: P
   const [c] = Number.isInteger(id) ? await db.select().from(schema.customers).where(eq(schema.customers.id, id)) : [];
   if (!c) notFound();
   const units = (await unitsWithNames()).filter((u) => u.customerId === id);
+  const others = can(user.role, "customer.delete") ? await db.select({ id: schema.customers.id, name: schema.customers.name }).from(schema.customers).where(ne(schema.customers.id, id)).orderBy(asc(schema.customers.name)) : [];
   const unitIds = new Set(units.map((u) => u.id));
   const jobs = (await listJobs(user)).filter((j) => unitIds.has(j.unitId));
   return (
@@ -49,6 +50,25 @@ export default async function CustomerPage({ params, searchParams }: { params: P
           {jobs.map((j) => <tr key={j.id}><td className="mono"><Link href={`/jobs/${j.id}`}>{j.jobNo}</Link></td><td>{fmtDate(j.openedAt, true, locale)}</td><td>{j.make} {j.model}</td><td><CatChip cat={j.category} t={t} /></td><td>{statusLabel(t, j.status)}</td></tr>)}
           {jobs.length === 0 && <tr><td className="muted">{t("cust.noJobs")}</td></tr>}
         </tbody></table></div></div>
+      {can(user.role, "customer.delete") && (
+        <form action={deleteCustomer} className="panel danger-zone" id="delete">
+          <div className="panel-head"><h3>{t("cust.delTitle")}</h3></div>
+          <div className="stack" style={{ padding: 14, gap: 10 }}>
+            <input type="hidden" name="id" value={c.id} />
+            <p className="muted" style={{ margin: 0 }}>{units.length ? t("cust.delHelpMove", { n: units.length }) : t("cust.delHelp")}</p>
+            {units.length > 0 && (
+              <label className="label">{t("cust.moveTo")}
+                <select className="field" name="moveTo" required defaultValue="" style={{ maxWidth: 420, display: "block", marginTop: 4 }}>
+                  <option value="" disabled>{t("common.choose")}</option>
+                  {others.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+                </select>
+              </label>
+            )}
+            <label className="set-check"><input type="checkbox" name="confirm" required /> {t("cust.delConfirm", { name: c.name })}</label>
+            <div><SubmitButton className="btn danger">{units.length ? t("cust.delMoveBtn") : t("cust.delBtn")}</SubmitButton></div>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

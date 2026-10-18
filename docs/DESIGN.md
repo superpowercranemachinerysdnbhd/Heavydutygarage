@@ -633,3 +633,9 @@ still working or out on rent). Deferred work orders stay out of Received so new 
 - Dashboard: a **Deferred** tile and a folded **Deferred — repair when the machine is free** box (oldest first, days
   waiting). They are not counted in Not started, do not raise "stuck" alerts, and are not on a mechanic's jobs on hand.
 - Work orders page: a **Deferred** status button.
+
+## 31. Deleting or merging a company
+
+Head Manager only, at the bottom of a company's page. A company with no machines is simply deleted. A company with
+machines must name another company: its machines (with all their work orders and history) and calendar events move
+there, then the company is deleted, which is also how a duplicate company is merged into the right one.

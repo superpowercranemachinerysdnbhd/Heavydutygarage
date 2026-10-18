@@ -30,6 +30,7 @@ export type Action =
   | "money.cost"         // part purchase prices (phase 2)
   | "money.labourCost"   // pay rates, labour cost, margins
   | "customer.manage"
+  | "customer.delete"    // delete a company (its machines move to another company first)
   | "machine.manage"
   | "stock.manage"       // parts, suppliers, issue and adjust stock
   | "po.create"          // raise purchase orders and receive goods
@@ -53,6 +54,7 @@ const GRANTS: Record<Action, Role[]> = {
   "money.cost": ["boss", "supervisor"],
   "money.labourCost": ["boss"],
   "customer.manage": ["boss", "supervisor"],
+  "customer.delete": ["boss"],
   "machine.manage": ["boss", "supervisor"],
   "stock.manage": ["boss", "supervisor"],
   "po.create": ["boss", "supervisor"],
