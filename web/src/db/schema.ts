@@ -26,6 +26,8 @@ export const staff = pgTable("staff", {
   emergencyContact: text("emergency_contact"),
   joined: date("joined"),
   skills: text("skills").array().notNull().default([]),
+  /** Other names this person was known by (e.g. after merging a duplicate); imports match them too. */
+  aliases: text("aliases").array().notNull().default([]),
   payRate: numeric("pay_rate", { precision: 10, scale: 2 }).notNull().default("0"),
   active: boolean("active").notNull().default(true),
   passwordHash: text("password_hash"),

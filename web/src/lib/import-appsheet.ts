@@ -50,7 +50,7 @@ const assetKey = (id: string) => (looksLikePlate(id) ? normalisePlate(id) : id.t
 export async function previewImport(d: AppSheetData) {
   const [units, staff, sups, parts, jobs] = await Promise.all([
     db.select({ plate: schema.machineUnits.plateNo, serial: schema.machineUnits.serialNo }).from(schema.machineUnits),
-    db.select({ name: schema.staff.name }).from(schema.staff),
+    db.select({ name: schema.staff.name, aliases: schema.staff.aliases }).from(schema.staff),
     db.select({ name: schema.suppliers.name }).from(schema.suppliers),
     db.select({ sku: schema.parts.sku }).from(schema.parts),
     db.select({ no: schema.jobs.jobNo }).from(schema.jobs).where(sql`${schema.jobs.jobNo} like 'AS-%'`),
@@ -58,8 +58,9 @@ export async function previewImport(d: AppSheetData) {
   const have = (list: (string | null)[], v: string) => list.some((x) => x && lower(x) === lower(v));
   const assetIds = [...new Set([...d.assets.map((a) => a["MACHINERY ID"]), ...d.workOrders.map((w) => w["ASSET"]).filter(Boolean)])];
   const machinesExisting = assetIds.filter((id) => have(units.map((u) => u.plate), assetKey(id)) || have(units.map((u) => u.serial), id));
-  const staffExisting = d.staff.filter((r) => have(staff.map((x) => x.name), r["TECHNICIAN"]));
-  const known = new Set([...d.staff.map((r) => lower(r["TECHNICIAN"])), ...staff.map((x) => lower(x.name))]);
+  const staffNames = staff.flatMap((x) => [x.name, ...x.aliases]);
+  const staffExisting = d.staff.filter((r) => have(staffNames, r["TECHNICIAN"]));
+  const known = new Set([...d.staff.map((r) => lower(r["TECHNICIAN"])), ...staffNames.map(lower)]);
   const names = [...new Set(d.workOrders.flatMap((w) => [w["PRIMARY TECHNICIAN"], w["SECONDARY TECHNICIAN"]]).filter(Boolean))];
   const wosDone = new Set(jobs.map((j) => j.no));
   const isNew = (id: string) => !wosDone.has(woNo(id));
@@ -136,8 +137,8 @@ export async function applyImport(d: AppSheetData, userId: number, ownerId?: num
     for (const a of d.assets) await ensureUnit(a["MACHINERY ID"], a);
 
     /* ---- staff (no login until the Head Manager adds a phone number) ---- */
-    const staffRows = await tx.select({ id: S.staff.id, name: S.staff.name }).from(S.staff);
-    const staffByName = new Map(staffRows.map((s) => [lower(s.name), s.id]));
+    const staffRows = await tx.select({ id: S.staff.id, name: S.staff.name, aliases: S.staff.aliases }).from(S.staff);
+    const staffByName = new Map(staffRows.flatMap((s) => [s.name, ...s.aliases].map((n) => [lower(n), s.id] as const)));
     const [sup] = await tx.select({ id: S.staff.id }).from(S.staff).where(eq(S.staff.role, "supervisor")).limit(1);
     for (const t of d.staff) {
       if (staffByName.has(lower(t["TECHNICIAN"]))) continue;

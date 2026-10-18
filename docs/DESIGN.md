@@ -653,3 +653,11 @@ holds, folded:
 
 Lists of work orders by stage are the status buttons below; events and upcoming services are in Calendar and Machinery.
 Mechanics still open on their work orders on hand. (Alert rules: `lib/board.ts`.)
+
+## 33. Merging a duplicate staff member
+
+Head Manager, at the bottom of a team member's page: **Same person as someone else? → Merge into …**. Every table
+that points at staff (found from the database catalogue, so new tables are covered) is moved to the person kept; where a
+unique rule would clash (same job team, same attendance day…) the kept person's row stays. The duplicate is removed and
+its name saved in `staff.aliases`, shown as "Also known as", and used by the AppSheet import so a re-import does not
+create the old name again.
