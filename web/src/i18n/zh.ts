@@ -125,6 +125,7 @@ export const zh: Messages = {
   "dash.onActive": "{n} 人在岗",
   "dash.addCrew": "请在「团队」中添加人员。",
   "dash.attention": "需要处理",
+  "dash.baysFree": "{n} 个中 {free} 个空闲",
   "cust.delTitle": "删除此公司",
   "cust.delHelp": "此公司没有机器。只会删除公司本身。",
   "cust.delHelpMove": "此公司有 {n} 台机器。这些机器连同所有工单和记录会转到您选择的公司，然后删除此公司。可用于合并重复的公司。",

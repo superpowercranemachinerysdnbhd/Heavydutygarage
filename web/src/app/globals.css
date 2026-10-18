@@ -697,3 +697,9 @@ details.panel[open]>summary h3::before{content:"▾ "}
 .danger-zone{border-color:color-mix(in srgb,var(--crit) 40%,var(--line))}
 .danger-zone .panel-head h3{color:var(--crit)}
 .deferred-note{background:color-mix(in srgb,var(--info) 10%,var(--surface));border-color:color-mix(in srgb,var(--info) 40%,var(--line));color:var(--ink)}
+/* Work orders page: urgent items, reminders and bays (folded) */
+.actbar{display:flex;flex-direction:column;gap:8px}
+.actbar-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;align-items:start}
+.actbar details.panel>summary{padding:8px 14px}
+.actbar .actnow>summary{background:color-mix(in srgb,var(--crit) 8%,var(--surface))}
+.actbar .badge{background:var(--crit);color:#fff;border-radius:10px;padding:1px 8px;font-size:.78rem;font-weight:700}

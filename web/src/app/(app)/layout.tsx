@@ -15,7 +15,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await requireUser();
   const { t } = await getI18n();
   const items = [
-    { href: "/", label: t("nav.dashboard") },
     { href: "/jobs", label: t("nav.jobs") },
     { href: "/calendar", label: t("nav.calendar") },
     { href: "/chat", label: t("nav.chat") },
@@ -33,7 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <header className="top">
         <div className="wrap">
           <div className="top-row">
-            <Link href="/" className="brand plain">
+            <Link href="/jobs" className="brand plain">
               <Image src="/logo.jpg" alt="" width={40} height={40} priority />
               <div><h1>{t("app.name")}</h1><small>{t("app.tagline")}</small></div>
             </Link>

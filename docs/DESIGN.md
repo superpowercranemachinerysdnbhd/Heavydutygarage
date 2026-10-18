@@ -639,3 +639,17 @@ still working or out on rent). Deferred work orders stay out of Received so new 
 Head Manager only, at the bottom of a company's page. A company with no machines is simply deleted. A company with
 machines must name another company: its machines (with all their work orders and history) and calendar events move
 there, then the company is deleted, which is also how a duplicate company is merged into the right one.
+
+## 32. No separate dashboard: Work orders is the home page
+
+The Dashboard page is gone; signing in (and the logo) opens **Work orders**. For the Head Manager and Supervisor its top
+holds, folded:
+
+- **Act now** (red, with a count): emergencies with no mechanic, overdue and stuck work orders, attendance not taken,
+  part requests, purchase orders to approve or late, late calendar events, overdue machine services.
+- **Other reminders**: follow-ups due, machines here a long time, certificates expiring, services due within 14 days,
+  low stock and price alerts.
+- **Bays & yard** ("4 of 9 free"): what is in each bay.
+
+Lists of work orders by stage are the status buttons below; events and upcoming services are in Calendar and Machinery.
+Mechanics still open on their work orders on hand. (Alert rules: `lib/board.ts`.)

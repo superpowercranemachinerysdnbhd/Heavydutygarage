@@ -9,6 +9,8 @@ import { catLabel, statusLabel } from "@/i18n/labels";
 import { CatChip, Notice, Pri, daysInStatus, dueInfo } from "@/components/ui";
 import JobBox from "@/components/JobBox";
 import AutoSubmitSelect from "@/components/AutoSubmitSelect";
+import ActNow from "@/components/ActNow";
+import { workshopAlerts } from "@/lib/board";
 import { machinePhotoUrl, unitRef } from "@/lib/machine-types";
 import { catColor, categoryCodes } from "@/lib/lists";
 
@@ -23,6 +25,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const crew = !can(user.role, "job.viewAll");
   const status = crew ? "onhand" : sp.status ?? "in_progress";
   const everything = await listJobs(user);
+  const openJobs = everything.filter((j) => j.status !== "closed");
+  const alerts = crew ? null : await workshopAlerts(user, locale, t, openJobs);
   // Counts for the status buttons (after the search and job type filters, before the status filter).
   const q = (sp.q ?? "").trim().toLowerCase();
   const matching = everything.filter((j) => (!sp.cat || j.category === sp.cat) && (!q || [j.jobNo, j.make, j.model, j.serialNo, j.plateNo, j.customerName, j.complaint].join(" ").toLowerCase().includes(q)));
@@ -44,7 +48,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="page">
-      <div className="view-head"><h2>{crew ? t("jobs.onHand") : t("jobs.title")}</h2>{can(user.role, "job.create") && <Link className="btn primary" href="/jobs/new">{t("dash.newJob")}</Link>}</div>
+      <div className="view-head"><h2>{crew ? t("jobs.onHand") : t("jobs.title")} <span className="muted" style={{ fontFamily: "var(--f-body)", fontSize: ".9rem", fontWeight: 400 }}>{fmtDate(today(), true, locale)}</span></h2>{can(user.role, "job.create") && <><Link className="btn primary" href="/jobs/new?emergency=1">{t("dash.emergency")}</Link><Link className="btn" href="/jobs/new">{t("dash.newJob")}</Link></>}</div>
+      {alerts && <ActNow t={t} now={alerts.now} later={alerts.later} open={openJobs} />}
       <Notice ok={sp.ok} error={sp.error} />
       {!crew && (
         <nav className="chipbar status-chips" aria-label={t("col.status")}>

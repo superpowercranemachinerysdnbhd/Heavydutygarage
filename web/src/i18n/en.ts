@@ -131,6 +131,7 @@ export const en = {
   "dash.onActive": "{n} on active work orders",
   "dash.addCrew": "Add your crew under Team.",
   "dash.attention": "Needs attention",
+  "dash.baysFree": "{free} of {n} free",
   "cust.delTitle": "Delete this company",
   "cust.delHelp": "This company has no machines. Deleting it removes the company only.",
   "cust.delHelpMove": "This company has {n} machine(s). They move, with all their work orders and history, to the company you choose; then this company is deleted. Use this to merge a duplicate company.",

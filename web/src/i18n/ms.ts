@@ -125,6 +125,7 @@ export const ms: Messages = {
   "dash.onActive": "{n} pada kerja aktif",
   "dash.addCrew": "Tambah kru anda di bawah Pasukan.",
   "dash.attention": "Perlu perhatian",
+  "dash.baysFree": "{free} daripada {n} kosong",
   "cust.delTitle": "Padam syarikat ini",
   "cust.delHelp": "Syarikat ini tiada mesin. Hanya syarikat akan dipadam.",
   "cust.delHelpMove": "Syarikat ini ada {n} mesin. Mesin itu, bersama semua pesanan kerja dan sejarahnya, dipindahkan ke syarikat yang anda pilih; kemudian syarikat ini dipadam. Gunakan ini untuk menggabungkan syarikat berganda.",
