@@ -19,7 +19,6 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
   if (!can(user.role, "stock.manage")) notFound();
   const { t } = await getI18n();
   const sp = await searchParams;
-  const boss = can(user.role, "price.set");
   const cats = await db.select({ c: schema.partCategories, n: count(schema.parts.id) }).from(schema.partCategories)
     .leftJoin(schema.parts, eq(schema.parts.categoryId, schema.partCategories.id)).groupBy(schema.partCategories.id).orderBy(asc(schema.partCategories.name));
   const have = new Set(cats.map(({ c }) => c.name.toLowerCase()));
@@ -29,12 +28,11 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
       <div className="crumbs"><Link href="/parts">{t("parts.title")}</Link> / {t("parts.categories")}</div>
       <h2>{t("parts.categories")}</h2>
       <Notice error={sp.error} ok={sp.ok} />
-      <p className="muted" style={{ margin: 0 }}>{t("cat.intro")}{boss ? ` ${t("cat.help")}` : ""}</p>
+      <p className="muted" style={{ margin: 0 }}>{t("cat.intro")}</p>
 
       <form action={addCategory} className="panel"><div className="panel-head"><h3>{t("cat.add")}</h3></div>
         <div className="filters" style={{ padding: 14 }}>
           <input name="name" required placeholder={t("parts.newCategoryPh")} style={{ flex: "1 1 240px" }} aria-label={t("parts.category")} />
-          {boss && <><input type="number" name="markupPct" step="0.5" min="0" defaultValue={40} style={{ width: 90 }} aria-label={t("cat.markup")} /> %</>}
           <SubmitButton className="btn small primary">{t("common.add")}</SubmitButton>
         </div>
       </form>
@@ -53,10 +51,6 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
               <form action={saveCategory} className="set-form">
                 <input type="hidden" name="id" value={c.id} />
                 <input name="name" defaultValue={c.name} required maxLength={80} aria-label={t("parts.category")} className="set-name" />
-                {boss && <>
-                  <label className="set-check">{t("cat.markup")} <input type="number" name="markupPct" step="0.5" min="0" defaultValue={Number(c.markupPct)} style={{ width: 80 }} /></label>
-                  <label className="set-check">{t("cat.target")} <input type="number" name="targetMarginPct" step="0.5" min="0" max="99" defaultValue={Number(c.targetMarginPct)} style={{ width: 80 }} /></label>
-                </>}
                 <SubmitButton className="btn small">{t("common.save")}</SubmitButton>
                 <Link className="muted set-used plain" href={`/parts?cat=${c.id}`}>{t("cat.nParts", { n })}</Link>
               </form>

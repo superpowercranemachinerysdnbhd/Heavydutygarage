@@ -31,7 +31,7 @@ export default async function HistoryReport({ params, searchParams }: { params: 
   const { unit, model, customer } = row;
   const lang: Locale = isLocale(sp.lang) ? sp.lang : isLocale(customer.locale) ? customer.locale : "en";
   const t = translator(lang);
-  const all = sp.range === "all", prices = sp.prices === "1";
+  const all = sp.range === "all", prices = false; // history reports carry no prices (work orders are costed, not charged)
   const d = today(), from = all ? "0000-00-00" : addDays(d, -365);
   const list = (await listJobs(user, { unitId: id })).filter((j) => j.openedAt >= from);
   const down = (j: (typeof list)[number]) => Math.max(1, daysBetween(j.openedAt, j.closedAt ?? d));
@@ -55,7 +55,6 @@ export default async function HistoryReport({ params, searchParams }: { params: 
             <span className="label">{ui("hist.period")}</span>
             <Link className="btn small" href={q({ range: "12" })} aria-pressed={!all}>{!all ? "✓ " : ""}{ui("hist.12m")}</Link>
             <Link className="btn small" href={q({ range: "all" })} aria-pressed={all}>{all ? "✓ " : ""}{ui("hist.all")}</Link>
-            <Link className="btn small" href={q({ prices: !prices })} aria-pressed={prices}>{prices ? "✓ " : ""}{ui("hist.amounts")}</Link>
             <PrintButton />
           </div>
         </div>

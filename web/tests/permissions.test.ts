@@ -8,11 +8,10 @@ test("only the Boss sees labour cost, pay rates and margins", () => {
   assert.equal(can("mechanic", "money.labourCost"), false);
 });
 
-test("supervisor sees selling and purchase prices; crew see no prices", () => {
-  for (const a of ["money.selling", "money.cost"] as const) {
-    assert.equal(can("supervisor", a), true);
-    for (const r of ["mechanic", "assistant", "fabricator", "painter", "cleaner"] as const) assert.equal(can(r, a), false, `${r} ${a}`);
-  }
+test("supervisor sees purchase costs; crew see no prices; nobody sees selling prices", () => {
+  assert.equal(can("supervisor", "money.cost"), true);
+  for (const r of ["mechanic", "assistant", "fabricator", "painter", "cleaner"] as const) assert.equal(can(r, "money.cost"), false, r);
+  for (const r of ["boss", "supervisor", "mechanic"] as const) { assert.equal(can(r, "money.selling"), false); assert.equal(can(r, "price.set"), false); }
 });
 
 test("only boss and supervisor run QC, handover and service reports", () => {

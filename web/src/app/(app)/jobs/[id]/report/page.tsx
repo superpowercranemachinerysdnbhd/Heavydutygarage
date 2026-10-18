@@ -42,7 +42,8 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   // The report itself is written in the customer's language; the controls above it stay in the user's language.
   const lang: Locale = isLocale(sp.lang) ? sp.lang : isLocale(customer.locale) ? customer.locale : "en";
   const t = translator(lang);
-  const o = { prices: sp.prices === "1", photos: sp.photos !== "0", qc: sp.qc !== "0" };
+  // Reports carry no prices: work orders are costed internally, not charged from here.
+  const o = { prices: false, photos: sp.photos !== "0", qc: sp.qc !== "0" };
   const final = job.status === "closed";
   const no = "SR-" + job.jobNo.slice(2);
   const warr = job.category === "WARR";
@@ -77,7 +78,6 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
             {LOCALES.map((l) => <Link key={l} className="btn small" href={href({ lang: l })} aria-pressed={lang === l}>{lang === l ? "✓ " : ""}{langLabel(ui, l)}</Link>)}
           </div>
           <div className="filters"><span className="label">{ui("rep.include")}</span>
-            <Link className="btn small" href={href({ prices: !o.prices })} aria-pressed={o.prices}>{o.prices ? "✓ " : ""}{ui("rep.prices")}</Link>
             <Link className="btn small" href={href({ photos: !o.photos })} aria-pressed={o.photos}>{o.photos ? "✓ " : ""}{ui("rep.photos")}</Link>
             <Link className="btn small" href={href({ qc: !o.qc })} aria-pressed={o.qc}>{o.qc ? "✓ " : ""}{ui("rep.qc")}</Link>
           </div>

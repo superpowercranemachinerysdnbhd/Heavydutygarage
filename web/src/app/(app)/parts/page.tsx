@@ -29,7 +29,7 @@ export default async function PartsPage({ searchParams }: { searchParams: Promis
     (!sp.cat || String(p.categoryId) === sp.cat) &&
     (!sp.model || p.fitsAll || p.modelIds.includes(Number(sp.model))) &&
     (sp.low !== "1" || isLowStock(p)));
-  const cost = can(user.role, "money.cost"), sell = can(user.role, "money.selling"), margin = can(user.role, "money.labourCost");
+  const cost = can(user.role, "money.cost"), sell = can(user.role, "money.selling"), margin = false; // margins are not used: parts are costed, not priced
   const prices = cost ? await latestPricesByPart(list.map((p) => p.id)) : new Map();
   const lowN = all.filter(isLowStock).length;
 

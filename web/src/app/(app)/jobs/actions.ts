@@ -11,7 +11,7 @@ import { addActivity } from "@/lib/queries";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, saveFile } from "@/lib/storage";
 import { issueToJob } from "@/lib/inventory";
 import { saveMachine } from "@/lib/machines";
-import { bayCodes, findItem, isCategory, itemLabel, qcSuggestions, settings } from "@/lib/lists";
+import { bayCodes, findItem, isCategory, itemLabel, qcSuggestions } from "@/lib/lists";
 import { markServiceDone } from "@/lib/services";
 import { ensureLists } from "@/lib/lists-server";
 import { translator, type MessageKey, type Vars } from "@/i18n";
@@ -523,10 +523,9 @@ export async function addJobPurchase(form: FormData) {
   const { job } = await access(jobId, user);
   if (job.status === "closed") back(user, jobId, { error: "tr.closed", hash: "parts" });
   const description = str(form, "description").slice(0, 200), qty = Number(str(form, "qty")), cost = Number(str(form, "unitCost"));
-  const priceRaw = str(form, "unitPrice");
   if (!description || !(qty > 0) || !(cost >= 0)) back(user, jobId, { error: "jp.err.fields", hash: "parts" });
-  const price = priceRaw === "" ? Math.round(cost * (1 + settings().jobPurchaseMarkup / 100) * 100) / 100 : Number(priceRaw);
-  if (!(price >= 0)) back(user, jobId, { error: "jp.err.fields", hash: "parts" });
+  // Work orders are costed, not priced: the price column simply mirrors the cost.
+  const price = cost;
   const supplierId = num(form, "supplierId") || null;
   const date = str(form, "purchasedAt");
   await db.insert(schema.jobPurchases).values({

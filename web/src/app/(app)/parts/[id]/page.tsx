@@ -28,7 +28,7 @@ export default async function PartPage({ params, searchParams }: { params: Promi
   const sp = await searchParams;
   const p = (await listParts()).find((x) => x.id === id);
   if (!p) notFound();
-  const cost = can(user.role, "money.cost"), sell = can(user.role, "money.selling"), boss = can(user.role, "money.labourCost");
+  const cost = can(user.role, "money.cost"), sell = can(user.role, "money.selling"), boss = false; // no selling price, so no margin
   const [hist, codes, moves, reqs, sups, cm] = await Promise.all([
     cost ? priceHistory([id]) : Promise.resolve([]),
     db.select().from(schema.supplierParts).where(eq(schema.supplierParts.partId, id)),

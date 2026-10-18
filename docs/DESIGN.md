@@ -661,3 +661,17 @@ that points at staff (found from the database catalogue, so new tables are cover
 unique rule would clash (same job team, same attendance day…) the kept person's row stays. The duplicate is removed and
 its name saved in `staff.aliases`, shown as "Also known as", and used by the AppSheet import so a re-import does not
 create the old name again.
+
+## 34. Costs, not prices
+
+The workshop maintains its own fleet, so work orders are **costed**, not priced (this replaces the labour rate, parts
+markup, selling prices and job value):
+
+- `money.selling` and `price.set` are granted to no one: selling prices, labour charge, margins and markup are gone from
+  work orders, parts, categories, Settings, service reports and machine history reports. Bought-for-work-order lines
+  store their cost (price = cost).
+- **Work order cost** box (work order page): parts from stock at cost, bought for this work order, and — Head Manager
+  only — labour at each person's pay rate, with the total. The Supervisor sees parts cost only.
+- **Maintenance cost** on each machine page: this year / last 12 months / all time.
+- **Reports** (Head Manager): one year at a time — totals, by month (with bars), by machine (most expensive first, % of
+  total) and by work order category. A work order counts in the month it was opened (`lib/costs.ts`).

@@ -50,7 +50,8 @@ const GRANTS: Record<Action, Role[]> = {
   "job.handover": ["boss", "supervisor"],
   "job.anyStatus": ["boss", "supervisor"],
   "job.report": ["boss", "supervisor"],
-  "money.selling": ["boss", "supervisor"],
+  // Work orders are costed, not priced: selling prices, labour charge and markup are no longer shown to anyone.
+  "money.selling": [],
   "money.cost": ["boss", "supervisor"],
   "money.labourCost": ["boss"],
   "customer.manage": ["boss", "supervisor"],
@@ -59,7 +60,7 @@ const GRANTS: Record<Action, Role[]> = {
   "stock.manage": ["boss", "supervisor"],
   "po.create": ["boss", "supervisor"],
   "po.approve": ["boss"],
-  "price.set": ["boss"],
+  "price.set": [],
   "staff.view": ["boss", "supervisor"],
   "staff.manage": ["boss"],
   "settings.manage": ["boss"],

@@ -101,9 +101,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <label>{t("set.companyPhone")}<input name="companyPhone" type="tel" defaultValue={s.companyPhone} /></label>
           <label>{t("set.companyReg")}<input name="companyReg" defaultValue={s.companyReg} placeholder="202301012345 (1234567-X)" /></label>
           <label className="full">{t("set.companyAddress")}<textarea name="companyAddress" rows={2} defaultValue={s.companyAddress} /></label>
-          <label>{t("set.labourRate")}<input name="labourRate" type="number" min={0} step="0.01" required defaultValue={s.labourRate} /></label>
           <label>{t("set.poLimit")}<input name="poApprovalLimit" type="number" min={0} step="1" required defaultValue={s.poApprovalLimit} /></label>
-          <label>{t("set.jobMarkup")}<input name="jobPurchaseMarkup" type="number" min={0} step="0.1" required defaultValue={s.jobPurchaseMarkup} /></label>
           <p className="full hint">{t("set.workshopHelp")}</p>
           <div className="full filters"><SubmitButton className="btn primary">{t("common.save")}</SubmitButton><Link className="btn" href="/settings/import">{t("as.title")}</Link></div>
         </form>

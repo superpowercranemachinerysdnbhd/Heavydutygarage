@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import type { Category } from "@/lib/jobs";
 import { catColor } from "@/lib/lists";
-import { daysBetween, fmtDate, today, hmText } from "@/lib/format";
+import { rm, addDays, daysBetween, fmtDate, today, hmText } from "@/lib/format";
 import { listJobs, machineFormOptions } from "@/lib/queries";
 import { machinePhotoUrl, machineTypeLabel, unitRef } from "@/lib/machine-types";
 import { getI18n } from "@/i18n/server";
@@ -17,6 +17,7 @@ import UnitForm from "@/components/UnitForm";
 import { updateUnit } from "../actions";
 import ServicePanel from "@/components/ServicePanel";
 import { servicesFor } from "@/lib/services";
+import { costRows, sum } from "@/lib/costs";
 import { eventsForUnit, isLate } from "@/lib/events";
 import { eventColor } from "@/lib/lists";
 
@@ -39,6 +40,11 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
   const shown = sp.cat ? history.filter((j) => j.category === sp.cat) : history;
   const stay = unit.arrivedAt ? daysBetween(unit.arrivedAt, today()) : null;
   const manage = can(user.role, "machine.manage");
+  // Maintenance cost (Supervisor: parts only; Head Manager: parts and labour at pay rates).
+  const seeCost = can(user.role, "money.cost"), seeLabour = can(user.role, "money.labourCost");
+  const costs = seeCost ? await costRows({ unitId: id }) : [];
+  const yr = today().slice(0, 4), last12 = addDays(today(), -365);
+  const costCols = [[t("mc.thisYear"), sum(costs.filter((c) => c.opened.startsWith(yr)))], [t("mc.last12"), sum(costs.filter((c) => c.opened >= last12))], [t("mc.allTime"), sum(costs)]] as const;
   const [services, events] = await Promise.all([servicesFor(id), eventsForUnit(id)]);
   const options = manage ? await machineFormOptions() : null;
   const photo = machinePhotoUrl(unit.id, unit.photoPath);
@@ -70,6 +76,20 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
         <div><span className="label">{t("mach.modelPage")}</span><b><Link href={`/machinery/models/${model.id}`}>{t("mach.specsIssues")}</Link></b></div>
       </div></div>{unit.notes && <div className="panel in" style={{ padding: "10px 14px" }}><span className="muted">{unit.notes}</span></div>}
 
+      {seeCost && (
+        <section className="panel" id="cost">
+          <div className="panel-head"><h3>{t("mc.title")}</h3>{seeLabour && <Link href="/reports" className="muted" style={{ fontSize: ".8rem" }}>{t("nav.reports")}</Link>}</div>
+          <div className="tbl-wrap" style={{ border: 0, borderRadius: 0 }}><table>
+            <thead><tr><th></th>{costCols.map(([l]) => <th key={l} className="r">{l}</th>)}</tr></thead>
+            <tbody>
+              <tr><td>{t("mc.orders")}</td>{costCols.map(([l, c]) => <td key={l} className="r num">{c.n}</td>)}</tr>
+              <tr><td>{t("mc.parts")}</td>{costCols.map(([l, c]) => <td key={l} className="r num">{rm(c.parts)}</td>)}</tr>
+              {seeLabour && <tr><td>{t("mc.labour")}</td>{costCols.map(([l, c]) => <td key={l} className="r num">{rm(c.labour)}</td>)}</tr>}
+              <tr><td><b>{seeLabour ? t("mc.total") : t("mc.partsTotal")}</b></td>{costCols.map(([l, c]) => <td key={l} className="r num"><b>{rm(c.parts + (seeLabour ? c.labour : 0))}</b></td>)}</tr>
+            </tbody>
+          </table></div>
+        </section>
+      )}
       <ServicePanel unitId={id} services={services} manage={manage} t={t} locale={locale} />
       <section className="panel" id="events">
         <div className="panel-head"><h3>{t("ev.forMachine")}</h3>{can(user.role, "job.assign") && <Link className="btn small" href={`/calendar/event/new?unit=${id}`}>{t("ev.add")}</Link>}</div>

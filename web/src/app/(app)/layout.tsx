@@ -23,6 +23,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ...(can(user.role, "po.create") ? [{ href: "/purchasing", label: t("nav.purchasing") }] : []),
     ...(can(user.role, "customer.manage") ? [{ href: "/customers", label: t("nav.customers") }] : []),
     { href: "/team", label: t("nav.team") },
+    ...(can(user.role, "money.labourCost") ? [{ href: "/reports", label: t("nav.reports") }] : []),
     ...(can(user.role, "settings.manage") ? [{ href: "/settings", label: t("nav.settings") }] : []),
   ];
   const lists = await ensureLists();

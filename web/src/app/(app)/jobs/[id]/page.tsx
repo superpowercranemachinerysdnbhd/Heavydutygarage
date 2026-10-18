@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can, canWorkOnJob, CREW_ROLES, LEAD_ROLES } from "@/lib/permissions";
 import { CREW_STATUSES, PRIORITIES, STAGES as STEPS, STATUSES, qcMessageKey } from "@/lib/jobs";
-import { labourRate, fmtDate, fmtDateTime, rm, today, hmText } from "@/lib/format";
+import { fmtDate, fmtDateTime, rm, today, hmText } from "@/lib/format";
 import { activeStaff, getJob } from "@/lib/queries";
 import { jobPartsFor, jobPurchasesFor, partsForJob, requestsFor } from "@/lib/inventory";
-import { qcSuggestions, settings } from "@/lib/lists";
+import { qcSuggestions } from "@/lib/lists";
 import { activeSuppliers } from "@/lib/purchasing";
 import { getI18n } from "@/i18n/server";
 import { placeLabel, type MessageKey } from "@/i18n";
@@ -52,8 +52,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const [issued, bought, requests, stockParts, chatInitial, sups] = await Promise.all([jobPartsFor(job.id), jobPurchasesFor(job.id), requestsFor(job.id), open ? partsForJob(model.id) : Promise.resolve([]), messagesFor(user, chatId),
     open && can(user.role, "stock.manage") ? activeSuppliers() : Promise.resolve([])]);
   const suggestions = qcSuggestions(job.category, t).filter((g) => !qc.some((q) => (g.itemKey && q.itemKey === g.itemKey) || q.item.toLowerCase() === g.item.toLowerCase()));
-  const partLines = [...issued, ...bought];
-  const partsSell = partLines.reduce((a, x) => a + x.qty * x.unitPrice, 0), partsCost = partLines.reduce((a, x) => a + x.qty * x.unitCost, 0);
+  const stockCost = issued.reduce((a, x) => a + x.qty * x.unitCost, 0), boughtCost = bought.reduce((a, x) => a + x.qty * x.unitCost, 0);
   const q2 = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
   const crew = staffList.filter((s) => CREW_ROLES.includes(s.role));
   // Time entries: supervisors change any (also after completion); crew their own while the job is open.
@@ -62,7 +61,6 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const editing = labour.find((l) => String(l.id) === sp.labour && canEditLabour(l));
   const hours = labour.reduce((a, l) => a + Number(l.hours), 0);
   const labourCost = labour.reduce((a, l) => a + Number(l.hours) * Number(l.payRate), 0);
-  const charge = job.category === "WARR" ? 0 : hours * labourRate();
   const qcDone = qc.filter((q) => q.passedAt).length;
   const due = dueInfo(job, t, locale);
   const hidden = (n: string, v: string | number) => <input type="hidden" name={n} value={v} />;
@@ -265,7 +263,6 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                     <label>{t("parts.uom")}<input name="uom" defaultValue="pc" list="uoms-job" /></label>
                     <datalist id="uoms-job"><option>pc</option><option>set</option><option>m</option><option>L</option><option>kg</option></datalist>
                     <label>{t("jp.unitCost")}<input type="number" name="unitCost" min={0} step="0.01" required /></label>
-                    <label>{t("jp.unitPrice")}<input type="number" name="unitPrice" min={0} step="0.01" placeholder={t("jp.sellAuto", { pct: settings().jobPurchaseMarkup })} /></label>
                     <label>{t("jp.ref")}<input name="ref" /></label>
                     <label>{t("jp.date")}<input type="date" name="purchasedAt" defaultValue={today()} /></label>
                     <div className="full"><SubmitButton className="btn small primary">{t("common.add")}</SubmitButton></div>
@@ -391,16 +388,12 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             <div><span className="label">{t("job.openedDue")}</span><b>{fmtDate(job.openedAt, false, locale)} → {fmtDate(job.dueDate, false, locale)}</b></div>
           </div></section>
 
-          {can(user.role, "money.selling") && (
-            <section className="sect"><h3>{t("job.value")}</h3><div className="totals" style={{ borderTop: 0 }}>
-              <span>{t("job.labourCharge", { h: hours, rate: rm(labourRate()) })}{job.category === "WARR" ? t("job.warrantyNoCharge") : ""}</span><b>{rm(charge)}</b>
-              <span>{t("job.parts")}{job.category === "WARR" ? t("job.warrantyNoCharge") : ""}</span><b>{rm(job.category === "WARR" ? 0 : partsSell)}</b>
-              <span><b>{t("job.total")}</b></span><b>{rm(charge + (job.category === "WARR" ? 0 : partsSell))}</b>
-              {can(user.role, "money.cost") && <><span className="muted">{t("job.partsCost")}</span><b className="muted">{rm(partsCost)}</b></>}
-              {can(user.role, "money.labourCost") && (<>
-                <span className="muted">{t("job.labourCostPay")}</span><b className="muted">{rm(labourCost)}</b>
-                <span><b>{t("job.marginTotal")}</b></span><b>{rm(charge + (job.category === "WARR" ? 0 : partsSell) - labourCost - partsCost)}</b>
-              </>)}
+          {can(user.role, "money.cost") && (
+            <section className="sect"><h3>{t("job.cost")}</h3><div className="totals" style={{ borderTop: 0 }}>
+              <span>{t("job.costStock")}</span><b>{rm(stockCost)}</b>
+              <span>{t("job.costBought")}</span><b>{rm(boughtCost)}</b>
+              {can(user.role, "money.labourCost") && <><span>{t("job.costLabour", { h: hours })}</span><b>{rm(labourCost)}</b></>}
+              <span><b>{can(user.role, "money.labourCost") ? t("job.costTotal") : t("job.costParts")}</b></span><b>{rm(stockCost + boughtCost + (can(user.role, "money.labourCost") ? labourCost : 0))}</b>
             </div></section>
           )}
 
