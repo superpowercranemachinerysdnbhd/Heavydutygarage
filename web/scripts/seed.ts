@@ -108,6 +108,7 @@ const fabJob = await J({ category: "FAB", status: "in_progress", unitId: u2.id, 
 await J({ category: "WARR", priority: "high", status: "closed", closedAt: d(-1), unitId: u3.id, siteLocation: "Open yard", complaint: "Oil leak at swing motor after repair in August.", diagnosis: "O-ring pinched during last assembly. Replaced under warranty.", leadId: lim.id, hourMeterIn: 14150, openedAt: d(-8), dueDate: d(-1), statusSince: ago(2), parentJobId: old.id },
   { tasks: [["Replace swing motor O-ring", true, lim.id], ["Leak test 1 hr", true, lim.id]], labour: [[lim.id, 3, 7]], qcDone: 6 });
 await J({ category: "PAINT", priority: "low", status: "received", unitId: u2.id, siteLocation: "Paint bay", complaint: "Touch-up and repaint boom before return.", leadId: kum.id, hourMeterIn: 12430, openedAt: d(-5), dueDate: d(21), statusSince: ago(4) });
+await J({ category: "HYD", priority: "normal", status: "deferred", unitId: kato1.id, siteLocation: "", complaint: "Slight oil seep at boom elevating cylinder rod seal. Crane still working; reseal when it comes back from site.", reportedBy: "Operator Rashide", leadId: null, openedAt: d(-6), dueDate: null, statusSince: ago(6) });
 
 /* ---------- Phase 2 demo: categories, suppliers, parts, prices, purchase orders, stock ---------- */
 // The standard categories are already there (migration 0013); demo values are set on them.

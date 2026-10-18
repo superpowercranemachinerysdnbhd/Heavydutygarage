@@ -7,7 +7,7 @@ import type { Status as JobStatus } from "@/lib/jobs";
 export const roleEnum = pgEnum("role", ["boss", "supervisor", "mechanic", "assistant", "fabricator", "painter", "cleaner"]);
 export const jobCategoryEnum = pgEnum("job_category", ["EMG", "DIAG", "PM", "MINOR", "MAJOR", "HYD", "FAB", "PAINT", "WARR"]);
 export const jobStatusEnum = pgEnum("job_status", [
-  "received", "diagnosing", "awaiting_approval", "awaiting_parts", "in_progress", "quality_check", "ready_for_pickup", "closed",
+  "received", "diagnosing", "awaiting_approval", "awaiting_parts", "in_progress", "quality_check", "ready_for_pickup", "closed", "deferred",
 ]);
 export const priorityEnum = pgEnum("priority", ["critical", "high", "normal", "low"]);
 export const siteTypeEnum = pgEnum("site_type", ["workshop", "field"]);

@@ -696,3 +696,4 @@ details.panel[open]>summary h3::before{content:"▾ "}
 .btn.danger{background:var(--crit);border-color:var(--crit);color:#fff;font-weight:600}
 .danger-zone{border-color:color-mix(in srgb,var(--crit) 40%,var(--line))}
 .danger-zone .panel-head h3{color:var(--crit)}
+.deferred-note{background:color-mix(in srgb,var(--info) 10%,var(--surface));border-color:color-mix(in srgb,var(--info) 40%,var(--line));color:var(--ink)}

@@ -621,3 +621,15 @@ Head Manager only: **Edit work order → Delete this work order** (tick to confi
 mistake. Tasks, labour, photos records, chat, checks, services-done links, crew plan entries and costs on it are removed.
 Parts issued from stock are returned to stock (a "return" movement notes the deleted number); purchase orders and stock
 history keep their records without the link; comeback work orders lose their link to it.
+
+## 30. Deferred work orders
+
+A fifth status, **Deferred**: the fault is found and recorded, but the repair waits until the machine is free (it is
+still working or out on rent). Deferred work orders stay out of Received so new work orders do not get lost among them.
+
+- **New work order → "Repair later (deferred)"** tick, or move an existing one to Deferred (Head Manager, Supervisor).
+- The work order page shows a note instead of a step; the progress bar stays on Received. Move it to In Progress when
+  work starts.
+- Dashboard: a **Deferred** tile and a folded **Deferred — repair when the machine is free** box (oldest first, days
+  waiting). They are not counted in Not started, do not raise "stuck" alerts, and are not on a mechanic's jobs on hand.
+- Work orders page: a **Deferred** status button.

@@ -127,7 +127,7 @@ export async function createJob(form: FormData) {
     const existing = await tx.select({ no: jobs.jobNo }).from(jobs).where(sql`${jobs.jobNo} like ${`J-${d.slice(0, 4)}-%`}`);
     const jobNo = nextJobNo(Number(d.slice(0, 4)), existing.map((r) => r.no));
     const [row] = await tx.insert(jobs).values({
-      jobNo, category, priority, status: "received", unitId, siteType, siteLocation, complaint,
+      jobNo, category, priority, status: form.get("deferred") === "on" ? "deferred" : "received", unitId, siteType, siteLocation, complaint,
       reportedBy: str(form, "reportedBy") || null, leadId, hourMeterIn: Number.isFinite(hourMeter) && hourMeter > 0 ? hourMeter : unit.hourMeter,
       openedAt: d, dueDate: dueDate || null, parentJobId, createdBy: user.id,
     }).returning({ id: jobs.id });

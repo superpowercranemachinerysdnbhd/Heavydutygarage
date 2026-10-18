@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can, canWorkOnJob, CREW_ROLES, LEAD_ROLES } from "@/lib/permissions";
-import { CREW_STATUSES, PRIORITIES, STATUSES, qcMessageKey } from "@/lib/jobs";
+import { CREW_STATUSES, PRIORITIES, STAGES as STEPS, STATUSES, qcMessageKey } from "@/lib/jobs";
 import { labourRate, fmtDate, fmtDateTime, rm, today, hmText } from "@/lib/format";
 import { activeStaff, getJob } from "@/lib/queries";
 import { jobPartsFor, jobPurchasesFor, partsForJob, requestsFor } from "@/lib/inventory";
@@ -45,7 +45,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
 
   const sup = can(user.role, "job.anyStatus");
   const open = job.status !== "closed";
-  const idx = STATUSES.indexOf(job.status);
+  const idx = STEPS.indexOf(job.status === "deferred" ? "received" : job.status);
   const statusOptions = sup ? STATUSES.filter((s) => s !== job.status) : CREW_STATUSES.filter((s) => s !== job.status);
   const staffList = sup ? await activeStaff() : [];
   const chatId = await jobThreadId(job.id);
@@ -95,7 +95,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         {parent && <span className="muted">{t("job.comebackOf")} <Link href={`/jobs/${parent.id}`}>{parent.jobNo}</Link></span>}
       </div>
       <Notice error={sp.error} ok={sp.ok} />
-      <div className="steps">{STATUSES.map((s, i) => <div key={s} className={`step ${i < idx ? "done" : i === idx ? "cur" : ""}`}>{statusLabel(t, s)}</div>)}</div>
+      {job.status === "deferred" && <div className="notice deferred-note">{t("job.deferredNote")}</div>}
+      <div className="steps">{STEPS.map((s, i) => <div key={s} className={`step ${i < idx ? "done" : i === idx ? "cur" : ""}`}>{statusLabel(t, s)}</div>)}</div>
       {open && statusOptions.length > 0 && (
         <form action={A.setStatus} className="filters status-move">
           {hidden("jobId", job.id)}

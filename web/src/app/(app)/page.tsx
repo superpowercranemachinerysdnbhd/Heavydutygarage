@@ -86,6 +86,7 @@ export default async function Dashboard() {
   const working = open.filter((j) => j.status === "in_progress").sort(byUrgency);
   const waitingParts = open.filter((j) => j.status === "awaiting_parts").sort((a, b) => +a.statusSince - +b.statusSince);
   // Not started: oldest first, so jobs left hanging come to the top.
+  const deferred = open.filter((j) => j.status === "deferred").sort((a, b) => +a.statusSince - +b.statusSince);
   const notStarted = open.filter((j) => j.status === "received").sort((a, b) => a.openedAt.localeCompare(b.openedAt) || a.id - b.id);
 
   const [taskRows, openRequests, services, fu, purchasing, events, attToday, holToday] = await Promise.all([
@@ -142,6 +143,7 @@ export default async function Dashboard() {
         <a href="#working" className="plain"><b>{working.length}</b><span>{t("sum.working")}</span></a>
         <a href="#parts" className={`plain ${waitingParts.length ? "warn" : ""}`}><b>{waitingParts.length}</b><span>{t("sum.parts")}</span></a>
         <a href="#notstarted" className="plain"><b>{notStarted.length}</b><span>{t("sum.notStarted")}</span></a>
+        {deferred.length > 0 && <a href="#deferred" className="plain"><b>{deferred.length}</b><span>{t("sum.deferred")}</span></a>}
         <a href="#services" className={`plain ${svcDue.some((r) => r.s.nextDue! < d) ? "alert" : svcDue.length ? "warn" : ""}`}><b>{svcDue.length}</b><span>{t("sum.services")}</span></a>
       </nav>
 
@@ -186,6 +188,20 @@ export default async function Dashboard() {
               );
             })}
           </Section>
+          {deferred.length > 0 && (
+            <details className="panel" id="deferred">
+              <summary className="panel-head"><h3>{t("dash.deferred")}</h3><span className="count">{deferred.length}</span></summary>
+              <p className="hint" style={{ margin: 0, padding: "6px 14px 0" }}>{t("dash.deferredHelp")}</p>
+              <div className="jl-list">
+                {deferred.map((j) => (
+                  <JobLine key={j.id} j={j} t={t} locale={locale}>
+                    <small className="muted">{t("dash.waitingDays", { n: daysInStatus(j.statusSince) })}</small>
+                    {j.priority !== "normal" && <small className={j.priority === "low" ? "muted" : "due over"}>{priLabel(t, j.priority)}</small>}
+                  </JobLine>
+                ))}
+              </div>
+            </details>
+          )}
         </div>
 
         <div className="rail">
