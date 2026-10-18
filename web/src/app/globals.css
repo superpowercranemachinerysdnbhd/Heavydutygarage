@@ -603,3 +603,9 @@ details.panel>summary{cursor:pointer;list-style:none}
 details.panel>summary::-webkit-details-marker{display:none}
 details.panel>summary h3::before{content:"▸ ";color:var(--muted)}
 details.panel[open]>summary h3::before{content:"▾ "}
+.chip.filt{color:var(--muted);border-color:var(--line);background:var(--surface);font-size:.75rem;padding:4px 9px;text-decoration:none}
+.chip.filt.on{color:var(--ink);border-color:var(--ink)}
+.status-chips .chip.filt{font-size:.82rem;padding:6px 11px;gap:6px}
+.status-chips .chip.filt b{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}
+.status-chips .chip.filt.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.status-chips .chip.filt.on b{color:inherit;opacity:.8}

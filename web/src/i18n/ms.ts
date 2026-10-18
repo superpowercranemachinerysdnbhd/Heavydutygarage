@@ -210,6 +210,7 @@ export const ms: Messages = {
   "jobs.allCats": "Semua kategori",
   "jobs.allOpen": "Semua terbuka",
   "jobs.all": "Semua termasuk ditutup",
+  "jobs.clear": "Kosongkan penapis",
   "jobs.none": "Tiada kerja sepadan.",
 
   "new.title": "Kerja baharu",
