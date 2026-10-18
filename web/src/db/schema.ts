@@ -454,3 +454,21 @@ export const machineServices = pgTable("machine_services", {
   updatedBy: integer("updated_by").references(() => staff.id),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("machine_services_unit_item_idx").on(t.unitId, t.item), index("machine_services_due_idx").on(t.nextDue)]);
+
+/** Weekly crew plan: what each person does on a day — a job, or leave / MC / off. One entry per person per day. */
+export const crewPlan = pgTable("crew_plan", {
+  id: serial("id").primaryKey(),
+  staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+  day: date("day").notNull(),
+  kind: varchar("kind", { length: 10 }).$type<"job" | "leave" | "mc" | "off">().notNull(),
+  jobId: integer("job_id").references(() => jobs.id, { onDelete: "cascade" }),
+  note: text("note"),
+  updatedBy: integer("updated_by").references(() => staff.id),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("crew_plan_staff_day_idx").on(t.staffId, t.day), index("crew_plan_day_idx").on(t.day)]);
+
+/** Public holidays and workshop closures, shown on the calendar and the crew plan. */
+export const holidays = pgTable("holidays", {
+  day: date("day").primaryKey(),
+  name: varchar("name", { length: 80 }).notNull(),
+});

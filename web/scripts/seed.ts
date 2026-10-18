@@ -12,6 +12,7 @@ const { qcTemplate } = await import("../src/lib/lists");
 const { addDays, today } = await import("../src/lib/format");
 const { translator } = await import("../src/i18n/index");
 const { sellFromMarkup } = await import("../src/lib/stock");
+const { weekDays, planWeekStart } = await import("../src/lib/calendar");
 const en = translator("en");
 
 const existing = await db.select({ id: schema.staff.id }).from(schema.staff).limit(1);
@@ -35,7 +36,7 @@ const haf = await S({ name: "Mohd Hafiz", role: "mechanic", reportsTo: sup.id, p
 const sur = await S({ name: "Suresh Muthu", role: "assistant", reportsTo: raj.id, phone: "0120000005", joined: "2023-02-01", skills: ["Servicing", "Hose making"], payRate: "16" });
 const azm = await S({ name: "Azman Ismail", role: "fabricator", reportsTo: sup.id, phone: "0120000006", joined: "2015-09-12", skills: ["MIG/MMAW welding", "Hardfacing"], payRate: "24" });
 const kum = await S({ name: "Kumaravel", role: "painter", reportsTo: sup.id, phone: "0120000007", joined: "2020-11-02", skills: ["Spray painting", "Sandblasting"], payRate: "20" });
-await S({ name: "Siti Aminah", role: "cleaner", reportsTo: sup.id, phone: "0120000008", joined: "2022-05-16", skills: ["Steam wash", "Degreasing"], payRate: "12" });
+const siti = await S({ name: "Siti Aminah", role: "cleaner", reportsTo: sup.id, phone: "0120000008", joined: "2022-05-16", skills: ["Steam wash", "Degreasing"], payRate: "12" });
 await db.insert(schema.certifications).values([
   { staffId: sup.id, name: "CIDB Green Card", expiry: d(46) }, { staffId: raj.id, name: "First Aid", expiry: d(35) },
   { staffId: haf.id, name: "DOSH Crane Operator", expiry: d(14) }, { staffId: azm.id, name: "Welder Cert 3G/4G", expiry: d(-16) },
@@ -199,6 +200,20 @@ await db.insert(schema.chatMessages).values([
 for (const [threadId, staffId] of [[teamT.id, sup.id], [teamT.id, boss.id], [pumpT.id, sup.id], [pumpT.id, raj.id]]) {
   const [last] = await db.select({ id: schema.chatMessages.id }).from(schema.chatMessages).where(and(eq(schema.chatMessages.threadId, threadId), eq(schema.chatMessages.staffId, staffId))).orderBy(desc(schema.chatMessages.id)).limit(1);
   if (last) await db.insert(schema.chatReads).values({ threadId, staffId, lastReadId: last.id });
+}
+
+/* ---------- calendar: this week's crew plan and two public holidays ---------- */
+{
+  const week = weekDays(planWeekStart(T));
+  const P: { staffId: number; day: string; kind: "job" | "leave" | "mc" | "off"; jobId?: number }[] = [];
+  for (const day of week) {
+    P.push({ staffId: raj.id, day, kind: "job", jobId: pumpJob.id }, { staffId: lim.id, day, kind: "job", jobId: pmJob.id },
+      { staffId: haf.id, day, kind: "job", jobId: diagJob.id }, { staffId: azm.id, day, kind: "job", jobId: fabJob.id });
+    P.push(day === week[1] ? { staffId: sur.id, day, kind: "mc" } : { staffId: sur.id, day, kind: "job", jobId: pumpJob.id });
+  }
+  P.push({ staffId: kum.id, day: week[5], kind: "leave" }, { staffId: siti.id, day: week[5], kind: "off" });
+  await db.insert(schema.crewPlan).values(P);
+  await db.insert(schema.holidays).values([{ day: "2026-11-08", name: "Deepavali" }, { day: "2026-12-25", name: "Christmas Day" }]).onConflictDoNothing();
 }
 
 console.log(`Demo data loaded. Sign in with any demo phone (Boss 0120000000, Supervisor 0120000001, Mechanic 0120000003) and password demo-pass-1.`);

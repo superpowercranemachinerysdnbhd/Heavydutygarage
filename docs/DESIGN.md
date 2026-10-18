@@ -539,3 +539,22 @@ servicing is coming up.
   (compact), **Other reminders** folded (certificates, long-stay machines, follow-ups, stock and price alerts).
 
 The job board moved off the dashboard (it is on the Jobs page). Crew keep their own "My jobs" view.
+
+## 24. Calendar and weekly crew plan
+
+**Calendar → Month** (everyone; crew see only their own jobs and leave): month grid on iPad/computer, a day-by-day list
+on phone. Shows open jobs on their due date (colour = job type), overdue jobs on today in red until moved or completed,
+machine services due (dashed), follow-up dates, purchase-order delivery dates (purchasing staff), leave / MC / off, and
+public holidays. Filter chips switch each kind on or off. Head Manager and Supervisor keep the public holiday list
+(folded panel under the month).
+
+**Calendar → Crew plan** (Head Manager, Supervisor): one row per crew member, Monday–Saturday, a choice per day of a job,
+Leave, MC or Off; one Save for the week, week navigation, and "Copy last week" (fills empty days, skips completed jobs).
+Planning someone on a job adds them to the job team. On Sunday the plan opens on the coming week.
+
+**Calendar → My week** (crew): this week and next, the job planned each day (plate, machine, where) or leave.
+
+The dashboard's **Crew today** uses today's plan first (people on leave are greyed and listed last, and not counted as
+free); without a plan it falls back to the job teams.
+
+Tables: `crew_plan` (staff, day, kind, job; one row per person per day) and `holidays` (day, name).
