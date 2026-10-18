@@ -38,6 +38,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   if (!d) notFound();
   const sp = await searchParams;
   const { job, unit, model, customer, lead, team, tasks, qc, labour, photos } = d;
+  const doneTasks = tasks.filter((x) => x.doneAt);
   // The report itself is written in the customer's language; the controls above it stay in the user's language.
   const lang: Locale = isLocale(sp.lang) ? sp.lang : isLocale(customer.locale) ? customer.locale : "en";
   const t = translator(lang);
@@ -104,8 +105,12 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
         </div>
         <div><h4>{t("rep.complaint")}</h4><p>{job.complaint}</p></div>
         <div><h4>{t("rep.findings")}</h4><p>{job.diagnosis || "—"}</p></div>
-        <div><h4>{t("rep.workDone")}</h4><p style={{ whiteSpace: "pre-line" }}>{job.workDone || "—"}</p></div>
-        <div><h4>{t("rep.work")}</h4>{tasks.filter((x) => x.doneAt).length ? <ul>{tasks.filter((x) => x.doneAt).map((x) => <li key={x.id}>{x.description}</li>)}</ul> : <p>—</p>}</div>
+        {/* One "Work carried out" section: the written account, then the tasks ticked as done. */}
+        <div><h4>{t("rep.work")}</h4>
+          {job.workDone && <p style={{ whiteSpace: "pre-line" }}>{job.workDone}</p>}
+          {doneTasks.length > 0 && <ul>{doneTasks.map((x) => <li key={x.id}>{x.description}</li>)}</ul>}
+          {!job.workDone && doneTasks.length === 0 && <p>—</p>}
+        </div>
         <div><h4>{t("rep.parts")}</h4>{issued.length ? (
           <div className="dt"><table><thead><tr><th>{t("parts.partNo")}</th><th>{t("parts.description")}</th><th className="r">{t("po.qty")}</th>{o.prices && <><th className="r">{t("po.unitPrice")}</th><th className="r">{t("col.amount")}</th></>}</tr></thead>
             <tbody>{issued.map((x) => <tr key={x.id}><td>{x.ref}</td><td>{x.description}</td><td className="r">{x.qty} {x.uom}</td>{o.prices && <><td className="r">{warr ? t("rep.noCharge") : rm(x.unitPrice)}</td><td className="r">{warr ? t("rep.noCharge") : rm(x.qty * x.unitPrice)}</td></>}</tr>)}</tbody></table></div>
