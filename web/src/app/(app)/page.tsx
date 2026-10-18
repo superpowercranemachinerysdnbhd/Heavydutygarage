@@ -2,22 +2,21 @@ import Link from "next/link";
 import { and, eq, isNotNull, lte, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
-import { can, CREW_ROLES } from "@/lib/permissions";
+import { can } from "@/lib/permissions";
 import { ON_HAND, PRIORITIES, ageLevel } from "@/lib/jobs";
-import { labourRate, addDays, daysBetween, fmtDate, rm, today } from "@/lib/format";
+import { addDays, daysBetween, fmtDate, today } from "@/lib/format";
 import { activeStaff, coverPhotos, listJobs, type JobRow } from "@/lib/queries";
 import JobBox from "@/components/JobBox";
 import { getI18n } from "@/i18n/server";
-import { placeLabel, type Locale, type MessageKey, type T } from "@/i18n";
-import { priLabel, roleLabel, statusLabel } from "@/i18n/labels";
+import { placeLabel, type Locale, type T } from "@/i18n";
+import { priLabel, statusLabel } from "@/i18n/labels";
 import { requestsFor } from "@/lib/inventory";
-import { Avatar, daysInStatus, dueInfo } from "@/components/ui";
+import { daysInStatus, dueInfo } from "@/components/ui";
 import { purchasingAlerts } from "@/lib/alerts";
 import { unitRef } from "@/lib/machine-types";
 import { bayCodes, catColor, eventColor, itemLabel } from "@/lib/lists";
 import { eventTitle, isLate, upcomingEvents } from "@/lib/events";
 import { dueServices } from "@/lib/services";
-import { planBetween } from "@/lib/calendar-server";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("nav.dashboard") };
@@ -86,7 +85,7 @@ export default async function Dashboard() {
   // Not started: oldest first, so jobs left hanging come to the top.
   const notStarted = open.filter((j) => j.status === "received").sort((a, b) => a.openedAt.localeCompare(b.openedAt) || a.id - b.id);
 
-  const [taskRows, openRequests, services, fu, purchasing, todayPlan, events] = await Promise.all([
+  const [taskRows, openRequests, services, fu, purchasing, events] = await Promise.all([
     db.select({ jobId: schema.jobTasks.jobId, n: sql<number>`count(*)::int`, done: sql<number>`count(${schema.jobTasks.doneAt})::int` }).from(schema.jobTasks)
       .innerJoin(schema.jobs, eq(schema.jobTasks.jobId, schema.jobs.id)).where(sql`${schema.jobs.status} <> 'closed'`).groupBy(schema.jobTasks.jobId),
     requestsFor(undefined, true),
@@ -94,29 +93,12 @@ export default async function Dashboard() {
     db.select({ id: schema.jobs.id, jobNo: schema.jobs.jobNo, note: schema.jobs.followUp, date: schema.jobs.followUpDate }).from(schema.jobs)
       .where(and(isNotNull(schema.jobs.followUp), lte(schema.jobs.followUpDate, d))),
     purchasingAlerts(user, locale),
-    planBetween(d, d),
     upcomingEvents(7),
   ]);
   const lateEvents = events.filter((e) => isLate(e, d)), soonEvents = events.filter((e) => !isLate(e, d));
   const tasks = new Map(taskRows.map((r) => [r.jobId, r]));
   const requested = (id: number) => openRequests.filter((r) => r.jobId === id).length;
 
-  // Crew: who is free first (the Supervisor's next assignment), then who is on what.
-  const crew = staff.filter((s) => CREW_ROLES.includes(s.role));
-  const active = open.filter((j) => ["in_progress", "awaiting_parts"].includes(j.status)).sort(byUrgency);
-  // Free people first (next assignment), then those on jobs, then those away.
-  const rank = (c: { j?: JobRow; away: boolean }) => (c.away ? 2 : c.j ? 1 : 0);
-  // Today's crew plan (Calendar) comes first; without a plan, the job someone is on is worked out from the job teams.
-  const crewState = crew.map((s) => {
-    const p = todayPlan.find((x) => x.staffId === s.id);
-    if (p && p.kind !== "job") return { s, j: undefined, k: "leave", away: true, label: t(`state.${p.kind}` as MessageKey) };
-    const j = (p?.jobId ? open.find((x) => x.id === p.jobId) : undefined) ?? active.find((x) => x.leadId === s.id || x.teamIds.includes(s.id));
-    const k = j ? (j.siteType === "field" ? "field" : "on") : "idle";
-    return { s, j, k, away: false, label: t(k === "field" ? "state.field" : k === "on" ? "state.on" : "state.idle") };
-  }).sort((a, b) => rank(a) - rank(b));
-  const busy = crewState.filter((c) => c.j).length;
-  const free = crewState.filter((c) => !c.j && !c.away).length;
-  const wip = open.reduce((a, j) => a + (j.category === "WARR" ? 0 : j.labourHours * labourRate() + j.partsValue), 0);
 
   // Act now: short and urgent. Everything else goes to "Other reminders".
   const now: { sev: string; text: string; href: string }[] = [];
@@ -154,8 +136,6 @@ export default async function Dashboard() {
         <a href="#parts" className={`plain ${waitingParts.length ? "warn" : ""}`}><b>{waitingParts.length}</b><span>{t("sum.parts")}</span></a>
         <a href="#notstarted" className="plain"><b>{notStarted.length}</b><span>{t("sum.notStarted")}</span></a>
         <a href="#services" className={`plain ${svcDue.some((r) => r.s.nextDue! < d) ? "alert" : svcDue.length ? "warn" : ""}`}><b>{svcDue.length}</b><span>{t("sum.services")}</span></a>
-        <a href="#crew" className="plain"><b>{free}</b><span>{t("sum.free")}</span></a>
-        {can(user.role, "money.labourCost") && <div><b style={{ fontSize: "1.3rem" }}>{rm(wip).replace(".00", "")}</b><span>{t("kpi.labour")}</span></div>}
       </nav>
 
       {now.length > 0 && (
@@ -215,37 +195,9 @@ export default async function Dashboard() {
             </div>
           </section>
 
-          <section className="panel" id="services">
-            <div className="panel-head"><h3>{t("dash.servicesSoon")}</h3><Link href="/machinery" className="muted" style={{ fontSize: ".8rem" }}>{t("nav.machinery")}</Link></div>
-            <div className="panel-body">
-              {svcGroups.filter((g) => g.rows.length).map((g) => (
-                <div key={g.key}>
-                  <div className={`svc-group ${g.key === "dash.svcOverdue" ? "over" : ""}`}>{t(g.key)}</div>
-                  {g.rows.map((r) => (
-                    <Link key={r.s.id} href={`/machinery/${r.s.unitId}#services`} className="svc-line plain">
-                      <b className={r.plateNo ? "mono" : ""}>{r.plateNo || r.serialNo || `${r.make} ${r.model}`}</b>
-                      <span>{itemLabel(t, "service_item", r.s.item)}</span>
-                      <small className={r.s.nextDue! < d ? "due over" : r.s.nextDue! <= addDays(d, 14) ? "due soon" : "muted"}>{fmtDate(r.s.nextDue, false, locale)}</small>
-                    </Link>
-                  ))}
-                </div>
-              ))}
-              {services.length === 0 && <div className="empty">{t("dash.noServices")}</div>}
-            </div>
-          </section>
 
-          <section className="panel" id="crew">
-            <div className="panel-head"><h3>{t("dash.crewToday")}</h3><span className="muted" style={{ fontSize: ".8rem" }}>{t("dash.onActive", { n: busy })}</span></div>
-            <div className="panel-body">
-              {crewState.map(({ s, j, k, label }) => (
-                <Link key={s.id} href={j ? `/jobs/${j.id}` : `/team/${s.id}`} className="crew plain">
-                  <Avatar name={s.name} /><div className="crew-info"><b>{s.name}</b><small>{j ? `${plate(j)} · ${place(j, t)}` : roleLabel(t, s.role)}</small></div><span className={`state ${k}`}>{label}</span>
-                </Link>
-              ))}
-              {crew.length === 0 && <div className="empty">{t("dash.addCrew")}</div>}
-              {can(user.role, "job.assign") && <Link href="/calendar?view=week" className="linkbtn" style={{ display: "block", padding: "8px 14px" }}>{t("dash.planWeek")}</Link>}
-            </div>
-          </section>
+
+
 
           <section className="panel">
             <div className="panel-head"><h3>{t("dash.bays")}</h3></div>
@@ -266,6 +218,25 @@ export default async function Dashboard() {
           )}
         </div>
       </div>
+
+      <section className="panel" id="services">
+            <div className="panel-head"><h3>{t("dash.servicesSoon")}</h3><Link href="/machinery" className="muted" style={{ fontSize: ".8rem" }}>{t("nav.machinery")}</Link></div>
+            <div className="panel-body">
+              {svcGroups.filter((g) => g.rows.length).map((g) => (
+                <div key={g.key}>
+                  <div className={`svc-group ${g.key === "dash.svcOverdue" ? "over" : ""}`}>{t(g.key)}</div>
+                  {g.rows.map((r) => (
+                    <Link key={r.s.id} href={`/machinery/${r.s.unitId}#services`} className="svc-line plain">
+                      <b className={r.plateNo ? "mono" : ""}>{r.plateNo || r.serialNo || `${r.make} ${r.model}`}</b>
+                      <span>{itemLabel(t, "service_item", r.s.item)}</span>
+                      <small className={r.s.nextDue! < d ? "due over" : r.s.nextDue! <= addDays(d, 14) ? "due soon" : "muted"}>{fmtDate(r.s.nextDue, false, locale)}</small>
+                    </Link>
+                  ))}
+                </div>
+              ))}
+              {services.length === 0 && <div className="empty">{t("dash.noServices")}</div>}
+            </div>
+          </section>
     </div>
   );
 }

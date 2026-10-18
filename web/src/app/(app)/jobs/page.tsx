@@ -21,7 +21,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const { t, locale } = await getI18n();
   const sp = await searchParams;
   const crew = !can(user.role, "job.viewAll");
-  const status = crew ? "onhand" : sp.status ?? "open";
+  const status = crew ? "onhand" : sp.status ?? "in_progress";
   const everything = await listJobs(user);
   // Counts for the status buttons (after the search and job type filters, before the status filter).
   const q = (sp.q ?? "").trim().toLowerCase();
@@ -47,7 +47,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       <div className="view-head"><h2>{crew ? t("jobs.onHand") : t("jobs.title")}</h2>{can(user.role, "job.create") && <Link className="btn primary" href="/jobs/new">{t("dash.newJob")}</Link>}</div>
       {!crew && (
         <nav className="chipbar status-chips" aria-label={t("col.status")}>
-          {(["open", ...STATUSES, "all"] as const).map((k) => (
+          {([...STATUSES, "open", "all"] as const).map((k) => (
             <Link key={k} href={hrefWith({ status: k })} className={`chip plain filt ${status === k ? "on" : ""}`} aria-current={status === k ? "true" : undefined}>
               {k === "open" ? t("jobs.allOpen") : k === "all" ? t("jobs.all") : statusLabel(t, k)} <b>{counts[k]}</b>
             </Link>
@@ -60,7 +60,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         {!crew && <input type="hidden" name="status" value={status} />}
         <input type="hidden" name="view" value={view} />
         <button className="btn primary">{t("common.search")}</button>
-        {(sp.q || sp.cat || (!crew && status !== "open")) && <Link className="btn" href={`/jobs?view=${view}`}>{t("jobs.clear")}</Link>}
+        {(sp.q || sp.cat || (!crew && status !== "in_progress")) && <Link className="btn" href={`/jobs?view=${view}`}>{t("jobs.clear")}</Link>}
         <span className="seg" role="group" aria-label={t("jobs.cards")}>
           <Link className="plain" href={viewHref("cards")} aria-current={view === "cards" ? "page" : undefined}>{t("jobs.cards")}</Link>
           <Link className="plain" href={viewHref("table")} aria-current={view === "table" ? "page" : undefined}>{t("jobs.table")}</Link>
