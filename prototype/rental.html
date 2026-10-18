@@ -1,0 +1,1587 @@
+<title>Heavyworks Rental</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: steel header band + tabbed workspace; dashboard = status strip, kanban board, crew rail. Job detail opens as a side sheet. */
+:root{
+  --bg:#eceff2; --surface:#ffffff; --surface-2:#e3e7ec; --ink:#1a1f26; --muted:#5a6471; --line:#d2d8df;
+  --steel:#26303b; --steel-ink:#e9edf1; --steel-muted:#9eabb8;
+  --accent:#e3a008; --accent-ink:#1a1f26; --accent-soft:#fbefcc;
+  --crit:#c4342b; --warn:#b86e00; --ok:#2c7d3f; --info:#2d68a6;
+  --c-emg:#c4342b; --c-diag:#2d68a6; --c-pm:#2c7d3f; --c-minor:#1b8a8a; --c-major:#5146a8;
+  --c-hyd:#d06a12; --c-fab:#8a5a2b; --c-paint:#b0357c; --c-warr:#6b7480;
+  --shadow:0 1px 2px rgba(20,30,40,.08),0 4px 14px rgba(20,30,40,.06); --chart:#2d68a6;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161b; --surface:#1b2128; --surface-2:#232a33; --ink:#e6eaee; --muted:#98a3af; --line:#313943;
+  --steel:#0c1014; --steel-ink:#e6eaee; --steel-muted:#8995a2;
+  --accent:#f2b630; --accent-ink:#161a1f; --accent-soft:#3a3018;
+  --crit:#ff6a5c; --warn:#f0a338; --ok:#5cc274; --info:#6aa7ee;
+  --c-emg:#ff6a5c; --c-diag:#6aa7ee; --c-pm:#5cc274; --c-minor:#4cc3c3; --c-major:#9a90f0;
+  --c-hyd:#f39443; --c-fab:#c99760; --c-paint:#ec6fb7; --c-warr:#9aa3ad;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --chart:#6aa7ee; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#12161b; --surface:#1b2128; --surface-2:#232a33; --ink:#e6eaee; --muted:#98a3af; --line:#313943;
+  --steel:#0c1014; --steel-ink:#e6eaee; --steel-muted:#8995a2;
+  --accent:#f2b630; --accent-ink:#161a1f; --accent-soft:#3a3018;
+  --crit:#ff6a5c; --warn:#f0a338; --ok:#5cc274; --info:#6aa7ee;
+  --c-emg:#ff6a5c; --c-diag:#6aa7ee; --c-pm:#5cc274; --c-minor:#4cc3c3; --c-major:#9a90f0;
+  --c-hyd:#f39443; --c-fab:#c99760; --c-paint:#ec6fb7; --c-warr:#9aa3ad;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --chart:#6aa7ee; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--steel)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1440px;margin:0 auto}
+.mono{font-family:var(--f-mono);font-size:.92em}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;margin:0;text-wrap:balance}
+h2{font-size:1.5rem}
+h3{font-size:1.15rem}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+
+/* header */
+header.top{background:var(--steel);color:var(--steel-ink);position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+.top-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.brand-mark{width:30px;height:30px;border-radius:4px;background:repeating-linear-gradient(-45deg,var(--accent) 0 6px,var(--steel) 6px 12px);border:2px solid var(--accent)}
+.brand h1{font-size:1.45rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.brand small{display:block;font-size:.72rem;color:var(--steel-muted);letter-spacing:.06em;text-transform:uppercase}
+.role{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--steel-muted)}
+.role select{background:transparent;border:1px solid var(--steel-muted);border-radius:4px;padding:4px 8px;color:var(--steel-ink)}
+.role select option{color:#1a1f26;background:#fff}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.tabs button{background:none;border:0;border-bottom:3px solid transparent;color:var(--steel-muted);padding:8px 14px 9px;font-family:var(--f-display);font-size:1.05rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+nav.tabs button:hover{color:var(--steel-ink)}
+nav.tabs button[aria-current="page"]{color:var(--steel-ink);border-bottom-color:var(--accent)}
+.sample-note{font-size:.78rem;color:var(--muted);padding-block:8px}
+
+main{padding-block:8px 48px}
+section.view{display:flex;flex-direction:column;gap:18px}
+.view-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.view-head h2{margin-right:auto}
+
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:7px 12px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.small{padding:4px 9px;font-size:.82rem}
+input[type=search],input[type=text],input[type=date],input[type=number],select.field,textarea{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:7px 10px;min-width:0}
+textarea{width:100%;resize:vertical}
+
+/* KPI strip */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.kpi{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.kpi b{font-family:var(--f-display);font-size:2rem;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.kpi.alert b{color:var(--crit)}
+.kpi.warn b{color:var(--warn)}
+.kpi span{font-size:.8rem;color:var(--muted)}
+
+/* dashboard layout */
+.dash{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+@media (max-width:1000px){.dash{grid-template-columns:minmax(0,1fr)}}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(215px,1fr);gap:10px;overflow-x:auto;padding-bottom:6px}
+.col{background:var(--surface-2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:8px;min-height:120px}
+.col-head{display:flex;justify-content:space-between;align-items:baseline;padding:2px 4px}
+.col-head h3{font-size:.95rem;text-transform:uppercase;letter-spacing:.05em}
+.col-head .num{color:var(--muted);font-family:var(--f-mono);font-size:.8rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:9px 10px 9px 13px;cursor:pointer;position:relative;text-align:left;width:100%;display:flex;flex-direction:column;gap:5px}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:5px 0 0 5px;background:var(--cat)}
+.card:hover{border-color:var(--muted);box-shadow:var(--shadow)}
+.card-top{display:flex;justify-content:space-between;gap:6px;align-items:center}
+.card .mono{font-size:.78rem;color:var(--muted)}
+.card .mach{font-weight:600;line-height:1.25}
+.card .cust{font-size:.8rem;color:var(--muted)}
+.card-foot{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:.78rem}
+.empty-col{font-size:.8rem;color:var(--muted);padding:6px 4px}
+
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:600;padding:2px 7px;border-radius:3px;border:1px solid currentColor;color:var(--cat,var(--muted));white-space:nowrap;letter-spacing:.02em}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.pri{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 6px;border-radius:3px}
+.pri.Critical{background:var(--crit);color:var(--surface)}
+.pri.High{color:var(--warn);border:1px solid var(--warn)}
+.pri.Normal{color:var(--muted);border:1px solid var(--line)}
+.pri.Low{color:var(--muted)}
+.due.over{color:var(--crit);font-weight:600}
+.due.soon{color:var(--warn);font-weight:600}
+.avatar{width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;font-size:.7rem;font-weight:700;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);flex:none}
+.avatar.lg{width:56px;height:56px;font-size:1.1rem}
+.avatars{display:flex}
+.avatars .avatar{width:22px;height:22px;font-size:.6rem;margin-left:-5px;border:2px solid var(--surface)}
+.avatars .avatar:first-child{margin-left:0}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.panel-head{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.panel-body{padding:6px 0}
+.rail{display:flex;flex-direction:column;gap:14px}
+.crew{display:flex;align-items:center;gap:10px;padding:7px 14px;cursor:pointer}
+.crew:hover{background:var(--surface-2)}
+.crew-info{flex:1;min-width:0}
+.crew-info b{display:block;font-weight:600;font-size:.88rem}
+.crew-info small{color:var(--muted);font-size:.76rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.state{font-size:.7rem;font-weight:600;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.state.on{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.state.field{background:color-mix(in srgb,var(--c-hyd) 16%,transparent);color:var(--c-hyd)}
+.state.idle{background:var(--surface-2);color:var(--muted)}
+.state.leave{color:var(--muted);border:1px dashed var(--line)}
+.attn{display:flex;gap:10px;padding:8px 14px;cursor:pointer;align-items:flex-start;font-size:.85rem}
+.attn:hover{background:var(--surface-2)}
+.attn i{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:none;background:var(--sev)}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface)}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover td{background:var(--surface-2)}
+td.r,th.r{text-align:right}
+.stock-low{color:var(--warn);font-weight:600}
+.stock-out{color:var(--crit);font-weight:600}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filters label{display:flex;gap:6px;align-items:center;font-size:.85rem}
+
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.cal .dow{background:var(--surface-2);padding:6px 8px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.cal .day{background:var(--surface);min-height:108px;padding:5px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.cal .day.out{background:var(--surface-2);opacity:.6}
+.cal .day.today{box-shadow:inset 0 0 0 2px var(--accent)}
+.cal .dnum{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.cal .day.today .dnum{color:var(--ink);font-weight:600}
+.ev{font-size:.72rem;padding:2px 5px;border-radius:3px;border-left:3px solid var(--cat);background:color-mix(in srgb,var(--cat) 12%,var(--surface));cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;border-top:0;border-right:0;border-bottom:0;width:100%}
+.ev.pm{background:transparent;border:1px dashed var(--cat);border-left:3px solid var(--cat)}
+.ev.over{outline:1px solid var(--crit)}
+.legend{display:flex;gap:10px 14px;flex-wrap:wrap;font-size:.78rem}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:10px;height:10px;border-radius:2px;background:var(--cat)}
+@media (max-width:700px){.cal .day{min-height:64px}.cal .ev{font-size:0;height:6px;padding:0}.cal .dow{font-size:.6rem;padding:4px}}
+.agenda{display:none}
+@media (max-width:700px){.agenda{display:block}}
+
+/* machinery */
+.split{display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.split{grid-template-columns:minmax(0,1fr)}}
+.list{display:flex;flex-direction:column}
+.li{padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:10px;align-items:center;text-align:left;background:none;border-left:3px solid transparent;border-top:0;border-right:0;width:100%}
+.li:last-child{border-bottom:0}
+.li:hover{background:var(--surface-2)}
+.li[aria-current="true"]{border-left-color:var(--accent);background:var(--accent-soft)}
+.li-main{flex:1;min-width:0}
+.li-main b{display:block}
+.li-main small{display:block;color:var(--muted);font-size:.78rem}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:6px 12px;cursor:pointer;font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--steel);color:var(--steel-ink)}
+.detail{display:flex;flex-direction:column;gap:16px;min-width:0}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 18px;padding:14px}
+.facts div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.facts b{font-weight:500;overflow-wrap:anywhere}
+.hm{font-family:var(--f-mono);font-size:1.15rem;font-weight:500;letter-spacing:.04em}
+.badge-long{background:var(--accent);color:var(--accent-ink);font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.05em}
+.timeline{list-style:none;margin:0;padding:6px 14px 10px}
+.timeline li{display:grid;grid-template-columns:86px 14px minmax(0,1fr);gap:10px;padding:8px 0;cursor:pointer}
+.timeline li:hover .tl-body b{text-decoration:underline}
+.tl-date{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);text-align:right;padding-top:2px}
+.tl-mark{position:relative}
+.tl-mark::before{content:"";position:absolute;left:6px;top:0;bottom:-16px;width:2px;background:var(--line)}
+.timeline li:last-child .tl-mark::before{bottom:auto;height:10px}
+.tl-mark::after{content:"";position:absolute;left:2px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--cat);border:2px solid var(--surface)}
+.tl-body b{display:block}
+.tl-body small{color:var(--muted)}
+.chipbar{display:flex;gap:6px;flex-wrap:wrap}
+.chipbar button{cursor:pointer;background:var(--surface)}
+.chipbar button[aria-pressed="true"]{background:var(--cat,var(--steel));color:var(--surface);border-color:var(--cat,var(--steel))}
+.issue{padding:10px 14px;border-bottom:1px solid var(--line)}
+.issue:last-child{border-bottom:0}
+.issue b{display:block}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+
+/* team */
+.team{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.member{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:10px;cursor:pointer;text-align:left}
+.member:hover{border-color:var(--muted)}
+.member-top{display:flex;gap:12px;align-items:center}
+.member-top div{min-width:0}
+.member-top b{display:block;font-size:1rem}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:.72rem;padding:2px 7px;border-radius:3px;background:var(--surface-2)}
+.tag.exp{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn);font-weight:600}
+.tag.expd{background:color-mix(in srgb,var(--crit) 18%,transparent);color:var(--crit);font-weight:600}
+.mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.mstats div{display:flex;flex-direction:column}
+.mstats b{font-family:var(--f-display);font-size:1.3rem;font-weight:600}
+.mstats span{font-size:.7rem;color:var(--muted)}
+.org{display:flex;flex-direction:column;gap:6px;font-size:.85rem;padding:12px 14px}
+.org div{display:flex;gap:8px;align-items:center}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,14,18,.45);z-index:40}
+.sheet{position:fixed;top:0;right:0;bottom:0;width:min(760px,100%);background:var(--bg);z-index:41;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(0,0,0,.25);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.sheet-head{background:var(--steel);color:var(--steel-ink);padding:14px 18px;display:flex;gap:12px;align-items:flex-start}
+.sheet-head h2{font-size:1.6rem}
+.sheet-head .mono{color:var(--steel-muted)}
+.sheet-head .x{margin-left:auto;background:none;border:1px solid var(--steel-muted);color:var(--steel-ink);border-radius:4px;width:34px;height:34px;cursor:pointer;font-size:1.2rem;line-height:1;flex:none}
+.sheet-body{overflow-y:auto;padding:16px 18px 40px;display:flex;flex-direction:column;gap:14px}
+.steps{display:flex;gap:0;overflow-x:auto;padding-bottom:2px}
+.step{flex:1;min-width:84px;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;font-weight:600;color:var(--muted);padding:8px 4px 0;border-top:4px solid var(--line);text-align:center}
+.step.done{border-top-color:var(--ok);color:var(--ink)}
+.step.cur{border-top-color:var(--accent);color:var(--ink)}
+.sect{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.sect>h3{padding:10px 14px;border-bottom:1px solid var(--line);font-size:1rem;text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sect .in{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.task{display:flex;gap:10px;align-items:center;padding:4px 0}
+.task input{width:18px;height:18px;accent-color:var(--ok);flex:none}
+.task.done span{color:var(--muted);text-decoration:line-through}
+.task .who{margin-left:auto}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.photo{margin:0;display:flex;flex-direction:column;gap:4px}
+.photo img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;border:1px solid var(--line);background:var(--surface-2)}
+.photo figcaption{font-size:.74rem;color:var(--muted)}
+.photo .stage{font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink);font-size:.66rem}
+.upload{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border:1px dashed var(--line);border-radius:5px;padding:10px}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.82rem}
+.log li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px}
+.log time{font-family:var(--f-mono);font-size:.74rem;color:var(--muted)}
+.totals{display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-size:.88rem;justify-content:end;padding:10px 14px;border-top:1px solid var(--line)}
+.totals b{font-variant-numeric:tabular-nums;text-align:right}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted);font-weight:500}
+.form label.full{grid-column:1/-1}
+.form .field,.form input,.form textarea{color:var(--ink)}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--steel);color:var(--steel-ink);padding:10px 16px;border-radius:5px;z-index:60;font-size:.88rem;box-shadow:var(--shadow)}
+
+/* role-based visibility */
+body[data-role="mechanic"] .cost, body[data-role="mechanic"] .boss, body[data-role="supervisor"] .boss{display:none!important}
+@media (prefers-reduced-motion:no-preference){.sheet.enter{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(30px);opacity:.6}to{transform:none;opacity:1}}}
+
+/* v2 additions */
+.age{font-size:.74rem;color:var(--muted)}
+.age.warn{color:var(--warn);font-weight:600}
+.age.crit{color:var(--crit);font-weight:600}
+.floor{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.bay{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--cat,var(--line));border-radius:5px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;text-align:left;cursor:pointer;min-width:0}
+.bay:hover{border-color:var(--muted);border-left-color:var(--cat,var(--line))}
+.bay.free{cursor:default;border-left-style:dashed;background:transparent}
+.bay b{font-size:.88rem;line-height:1.25}
+.bay small{color:var(--muted);font-size:.75rem}
+.bay.field{background:color-mix(in srgb,var(--c-hyd) 7%,var(--surface))}
+.crew-link{cursor:pointer}
+.crew-info select{margin-top:4px;width:100%;font-size:.78rem;padding:3px 6px}
+.crew{cursor:default}
+.pill{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.pill.info{background:color-mix(in srgb,var(--info) 16%,transparent);color:var(--info)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.pill.ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.pill.crit{background:color-mix(in srgb,var(--crit) 16%,transparent);color:var(--crit)}
+.pill.mute{background:var(--surface-2);color:var(--muted)}
+.pill.appr{background:var(--accent);color:var(--accent-ink)}
+.hint{color:var(--ok);font-weight:600}
+.btnrow{display:flex;gap:6px;flex-wrap:wrap}
+.req{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:8px 0;border-bottom:1px solid var(--line);align-items:center}
+.req:last-of-type{border-bottom:0}
+.req small{color:var(--muted)}
+.sig{width:100%;height:160px;background:#fff;border:1px dashed #8a94a0;border-radius:5px;touch-action:none;display:block;cursor:crosshair}
+.sigimg{max-width:320px;background:#fff;border:1px solid var(--line);border-radius:4px}
+.sticker{display:flex;gap:14px;align-items:center;background:#fff;color:#14181d;border:2px solid #14181d;border-radius:6px;padding:10px 12px;max-width:400px}
+.sticker .qr{width:112px;height:112px;flex:none;display:grid;place-items:center;font:600 10px/1.2 var(--f-mono);text-align:center;overflow-wrap:anywhere}
+.sticker .qr img,.sticker .qr canvas{width:112px!important;height:112px!important}
+.sticker b{font-family:var(--f-display);font-size:1.3rem;display:block;line-height:1.1}
+.sticker small{display:block;font-size:.74rem}
+.sched{min-width:900px}
+.sched td,.sched th{padding:6px 8px}
+.sched td.today,.sched th.today{background:var(--accent-soft)}
+.sched select{width:100%;font-size:.78rem;padding:4px 6px}
+.cellwrap{border-left:3px solid var(--cat,transparent);padding-left:5px;min-width:0}
+.cellwrap .ev{font-size:.78rem}
+.wa{max-width:460px;background:color-mix(in srgb,var(--ok) 9%,var(--surface));border:1px solid var(--line);border-radius:10px 10px 10px 2px;padding:12px 14px;white-space:pre-line;font-size:.88rem;line-height:1.55}
+.wa-meta{font-size:.76rem;color:var(--muted)}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.rbars{display:flex;flex-direction:column;gap:9px;padding:14px}
+.rbar{display:grid;grid-template-columns:minmax(110px,180px) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:.84rem}
+.rbar .track{height:14px}
+.rbar .fill{height:100%;background:var(--chart);border-radius:0 4px 4px 0;min-width:2px}
+.rbar .v{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap;font-size:.8rem}
+@media (max-width:520px){.rbar{grid-template-columns:minmax(0,1fr) auto}.rbar .track{grid-column:1/-1}}
+.cols{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;align-items:end;height:190px;padding:14px 14px 0}
+.colb{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px;cursor:pointer;background:none;border:0;padding:0;min-width:0}
+.colb .c{width:min(46px,80%);background:var(--chart);border-radius:4px 4px 0 0}
+.colb.mtd .c{background:repeating-linear-gradient(135deg,var(--chart) 0 3px,transparent 3px 7px);box-shadow:inset 0 0 0 1.5px var(--chart)}
+.colb small{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.colb[aria-pressed="true"] small{color:var(--ink);font-weight:600}
+.xl{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:6px 14px 12px;border-top:1px solid var(--line);font-size:.76rem;color:var(--muted);text-align:center}
+.xl span[aria-current="true"]{color:var(--ink);font-weight:600}
+svg.line{width:100%;height:auto;display:block}
+svg.line .gl{stroke:var(--line);stroke-width:1}
+svg.line text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+svg.line .ln{fill:none;stroke:var(--chart);stroke-width:2}
+svg.line .pt{fill:var(--chart);stroke:var(--surface);stroke-width:2;cursor:pointer}
+svg.line .pt.mtd{fill:var(--surface);stroke:var(--chart)}
+svg.line .end{fill:var(--ink);font-weight:600}
+.tip{position:fixed;z-index:70;background:var(--steel);color:var(--steel-ink);font-size:.78rem;padding:6px 9px;border-radius:4px;pointer-events:none;max-width:260px;white-space:pre-line;box-shadow:var(--shadow)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.docbar{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.docbar textarea{min-height:64px}
+.doc{background:#fff;color:#1a1f26;border:1px solid var(--line);border-radius:4px;padding:26px 28px;font-size:13px;line-height:1.5;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px}
+.doc h4{font-family:var(--f-display);font-size:1rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px;color:#26303b;border-bottom:2px solid #e3a008;padding-bottom:3px}
+.doc p{margin:0}
+.doc-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:3px solid #26303b;padding-bottom:12px}
+.doc-brand{font-family:var(--f-display);font-size:1.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.1}
+.doc small{color:#5a6471}
+.doc-meta{display:flex;flex-direction:column;align-items:flex-end;text-align:right;font-family:var(--f-mono);font-size:12px}
+.doc-meta b{font-family:var(--f-display);font-size:1.25rem;text-transform:uppercase;letter-spacing:.03em}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.doc dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;margin:0}
+.doc dt{color:#5a6471}
+.doc dd{margin:0;font-weight:500;overflow-wrap:anywhere}
+.doc .dt{overflow-x:auto}
+.doc table{font-size:12.5px}
+.doc th{background:#f2f4f6;color:#5a6471;border-bottom:1px solid #d2d8df}
+.doc td{border-bottom:1px solid #e3e7ec;color:#1a1f26}
+.doc ul{margin:0;padding-left:18px}
+.doc .stamp{align-self:flex-start;border:2px solid #b86e00;color:#b86e00;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px;padding:3px 8px;border-radius:3px}
+.doc .stamp.final{border-color:#2c7d3f;color:#2c7d3f}
+.doc .photo img{border-color:#d2d8df}
+.doc .photo figcaption,.doc .photo .stage{color:#5a6471}
+.doc .sign{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px}
+.doc .sline{border-bottom:1px solid #1a1f26;height:74px;display:flex;align-items:flex-end}
+.doc .sline img{max-height:70px;max-width:100%}
+.doc-foot{font-size:11px;color:#5a6471;border-top:1px solid #e3e7ec;padding-top:8px}
+.doc .tot{display:grid;grid-template-columns:1fr auto;gap:2px 20px;margin-left:auto;min-width:240px;font-variant-numeric:tabular-nums}
+.doc .ok{color:#2c7d3f;font-weight:600}
+.doc .no{color:#c4342b;font-weight:600}
+.doc .rec{white-space:pre-line}
+.doc .sumrow{display:flex;gap:10px 28px;flex-wrap:wrap}
+.doc .sumrow div{display:flex;flex-direction:column}
+.doc .sumrow b{font-family:var(--f-display);font-size:1.5rem;font-weight:600;line-height:1.1}
+@media (max-width:520px){.doc{padding:18px 16px}}
+
+/* rental module */
+:root{--k-dry:var(--c-diag);--k-wet:var(--c-major);--k-quote:var(--c-hyd);--bar-ink:#fff;--cw:26px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bar-ink:#10141a}}
+:root[data-theme="dark"]{--bar-ink:#10141a}
+body[data-role="operator"] .cost, body[data-role="operator"] .boss, body[data-role="operator"] .office{display:none!important}
+.gantt-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.gantt{min-width:calc(190px + var(--cw) * 42)}
+.g-row{display:grid;grid-template-columns:190px minmax(0,1fr);border-bottom:1px solid var(--line);min-height:38px}
+.g-lab{position:sticky;left:0;z-index:3;background:var(--surface);padding:5px 10px;border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;min-width:0;cursor:pointer;text-align:left;border-top:0;border-bottom:0;border-left:3px solid transparent}
+.g-lab:hover b{text-decoration:underline}
+.g-lab b{font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-lab small{color:var(--muted);font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-track{position:relative;background-image:linear-gradient(to right,var(--line) 1px,transparent 1px);background-size:var(--cw) 100%}
+.g-sun{position:absolute;top:0;bottom:0;width:var(--cw);background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.g-today{position:absolute;top:0;bottom:0;width:2px;margin-left:calc(var(--cw) / 2 - 1px);background:var(--accent);z-index:2}
+.g-head{position:sticky;top:0}
+.g-head .g-lab{cursor:default;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.g-head .g-track{display:grid;grid-template-columns:repeat(42,var(--cw));background:none}
+.g-day{font:500 .66rem/1.15 var(--f-mono);text-align:center;padding:5px 0;color:var(--muted);display:flex;flex-direction:column;align-items:center}
+.g-day i{font-style:normal;font-family:var(--f-body);font-size:.6rem;font-weight:600;text-transform:uppercase;color:var(--ink);height:.8rem}
+.g-day.sun{color:var(--crit)}
+.g-day.today b{background:var(--accent);color:var(--accent-ink);border-radius:3px;padding:0 3px}
+.g-group{background:var(--surface-2);font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted);padding:5px 10px;border-bottom:1px solid var(--line)}
+.g-group span{position:sticky;left:10px}
+.bar{position:absolute;top:6px;height:26px;border-radius:4px;font-size:.72rem;font-weight:600;padding:0 7px;display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden;cursor:pointer;border:0;color:var(--bar-ink);background:var(--kc);z-index:1;text-align:left;font-family:var(--f-body)}
+.bar.dry{--kc:var(--k-dry)} .bar.wet{--kc:var(--k-wet)} .bar.ws{--kc:var(--muted)} .bar.trip{--kc:var(--warn)}
+.bar.booked{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--kc) 28%,var(--surface)) 0 6px,color-mix(in srgb,var(--kc) 12%,var(--surface)) 6px 12px);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--kc)}
+.bar.quote{background:var(--surface);color:var(--muted);outline:1.5px dashed var(--k-quote);outline-offset:-1.5px}
+.bar.ws{background:repeating-linear-gradient(45deg,var(--surface-2) 0 5px,color-mix(in srgb,var(--muted) 25%,var(--surface-2)) 5px 10px);color:var(--ink);box-shadow:inset 0 0 0 1px var(--muted)}
+.bar.offcalled{box-shadow:inset -4px 0 0 var(--warn)}
+.bar.more{border-radius:4px 0 0 4px}
+.bd{position:absolute;top:3px;height:32px;width:5px;margin-left:calc(var(--cw) / 2 - 2px);background:var(--crit);border-radius:2px;z-index:2;cursor:pointer;border:0;padding:0}
+.tmark{position:absolute;bottom:0;width:var(--cw);height:8px;display:flex;justify-content:center;z-index:2;pointer-events:auto}
+.tmark::before{content:"";width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid var(--warn)}
+.g-row.hit .g-lab{border-left-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--surface))}
+.g-row.miss .g-lab{border-left-color:var(--crit)}
+.g-row.dim{opacity:.35}
+.g-legend{display:flex;gap:8px 16px;flex-wrap:wrap;font-size:.78rem;align-items:center}
+.g-legend span{display:inline-flex;align-items:center;gap:6px}
+.g-legend .sw{width:22px;height:12px;border-radius:3px;display:inline-block}
+.findbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.findbar label{display:flex;flex-direction:column;gap:4px;font-size:.78rem;color:var(--muted);font-weight:500}
+.findres{display:flex;flex-direction:column}
+.fr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:9px 14px;border-bottom:1px solid var(--line);align-items:center}
+.fr:last-child{border-bottom:0}
+.fr small{color:var(--muted);display:block}
+.statusbar{display:flex;height:14px;border-radius:3px;overflow:hidden;gap:2px;margin:12px 14px 4px}
+.statusbar i{display:block;height:100%}
+.slegend{display:flex;flex-direction:column;gap:2px;padding:6px 14px 12px;font-size:.82rem}
+.slegend div{display:flex;align-items:center;gap:8px}
+.slegend i{width:10px;height:10px;border-radius:2px;flex:none}
+.slegend b{margin-left:auto;font-variant-numeric:tabular-nums}
+.phone{max-width:460px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.bigval{font-family:var(--f-display);font-size:1.8rem;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.mx{border-collapse:separate;border-spacing:3px;width:auto}
+.mx th{font:500 .66rem var(--f-mono);text-align:center;padding:2px;border:0;letter-spacing:0;text-transform:none}
+.mx th.sun{color:var(--crit)}
+.mx th.lab,.mx td.lab{text-align:left;font-family:var(--f-body);font-size:.8rem;padding:2px 10px 2px 0;white-space:nowrap;border:0}
+.mx td{padding:0;border:0}
+.cell{width:26px;height:26px;border-radius:3px;display:grid;place-items:center;font-size:.72rem;font-weight:700;border:0;padding:0;cursor:default}
+.cell.ok{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok);cursor:pointer}
+.cell.un{background:color-mix(in srgb,var(--warn) 22%,transparent);color:var(--warn);cursor:pointer}
+.cell.miss{background:color-mix(in srgb,var(--crit) 18%,transparent);color:var(--crit)}
+.cell.off{background:var(--surface-2);color:var(--muted)}
+.cell.today{box-shadow:inset 0 0 0 2px var(--accent);color:var(--muted)}
+.cell.na{background:transparent}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.slot{aspect-ratio:4/3;border:1px dashed var(--muted);border-radius:4px;display:grid;place-items:center;font-size:.76rem;color:var(--muted);cursor:pointer;background:var(--surface-2);overflow:hidden;padding:0;position:relative}
+.slot img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.slot.done{border-style:solid;border-color:var(--ok)}
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2px 16px}
+.checks label{display:flex;gap:8px;align-items:center;font-size:.86rem;padding:3px 0;cursor:pointer}
+.checks input{width:18px;height:18px;accent-color:var(--ok);flex:none}
+.est{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;font-size:.88rem}
+.est b{text-align:right;font-variant-numeric:tabular-nums}
+.est .tot{font-family:var(--f-display);font-size:1.35rem;font-weight:600}
+.est hr{grid-column:1/-1;border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
+.pick{display:flex;flex-direction:column;gap:6px}
+.pick label{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:start;padding:8px 10px;border:1px solid var(--line);border-radius:5px;cursor:pointer;background:var(--surface)}
+.pick label.no{opacity:.6;cursor:not-allowed}
+.pick label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.pick small{display:block;color:var(--muted);font-size:.78rem}
+.pick input{margin-top:3px;accent-color:var(--accent)}
+.einv{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.einv .qr{width:96px;height:96px;flex:none;background:#fff;display:grid;place-items:center}
+.einv .qr img,.einv .qr canvas{width:96px!important;height:96px!important}
+.banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-radius:6px;border:1px solid var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--surface));font-size:.88rem}
+.banner.crit{border-color:var(--crit);background:color-mix(in srgb,var(--crit) 8%,var(--surface))}
+.banner b{margin-right:auto}
+.daygrp{font-family:var(--f-display);font-size:1.05rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:4px 2px}
+.daygrp.today{color:var(--warn)}
+.bar.trip{padding:0;justify-content:center;font-size:.6rem}
+input[type=time]{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:7px 10px;min-width:0}
+.ratein{width:84px;text-align:right;padding:4px 6px!important}
+.minihead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div class="brand"><div class="brand-mark" aria-hidden="true"></div><div><h1>Heavyworks Garage</h1><small>Machinery rental</small></div></div>
+      <div class="role">
+        <label for="roleSel">Viewing as</label>
+        <select id="roleSel">
+          <option value="boss">Head Manager</option>
+          <option value="supervisor">Supervisor · Rental desk</option>
+          <option value="operator">Operator · Azman bin Yusof</option>
+        </select>
+      </div>
+    </div>
+    <nav class="tabs" aria-label="Sections">
+      <button data-view="today" class="office">Today</button>
+      <button data-view="planner" class="office">Planner</button>
+      <button data-view="hires" class="office">Hires</button>
+      <button data-view="fleet" class="office">Fleet</button>
+      <button data-view="transport" class="office">Transport</button>
+      <button data-view="timesheets">Timesheets</button>
+      <button data-view="billing" class="office">Billing</button>
+      <button data-view="rates" class="office">Rates</button>
+      <button data-view="reports" class="boss">Reports</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap"><p class="sample-note">Rental module prototype with example data (today is set to Fri 16 Oct 2026). Changes stay until the page reloads. Switch "Viewing as" to see each role: the Supervisor sees rates and invoices but not machine cost or profit; operators see only their own timesheet, with no prices. The workshop prototype is in <a href="index.html">index.html</a>; the design is in docs/RENTAL.md.</p></div>
+
+<main class="wrap">
+  <section class="view" id="v-today"></section>
+  <section class="view" id="v-planner" hidden></section>
+  <section class="view" id="v-hires" hidden></section>
+  <section class="view" id="v-fleet" hidden></section>
+  <section class="view" id="v-transport" hidden></section>
+  <section class="view" id="v-timesheets" hidden></section>
+  <section class="view" id="v-billing" hidden></section>
+  <section class="view" id="v-rates" hidden></section>
+  <section class="view" id="v-reports" hidden></section>
+</main>
+<div id="sheetRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pd = s => { const [y,m,d] = s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d)); };
+const iso = d => d.toISOString().slice(0,10);
+const addDays = (s,n) => { const d = pd(s); d.setUTCDate(d.getUTCDate()+n); return iso(d); };
+const daysBetween = (a,b) => Math.round((pd(b)-pd(a))/864e5);
+const dow = s => pd(s).getUTCDay();
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const fmtD = s => s ? `${+s.slice(8)} ${MON[+s.slice(5,7)-1]}` : '—';
+const fmtDY = s => s ? `${fmtD(s)} ${s.slice(0,4)}` : '—';
+const fmtDW = s => s ? `${DOW[dow(s)]} ${fmtD(s)}` : '—';
+const RM = n => 'RM '+(+n).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
+const RM0 = n => 'RM '+Math.round(n).toLocaleString('en-MY');
+const num = n => (+n).toLocaleString('en-MY',{maximumFractionDigits:2});
+const dim = s => new Date(Date.UTC(+s.slice(0,4), +s.slice(5,7), 0)).getUTCDate();
+const sum = a => a.reduce((x,y)=>x+y,0);
+const minD = (a,b) => a < b ? a : b, maxD = (a,b) => a > b ? a : b;
+const rnd = str => { let h = 2166136261; for(const c of str){ h ^= c.charCodeAt(0); h = Math.imul(h,16777619); } return ((h>>>0)%10000)/10000; };
+const initials = n => n.split(/\s+/).filter(w=>!/^(bin|binti|a\/l|a\/p)$/i.test(w)).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+function ph(label, hue){
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${hue},18%,40%)"/><stop offset="1" stop-color="hsl(${hue},22%,24%)"/></linearGradient></defs><rect width="320" height="240" fill="url(#g)"/><text x="160" y="126" font-family="Arial" font-size="17" fill="#fff" text-anchor="middle" opacity=".85">${label}</text></svg>`;
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+
+/* ---------- settings ---------- */
+const TODAY = '2026-10-16', G0 = '2026-09-28', GN = 42;
+const CO = {name:'Heavyworks Garage Sdn Bhd', ssm:'202001023456 (1371234-K)', tin:'C25841230090', sst:'W10-2507-32000417', msic:'77300 Renting of other machinery and equipment',
+  addr:'Lot 12, Jalan Perusahaan 3, Kawasan Perindustrian Bukit Raja, 41050 Klang, Selangor', phone:'03-3341 2288'};
+const RULES = {dayHrs:8, minH:4, mHrs:200, sunX:1.5, standbyPct:50, bdGrace:2, sst:8, allowance:80};
+const GROUPS = {crane:'Mobile cranes', lift:'Lifting & access', earth:'Earthmoving', power:'Power', transport:'Our transport'};
+const models = {
+  GR500:{make:'Tadano',model:'GR-500EX',type:'Rough terrain crane 50 t',grp:'crane',size:'self'},
+  KR25:{make:'Kato',model:'KR-25H-V',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
+  TR250:{make:'Tadano',model:'TR-250M',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
+  UNIC:{make:'Hino / Unic',model:'URV550 lorry crane',type:'Lorry crane 10 t',grp:'crane',size:'self'},
+  FD30:{make:'Toyota',model:'8FD30',type:'Forklift 3 t',grp:'lift',size:'small'},
+  FD50:{make:'TCM',model:'FD50',type:'Forklift 5 t',grp:'lift',size:'small'},
+  S65:{make:'Genie',model:'S-65',type:'Boom lift 20 m',grp:'lift',size:'mid'},
+  SK200:{make:'Kobelco',model:'SK200-10',type:'Excavator 20 t',grp:'earth',size:'mid'},
+  PC200:{make:'Komatsu',model:'PC200-8',type:'Excavator 20 t',grp:'earth',size:'mid'},
+  ZX70:{make:'Hitachi',model:'ZX70-5G',type:'Excavator 7 t',grp:'earth',size:'small'},
+  W950:{make:'Caterpillar',model:'950H',type:'Wheel loader 3 m³',grp:'earth',size:'mid'},
+  DCA150:{make:'Denyo',model:'DCA-150ESK',type:'Generator 150 kVA',grp:'power',size:'small'},
+  FM:{make:'Volvo',model:'FM 440 + lowloader',type:'Prime mover & lowloader',grp:'transport'},
+  H700:{make:'Hino',model:'700 lowloader',type:'Lowloader',grp:'transport'},
+};
+const DOCS = {cf:'DOSH Certificate of Fitness', road:'Road tax', ins:'Insurance', pusp:'Puspakom', cpm:'Plant insurance', apad:'APAD licence'};
+const fleet = {
+  'RC-01':{m:'GR500',plate:'WVX 5501',year:2016,hm0:11580,docs:{cf:'2027-03-02',road:'2027-01-15',ins:'2027-01-15'},cost:1650000,ytd:{rev:486000,ws:38500,opx:52000,util:86}},
+  'RC-02':{m:'KR25',plate:'BMK 2250',year:2012,hm0:18320,docs:{cf:'2026-11-28',road:'2027-04-10',ins:'2027-04-10'},cost:720000,ytd:{rev:268000,ws:61200,opx:47000,util:71}},
+  'RC-03':{m:'TR250',plate:'WTB 7121',year:2009,hm0:9790,docs:{cf:'2026-10-30',road:'2027-02-01',ins:'2027-02-01'},cost:540000,ytd:{rev:214000,ws:72400,opx:41000,util:64}},
+  'LC-01':{m:'UNIC',plate:'BPQ 6610',year:2018,hm:6120,docs:{cf:'2027-05-11',road:'2027-03-01',ins:'2027-03-01',pusp:'2026-12-04'},cost:380000,ytd:{rev:96000,ws:12800,opx:28000,util:48}},
+  'FL-01':{m:'FD30',serial:'8FD30-61822',year:2019,hm:4502,docs:{ins:'2027-02-20'},cost:85000,ytd:{rev:21800,ws:3100,opx:900,util:62}},
+  'FL-02':{m:'FD50',serial:'FD50T9-30417',year:2017,hm:6305,docs:{ins:'2027-02-20'},cost:120000,ytd:{rev:30200,ws:4200,opx:900,util:70}},
+  'BL-01':{m:'S65',serial:'S6015-2271',year:2015,hm:3870,docs:{cf:'2027-01-09',ins:'2027-02-20'},cost:260000,ytd:{rev:54000,ws:6900,opx:2400,util:58}},
+  'EX-01':{m:'SK200',serial:'YN15-81234',year:2017,hm:9530,docs:{cpm:'2027-06-30'},cost:420000,ytd:{rev:118000,ws:24600,opx:7200,util:81}},
+  'EX-02':{m:'PC200',serial:'PC200-8-358871',year:2014,hm:15362,docs:{cpm:'2027-06-30'},cost:360000,ytd:{rev:131000,ws:15800,opx:2400,util:88}},
+  'EX-03':{m:'ZX70',serial:'HCM1HE00T00071224',year:2020,hm:4120,docs:{cpm:'2027-06-30'},cost:210000,ytd:{rev:41200,ws:5200,opx:3600,util:55}},
+  'WL-01':{m:'W950',serial:'CAT0950HJN1A04412',year:2011,hm:21480,docs:{cpm:'2027-06-30'},cost:330000,ytd:{rev:63500,ws:9800,opx:4800,util:52}},
+  'GS-01':{m:'DCA150',serial:'DCA150-4471029',year:2018,hm:12840,docs:{cpm:'2027-06-30'},cost:95000,ytd:{rev:28400,ws:3900,opx:1800,util:39}},
+  'TR-01':{m:'FM',plate:'WPL 8812',year:2015,transport:true,docs:{road:'2027-02-14',ins:'2027-02-14',pusp:'2026-11-12',apad:'2027-08-01'}},
+  'TR-02':{m:'H700',plate:'BKT 4410',year:2013,transport:true,docs:{road:'2026-10-31',ins:'2026-10-31',pusp:'2027-01-20',apad:'2027-08-01'}},
+};
+const staff = {
+  HM:{name:'Head Manager',role:'Head Manager'},
+  S1:{name:'Nurul Aina',role:'Supervisor · Rental desk'},
+  O1:{name:'Azman bin Yusof',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-05-30','CIDB green card':'2026-11-08'},skills:['crane']},
+  O2:{name:'Muthu a/l Raman',role:'Crane operator',certs:{'DOSH mobile crane operator':'2026-12-15','CIDB green card':'2027-08-01'},skills:['crane']},
+  O3:{name:'Zulkifli bin Hassan',role:'Lorry crane operator',certs:{'DOSH lorry crane operator':'2027-02-01','CIDB green card':'2027-03-01','GDL licence':'2027-06-30'},skills:['crane']},
+  O4:{name:'Tan Kok Wai',role:'Excavator operator',certs:{'CIDB green card':'2027-01-10'},skills:['earth']},
+  O5:{name:'Rajan a/l Muniandy',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-04-02','CIDB green card':'2027-09-09'},skills:['crane']},
+  D1:{name:'Suresh a/l Kumar',role:'Lowloader driver',certs:{'GDL licence':'2027-01-20'}},
+  D2:{name:'Hafiz bin Rahman',role:'Lowloader driver',certs:{'GDL licence':'2026-10-28'}},
+};
+const customers = {
+  C1:{name:'Bina Jaya Construction Sdn Bhd',brn:'201501012345',tin:'C23456789010',sst:'B16-1809-32000881',terms:30,limit:250000,contact:'Mr. Lim Chee Keong',phone:'012-338 1290'},
+  C2:{name:'Kuari Semenyih Sdn Bhd',brn:'199801004567',tin:'C10234567020',sst:'',terms:30,limit:80000,contact:'Pn. Rohana Ismail',phone:'019-271 5530'},
+  C3:{name:'Teguh Piling Sdn Bhd',brn:'200801033221',tin:'C20987654030',sst:'',terms:30,limit:120000,contact:'Mr. Gan Boon Huat',phone:'016-330 2218'},
+  C4:{name:'Ever Bright Steel Structure Sdn Bhd',brn:'201201019876',tin:'',sst:'',terms:30,limit:40000,contact:'Ms. Chong Mei Ling',phone:'012-655 0912'},
+  C5:{name:'Mega Bumi Engineering Sdn Bhd',brn:'201001007788',tin:'C24681357040',sst:'',terms:45,limit:100000,contact:'En. Kamarul Ariffin',phone:'013-388 4410'},
+  C6:{name:'Lian Hup Builders Sdn Bhd',brn:'202301045512',tin:'C29876501050',sst:'',terms:0,limit:0,contact:'Mr. Wong Kar Fai',phone:'017-202 8817',isNew:true},
+  C7:{name:'Port Klang Logistics Sdn Bhd',brn:'199601012233',tin:'C11223344060',sst:'B16-1702-31000233',terms:30,limit:60000,contact:'Mr. Ravi Shankar',phone:'012-388 7701'},
+};
+let rates = {
+  'GR500/wet':{hr:450,minH:4,day:3200,month:58000,mHrs:200,ex:300,ot:450},
+  'KR25/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300},
+  'TR250/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300},
+  'UNIC/wet':{hr:180,minH:4,day:1300,ot:180},
+  'FD30/dry':{day:180,week:900,month:2800,mHrs:200,ex:15},
+  'FD50/dry':{day:260,week:1300,month:4200,mHrs:200,ex:22},
+  'S65/dry':{day:650,week:3000,month:9000,mHrs:200,ex:50},
+  'SK200/dry':{day:800,week:4200,month:14500,mHrs:200,ex:85},
+  'SK200/wet':{hr:170,minH:4,day:1350,month:22000,mHrs:200,ex:130,ot:170},
+  'PC200/dry':{day:800,week:4200,month:14500,mHrs:200,ex:85},
+  'PC200/wet':{hr:170,minH:4,day:1350,month:22000,mHrs:200,ex:130,ot:170},
+  'ZX70/dry':{day:380,week:2200,month:7500,mHrs:200,ex:45},
+  'W950/dry':{day:650,week:3800,month:12000,mHrs:200,ex:70},
+  'DCA150/dry':{day:350,week:2000,month:6500,mHrs:300,ex:20},
+};
+let zones = [
+  {z:'Klang Valley',self:500,small:450,mid:1200},
+  {z:'Negeri Sembilan',self:900,small:700,mid:1800},
+  {z:'Perak',self:1500,small:1100,mid:2600},
+  {z:'Johor',self:2200,small:1500,mid:3400},
+];
+const STATES = ['Selangor','Kuala Lumpur','Putrajaya','Negeri Sembilan','Melaka','Johor','Perak','Pahang','Penang','Kedah','Terengganu','Kelantan','Perlis'];
+
+/* ---------- hires ---------- */
+let hires = [
+  {id:'H-2026-0109',c:'C7',site:'Westport warehouse 2, Pulau Indah',state:'Selangor',siteContact:'Mr. Ravi Shankar 012-388 7701',po:'PKL-PO-26-0418',status:'Closed',created:'2026-08-01',cycle:'Monthly in arrears',
+   lines:[{u:'GS-01',k:'dry',basis:'month',from:'2026-08-06',to:'2026-09-05',on:'2026-08-06',off:'2026-09-05',hm:[{d:'2026-08-06',v:12160},{d:'2026-08-31',v:12620},{d:'2026-09-05',v:12840}]}],
+   trips:[{dir:'Delivery',d:'2026-08-06',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-05',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'}],
+   log:[{d:'2026-09-05 15:10',t:'Returned, no damage. Hire closed.'}]},
+  {id:'H-2026-0118',c:'C2',site:'Quarry pit 3, Semenyih',state:'Selangor',siteContact:'En. Shahril (quarry manager) 019-330 1172',po:'KS/LT/2026/02',status:'On hire',created:'2026-05-20',cycle:'Monthly in arrears',contract:'6-month contract, Jun–Nov 2026 · 200 h a month',
+   lines:[{u:'EX-02',k:'dry',basis:'month',from:'2026-06-01',to:'2026-11-30',on:'2026-06-01',hm:[{d:'2026-08-31',v:14988},{d:'2026-09-30',v:15230},{d:'2026-10-15',v:15362}]}],
+   trips:[{dir:'Delivery',d:'2026-06-01',u:'EX-02',veh:'TR-01',drv:'D1',zone:'Klang Valley',charge:1200,status:'Done'}],
+   log:[{d:'2026-10-15 17:20',t:'Hour meter 15,362 h read by Suresh (photo).'},{d:'2026-10-01 09:00',t:'September invoiced: 242 h used, 42 h over the 200 h allowance.'},{d:'2026-06-01 11:30',t:'Delivered. Delivery inspection signed by En. Shahril.'}]},
+  {id:'H-2026-0130',c:'C5',site:'Bukit Beruntung housing phase 4',state:'Selangor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0726',status:'Returned',created:'2026-08-05',cycle:'Monthly in arrears',
+   lines:[{u:'EX-01',k:'dry',basis:'month',from:'2026-08-10',to:'2026-10-09',on:'2026-08-10',off:'2026-10-09',hm:[{d:'2026-08-10',v:9120},{d:'2026-08-31',v:9268},{d:'2026-09-30',v:9471},{d:'2026-10-09',v:9530}]}],
+   trips:[{dir:'Delivery',d:'2026-08-10',u:'EX-01',veh:'TR-01',drv:'D1',zone:'Klang Valley',charge:1200,status:'Done'},{dir:'Collection',d:'2026-10-09',u:'EX-01',veh:'TR-01',drv:'D1',zone:'Klang Valley',charge:1200,status:'Done'}],
+   damage:{job:'J-2026-0414',note:'Bucket cylinder hose torn, left side cutter cracked. Not on the delivery photos.',est:2850,done:false},
+   log:[{d:'2026-10-10 09:30',t:'Workshop job J-2026-0414 opened for return damage (chargeable to this hire).'},{d:'2026-10-09 16:45',t:'Return inspection: damage found on bucket cylinder hose and side cutter. Photos taken. Customer rep. signed.'}]},
+  {id:'H-2026-0138',c:'C4',site:'Bukit Raja factory extension, Klang',state:'Selangor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2215',status:'Closed',created:'2026-08-28',cycle:'Monthly in arrears',
+   lines:[{u:'FL-02',k:'dry',basis:'month',from:'2026-09-01',to:'2026-09-30',on:'2026-09-01',off:'2026-09-30',hm:[{d:'2026-09-01',v:6120},{d:'2026-09-30',v:6305}]}],
+   trips:[{dir:'Delivery',d:'2026-09-01',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-30',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'}],
+   log:[{d:'2026-09-30 16:00',t:'Returned, no damage.'}]},
+  {id:'H-2026-0141',c:'C1',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',siteContact:'En. Rosli (site supervisor) 013-202 4471',po:'BJ/PO/26/0912',status:'On hire',created:'2026-08-25',cycle:'Monthly in arrears',
+   lines:[{u:'RC-01',k:'wet',basis:'month',from:'2026-09-01',to:'2026-11-30',on:'2026-09-01',op:'O1'}],
+   trips:[{dir:'Delivery',d:'2026-09-01',u:'RC-01',veh:null,drv:'O1',zone:'Klang Valley',charge:500,status:'Done',self:true}],
+   log:[{d:'2026-10-01 09:00',t:'September invoiced.'},{d:'2026-09-01 10:15',t:'On hire. Delivery inspection signed by En. Rosli.'}]},
+  {id:'H-2026-0149',c:'C7',site:'Westport warehouse 4, Pulau Indah',state:'Selangor',siteContact:'Mr. Ravi Shankar 012-388 7701',po:'PKL-PO-26-0533',status:'On hire',created:'2026-09-24',cycle:'Monthly in arrears',
+   lines:[{u:'FL-01',k:'dry',basis:'month',from:'2026-10-01',to:'2026-12-31',on:'2026-10-01',hm:[{d:'2026-10-01',v:4410},{d:'2026-10-15',v:4502}]}],
+   trips:[{dir:'Delivery',d:'2026-10-01',u:'FL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'}],
+   log:[{d:'2026-10-01 11:00',t:'On hire. Delivery inspection signed by Mr. Ravi.'}]},
+  {id:'H-2026-0152',c:'C3',site:'Jalan Kapar piling site, Klang',state:'Selangor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-311',status:'On hire',created:'2026-09-29',cycle:'End of hire',
+   lines:[{u:'RC-02',k:'wet',basis:'day',from:'2026-10-05',to:'2026-10-24',on:'2026-10-05',op:'O2'}],
+   trips:[{dir:'Delivery',d:'2026-10-05',u:'RC-02',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-24',u:'RC-02',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   log:[{d:'2026-10-13 11:40',t:'Breakdown: telescope circuit hose burst at 08:30. Workshop job J-2026-0417. Fixed on site 11:30 (3 h lost).'},{d:'2026-10-05 09:00',t:'On hire.'}]},
+  {id:'H-2026-0153',c:'C3',site:'Pulau Indah jetty extension',state:'Selangor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-298',status:'Off-hire called',created:'2026-09-15',cycle:'Monthly in arrears',offCalled:'2026-10-14',
+   lines:[{u:'RC-03',k:'wet',basis:'day',from:'2026-09-21',to:'2026-10-31',on:'2026-09-21',off:'2026-10-15',op:'O5'}],
+   trips:[{dir:'Delivery',d:'2026-09-21',u:'RC-03',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-16',u:'RC-03',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   log:[{d:'2026-10-14 16:20',t:'Mr. Gan called off-hire from 15 Oct (WhatsApp). Crane drives back on 16 Oct.'},{d:'2026-09-21 10:00',t:'On hire.'}]},
+  {id:'H-2026-0155',c:'C4',site:'Lot 88 Jalan Haji Sirat, Klang',state:'Selangor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2290',status:'Booked',created:'2026-10-13',cycle:'End of hire',note:'Lifting roof trusses, about 6 hours.',
+   lines:[{u:'LC-01',k:'wet',basis:'hour',from:'2026-10-16',to:'2026-10-16',op:'O3'}],
+   trips:[{dir:'Delivery',d:'2026-10-16',u:'LC-01',veh:null,drv:'O3',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   log:[{d:'2026-10-13 14:00',t:'Booked by phone. PO received by e-mail.'}]},
+  {id:'H-2026-0156',c:'C5',site:'Taman Desa drainage works, Rawang',state:'Selangor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0811',status:'On hire',created:'2026-10-08',cycle:'End of hire',
+   lines:[{u:'EX-03',k:'dry',basis:'week',from:'2026-10-12',to:'2026-10-25',on:'2026-10-12'},{u:'WL-01',k:'dry',basis:'week',from:'2026-10-12',to:'2026-10-25',on:'2026-10-12'}],
+   trips:[{dir:'Delivery',d:'2026-10-12',u:'EX-03',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'},{dir:'Delivery',d:'2026-10-12',u:'WL-01',veh:'TR-01',drv:'D1',zone:'Klang Valley',charge:1200,status:'Done'},
+          {dir:'Collection',d:'2026-10-26',u:'EX-03',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Planned'},{dir:'Collection',d:'2026-10-26',u:'WL-01',veh:'TR-01',drv:'D1',zone:'Klang Valley',charge:1200,status:'Planned'}],
+   log:[{d:'2026-10-12 13:00',t:'Both machines delivered and signed for.'}]},
+  {id:'H-2026-0157',c:'C6',site:'Jalan Ampang condominium, Kuala Lumpur',state:'Kuala Lumpur',siteContact:'Mr. Wong 017-202 8817',po:'LOU dated 14 Oct',status:'Booked',created:'2026-10-14',cycle:'End of hire',deposit:3000,depositPaid:false,
+   lines:[{u:'BL-01',k:'dry',basis:'week',from:'2026-10-19',to:'2026-10-30'}],
+   trips:[{dir:'Delivery',d:'2026-10-19',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:1200,status:'Planned'},{dir:'Collection',d:'2026-10-31',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:1200,status:'Planned'}],
+   log:[{d:'2026-10-14 10:30',t:'New customer: deposit RM 3,000 required before delivery.'}]},
+  {id:'H-2026-0160',c:'C1',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',siteContact:'En. Rosli 013-202 4471',po:'',status:'Quotation',created:'2026-10-15',cycle:'Monthly in arrears',quoteValid:'2026-10-22',
+   note:'Second 50 t crane for roof steel. No 50 t free (RC-01 is on this site to 30 Nov). Options: offer 25 t RC-03 after its CF renewal, or cross-hire.',
+   lines:[{u:null,m:'GR500',k:'wet',basis:'day',from:'2026-11-02',to:'2026-11-13'}], trips:[],
+   log:[{d:'2026-10-15 15:40',t:'Enquiry by Mr. Lim. Quotation started.'}]},
+  {id:'H-2026-0161',c:'C5',site:'Taman Desa drainage works, Rawang',state:'Selangor',siteContact:'En. Kamarul 013-388 4410',po:'',status:'Quotation',created:'2026-10-16',cycle:'Monthly in arrears',quoteValid:'2026-10-30',
+   lines:[{u:'GS-01',k:'dry',basis:'month',from:'2026-11-02',to:'2026-12-31'}],
+   trips:[{dir:'Delivery',d:'2026-11-02',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Planned'}],
+   log:[{d:'2026-10-16 08:50',t:'Quotation sent by WhatsApp.'}]},
+];
+const workshop = [
+  {u:'EX-01',from:'2026-10-10',to:'2026-10-20',job:'J-2026-0414',note:'Return damage repair, chargeable to H-2026-0130'},
+  {u:'GS-01',from:'2026-10-26',to:'2026-10-27',job:'J-2026-0422',note:'500 h service before next hire'},
+];
+const breakdowns = [{hire:'H-2026-0152',u:'RC-02',d:'2026-10-13',hrs:3,job:'J-2026-0417',note:'Telescope circuit hose burst. Fixed on site by Rajesh Kumar.'}];
+const lost = [
+  {d:'2026-10-15',c:'Bina Jaya Construction',type:'Rough terrain crane 50 t',why:'No machine free'},
+  {d:'2026-10-02',c:'Sri Kenari Builders',type:'Rough terrain crane 50 t',why:'No machine free'},
+  {d:'2026-09-18',c:'Teguh Piling',type:'Rough terrain crane 50 t',why:'No machine free'},
+  {d:'2026-09-11',c:'Mega Bumi Engineering',type:'Excavator 20 t',why:'No machine free'},
+  {d:'2026-09-03',c:'Lian Hup Builders',type:'Boom lift 20 m',why:'Price'},
+  {d:'2026-08-20',c:'Port Klang Logistics',type:'Forklift 5 t',why:'Went elsewhere'},
+];
+const LIVE = ['Booked','On hire','Off-hire called'];
+const HSTEPS = ['Quotation','Booked','On hire','Off-hire called','Returned','Closed'];
+const SITE_SIGNER = {C1:'En. Rosli',C2:'En. Shahril',C3:'Mr. Gan',C4:'Ms. Chong',C5:'En. Kamarul',C6:'Mr. Wong',C7:'Mr. Ravi'};
+
+/* ---------- timesheets (wet hire) ---------- */
+let sheets = [];
+(function genSheets(){
+  hires.forEach(h => h.lines.forEach(l => {
+    if(l.k!=='wet' || !l.on) return;
+    let hm = fleet[l.u].hm0;
+    const last = l.off && l.off < TODAY ? l.off : addDays(TODAY,-1);
+    for(let d=l.on; d<=last; d=addDays(d,1)){
+      const r = rnd(l.u+d);
+      if(dow(d)===0 && r>0.3) continue;
+      if(l.u==='RC-01' && d==='2026-10-15') continue;          // missing
+      let work = 8 + Math.round(r*5)/2, standby = 0, reason = '', bd = 0;
+      if(rnd('rain'+d) > 0.8){ standby = 2 + Math.round(rnd('s'+l.u+d)*2); work = Math.max(4, work-standby); reason = 'Rain'; }
+      const b = breakdowns.find(x=>x.u===l.u && x.d===d); if(b){ bd = b.hrs; work = Math.max(0, work-bd); }
+      const start = 8, fin = start + work + standby + bd + 1;
+      const hmS = hm; hm += work;
+      sheets.push({id:`${l.u}-${d}`,hire:h.id,u:l.u,op:l.op,d,start:'08:00',finish:hhmm(fin),brk:60,work,standby,reason,bd,hmS,hmE:hm,
+        note: bd ? 'Hose burst on telescope, waited for mechanic.' : reason ? 'Stopped for rain, standby on site.' : ['Lifting steel trusses grid C–F','Lifting rebar cages and casing','Unloading precast panels','Lifting roof purlins','Placing piling casing'][Math.floor(rnd('n'+l.u+d)*5)],
+        status: (l.u==='RC-02' && d==='2026-10-15') ? 'unsigned' : 'signed', signer: SITE_SIGNER[h.c]});
+    }
+    fleet[l.u].hm = Math.round(hm);
+  }));
+})();
+function hhmm(h){ const m = Math.round(h*60); return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+const toH = s => { const [a,b] = s.split(':').map(Number); return a + b/60; };
+
+/* ---------- derived ---------- */
+const hire = id => hires.find(h=>h.id===id);
+const mOf = u => models[fleet[u].m];
+const mName = mk => `${models[mk].make} ${models[mk].model}`;
+const uName = u => `${mOf(u).make} ${mOf(u).model}`;
+const uRef = u => fleet[u].plate || fleet[u].serial;
+const lineModel = l => l.u ? fleet[l.u].m : l.m;
+const rate = (mk, k) => rates[`${mk}/${k}`];
+const hireUnits = () => Object.keys(fleet).filter(u => !fleet[u].transport);
+const allTrips = () => hires.filter(h=>h.status!=='Quotation').flatMap(h => h.trips.map(t => ({...t, hire:h.id, c:h.c, site:h.site})));
+const lineEnd = l => l.off || l.to;
+const overlaps = (a1,a2,b1,b2) => a1 <= b2 && b1 <= a2;
+const kindLabel = k => k==='wet' ? 'Wet hire' : 'Dry hire';
+const basisLabel = {hour:'Hourly',day:'Daily',week:'Weekly',month:'Monthly'};
+const custName = c => customers[c].name;
+const role = () => state.role;
+const boss = () => state.role==='boss';
+const statusPill = s => `<span class="pill ${({Quotation:'mute',Booked:'appr','On hire':'info','Off-hire called':'warn',Returned:'warn',Closed:'mute',Lost:'mute'})[s]||'mute'}">${esc(s)}</span>`;
+const docState = exp => { const n = daysBetween(TODAY, exp); return n < 0 ? 'crit' : n <= 60 ? 'warn' : 'ok'; };
+const docPill = (k, exp) => { const s = docState(exp), n = daysBetween(TODAY, exp); return `<span class="pill ${s}" title="${esc(DOCS[k])} expires ${fmtDY(exp)}">${esc(k==='cf'?'CF':DOCS[k])} ${s==='ok' ? fmtD(exp)+' '+exp.slice(2,4) : n<0 ? 'expired' : n+' d'}</span>`; };
+const worstDoc = u => { const ds = Object.entries(fleet[u].docs).sort((a,b)=>a[1]<b[1]?-1:1); return ds[0]; };
+
+function unitStatus(u, d=TODAY){
+  const f = fleet[u];
+  if(f.transport){ const t = allTrips().filter(t=>t.veh===u && t.d===d); return t.length ? {k:'Trip',cls:'warn',label:`${t.length} trip${t.length>1?'s':''} today`} : {k:'Yard',cls:'mute',label:'In yard'}; }
+  const ws = workshop.find(w=>w.u===u && w.from<=d && w.to>=d);
+  if(ws) return {k:'In workshop',cls:'mute',label:'In workshop',note:`${ws.job} until ${fmtD(ws.to)}`};
+  let next = null;
+  for(const h of hires){
+    if(!LIVE.includes(h.status)) continue;
+    for(const l of h.lines){
+      if(l.u!==u) continue;
+      if(h.status==='Booked'){ if(l.from===d) return {k:'Going out',cls:'appr',label:'Going out today',h,l}; if(l.from>d && (!next || l.from<next.l.from)) next = {h,l}; continue; }
+      if(h.status==='Off-hire called') return {k:'Off-hire called',cls:'warn',label:l.off<d ? 'Awaiting collection' : 'Off-hire called',h,l};
+      if(l.on && l.on<=d) return {k:'On hire',cls:'info',label:'On hire',h,l};
+    }
+  }
+  if(next) return {k:'Booked',cls:'appr',label:`Booked from ${fmtD(next.l.from)}`,h:next.h,l:next.l};
+  return {k:'Available',cls:'ok',label:'Available',idle:idleDays(u)};
+}
+function idleDays(u){
+  const ends = hires.flatMap(h=>h.lines.filter(l=>l.u===u && l.off && l.off<=TODAY).map(l=>l.off));
+  const ws = workshop.filter(w=>w.u===u && w.to<TODAY).map(w=>w.to);
+  const last = [...ends, ...ws].sort().pop();
+  return last ? daysBetween(last, TODAY) : null;
+}
+function onHireOn(u, d){
+  return hires.some(h => !['Quotation','Booked','Lost'].includes(h.status) && h.lines.some(l => l.u===u && l.on && l.on<=d && (l.off||'9999')>=d));
+}
+function utilisation(from, to, units=hireUnits()){
+  let on = 0, n = 0;
+  units.forEach(u => { for(let d=from; d<=to; d=addDays(d,1)){ n++; if(onHireOn(u,d)) on++; } });
+  return n ? Math.round(on/n*100) : 0;
+}
+function availability(u, from, to, ignoreHire){
+  const why = [];
+  hires.forEach(h => { if(h.id===ignoreHire || !LIVE.includes(h.status)) return;
+    h.lines.forEach(l => { if(l.u===u && overlaps(from,to,l.on||l.from,lineEnd(l))) why.push(`${h.status==='Booked'?'Booked':'On hire'} to ${customers[h.c].name.replace(/ Sdn Bhd$/,'')} ${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))} (${h.id})`); }); });
+  workshop.forEach(w => { if(w.u===u && overlaps(from,to,w.from,w.to)) why.push(`In workshop ${fmtD(w.from)}–${fmtD(w.to)} (${w.job})`); });
+  Object.entries(fleet[u].docs).forEach(([k,exp]) => { if(exp < to && ['cf','road','ins','pusp'].includes(k)) why.push(`${DOCS[k]} expires ${fmtD(exp)}${k==='cf'?' (cannot be overridden)':''}`); });
+  return {ok:!why.length, why};
+}
+function operatorFree(o, from, to, ignoreHire){
+  return !hires.some(h => h.id!==ignoreHire && LIVE.includes(h.status) && h.lines.some(l => l.op===o && overlaps(from,to,l.on||l.from,lineEnd(l))));
+}
+
+/* ---------- charges ---------- */
+function meterUsage(l, s, e){
+  const r = (l.hm||[]).slice().sort((a,b)=>a.d<b.d?-1:1);
+  const a = r.filter(x=>x.d<=s).pop() || r.find(x=>x.d>=s), b = r.filter(x=>x.d<=e).pop();
+  return a && b && b.d > a.d ? b.v - a.v : null;
+}
+function lineCharges(h, l, from, to){
+  if(!l.on || !l.u) return [];
+  const s = maxD(l.on, from), e = minD(l.off || to, to);
+  if(s > e) return [];
+  const r = rate(fleet[l.u].m, l.k), days = daysBetween(s,e)+1, name = `${l.u} ${uName(l.u)}`;
+  const ts = sheets.filter(t => t.hire===h.id && t.u===l.u && t.d>=s && t.d<=e);
+  const out = []; let hourly = r.hr || r.day/RULES.dayHrs;
+  if(l.basis==='month'){
+    const m = dim(s), frac = days/m, allow = Math.round(r.mHrs*frac);
+    hourly = r.month/r.mHrs;
+    out.push({kind:'hire',desc:`${name}, ${kindLabel(l.k).toLowerCase()} monthly, ${fmtD(s)}–${fmtD(e)}${days<m?` (${days} of ${m} days)`:''}`,qty:+frac.toFixed(4),unit:'month',rate:r.month,amt:r.month*frac});
+    const used = l.k==='wet' ? sum(ts.map(t=>t.work)) : meterUsage(l, s, e);
+    if(used!=null && used > allow) out.push({kind:'excess',desc:`Excess hours: ${num(used)} h used, ${allow} h included`,qty:used-allow,unit:'h',rate:r.ex,amt:(used-allow)*r.ex});
+  } else if(l.basis==='week'){
+    const w = Math.floor(days/7), rem = days%7;
+    if(w) out.push({kind:'hire',desc:`${name}, dry hire weekly from ${fmtD(s)}`,qty:w,unit:'week',rate:r.week,amt:w*r.week});
+    if(rem) out.push({kind:'hire',desc:`${name}, ${rem} more day${rem>1?'s':''} to ${fmtD(e)}${rem*r.day>r.week?' (capped at one week)':''}`,qty:rem,unit:'day',rate:r.day,amt:Math.min(rem*r.day, r.week)});
+  } else if(l.basis==='day'){
+    if(l.k==='wet'){
+      const wd = ts.filter(t=>dow(t.d)!==0), sun = ts.filter(t=>dow(t.d)===0);
+      if(wd.length) out.push({kind:'hire',desc:`${name}, wet hire daily (8 h, operator ${staff[l.op].name.split(' ')[0]})`,qty:wd.length,unit:'day',rate:r.day,amt:wd.length*r.day});
+      if(sun.length) out.push({kind:'sunday',desc:`Sunday / public holiday (×${RULES.sunX})`,qty:sun.length,unit:'day',rate:r.day*RULES.sunX,amt:sun.length*r.day*RULES.sunX});
+      const ot = sum(ts.map(t=>Math.max(0, t.work+t.standby+t.bd-RULES.dayHrs)));
+      if(ot) out.push({kind:'ot',desc:'Overtime above 8 h a day',qty:ot,unit:'h',rate:r.ot,amt:ot*r.ot});
+    } else out.push({kind:'hire',desc:`${name}, dry hire daily`,qty:days,unit:'day',rate:r.day,amt:days*r.day});
+  } else if(l.basis==='hour'){
+    const hrs = sum(ts.map(t=>Math.max(t.work, r.minH))), sb = sum(ts.map(t=>t.standby));
+    if(hrs) out.push({kind:'hire',desc:`${name}, wet hire hourly (min ${r.minH} h a day)`,qty:hrs,unit:'h',rate:r.hr,amt:hrs*r.hr});
+    if(sb) out.push({kind:'standby',desc:`Standby (${RULES.standbyPct}% rate)`,qty:sb,unit:'h',rate:r.hr*RULES.standbyPct/100,amt:sb*r.hr*RULES.standbyPct/100});
+  }
+  ts.filter(t=>t.bd>RULES.bdGrace).forEach(t => { const q = t.bd-RULES.bdGrace; out.push({kind:'credit',desc:`Breakdown credit ${fmtD(t.d)}: ${t.bd} h lost, first ${RULES.bdGrace} h not credited`,qty:-q,unit:'h',rate:hourly,amt:-q*hourly}); });
+  return out;
+}
+function charges(h, from, to){
+  const out = h.lines.flatMap(l => lineCharges(h, l, from, to));
+  h.trips.filter(t => t.status==='Done' && t.d>=from && t.d<=to).forEach(t => out.push({kind:'transport',desc:`${t.self?'Mobilisation (self-drive)':'Transport by lowloader'}: ${t.dir.toLowerCase()}, ${t.u}, ${t.zone}`,qty:1,unit:'trip',rate:t.charge,amt:t.charge}));
+  return out;
+}
+const totals = lines => { const sub = sum(lines.map(l=>l.amt)), sst = sub*RULES.sst/100; return {sub, sst, total:sub+sst}; };
+function estimate(mk, k, basis, from, to, hrsDay=8){
+  const r = rate(mk, k); if(!r) return null;
+  const days = daysBetween(from,to)+1; let work = 0; for(let d=from; d<=to; d=addDays(d,1)) if(dow(d)!==0) work++;
+  if(basis==='hour'){ if(!r.hr) return null; return {amt:work*Math.max(hrsDay, r.minH)*r.hr, text:`${work} working days × ${Math.max(hrsDay,r.minH)} h × ${RM0(r.hr)}`}; }
+  if(basis==='day'){ if(!r.day) return null; const n = k==='wet' ? work : days; const ot = k==='wet' ? Math.max(0,hrsDay-8)*n*r.ot : 0; return {amt:n*r.day+ot, text:`${n} ${k==='wet'?'working ':''}days × ${RM0(r.day)}${ot?` + ${Math.max(0,hrsDay-8)*n} h overtime`:''}`}; }
+  if(basis==='week'){ if(!r.week) return null; const w = Math.floor(days/7), rem = days%7; return {amt:w*r.week + Math.min(rem*r.day, rem?r.week:0), text:`${w} week${w!==1?'s':''} × ${RM0(r.week)}${rem?` + ${rem} day${rem>1?'s':''}`:''}`}; }
+  if(basis==='month'){ if(!r.month) return null; let amt = 0; for(let d=from; d<=to; d=addDays(d,1)) amt += r.month/dim(d); return {amt, text:`${num(+(amt/r.month).toFixed(2))} month × ${RM0(r.month)} (${r.mHrs} h a month included)`}; }
+}
+function transportCharge(mk, zone){ const z = zones.find(x=>x.z===zone) || zones[0]; return z[models[mk].size] || 0; }
+
+/* ---------- invoices ---------- */
+let invoices = [];
+const UUIDCH = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+const uuidOf = s => Array.from({length:26},(_,i)=>UUIDCH[Math.floor(rnd(s+i)*UUIDCH.length)]).join('');
+(function buildInvoices(){
+  let n = 612;
+  const PAID = {C2:'2026-10-14',C7:'2026-10-12'};
+  hires.forEach(h => {
+    const lines = charges(h, '2026-09-01', '2026-09-30'); if(!lines.length) return;
+    const t = totals(lines), no = `INV-2026-0${n++}`, cu = customers[h.c];
+    invoices.push({no, c:h.c, hire:h.id, period:'Sep 2026', from:'2026-09-01', to:'2026-09-30', issued:'2026-10-01', due:addDays('2026-10-01', cu.terms), lines, ...t,
+      status: !cu.tin ? 'Draft' : PAID[h.c] ? 'Paid' : 'Sent', paid:PAID[h.c] || null,
+      einv: !cu.tin ? 'Rejected' : 'Validated', einvNote: !cu.tin ? 'Buyer TIN missing' : '', uuid: cu.tin ? uuidOf(no) : ''});
+  });
+  invoices.push({no:'INV-2026-0571',c:'C3',hire:'H-2026-0127',period:'Aug 2026',issued:'2026-09-01',due:'2026-10-01',sub:19888.89,sst:1591.11,total:21480,status:'Sent',einv:'Validated',uuid:uuidOf('0571'),lines:[]});
+  invoices.push({no:'INV-2026-0566',c:'C1',hire:'H-2026-0119',period:'Aug 2026',issued:'2026-09-01',due:'2026-10-01',sub:42500,sst:3400,total:45900,status:'Paid',paid:'2026-09-29',einv:'Validated',uuid:uuidOf('0566'),lines:[]});
+  invoices.push({no:'INV-2026-0549',c:'C5',hire:'H-2026-0112',period:'Jul 2026',issued:'2026-08-01',due:'2026-09-15',sub:9259.26,sst:740.74,total:10000,status:'Sent',einv:'Validated',uuid:uuidOf('0549'),lines:[]});
+})();
+const invStatus = i => i.status==='Paid' ? 'Paid' : i.status==='Draft' ? 'Draft' : i.due < TODAY ? 'Overdue' : 'Sent';
+const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Paid:'ok',Draft:'mute',Overdue:'crit',Sent:'info'})[s]}">${s}${s==='Overdue'?' '+daysBetween(i.due,TODAY)+' d':''}</span>`; };
+const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
+
+/* ---------- state ---------- */
+const state = {view:'today', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, sheet:null, lastSheet:null};
+try{ const v = localStorage.getItem('hdg-rental-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
+if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
+
+function setView(v){
+  if(role()==='operator') v = 'timesheets';
+  if(v==='reports' && !boss()) v = 'today';
+  state.view = v;
+  document.querySelectorAll('section.view').forEach(s => s.hidden = s.id !== 'v-'+v);
+  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.view===v ? 'page' : 'false'));
+  try{ localStorage.setItem('hdg-rental-view', v); }catch(e){}
+  render();
+}
+function render(){ ({today:renderToday,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
+function rerender(){ render(); refreshSheet(); }
+
+/* ---------- Today ---------- */
+function attention(){
+  const items = [];
+  const wet = hires.filter(h=>['On hire','Off-hire called'].includes(h.status)).flatMap(h=>h.lines.filter(l=>l.k==='wet' && l.on).map(l=>({h,l})));
+  wet.forEach(({h,l}) => {
+    const last = minD(l.off||addDays(TODAY,-1), addDays(TODAY,-1));
+    for(let d=maxD(l.on,addDays(TODAY,-7)); d<=last; d=addDays(d,1)){
+      const t = sheets.find(s=>s.u===l.u && s.d===d);
+      if(!t && dow(d)!==0) items.push({sev:'crit',t:`No timesheet: ${l.u} on ${fmtDW(d)}`,s:`${staff[l.op].name} · ${custName(h.c)}`,a:`data-hire="${h.id}"`});
+      else if(t && t.status==='unsigned') items.push({sev:'warn',t:`Timesheet not signed: ${l.u} on ${fmtDW(d)}`,s:`Send to ${SITE_SIGNER[h.c]} by WhatsApp for approval`,a:`data-ts="${t.id}"`});
+    }
+  });
+  hires.filter(h=>h.status==='Booked' && h.deposit && !h.depositPaid).forEach(h => items.push({sev:'warn',t:`Deposit ${RM0(h.deposit)} not received: ${h.id}`,s:`${custName(h.c)} · delivery ${fmtDW(h.lines[0].from)}`,a:`data-hire="${h.id}"`}));
+  hires.filter(h=>h.status==='Off-hire called').forEach(h => items.push({sev:'info',t:`Off-hire: ${h.lines.map(l=>l.u).join(', ')} from ${fmtD(h.lines[0].off)}`,s:`${custName(h.c)} · collection ${fmtDW(h.trips.find(t=>t.dir==='Collection')?.d)}`,a:`data-hire="${h.id}"`}));
+  hires.filter(h=>h.status==='Quotation' && h.lines.some(l=>!l.u)).forEach(h => items.push({sev:'warn',t:`No machine free for quotation ${h.id}`,s:`${models[h.lines[0].m].type}, ${fmtD(h.lines[0].from)}–${fmtD(h.lines[0].to)} · ${custName(h.c)}`,a:`data-hire="${h.id}"`}));
+  hires.filter(h=>h.status==='Returned' && h.damage).forEach(h => items.push({sev:'info',t:`Damage to charge: ${h.id} (${h.damage.job})`,s:`${h.damage.note} Estimate ${RM0(h.damage.est)}`,a:`data-hire="${h.id}"`,cost:true}));
+  invoices.filter(i=>i.einv==='Rejected').forEach(i => items.push({sev:'crit',t:`e-Invoice rejected: ${i.no}`,s:`${i.einvNote} · ${custName(i.c)}`,a:`data-inv="${i.no}"`,cost:true}));
+  invoices.filter(i=>invStatus(i)==='Overdue').forEach(i => items.push({sev:'warn',t:`Invoice overdue ${daysBetween(i.due,TODAY)} d: ${i.no}`,s:`${custName(i.c)} · ${RM(i.total)}`,a:`data-inv="${i.no}"`,cost:true}));
+  return items;
+}
+function expiring(){
+  const out = [];
+  Object.entries(fleet).forEach(([u,f]) => Object.entries(f.docs).forEach(([k,exp]) => { if(daysBetween(TODAY,exp)<=60) out.push({exp, t:`${u} · ${DOCS[k]}`, s:uName(u), a:`data-unit="${u}"`}); }));
+  Object.entries(staff).forEach(([s,p]) => Object.entries(p.certs||{}).forEach(([k,exp]) => { if(daysBetween(TODAY,exp)<=60) out.push({exp, t:`${p.name} · ${k}`, s:p.role, a:''}); }));
+  return out.sort((a,b)=>a.exp<b.exp?-1:1);
+}
+const SCOL = {'On hire':'var(--k-wet)','Off-hire called':'var(--warn)','Going out':'var(--accent)','Booked':'var(--accent)','In workshop':'var(--muted)','Available':'var(--ok)'};
+function renderToday(){
+  const units = hireUnits(), st = units.map(u=>[u,unitStatus(u)]);
+  const cnt = k => st.filter(([,s])=>s.k===k).length;
+  const onHire = cnt('On hire') + cnt('Off-hire called');
+  const trips = allTrips().filter(t=>t.d===TODAY);
+  const goingOut = hires.filter(h=>h.status==='Booked').flatMap(h=>h.lines.filter(l=>l.from===TODAY).map(l=>({h,l})));
+  const att = attention(), exp = expiring();
+  const util = utilisation('2026-10-01', TODAY);
+  const valueMonth = sum(hires.filter(h=>h.status!=='Quotation').map(h=>totals(charges(h,'2026-10-01',TODAY)).sub));
+  const idle = st.filter(([,s])=>s.k==='Available').map(([u,s])=>({u,idle:s.idle})).sort((a,b)=>(b.idle||0)-(a.idle||0));
+  const order = ['On hire','Off-hire called','Going out','Booked','In workshop','Available'];
+  $('#v-today').innerHTML = `
+    <div class="view-head"><h2>Today · ${fmtDW(TODAY)} 2026</h2><button class="btn primary" data-action="new-hire">New hire / quotation</button></div>
+    <div class="kpis">
+      <div class="kpi"><b>${onHire}<small class="muted" style="font-size:1rem"> / ${units.length}</small></b><span>Machines on hire</span></div>
+      <div class="kpi"><b>${cnt('Available')}</b><span>Available now</span></div>
+      <div class="kpi"><b>${util}%</b><span>Utilisation, Oct to date</span></div>
+      <div class="kpi warn"><b>${new Set([...trips.filter(t=>t.dir==='Delivery').map(t=>t.u), ...goingOut.map(g=>g.l.u)]).size}</b><span>Going out today</span></div>
+      <div class="kpi"><b>${trips.filter(t=>t.dir==='Collection').length}</b><span>Coming back today</span></div>
+      <div class="kpi alert"><b>${att.filter(a=>a.sev==='crit').length}</b><span>Urgent items</span></div>
+      <div class="kpi cost"><b style="font-size:1.45rem">${RM0(valueMonth)}</b><span>Hire charges Oct to date (before SST)</span></div>
+    </div>
+    <div class="dash">
+      <div class="stack">
+        <div class="panel"><div class="panel-head"><h3>Act now</h3><span class="muted num">${att.length}</span></div><div class="panel-body">
+          ${att.map(a=>`<div class="attn ${a.cost?'cost':''}" ${a.a} role="button" tabindex="0" style="--sev:var(--${a.sev==='crit'?'crit':a.sev==='warn'?'warn':'info'})"><i></i><div><b>${esc(a.t)}</b><br><small class="muted">${esc(a.s)}</small></div></div>`).join('') || '<p class="muted" style="padding:8px 14px">Nothing waiting.</p>'}
+        </div></div>
+        <div class="panel"><div class="panel-head"><h3>Moving today</h3><span class="muted">${trips.length} trip${trips.length!==1?'s':''}</span></div>
+          <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Machine</th><th>Direction</th><th>Customer · site</th><th>By</th><th>Status</th></tr></thead><tbody>
+          ${trips.map(t=>`<tr class="click" data-hire="${t.hire}"><td><b>${t.u}</b><br><small class="muted">${esc(uName(t.u))}</small></td><td>${t.dir==='Delivery'?'Out to site':'Back to yard'}</td><td>${esc(custName(t.c))}<br><small class="muted">${esc(t.site)}</small></td><td>${t.veh?esc(t.veh)+' · ':''}${esc(staff[t.drv].name)}${t.self?'<br><small class="muted">self-drive</small>':''}</td><td><span class="pill ${t.status==='Done'?'ok':'warn'}">${t.status==='Done'?'Done':'Planned'}</span></td></tr>`).join('')}
+          </tbody></table></div></div>
+        <div class="panel"><div class="panel-head"><h3>On hire now</h3><span class="muted">${onHire} machines</span></div>
+          <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Machine</th><th>Customer · site</th><th>Hire</th><th>Since</th><th>Until</th></tr></thead><tbody>
+          ${st.filter(([,s])=>['On hire','Off-hire called'].includes(s.k)).map(([u,s])=>`<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(uRef(u))}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${kindLabel(s.l.k)}<br><small class="muted">${basisLabel[s.l.basis]}${s.l.op?' · '+esc(staff[s.l.op].name):''}</small></td><td class="num">${fmtD(s.l.on)}</td><td class="num">${s.k==='Off-hire called'?'<span class="pill warn">Off-hire '+fmtD(s.l.off)+'</span>':fmtD(s.l.to)}</td></tr>`).join('')}
+          </tbody></table></div></div>
+      </div>
+      <div class="rail">
+        <div class="panel"><div class="panel-head"><h3>Fleet now</h3><button class="btn small" data-view="planner">Planner</button></div>
+          <div class="statusbar">${order.map(k=>cnt(k)?`<i style="flex:${cnt(k)};background:${SCOL[k]}" title="${k}: ${cnt(k)}"></i>`:'').join('')}</div>
+          <div class="slegend">${order.map(k=>`<div><i style="background:${SCOL[k]}"></i>${k}<b>${cnt(k)}</b></div>`).join('')}</div></div>
+        <div class="panel"><div class="panel-head"><h3>Idle in the yard</h3></div><div class="panel-body">
+          ${idle.map(x=>`<div class="attn" data-unit="${x.u}" role="button" tabindex="0" style="--sev:var(--${(x.idle||0)>=14?'warn':'ok'})"><i></i><div><b>${x.u} ${esc(uName(x.u))}</b><br><small class="muted">${x.idle!=null?x.idle+' days since last hire':'Not hired yet'}</small></div></div>`).join('') || '<p class="muted" style="padding:8px 14px">Every machine is out.</p>'}
+        </div></div>
+        <div class="panel"><div class="panel-head"><h3>Expiring in 60 days</h3><span class="muted num">${exp.length}</span></div><div class="panel-body">
+          ${exp.map(x=>`<div class="attn" ${x.a} role="button" tabindex="0" style="--sev:var(--${daysBetween(TODAY,x.exp)<=21?'crit':'warn'})"><i></i><div><b>${esc(x.t)}</b><br><small class="muted">${fmtDY(x.exp)} · ${daysBetween(TODAY,x.exp)} days · ${esc(x.s)}</small></div></div>`).join('')}
+        </div></div>
+      </div>
+    </div>`;
+}
+
+/* ---------- Planner ---------- */
+function barHtml(a, b, cls, label, attrs, title){
+  const more = b > GN-1;
+  const x = Math.max(0,a), y = Math.min(GN-1,b);
+  if(y < 0 || x > GN-1 || y < x) return '';
+  return `<button class="bar ${cls}${more?' more':''}" style="left:calc(var(--cw) * ${x} + 1px);width:calc(var(--cw) * ${y-x+1} - 2px)" ${attrs} title="${esc(title)}">${esc(label)}${more?' →':''}</button>`;
+}
+function renderPlanner(){
+  const days = [...Array(GN)].map((_,i)=>addDays(G0,i)), ti = daysBetween(G0,TODAY);
+  const types = [...new Set(hireUnits().map(u=>mOf(u).type))];
+  const f = state.find, fType = f.type;
+  const res = fType ? hireUnits().filter(u=>mOf(u).type===fType).map(u=>({u,...availability(u,f.from,f.to)})) : [];
+  const sunCols = days.map((d,i)=>dow(d)===0?`<i class="g-sun" style="left:calc(var(--cw) * ${i})"></i>`:'').join('');
+  const groups = Object.keys(GROUPS).filter(g => !state.planGrp || state.planGrp===g);
+  const rowFor = u => {
+    const bars = [];
+    hires.forEach(h => { if(['Lost'].includes(h.status)) return; h.lines.forEach(l => { if(l.u!==u) return;
+      const a = daysBetween(G0, l.on||l.from), b = daysBetween(G0, lineEnd(l));
+      const cls = h.status==='Quotation' ? 'quote' : h.status==='Booked' ? `booked ${l.k}` : `${l.k}${h.status==='Off-hire called'?' offcalled':''}`;
+      bars.push(barHtml(a, b, cls, `${h.status==='Quotation'?'Quote · ':''}${customers[h.c].name.replace(/ (Sdn Bhd|Construction|Engineering|Structure|Builders|Logistics)/g,'')}`, `data-hire="${h.id}"`, `${h.id} · ${custName(h.c)} · ${kindLabel(l.k)} ${basisLabel[l.basis].toLowerCase()} · ${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))} · ${h.status}`));
+    }); });
+    workshop.filter(w=>w.u===u).forEach(w => bars.push(barHtml(daysBetween(G0,w.from), daysBetween(G0,w.to), 'ws', w.note.startsWith('Return')?'Repair':'Service', `data-unit="${u}"`, `${w.job} · ${w.note} · ${fmtD(w.from)}–${fmtD(w.to)}`)));
+    breakdowns.filter(b=>b.u===u).forEach(b => { const i = daysBetween(G0,b.d); if(i>=0 && i<GN) bars.push(`<button class="bd" style="left:calc(var(--cw) * ${i})" data-hire="${b.hire}" title="Breakdown ${fmtD(b.d)}: ${esc(b.note)} (${b.hrs} h lost, ${b.job})" aria-label="Breakdown"></button>`); });
+    if(fleet[u].transport) allTrips().filter(t=>t.veh===u).forEach(t => bars.push(barHtml(daysBetween(G0,t.d), daysBetween(G0,t.d), 'trip', t.u.replace('-0',''), `data-hire="${t.hire}"`, `${fmtD(t.d)} · ${t.dir} ${t.u} · ${t.site} · ${staff[t.drv].name}`)));
+    else allTrips().filter(t=>t.u===u).forEach(t => { const i = daysBetween(G0,t.d); if(i>=0 && i<GN) bars.push(`<span class="tmark" style="left:calc(var(--cw) * ${i})" title="${t.dir} ${fmtD(t.d)}${t.veh?' by '+t.veh:' (self-drive)'} · ${esc(staff[t.drv].name)}"></span>`); });
+    const r = res.find(x=>x.u===u);
+    const cls = fType ? (r ? (r.ok ? 'hit' : 'miss') : 'dim') : '';
+    const st = unitStatus(u);
+    return `<div class="g-row ${cls}"><button class="g-lab" data-unit="${u}"><b>${u} · ${esc(mOf(u).model)}</b><small>${esc(mOf(u).type)} · ${esc(st.label)}</small></button><div class="g-track">${sunCols}${ti>=0&&ti<GN?`<i class="g-today" style="left:calc(var(--cw) * ${ti})"></i>`:''}${bars.join('')}</div></div>`;
+  };
+  $('#v-planner').innerHTML = `
+    <div class="view-head"><h2>Planner</h2>
+      <div class="chipbar">${['',...Object.keys(GROUPS)].map(g=>`<button class="chip" data-plangrp="${g}" aria-pressed="${state.planGrp===g}">${g?esc(GROUPS[g]):'All'}</button>`).join('')}</div>
+      <button class="btn primary" data-action="new-hire">New hire / quotation</button></div>
+    <form class="findbar" data-form="find">
+      <label>Find a machine<select class="field" name="type"><option value="">Machine type…</option>${types.map(t=>`<option ${t===fType?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+      <label>From<input type="date" name="from" value="${f.from}"></label>
+      <label>To<input type="date" name="to" value="${f.to}"></label>
+      <button class="btn">Check</button>${fType?'<button class="btn" type="button" data-action="find-clear">Clear</button>':''}
+    </form>
+    ${fType ? `<div class="panel"><div class="panel-head"><h3>${esc(fType)} · ${fmtD(f.from)}–${fmtD(f.to)}</h3><span class="muted">${res.filter(r=>r.ok).length} of ${res.length} free</span></div><div class="findres">
+      ${res.map(r=>`<div class="fr"><div><b>${r.u} ${esc(uName(r.u))}</b> <span class="pill ${r.ok?'ok':'crit'}">${r.ok?'Free':'Not free'}</span><small>${r.ok?'No bookings, workshop jobs or document expiries in these dates.':r.why.map(esc).join(' · ')}</small></div>${r.ok?`<button class="btn small primary" data-action="book-unit" data-u="${r.u}">Book</button>`:''}</div>`).join('')}
+      ${!res.some(r=>r.ok)?`<div class="fr"><div><b>Nothing free.</b><small>Offer another size, other dates, or cross-hire from another company. The enquiry is kept as lost (no machine free) for the fleet report.</small></div></div>`:''}
+    </div></div>` : ''}
+    <div class="g-legend"><span><i class="sw" style="background:var(--k-wet)"></i>Wet hire</span><span><i class="sw" style="background:var(--k-dry)"></i>Dry hire</span><span><i class="sw bar booked dry" style="position:static;height:12px;width:22px;padding:0"></i>Booked</span><span><i class="sw" style="outline:1.5px dashed var(--k-quote);outline-offset:-1.5px"></i>Quotation</span><span><i class="sw bar ws" style="position:static;height:12px;width:22px;padding:0"></i>Workshop</span><span><i class="sw" style="background:var(--crit);width:5px"></i>Breakdown</span><span><i class="sw" style="width:0;height:0;border-radius:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid var(--warn)"></i>Delivery / collection</span><span class="muted">Shaded = Sunday · amber line = today</span></div>
+    <div class="gantt-wrap"><div class="gantt">
+      <div class="g-row g-head"><div class="g-lab">Machine</div><div class="g-track">${days.map((d,i)=>`<div class="g-day ${dow(d)===0?'sun':''} ${d===TODAY?'today':''}"><i>${+d.slice(8)===1||i===0?MON[+d.slice(5,7)-1]:''}</i><b>${+d.slice(8)}</b></div>`).join('')}</div></div>
+      ${groups.map(g => { const us = Object.keys(fleet).filter(u=>mOf(u).grp===g); return us.length ? `<div class="g-group"><span>${esc(GROUPS[g])}</span></div>${us.map(rowFor).join('')}` : ''; }).join('')}
+    </div></div>`;
+}
+
+/* ---------- Hires ---------- */
+const HTABS = {active:['Booked','On hire','Off-hire called'], quotes:['Quotation'], returned:['Returned'], closed:['Closed','Lost'], all:null};
+function hireValue(h){ return totals(charges(h, '2026-10-01', TODAY)).sub; }
+function renderHires(){
+  const list = hires.filter(h => !HTABS[state.hireTab] || HTABS[state.hireTab].includes(h.status)).sort((a,b)=>a.id<b.id?1:-1);
+  $('#v-hires').innerHTML = `
+    <div class="view-head"><h2>Hires</h2>
+      <div class="seg">${Object.entries({active:'Active',quotes:'Quotations',returned:'Returned',closed:'Closed',all:'All'}).map(([k,v])=>`<button data-hiretab="${k}" aria-pressed="${state.hireTab===k}">${v} <span class="muted num">${hires.filter(h=>!HTABS[k]||HTABS[k].includes(h.status)).length}</span></button>`).join('')}</div>
+      <button class="btn primary" data-action="new-hire">New hire / quotation</button></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Hire</th><th>Customer · site</th><th>Machines</th><th>Kind</th><th>Period</th><th>Status</th><th class="r cost">Oct to date</th></tr></thead><tbody>
+    ${list.map(h=>`<tr class="click" data-hire="${h.id}"><td class="mono">${h.id}</td><td><b>${esc(custName(h.c))}</b><br><small class="muted">${esc(h.site)}</small></td>
+      <td>${h.lines.map(l=>l.u?`<b>${l.u}</b> ${esc(mOf(l.u).model)}`:`<span class="pill crit">No machine</span> ${esc(models[l.m].type)}`).join('<br>')}</td>
+      <td>${[...new Set(h.lines.map(l=>kindLabel(l.k)))].join(', ')}<br><small class="muted">${[...new Set(h.lines.map(l=>basisLabel[l.basis]))].join(', ')}</small></td>
+      <td class="num">${fmtD(h.lines[0].on||h.lines[0].from)} – ${fmtD(lineEnd(h.lines[0]))}${h.contract?'<br><small class="muted">Long-term contract</small>':''}</td>
+      <td>${statusPill(h.status)}${h.deposit&&!h.depositPaid&&h.status==='Booked'?'<br><small class="muted">Deposit due</small>':''}</td>
+      <td class="r num cost">${h.status==='Quotation'?'<span class="muted">—</span>':RM0(hireValue(h))}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No hires here.</td></tr>'}
+    </tbody></table></div>`;
+}
+
+function openHire(id){
+  const h = hire(id), cu = customers[h.c], op = role()==='operator';
+  const si = HSTEPS.indexOf(h.status);
+  const lines = charges(h, '2026-10-01', TODAY), t = totals(lines);
+  const tsRows = sheets.filter(s=>s.hire===h.id).sort((a,b)=>a.d<b.d?1:-1).slice(0,8);
+  const actions = [];
+  if(h.status==='Quotation'){ actions.push(`<button class="btn" data-action="send-quote" data-id="${id}">Send quotation by WhatsApp</button>`); if(h.lines.every(l=>l.u)) actions.push(`<button class="btn primary" data-action="confirm" data-id="${id}">Confirm booking</button>`); actions.push(`<button class="btn" data-action="lose" data-id="${id}">Mark lost</button>`); }
+  if(h.status==='Booked'){ if(h.deposit && !h.depositPaid) actions.push(`<button class="btn" data-action="deposit" data-id="${id}">Deposit received</button>`); actions.push(`<button class="btn primary" data-action="insp" data-id="${id}" data-kind="delivery">Delivery inspection</button>`); actions.push(`<button class="btn" data-action="cancel" data-id="${id}">Cancel booking</button>`); }
+  if(h.status==='On hire'){ actions.push(`<button class="btn primary" data-action="offhire" data-id="${id}">Customer called off-hire</button>`); actions.push(`<button class="btn" data-action="breakdown" data-id="${id}">Report breakdown</button>`); actions.push(`<button class="btn" data-action="extend" data-id="${id}">Extend 7 days</button>`); }
+  if(h.status==='Off-hire called') actions.push(`<button class="btn primary" data-action="insp" data-id="${id}" data-kind="return">Return inspection</button>`);
+  if(h.status==='Returned') actions.push(`<button class="btn primary" data-action="final-inv" data-id="${id}">Prepare final invoice</button>`);
+  const body = `
+    <div class="steps">${HSTEPS.map((s,i)=>`<div class="step ${h.status==='Lost'?'':i<si?'done':i===si?'cur':''}">${s}</div>`).join('')}</div>
+    ${h.note?`<div class="banner"><b>${esc(h.note)}</b></div>`:''}
+    ${h.status==='Booked'&&h.deposit&&!h.depositPaid?`<div class="banner crit"><b>New customer: deposit ${RM0(h.deposit)} must be received before delivery on ${fmtDW(h.lines[0].from)}.</b></div>`:''}
+    ${actions.length?`<div class="btnrow office">${actions.join('')}</div>`:''}
+    <div class="sect"><h3>Customer and site</h3><div class="facts">
+      <div><span class="label">Customer</span><b>${esc(cu.name)}</b></div>
+      <div><span class="label">Contact</span><b>${esc(cu.contact)} · ${esc(cu.phone)}</b></div>
+      <div><span class="label">Site</span><b>${esc(h.site)}</b><small class="muted">${esc(h.state)}</small></div>
+      <div><span class="label">Site contact</span><b>${esc(h.siteContact)}</b></div>
+      <div><span class="label">PO / LOU</span><b>${esc(h.po||'Not yet')}</b></div>
+      <div class="cost"><span class="label">Billing</span><b>${esc(h.cycle)}</b><small class="muted">${cu.terms?cu.terms+' days credit':'Cash / deposit'}</small></div>
+      ${h.contract?`<div><span class="label">Contract</span><b>${esc(h.contract)}</b></div>`:''}
+      ${h.quoteValid?`<div><span class="label">Quotation valid to</span><b>${fmtDY(h.quoteValid)}</b></div>`:''}
+      ${h.deposit?`<div class="cost"><span class="label">Deposit</span><b>${RM0(h.deposit)} ${h.depositPaid?'<span class="pill ok">Received</span>':'<span class="pill warn">Due</span>'}</b></div>`:''}
+    </div></div>
+    <div class="sect"><h3>Machines</h3><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Machine</th><th>Hire</th><th class="cost">Rate</th><th>Operator</th><th>On hire</th><th>Off hire</th></tr></thead><tbody>
+      ${h.lines.map(l=>{ const r = rate(lineModel(l), l.k)||{}; const main = {hour:r.hr,day:r.day,week:r.week,month:r.month}[l.basis];
+        return `<tr><td>${l.u?`<b>${l.u}</b> ${esc(uName(l.u))}<br><small class="muted">${esc(uRef(l.u))}</small>`:`<span class="pill crit">Not assigned</span><br><small class="muted">${esc(models[l.m].type)}</small>`}</td>
+        <td>${kindLabel(l.k)}<br><small class="muted">${basisLabel[l.basis]}</small></td>
+        <td class="cost num">${RM0(main||0)} / ${({hour:'h',day:'day',week:'week',month:'month'})[l.basis]}${l.basis==='month'?`<br><small class="muted">${r.mHrs} h incl., then ${RM0(r.ex)}/h</small>`:l.basis==='hour'?`<br><small class="muted">min ${r.minH} h a day</small>`:l.k==='wet'?`<br><small class="muted">OT ${RM0(r.ot)}/h</small>`:''}</td>
+        <td>${l.op?esc(staff[l.op].name):'<span class="muted">Customer\'s own</span>'}</td>
+        <td class="num">${l.on?fmtD(l.on):'<span class="muted">Planned '+fmtD(l.from)+'</span>'}</td>
+        <td class="num">${l.off?fmtD(l.off):'<span class="muted">Planned '+fmtD(l.to)+'</span>'}</td></tr>`; }).join('')}
+    </tbody></table></div></div>
+    ${h.lines.some(l=>l.on)?`<div class="sect"><h3>Inspections</h3><div class="in">
+      ${h.lines.filter(l=>l.on).map(l=>`<div class="minihead"><b>${l.u} delivery · ${fmtDY(l.on)}</b><span class="pill ok">Signed by ${esc(SITE_SIGNER[h.c])}</span></div>
+        <div class="photos">${['Front','Left side','Rear','Hour meter'].map((p,i)=>`<figure class="photo"><img src="${ph(l.u+' · '+p, 200+i*25)}" alt="${esc(p)}"><figcaption><span class="stage">Delivery</span> ${p}</figcaption></figure>`).join('')}</div>
+        <small class="muted">Checklist all OK · fuel ${l.k==='wet'?'full':'¾'} · ${(l.hm&&l.hm[0])?'hour meter '+num(l.hm[0].v)+' h':'hour meter recorded'}</small>
+        ${l.off && h.status!=='Off-hire called'?`<div class="minihead" style="margin-top:8px"><b>${l.u} return · ${fmtDY(l.off)}</b>${h.damage?'<span class="pill crit">Damage found</span>':'<span class="pill ok">No damage</span>'}</div>${h.damage?`<p style="margin:0">${esc(h.damage.note)} Workshop job <b>${esc(h.damage.job)}</b>${h.damage.done?' completed':' in progress'}<span class="cost">, estimate ${RM0(h.damage.est)} chargeable</span>.</p>`:''}`:''}`).join('<hr style="border:0;border-top:1px solid var(--line);margin:6px 0">')}
+    </div></div>`:''}
+    ${tsRows.length?`<div class="sect"><h3>Timesheets <small class="muted" style="text-transform:none;letter-spacing:0">latest ${tsRows.length}</small></h3><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Date</th><th>Machine</th><th class="r">Work</th><th class="r">Standby</th><th class="r">Breakdown</th><th>Signed</th></tr></thead><tbody>
+      ${tsRows.map(s=>`<tr class="click" data-ts="${s.id}"><td class="num">${fmtDW(s.d)}</td><td>${s.u}</td><td class="r num">${num(s.work)} h</td><td class="r num">${s.standby?num(s.standby)+' h '+esc(s.reason):'—'}</td><td class="r num">${s.bd?'<span class="pill crit">'+s.bd+' h</span>':'—'}</td><td>${s.status==='signed'?'<span class="pill ok">'+esc(s.signer)+'</span>':'<span class="pill warn">Not signed</span>'}</td></tr>`).join('')}
+    </tbody></table></div></div>`:''}
+    ${h.lines.some(l=>l.hm && l.k==='dry')?`<div class="sect"><h3>Hour meter readings</h3><div class="in">${h.lines.filter(l=>l.hm).map(l=>`<div>${l.u}: ${l.hm.map(x=>`${fmtD(x.d)} <b class="num">${num(x.v)}</b>`).join(' → ')}</div>`).join('')}<small class="muted">Monthly allowance ${rate(fleet[h.lines[0].u].m,'dry')?.mHrs||200} h; hours above are charged as excess.</small></div></div>`:''}
+    ${h.status!=='Quotation'?`<div class="sect cost"><h3>Charges 1 Oct to today</h3><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Description</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">Amount</th></tr></thead><tbody>
+      ${lines.map(x=>`<tr><td>${esc(x.desc)}</td><td class="r num">${num(+x.qty.toFixed(2))} ${x.unit}</td><td class="r num">${RM(x.rate)}</td><td class="r num">${RM(x.amt)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nothing charged in October yet.</td></tr>'}
+    </tbody></table></div><div class="totals"><span>Subtotal</span><b>${RM(t.sub)}</b><span>SST ${RULES.sst}%</span><b>${RM(t.sst)}</b><span>Total</span><b>${RM(t.total)}</b></div></div>`
+    : (()=>{ const est = h.lines.map(l=>({l,e:estimate(lineModel(l),l.k,l.basis,l.from,l.to)})); const tr = sum(h.trips.map(x=>x.charge)); const s = sum(est.map(x=>x.e?.amt||0))+tr;
+      return `<div class="sect cost"><h3>Quotation estimate</h3><div class="in est">${est.map(x=>`<span>${x.l.u||models[x.l.m].type}: ${esc(x.e?.text||'not offered')}</span><b>${RM(x.e?.amt||0)}</b>`).join('')}${tr?`<span>Transport</span><b>${RM(tr)}</b>`:''}<hr><span>Subtotal</span><b>${RM(s)}</b><span>SST ${RULES.sst}%</span><b>${RM(s*RULES.sst/100)}</b><span class="tot">Total</span><b class="tot">${RM(s*(1+RULES.sst/100))}</b></div></div>`; })()}
+    ${h.trips.length?`<div class="sect"><h3>Transport</h3><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Date</th><th>Trip</th><th>Vehicle · driver</th><th class="r cost">Charge</th><th>Status</th></tr></thead><tbody>
+      ${h.trips.map(x=>`<tr><td class="num">${fmtDW(x.d)}</td><td>${x.dir} · ${x.u}</td><td>${x.veh?esc(x.veh)+' · ':'Self-drive · '}${esc(staff[x.drv].name)}</td><td class="r num cost">${RM0(x.charge)}</td><td><span class="pill ${x.status==='Done'?'ok':'warn'}">${x.status}</span></td></tr>`).join('')}
+    </tbody></table></div></div>`:''}
+    <div class="sect"><h3>Activity</h3><div class="in"><ul class="log">${h.log.map(x=>`<li><time>${esc(x.d)}</time><span>${esc(x.t)}</span></li>`).join('')}</ul></div></div>`;
+  openSheet(`${esc(custName(h.c))}`, `<span class="mono">${h.id}</span> ${statusPill(h.status)}`, body, {type:'hire',id});
+}
+
+/* ---------- New hire ---------- */
+function newHireDefaults(pre={}){
+  return {c:'C1', site:'', state:'Selangor', siteContact:'', po:'', k:'wet', basis:'day', type:'Rough terrain crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Klang Valley', del:true, col:true, ...pre};
+}
+function openNewHire(){
+  const n = state.nh, types = [...new Set(hireUnits().map(u=>mOf(u).type))];
+  const units = hireUnits().filter(u=>mOf(u).type===n.type).map(u=>({u,...availability(u,n.from,n.to)}));
+  if(n.u && !units.some(x=>x.u===n.u && x.ok)) n.u = null;
+  if(!n.u){ const f = units.find(x=>x.ok); n.u = f ? f.u : null; }
+  const mk = n.u ? fleet[n.u].m : Object.values(fleet).find(f=>models[f.m].type===n.type)?.m;
+  const kinds = ['dry','wet'].filter(k=>rate(mk,k));
+  if(!kinds.includes(n.k)) n.k = kinds[0];
+  const r = rate(mk, n.k);
+  const bases = ['hour','day','week','month'].filter(b=>r[{hour:'hr',day:'day',week:'week',month:'month'}[b]]);
+  if(!bases.includes(n.basis)) n.basis = bases[0];
+  const ops = Object.entries(staff).filter(([,s])=>s.skills && s.skills.includes(models[mk].grp==='crane'?'crane':'earth'));
+  if(n.k==='wet' && (!n.op || !operatorFree(n.op,n.from,n.to))) n.op = (ops.find(([o])=>operatorFree(o,n.from,n.to))||[])[0] || null;
+  const est = estimate(mk, n.k, n.basis, n.from, n.to, +n.hrs);
+  const tc = transportCharge(mk, n.zone), trips = (n.del?1:0)+(n.col?1:0), cu = customers[n.c];
+  const deposit = cu.isNew || !cu.terms ? Math.round((r.month || (r.week||r.day*7)*4)/100)*100 : 0;
+  const sub = (est?.amt||0) + trips*tc;
+  const body = `
+    <form class="stack" data-form="nh">
+      <div class="sect"><h3>Customer and site</h3><div class="in form">
+        <label>Customer<select class="field" data-nh="c">${Object.entries(customers).map(([k,c])=>`<option value="${k}" ${k===n.c?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
+        <label>Site<input type="text" data-nh="site" value="${esc(n.site)}" placeholder="e.g. Lot 5, Jalan Kebun, Klang"></label>
+        <label>State (for public holidays)<select class="field" data-nh="state">${STATES.map(s=>`<option ${s===n.state?'selected':''}>${s}</option>`).join('')}</select></label>
+        <label>Site contact<input type="text" data-nh="siteContact" value="${esc(n.siteContact)}" placeholder="Name and phone"></label>
+        <label>Customer PO / LOU<input type="text" data-nh="po" value="${esc(n.po)}" placeholder="Needed to confirm"></label>
+        ${!cu.tin?'<label class="full" style="color:var(--crit)">This customer has no TIN on file. Ask for it now: an e-invoice cannot be issued without it.</label>':''}
+        ${cu.isNew?`<label class="full" style="color:var(--warn)">New customer: deposit ${RM0(deposit)} before delivery.</label>`:''}
+      </div></div>
+      <div class="sect"><h3>Machine and dates</h3><div class="in">
+        <div class="form">
+          <label>Machine type<select class="field" data-nh="type">${types.map(t=>`<option ${t===n.type?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+          <label>From<input type="date" data-nh="from" value="${n.from}"></label>
+          <label>To<input type="date" data-nh="to" value="${n.to}"></label>
+        </div>
+        <div class="pick">${units.map(x=>`<label class="${x.ok?'':'no'}"><input type="radio" name="nhu" data-nh="u" value="${x.u}" ${x.u===n.u?'checked':''} ${x.ok?'':'disabled'}><span><b>${x.u} ${esc(uName(x.u))}</b> · ${esc(uRef(x.u))} ${x.ok?'<span class="pill ok">Free</span>':'<span class="pill crit">Not free</span>'}<small>${x.ok?Object.entries(fleet[x.u].docs).map(([k,e])=>docPill(k,e)).join(' '):x.why.map(esc).join(' · ')}</small></span></label>`).join('')}</div>
+        ${!n.u?'<div class="banner crit"><b>No machine of this type is free for these dates. Save as a quotation to keep the enquiry, change the dates, or pick another size.</b></div>':''}
+      </div></div>
+      <div class="sect"><h3>Hire terms</h3><div class="in">
+        <div class="form">
+          <label>Kind<select class="field" data-nh="k">${kinds.map(k=>`<option value="${k}" ${k===n.k?'selected':''}>${kindLabel(k)}${k==='wet'?' (with operator)':' (machine only)'}</option>`).join('')}</select></label>
+          <label>Charged by<select class="field" data-nh="basis">${bases.map(b=>`<option value="${b}" ${b===n.basis?'selected':''}>${basisLabel[b]}</option>`).join('')}</select></label>
+          ${n.k==='wet'?`<label>Expected hours a day<input type="number" min="1" max="16" step="0.5" data-nh="hrs" value="${n.hrs}"></label>
+          <label>Operator<select class="field" data-nh="op">${ops.map(([o,s])=>{ const free = operatorFree(o,n.from,n.to), exp = Object.entries(s.certs).filter(([,e])=>e<n.to); return `<option value="${o}" ${o===n.op?'selected':''} ${free&&!exp.length?'':'disabled'}>${esc(s.name)}${!free?' (busy)':exp.length?' ('+esc(exp[0][0])+' expires)':''}</option>`; }).join('')}</select></label>`:''}
+        </div>
+        <small class="muted cost">Rate card: ${[r.hr&&`${RM0(r.hr)}/h (min ${r.minH} h)`, r.day&&`${RM0(r.day)}/day`, r.week&&`${RM0(r.week)}/week`, r.month&&`${RM0(r.month)}/month for ${r.mHrs} h`].filter(Boolean).join(' · ')}${r.ot?` · OT ${RM0(r.ot)}/h`:''}${r.ex?` · excess ${RM0(r.ex)}/h`:''}</small>
+      </div></div>
+      <div class="sect"><h3>Transport</h3><div class="in form">
+        <label>Zone<select class="field" data-nh="zone">${zones.map(z=>`<option ${z.z===n.zone?'selected':''}>${z.z}</option>`).join('')}</select></label>
+        <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-nh="del" ${n.del?'checked':''}> ${models[mk].size==='self'?'Mobilisation (self-drive)':'Lowloader delivery'}</label>
+        <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-nh="col" ${n.col?'checked':''}> ${models[mk].size==='self'?'Demobilisation':'Lowloader collection'}</label>
+      </div></div>
+      <div class="sect cost"><h3>Estimate</h3><div class="in est">
+        <span>${n.u||'Machine'}: ${esc(est?.text||'not offered on this basis')}</span><b>${RM(est?.amt||0)}</b>
+        ${trips?`<span>Transport: ${trips} × ${RM0(tc)} (${esc(n.zone)})</span><b>${RM(trips*tc)}</b>`:''}
+        <hr><span>Subtotal</span><b>${RM(sub)}</b><span>SST ${RULES.sst}%</span><b>${RM(sub*RULES.sst/100)}</b>
+        <span class="tot">Estimated total</span><b class="tot">${RM(sub*(1+RULES.sst/100))}</b>
+        ${deposit?`<span>Deposit before delivery</span><b>${RM(deposit)}</b>`:''}
+        <small class="muted" style="grid-column:1/-1">Final charges come from signed timesheets and hour-meter readings${n.k==='wet'?'; overtime, Sundays and public holidays are added, breakdown hours credited':''}.</small>
+      </div></div>
+      <div class="btnrow"><button class="btn" type="button" data-action="nh-save" data-as="Quotation">Save as quotation</button><button class="btn primary" type="button" data-action="nh-save" data-as="Booked" ${n.u?'':'disabled'}>Confirm booking</button></div>
+    </form>`;
+  n._mk = mk; n._deposit = deposit; n._tc = tc;
+  openSheet('New hire / quotation', '<span class="mono">H-2026-0162</span>', body, {type:'nh'});
+}
+function saveNewHire(as){
+  const n = state.nh;
+  if(!n.site.trim()){ toast('Enter the site'); return; }
+  if(as==='Booked' && !n.u){ toast('No machine free: save as a quotation'); return; }
+  const id = 'H-2026-0' + (Math.max(...hires.map(h=>+h.id.slice(-4)))+1);
+  const self = models[n._mk].size==='self', trips = [];
+  if(n.del) trips.push({dir:'Delivery',d:n.from,u:n.u||'—',veh:self?null:'TR-02',drv:self?(n.op||'D2'):'D2',zone:n.zone,charge:n._tc,status:'Planned',self});
+  if(n.col) trips.push({dir:'Collection',d:addDays(n.to,1),u:n.u||'—',veh:self?null:'TR-02',drv:self?(n.op||'D2'):'D2',zone:n.zone,charge:n._tc,status:'Planned',self});
+  hires.push({id,c:n.c,site:n.site,state:n.state,siteContact:n.siteContact||customers[n.c].contact,po:n.po,status:as,created:TODAY,cycle:n.basis==='month'?'Monthly in arrears':'End of hire',
+    quoteValid: as==='Quotation'?addDays(TODAY,7):undefined, deposit:n._deposit||undefined, depositPaid:false,
+    lines:[{u:n.u,m:n._mk,k:n.k,basis:n.basis,from:n.from,to:n.to,op:n.k==='wet'?n.op:undefined}], trips: n.u ? trips : [],
+    log:[{d:TODAY+' '+nowT(),t:`${as==='Booked'?'Booked':'Quotation created'} by ${staff[role()==='boss'?'HM':'S1'].name}.`}]});
+  toast(as==='Booked' ? `${id} booked. ${n.u} reserved on the planner.` : `${id} saved as quotation.`);
+  state.nh = null; render(); openHire(id);
+}
+const nowT = () => '09:'+String(10+Math.floor(Math.random()*40)).padStart(2,'0');
+
+/* ---------- inspection ---------- */
+const CHECKS = ['Engine oil, coolant, hydraulic oil levels','No leaks','Tyres / tracks condition','Lights, horn, beacon','Reverse alarm','Fire extinguisher','Seat belt and cab glass','Attachments listed below'];
+const CRANE_CHECKS = ['LMI / SLI working','Load chart in cab','Hook, latch and wire rope','Outrigger pads','DOSH CF copy in cab'];
+function openInspection(id, kind){
+  const h = hire(id), l = h.lines[0], crane = mOf(l.u).grp==='crane';
+  state.insp = state.insp && state.insp.id===id && state.insp.kind===kind ? state.insp : {id, kind, photos:{}, checks:{}, damage:false};
+  const s = state.insp;
+  const slots = ['Front','Rear','Left','Right','Hour meter','Fuel gauge'];
+  const body = `
+    <div class="banner"><b>${kind==='delivery'?'Delivery':'Return'} inspection for ${l.u} ${esc(uName(l.u))}: fill in at the machine, then the customer's representative signs on this phone.</b></div>
+    <div class="sect"><h3>Readings</h3><div class="in form">
+      <label>Hour meter<input type="number" id="iHm" value="${fleet[l.u].hm||''}"></label>
+      <label>Fuel<select class="field" id="iFuel">${['Full','¾','½','¼','Empty'].map(f=>`<option>${f}</option>`).join('')}</select></label>
+      <label>Attachments<input type="text" id="iAtt" value="${crane?'Hook block, 4 outrigger pads':mOf(l.u).grp==='earth'?'Bucket':'—'}"></label>
+    </div></div>
+    <div class="sect"><h3>Photos <small class="muted" style="text-transform:none;letter-spacing:0">${Object.keys(s.photos).length} of ${slots.length}, all needed</small></h3><div class="in"><div class="slots">
+      ${slots.map((p,i)=>`<button type="button" class="slot ${s.photos[p]?'done':''}" data-action="snap" data-p="${p}">${s.photos[p]?`<img src="${ph(l.u+' · '+p, 190+i*20)}" alt="">`:''}<span style="position:relative">${s.photos[p]?'':'＋ '}${p}</span></button>`).join('')}
+    </div>${kind==='return'?'<small class="muted">The delivery photos are shown next to each return photo for comparison.</small>':''}</div></div>
+    <div class="sect"><h3>Checklist</h3><div class="in checks">${[...CHECKS,...(crane?CRANE_CHECKS:[])].map(c=>`<label><input type="checkbox" data-check="${esc(c)}" ${s.checks[c]?'checked':''}> ${esc(c)}</label>`).join('')}</div></div>
+    ${kind==='return'?`<div class="sect"><h3>Damage</h3><div class="in"><label class="task"><input type="checkbox" id="iDmg" ${s.damage?'checked':''}> <span>Damage found (opens a chargeable workshop job)</span></label><textarea id="iDmgNote" rows="2" placeholder="What and where, e.g. bucket teeth missing, dent on counterweight"></textarea></div></div>`:''}
+    <div class="sect"><h3>Customer signature</h3><div class="in">
+      <div class="form"><label>Name<input type="text" id="iName" value="${esc(SITE_SIGNER[h.c])}"></label><label>IC (last 4 digits)<input type="text" id="iIc" maxlength="4" placeholder="1234"></label></div>
+      <canvas class="sig" id="sigPad" aria-label="Signature pad"></canvas>
+      <div class="btnrow"><button class="btn small" type="button" data-action="sig-clear">Clear</button></div>
+    </div></div>
+    <div class="btnrow"><button class="btn primary" data-action="insp-save">Save and send ${kind==='delivery'?'Delivery Order':'Return Note'} by WhatsApp</button></div>`;
+  openSheet(`${kind==='delivery'?'Delivery':'Return'} inspection`, `<span class="mono">${h.id} · ${l.u}</span>`, body, {type:'insp',id,kind});
+  initSig();
+}
+let sigDrawn = false;
+function initSig(){
+  const c = document.getElementById('sigPad'); if(!c) return;
+  sigDrawn = false;
+  const r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  c.width = Math.max(1, r.width*dpr); c.height = Math.max(1, r.height*dpr);
+  const ctx = c.getContext('2d'); ctx.scale(dpr,dpr); ctx.lineWidth = 2.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#111';
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,r.width,r.height);
+  let drawing = false;
+  const pt = e => { const b = c.getBoundingClientRect(); return [e.clientX-b.left, e.clientY-b.top]; };
+  c.addEventListener('pointerdown', e => { drawing = true; c.setPointerCapture(e.pointerId); const [x,y] = pt(e); ctx.beginPath(); ctx.moveTo(x,y); });
+  c.addEventListener('pointermove', e => { if(!drawing) return; const [x,y] = pt(e); ctx.lineTo(x,y); ctx.stroke(); sigDrawn = true; });
+  const end = () => { drawing = false; };
+  c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
+}
+function saveInspection(){
+  const s = state.insp, h = hire(s.id);
+  if(Object.keys(s.photos).length < 6){ toast('Take all 6 photos first'); return; }
+  if(!sigDrawn){ toast('The customer has to sign'); return; }
+  const name = $('#iName').value.trim() || SITE_SIGNER[h.c];
+  if(s.kind==='delivery'){
+    h.status = 'On hire'; h.lines.forEach(l => { l.on = TODAY; });
+    h.trips.filter(t=>t.dir==='Delivery' && t.d===TODAY).forEach(t=>t.status='Done');
+    h.log.unshift({d:TODAY+' '+nowT(),t:`Delivered. Delivery inspection signed by ${name}. Hire clock started.`});
+    toast(`${h.id} on hire. Delivery Order sent to ${customers[h.c].contact} by WhatsApp.`);
+  } else {
+    h.status = 'Returned';
+    h.trips.filter(t=>t.dir==='Collection').forEach(t=>{ t.status='Done'; if(t.d>TODAY) t.d=TODAY; });
+    const dmg = $('#iDmg')?.checked;
+    if(dmg){ h.damage = {job:'J-2026-0423', note:$('#iDmgNote').value.trim() || 'Damage noted on return.', est:0, done:false}; workshop.push({u:h.lines[0].u,from:addDays(TODAY,1),to:addDays(TODAY,4),job:'J-2026-0423',note:`Return damage, chargeable to ${h.id}`}); }
+    h.log.unshift({d:TODAY+' '+nowT(),t:`Return inspection signed by ${name}.${dmg?' Damage found: workshop job J-2026-0423 opened (chargeable).':' No damage.'}`});
+    toast(dmg ? `${h.id} returned. Workshop job J-2026-0423 opened for the damage.` : `${h.id} returned with no damage. Return Note sent.`);
+  }
+  state.insp = null; render(); openHire(h.id);
+}
+
+/* ---------- Fleet ---------- */
+function renderFleet(){
+  const us = Object.keys(fleet).filter(u => !state.fleetGrp || mOf(u).grp===state.fleetGrp);
+  $('#v-fleet').innerHTML = `
+    <div class="view-head"><h2>Fleet</h2><div class="chipbar">${['',...Object.keys(GROUPS)].map(g=>`<button class="chip" data-fleetgrp="${g}" aria-pressed="${state.fleetGrp===g}">${g?esc(GROUPS[g]):'All'}</button>`).join('')}</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Fleet no.</th><th>Machine</th><th>Status</th><th>Where / customer</th><th>Documents</th><th class="r">Hour meter</th><th class="r boss">Revenue YTD</th></tr></thead><tbody>
+    ${us.map(u=>{ const s = unitStatus(u), f = fleet[u], wd = worstDoc(u);
+      return `<tr class="click" data-unit="${u}"><td class="mono"><b>${u}</b></td><td><b>${esc(uName(u))}</b><br><small class="muted">${esc(mOf(u).type)} · ${esc(uRef(u))} · ${f.year}</small></td>
+      <td><span class="pill ${s.cls}">${esc(s.label)}</span>${s.k==='Available'&&s.idle!=null?`<br><small class="muted">idle ${s.idle} d</small>`:''}</td>
+      <td>${s.h?`${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}${s.l&&s.k==='On hire'?' · to '+fmtD(s.l.to):''}</small>`:s.note?esc(s.note):f.transport?'Klang yard':'Klang yard'}</td>
+      <td>${wd?docPill(wd[0],wd[1]):''}</td><td class="r num">${f.hm?num(f.hm)+' h':'—'}</td><td class="r num boss">${f.ytd?RM0(f.ytd.rev):'—'}</td></tr>`; }).join('')}
+    </tbody></table></div>`;
+}
+function openUnit(u){
+  const f = fleet[u], s = unitStatus(u), m = mOf(u);
+  const hs = hires.filter(h=>h.lines.some(l=>l.u===u)).sort((a,b)=>a.id<b.id?1:-1);
+  const util = utilisation('2026-07-01', TODAY, [u]);
+  const body = `
+    <div class="sect"><div class="facts">
+      <div><span class="label">Status</span><b><span class="pill ${s.cls}">${esc(s.label)}</span></b></div>
+      <div><span class="label">Type</span><b>${esc(m.type)}</b></div>
+      <div><span class="label">${f.plate?'Plate':'Serial no.'}</span><b>${esc(uRef(u))}</b></div>
+      <div><span class="label">Year</span><b>${f.year}</b></div>
+      <div><span class="label">Hour meter</span><b class="hm">${f.hm?num(f.hm):'—'}</b></div>
+      ${f.transport?'':`<div><span class="label">Utilisation since 1 Jul</span><b>${util}%</b></div>`}
+    </div></div>
+    <div class="sect"><h3>Documents</h3><div class="tbl-wrap" style="border:0"><table><tbody>
+      ${Object.entries(f.docs).map(([k,e])=>`<tr><td>${esc(DOCS[k])}</td><td class="num">${fmtDY(e)}</td><td>${docPill(k,e)}</td></tr>`).join('')}
+    </tbody></table></div><div class="in"><small class="muted">An expired DOSH CF, road tax, insurance or Puspakom blocks bookings that run past the expiry date.</small></div></div>
+    ${f.ytd?`<div class="sect boss"><h3>Jan–Sep 2026 (Head Manager)</h3><div class="facts">
+      <div><span class="label">Hire revenue</span><b>${RM0(f.ytd.rev)}</b></div>
+      <div><span class="label">Workshop cost</span><b>${RM0(f.ytd.ws)}</b><small class="muted">parts + labour from workshop jobs</small></div>
+      <div><span class="label">Operator & transport</span><b>${RM0(f.ytd.opx)}</b></div>
+      <div><span class="label">Contribution</span><b>${RM0(f.ytd.rev-f.ytd.ws-f.ytd.opx)}</b></div>
+      <div><span class="label">Purchase cost</span><b>${RM0(f.cost)}</b></div>
+      <div><span class="label">Revenue / cost (yearly)</span><b>${Math.round(f.ytd.rev/9*12/f.cost*100)}%</b></div>
+    </div></div>`:''}
+    ${hs.length?`<div class="sect"><h3>Hires</h3><div class="tbl-wrap" style="border:0"><table><tbody>
+      ${hs.map(h=>{ const l = h.lines.find(x=>x.u===u); return `<tr class="click" data-hire="${h.id}"><td class="mono">${h.id}</td><td>${esc(custName(h.c))}<br><small class="muted">${kindLabel(l.k)} · ${basisLabel[l.basis]}</small></td><td class="num">${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))}</td><td>${statusPill(h.status)}</td></tr>`; }).join('')}
+    </tbody></table></div></div>`:''}
+    ${workshop.some(w=>w.u===u)||breakdowns.some(b=>b.u===u)?`<div class="sect"><h3>Workshop</h3><div class="in">
+      ${workshop.filter(w=>w.u===u).map(w=>`<div><b class="mono">${w.job}</b> ${fmtD(w.from)}–${fmtD(w.to)} · ${esc(w.note)}</div>`).join('')}
+      ${breakdowns.filter(b=>b.u===u).map(b=>`<div><b class="mono">${b.job}</b> Breakdown on hire ${fmtD(b.d)}, ${b.hrs} h lost · ${esc(b.note)}</div>`).join('')}
+      <small class="muted">Opens in the workshop app; service schedule and full history are on the machine page there.</small></div></div>`:''}`;
+  openSheet(`${u} · ${esc(uName(u))}`, `<span class="mono">${esc(uRef(u))}</span>`, body, {type:'unit',id:u});
+}
+
+/* ---------- Transport ---------- */
+function renderTransport(){
+  const ts = allTrips().filter(t=>t.d>='2026-10-12' && t.d<='2026-10-31').sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+  const days = [...new Set(ts.map(t=>t.d))];
+  $('#v-transport').innerHTML = `
+    <div class="view-head"><h2>Transport · 12–31 Oct</h2></div>
+    <p class="muted" style="margin:0">Lowloader trips and self-drive mobilisation. Drivers see their own trips on the phone with the site pin and contact, and do the delivery or return inspection there.</p>
+    ${days.map(d=>`<div><div class="daygrp ${d===TODAY?'today':''}">${fmtDW(d)}${d===TODAY?' · today':''}</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Trip</th><th>Machine</th><th>Customer · site</th><th>Vehicle</th><th>Driver</th><th class="r cost">Charge</th><th>Status</th></tr></thead><tbody>
+      ${ts.filter(t=>t.d===d).map(t=>`<tr class="click" data-hire="${t.hire}"><td>${t.dir}</td><td><b>${t.u}</b> ${esc(mOf(t.u).model)}</td><td>${esc(custName(t.c))}<br><small class="muted">${esc(t.site)}</small></td><td>${t.veh?`<b>${t.veh}</b> ${esc(fleet[t.veh].plate)}`:'<span class="muted">Self-drive</span>'}</td><td>${esc(staff[t.drv].name)}</td><td class="r num cost">${RM0(t.charge)}</td><td><span class="pill ${t.status==='Done'?'ok':'warn'}">${t.status}</span></td></tr>`).join('')}
+      </tbody></table></div></div>`).join('')}
+    <div class="panel"><div class="panel-head"><h3>Our transport</h3></div><div class="tbl-wrap" style="border:0"><table><tbody>
+      ${Object.keys(fleet).filter(u=>fleet[u].transport).map(u=>`<tr class="click" data-unit="${u}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(fleet[u].plate)}</small></td><td>${Object.entries(fleet[u].docs).map(([k,e])=>docPill(k,e)).join(' ')}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+}
+
+/* ---------- Timesheets ---------- */
+function renderTimesheets(){
+  if(role()==='operator') return renderOperator();
+  const lines = hires.filter(h=>h.status!=='Quotation').flatMap(h=>h.lines.filter(l=>l.k==='wet' && l.on && (l.off||'9999')>='2026-10-01').map(l=>({h,l})));
+  const days = [...Array(16)].map((_,i)=>addDays('2026-10-01',i));
+  const cell = (h,l,d) => {
+    if(d < l.on || (l.off && d > l.off)) return '<span class="cell na"></span>';
+    const t = sheets.find(s=>s.u===l.u && s.d===d && s.hire===h.id);
+    if(t) return `<button class="cell ${t.status==='signed'?'ok':'un'}" data-ts="${t.id}" title="${fmtDW(d)}: ${num(t.work)} h${t.status==='signed'?' · signed':' · not signed'}">${t.status==='signed'?'✓':'!'}</button>`;
+    if(d===TODAY) return `<span class="cell today" title="Today: in progress">·</span>`;
+    if(dow(d)===0) return `<span class="cell off" title="Sunday, no work">–</span>`;
+    return `<span class="cell miss" title="${fmtDW(d)}: no timesheet">✕</span>`;
+  };
+  const pend = sheets.filter(s=>s.status==='unsigned');
+  $('#v-timesheets').innerHTML = `
+    <div class="view-head"><h2>Timesheets · October</h2></div>
+    <p class="muted" style="margin:0">Wet hire: the operator fills in the day on the phone and the customer's site supervisor signs. Signed timesheets are the basis of the invoice and are locked.</p>
+    ${pend.length?`<div class="banner"><b>${pend.length} timesheet${pend.length>1?'s':''} waiting for the customer's signature.</b>${pend.map(p=>`<button class="btn small" data-action="ts-wa" data-id="${p.id}">Send ${p.u} ${fmtD(p.d)} to ${esc(SITE_SIGNER[hire(p.hire).c])}</button>`).join('')}</div>`:''}
+    <div class="tbl-wrap" style="padding:10px 12px"><table class="mx"><thead><tr><th class="lab">Machine · operator</th>${days.map(d=>`<th class="${dow(d)===0?'sun':''}">${+d.slice(8)}</th>`).join('')}<th class="lab r" style="padding-left:10px">Hours</th></tr></thead><tbody>
+      ${lines.map(({h,l})=>`<tr><td class="lab"><b>${l.u}</b> ${esc(staff[l.op].name)}<br><small class="muted">${esc(custName(h.c))}</small></td>${days.map(d=>`<td>${cell(h,l,d)}</td>`).join('')}<td class="lab r num" style="padding-left:10px">${num(sum(sheets.filter(s=>s.u===l.u&&s.hire===h.id&&s.d>='2026-10-01').map(s=>s.work)))} h</td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="g-legend"><span><i class="cell ok" style="width:18px;height:18px">✓</i>Signed</span><span><i class="cell un" style="width:18px;height:18px">!</i>Not signed</span><span><i class="cell miss" style="width:18px;height:18px">✕</i>Missing</span><span><i class="cell off" style="width:18px;height:18px">–</i>Sunday off</span></div>
+    <div class="panel"><div class="panel-head"><h3>Dry hire: hour meter readings</h3></div><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Machine</th><th>Customer</th><th>Last reading</th><th class="r">This month</th><th class="r">Allowance</th></tr></thead><tbody>
+      ${hires.filter(h=>h.status==='On hire').flatMap(h=>h.lines.filter(l=>l.k==='dry'&&l.basis==='month').map(l=>{ const last = l.hm[l.hm.length-1], used = meterUsage(l,'2026-10-01',TODAY), r = rate(fleet[l.u].m,'dry');
+        return `<tr class="click" data-hire="${h.id}"><td><b>${l.u}</b> ${esc(uName(l.u))}</td><td>${esc(custName(h.c))}</td><td class="num">${num(last.v)} h · ${fmtD(last.d)}</td><td class="r num">${used!=null?num(used)+' h':'—'}</td><td class="r num">${r.mHrs} h</td></tr>`; })).join('')}
+    </tbody></table></div></div>`;
+}
+function renderOperator(){
+  const me = state.me, op = staff[me];
+  const mine = hires.filter(h=>['On hire','Off-hire called','Booked'].includes(h.status)).flatMap(h=>h.lines.filter(l=>l.op===me).map(l=>({h,l})));
+  const cur = mine.find(x=>x.h.status==='On hire');
+  const missing = cur ? [addDays(TODAY,-1)].filter(d => dow(d)!==0 && !sheets.some(s=>s.u===cur.l.u && s.d===d)) : [];
+  const ts = state.ts = state.ts || {d: missing[0] || TODAY, start:'08:00', finish:'18:00', brk:60, standby:0, reason:'Rain', bd:0, note:''};
+  const prev = cur ? sheets.filter(s=>s.u===cur.l.u && s.d<ts.d).sort((a,b)=>a.d<b.d?1:-1)[0] : null;
+  const hmS = prev ? Math.round(prev.hmE) : fleet[cur?.l.u]?.hm || 0;
+  const work = Math.max(0, toH(ts.finish)-toH(ts.start)-ts.brk/60-(+ts.standby)-(+ts.bd));
+  const hist = cur ? sheets.filter(s=>s.u===cur.l.u).sort((a,b)=>a.d<b.d?1:-1).slice(0,6) : [];
+  $('#v-timesheets').innerHTML = `<div class="phone">
+    <div class="view-head"><h2>Hi, ${esc(op.name.split(' ')[0])}</h2></div>
+    ${cur?`<div class="panel"><div class="panel-head"><div><span class="label">Today's job</span><h3>${cur.l.u} ${esc(uName(cur.l.u))}</h3></div></div><div class="in" style="padding:10px 14px;display:flex;flex-direction:column;gap:4px">
+      <b>${esc(custName(cur.h.c))}</b><span>${esc(cur.h.site)}</span><small class="muted">Site contact: ${esc(cur.h.siteContact)}</small>
+      <div class="btnrow" style="margin-top:6px"><button class="btn small" data-action="op-bd">Report breakdown</button><button class="btn small" data-action="op-map">Open map</button></div></div></div>`:'<p class="muted">No hire assigned today.</p>'}
+    ${missing.length && ts.d!==missing[0]?`<div class="banner crit"><b>${fmtDW(missing[0])} has no timesheet.</b><button class="btn small" data-action="op-day" data-d="${missing[0]}">Fill in now</button></div>`:''}
+    ${cur?`<form class="sect" data-form="ts"><h3>Timesheet · ${fmtDW(ts.d)}${ts.d!==TODAY?` <button class="btn small" type="button" data-action="op-day" data-d="${TODAY}">Today</button>`:''}</h3><div class="in">
+      <div class="form">
+        <label>Start<input type="time" data-ts-f="start" value="${ts.start}"></label>
+        <label>Finish<input type="time" data-ts-f="finish" value="${ts.finish}"></label>
+        <label>Break (min)<input type="number" min="0" step="15" data-ts-f="brk" value="${ts.brk}"></label>
+        <label>Hour meter start<input type="number" value="${hmS}" readonly></label>
+        <label>Hour meter end<input type="number" data-ts-f="hmE" value="${ts.hmE||Math.round(hmS+work)}"></label>
+        <label>Standby hours<input type="number" min="0" step="0.5" data-ts-f="standby" value="${ts.standby}"></label>
+        <label>Standby reason<select class="field" data-ts-f="reason">${['Rain','Site not ready','Waiting for materials','Customer instruction'].map(r=>`<option ${r===ts.reason?'selected':''}>${r}</option>`).join('')}</select></label>
+        <label>Breakdown hours<input type="number" min="0" step="0.5" data-ts-f="bd" value="${ts.bd}"></label>
+        <label class="full">Work done<input type="text" data-ts-f="note" value="${esc(ts.note)}" placeholder="e.g. Lifting steel trusses grid C–F"></label>
+      </div>
+      <div class="minihead"><span>Working hours</span><span class="bigval">${num(work)} h</span></div>
+      ${work+(+ts.standby)+(+ts.bd)>8?`<small class="muted">${num(work+(+ts.standby)+(+ts.bd)-8)} h after 8 hours is overtime.</small>`:''}
+      <label class="label" for="sigPad">Site supervisor signs (${esc(SITE_SIGNER[cur.h.c])})</label>
+      <canvas class="sig" id="sigPad" aria-label="Signature pad"></canvas>
+      <div class="btnrow"><button class="btn small" type="button" data-action="sig-clear">Clear</button></div>
+      <div class="btnrow"><button class="btn primary" type="button" data-action="ts-submit">Submit signed timesheet</button><button class="btn" type="button" data-action="ts-nosign">Nobody to sign: send by WhatsApp</button></div>
+    </div></form>`:''}
+    ${hist.length?`<div class="panel"><div class="panel-head"><h3>My last days</h3></div><div class="tbl-wrap" style="border:0"><table><tbody>
+      ${hist.map(s=>`<tr class="click" data-ts="${s.id}"><td class="num">${fmtDW(s.d)}</td><td class="r num">${num(s.work)} h${s.standby?` <small class="muted">+${s.standby} standby</small>`:''}</td><td>${s.status==='signed'?'<span class="pill ok">Signed</span>':'<span class="pill warn">Waiting</span>'}</td></tr>`).join('')}
+    </tbody></table></div></div>`:''}
+    <div class="panel"><div class="panel-head"><h3>My certificates</h3></div><div class="panel-body">${Object.entries(op.certs).map(([k,e])=>`<div class="attn" style="--sev:var(--${docState(e)==='ok'?'ok':docState(e)})"><i></i><div><b>${esc(k)}</b><br><small class="muted">Expires ${fmtDY(e)}</small></div></div>`).join('')}</div></div>
+  </div>`;
+  initSig();
+}
+function openTimesheet(id){
+  const s = sheets.find(x=>x.id===id), h = hire(s.hire);
+  const body = `
+    <div class="sect"><div class="facts">
+      <div><span class="label">Machine</span><b>${s.u} ${esc(uName(s.u))}</b></div>
+      <div><span class="label">Operator</span><b>${esc(staff[s.op].name)}</b></div>
+      <div><span class="label">Customer</span><b>${esc(custName(h.c))}</b></div>
+      <div><span class="label">Time</span><b>${s.start}–${s.finish} (break ${s.brk} min)</b></div>
+      <div><span class="label">Working</span><b>${num(s.work)} h</b></div>
+      <div><span class="label">Standby</span><b>${s.standby?num(s.standby)+' h · '+esc(s.reason):'—'}</b></div>
+      <div><span class="label">Breakdown</span><b>${s.bd?s.bd+' h':'—'}</b></div>
+      <div><span class="label">Hour meter</span><b class="num">${num(Math.round(s.hmS))} → ${num(Math.round(s.hmE))}</b></div>
+    </div></div>
+    <div class="sect"><h3>Work done</h3><div class="in">${esc(s.note)}</div></div>
+    <div class="sect"><h3>Signature</h3><div class="in">${s.status==='signed'?`<div class="sigimg" style="padding:12px 16px;font:italic 1.6rem 'Brush Script MT',cursive;color:#1a1f26">${esc(s.signer)}</div><small class="muted">Signed on the operator's phone · ${esc(s.signer)} · locked</small>`:`<p style="margin:0">Not signed yet.</p><div class="btnrow office"><button class="btn primary" data-action="ts-wa" data-id="${s.id}">Send to ${esc(s.signer)} by WhatsApp</button></div>`}</div></div>`;
+  openSheet(`Timesheet ${fmtDW(s.d)}`, `<span class="mono">${h.id} · ${s.u}</span>`, body, {type:'ts',id});
+}
+
+/* ---------- Billing ---------- */
+function renderBilling(){
+  const run = hires.filter(h=>!['Quotation','Lost'].includes(h.status)).map(h=>{ const l = charges(h,'2026-10-01',TODAY); return {h, t:totals(l), n:l.length}; }).filter(x=>x.n);
+  const exc = h => {
+    const out = [];
+    const miss = sheets.filter(s=>s.hire===h.id && s.status==='unsigned').length; if(miss) out.push(`${miss} unsigned timesheet`);
+    if(h.lines.some(l=>l.k==='wet' && l.on && !sheets.some(s=>s.hire===h.id && s.d===addDays(TODAY,-1)) && dow(addDays(TODAY,-1))!==0 && (l.off||'9999')>=addDays(TODAY,-1))) out.push('missing timesheet');
+    if(h.damage && !h.damage.done) out.push('damage repair not finished');
+    if(!customers[h.c].tin) out.push('customer TIN missing');
+    return out;
+  };
+  const age = b => sum(invoices.filter(i=>invStatus(i)!=='Paid' && i.status!=='Draft').filter(i=>{ const d = daysBetween(i.due,TODAY); return b===0 ? d<=0 : b===1 ? d>0&&d<=30 : b===2 ? d>30&&d<=60 : d>60; }).map(i=>i.total));
+  $('#v-billing').innerHTML = `
+    <div class="view-head"><h2>Billing</h2></div>
+    <div class="kpis">
+      <div class="kpi"><b style="font-size:1.45rem">${RM0(age(0))}</b><span>Not yet due</span></div>
+      <div class="kpi warn"><b style="font-size:1.45rem">${RM0(age(1))}</b><span>1–30 days overdue</span></div>
+      <div class="kpi alert"><b style="font-size:1.45rem">${RM0(age(2))}</b><span>31–60 days overdue</span></div>
+      <div class="kpi alert"><b style="font-size:1.45rem">${RM0(age(3))}</b><span>Over 60 days</span></div>
+    </div>
+    <div class="panel"><div class="panel-head"><h3>October billing run (preview to ${fmtD(TODAY)})</h3><span class="muted">Runs on 1 Nov</span></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Hire</th><th>Customer</th><th>Cycle</th><th>Check before invoicing</th><th class="r">Subtotal</th><th class="r">SST ${RULES.sst}%</th><th class="r">Total</th></tr></thead><tbody>
+      ${run.map(({h,t})=>{ const e = exc(h); return `<tr class="click" data-hire="${h.id}"><td class="mono">${h.id}</td><td>${esc(custName(h.c))}</td><td>${esc(h.cycle)}</td><td>${e.length?e.map(x=>`<span class="pill warn">${esc(x)}</span>`).join(' '):'<span class="pill ok">Ready</span>'}</td><td class="r num">${RM(t.sub)}</td><td class="r num">${RM(t.sst)}</td><td class="r num"><b>${RM(t.total)}</b></td></tr>`; }).join('')}
+      </tbody><tfoot><tr><td colspan="4"><b>Total</b></td><td class="r num"><b>${RM(sum(run.map(x=>x.t.sub)))}</b></td><td class="r num">${RM(sum(run.map(x=>x.t.sst)))}</td><td class="r num"><b>${RM(sum(run.map(x=>x.t.total)))}</b></td></tr></tfoot></table></div></div>
+    <div class="panel"><div class="panel-head"><h3>Invoices</h3><span class="muted">e-Invoice via LHDN MyInvois</span></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Period</th><th>Due</th><th class="r">Total</th><th>Payment</th><th>MyInvois</th></tr></thead><tbody>
+      ${invoices.slice().sort((a,b)=>a.no<b.no?1:-1).map(i=>`<tr class="click" data-inv="${i.no}"><td class="mono">${i.no}</td><td>${esc(custName(i.c))}<br><small class="muted mono">${i.hire}</small></td><td>${esc(i.period)}</td><td class="num">${fmtD(i.due)}</td><td class="r num">${RM(i.total)}</td><td>${invPill(i)}</td><td>${einvPill(i)}</td></tr>`).join('')}
+      </tbody></table></div></div>`;
+}
+function openInvoice(no){
+  const i = invoices.find(x=>x.no===no), cu = customers[i.c], h = hire(i.hire);
+  const body = `
+    ${i.einv==='Rejected'?`<div class="banner crit"><b>MyInvois rejected this invoice: ${esc(i.einvNote)}.</b></div>
+      <form class="docbar" data-form="tin" data-no="${no}"><label class="label" for="tinIn">Customer TIN (from the customer's e-invoice details or the LHDN TIN search)</label><div class="btnrow"><input type="text" id="tinIn" placeholder="e.g. C21234567890" style="flex:1"><button class="btn primary">Save TIN and resubmit</button></div></form>`:''}
+    <div class="doc">
+      <div class="doc-head"><div><div class="doc-brand">${esc(CO.name)}</div><small>${esc(CO.addr)}<br>Tel ${esc(CO.phone)} · SSM ${esc(CO.ssm)}<br>TIN ${esc(CO.tin)} · SST ${esc(CO.sst)}</small></div>
+        <div class="doc-meta"><b>Tax invoice</b><span>${i.no}</span><span>Date ${fmtDY(i.issued)}</span><span>Due ${fmtDY(i.due)}</span></div></div>
+      <div class="doc-grid">
+        <div><h4>Bill to</h4><dl><dt>Customer</dt><dd>${esc(cu.name)}</dd><dt>SSM</dt><dd>${esc(cu.brn)}</dd><dt>TIN</dt><dd>${cu.tin?esc(cu.tin):'<span class="no">Missing</span>'}</dd>${cu.sst?`<dt>SST</dt><dd>${esc(cu.sst)}</dd>`:''}<dt>Attn</dt><dd>${esc(cu.contact)}</dd></dl></div>
+        <div><h4>Hire</h4><dl><dt>Hire no.</dt><dd>${esc(i.hire)}</dd>${h?`<dt>Site</dt><dd>${esc(h.site)}</dd><dt>PO / LOU</dt><dd>${esc(h.po)}</dd>`:''}<dt>Period</dt><dd>${esc(i.period)}</dd></dl></div>
+      </div>
+      ${i.lines.length?`<div class="dt"><table><thead><tr><th>Description</th><th class="r">Qty</th><th class="r">Rate (RM)</th><th class="r">Amount (RM)</th></tr></thead><tbody>
+        ${i.lines.map(x=>`<tr><td>${esc(x.desc)}</td><td class="r">${num(+x.qty.toFixed(2))} ${x.unit}</td><td class="r">${num(+x.rate.toFixed(2))}</td><td class="r">${(+x.amt).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('')}
+      </tbody></table></div>`:'<p><small>Lines from the earlier billing period.</small></p>'}
+      <div class="tot"><span>Subtotal</span><b>${RM(i.sub)}</b><span>Service tax (SST) ${RULES.sst}%</span><b>${RM(i.sst)}</b><span><b>Total payable</b></span><b>${RM(i.total)}</b></div>
+      <div class="einv">${i.uuid?`<div class="qr" id="einvQr"></div><div><b>e-Invoice validated by LHDN MyInvois</b><br><small>UUID ${esc(i.uuid)}<br>Validated ${fmtDY(i.issued)} 09:14</small></div>`:'<small class="no">Not yet validated by MyInvois. Do not send this invoice to the customer.</small>'}</div>
+      <div class="doc-foot">Payment to Maybank 5123 4567 8901 (${esc(CO.name)}). Hire charges are based on signed timesheets / hour-meter readings and the hire agreement. Overdue accounts may be charged late payment interest as agreed.</div>
+    </div>
+    <div class="btnrow">${i.uuid?`<button class="btn primary" data-action="inv-wa" data-no="${no}">Send by WhatsApp</button>`:''}${invStatus(i)!=='Paid'&&i.uuid?`<button class="btn" data-action="inv-paid" data-no="${no}">Record payment</button>`:''}<button class="btn" data-action="inv-cn" data-no="${no}">Credit note</button></div>`;
+  openSheet(`Invoice ${i.no}`, `${invPill(i)} ${einvPill(i)}`, body, {type:'inv',id:no});
+  const q = $('#einvQr'); if(q){ if(window.QRCode) new QRCode(q, {text:`https://myinvois.hasil.gov.my/${i.uuid}/share/${i.no}`, width:96, height:96, correctLevel:QRCode.CorrectLevel.M}); else q.textContent = 'QR'; }
+}
+
+/* ---------- Rates ---------- */
+function renderRates(){
+  const ed = boss();
+  const cell = (key, f) => { const v = rates[key][f]; return ed && v!=null ? `<input class="ratein" type="number" data-rate="${key}" data-f="${f}" value="${v}">` : v!=null ? RM0(v) : '<span class="muted">—</span>'; };
+  $('#v-rates').innerHTML = `
+    <div class="view-head"><h2>Rates</h2>${ed?'<span class="muted">Changes apply to new quotations and bookings. Running hires keep the rates they were booked at.</span>':'<span class="muted">Only the Head Manager can change rates.</span>'}</div>
+    <div class="tbl-wrap"><table><thead><tr><th>Model</th><th>Kind</th><th class="r">Hour</th><th class="r">Min h</th><th class="r">Day (8 h)</th><th class="r">Week</th><th class="r">Month</th><th class="r">Month h</th><th class="r">Excess / h</th><th class="r">OT / h</th></tr></thead><tbody>
+      ${Object.keys(rates).map(key=>{ const [mk,k] = key.split('/'); return `<tr><td><b>${esc(mName(mk))}</b><br><small class="muted">${esc(models[mk].type)}</small></td><td>${kindLabel(k)}</td><td class="r">${cell(key,'hr')}</td><td class="r">${rates[key].minH??'—'}</td><td class="r">${cell(key,'day')}</td><td class="r">${cell(key,'week')}</td><td class="r">${cell(key,'month')}</td><td class="r">${rates[key].mHrs??'—'}</td><td class="r">${cell(key,'ex')}</td><td class="r">${cell(key,'ot')}</td></tr>`; }).join('')}
+    </tbody></table></div>
+    <div class="two">
+      <div class="panel"><div class="panel-head"><h3>Transport by zone</h3></div><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Zone</th><th class="r">Self-drive mobilisation</th><th class="r">Lowloader up to 10 t</th><th class="r">Lowloader 10–30 t</th></tr></thead><tbody>
+        ${zones.map(z=>`<tr><td>${esc(z.z)}</td><td class="r">${RM0(z.self)}</td><td class="r">${RM0(z.small)}</td><td class="r">${RM0(z.mid)}</td></tr>`).join('')}
+      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">Oversize loads: JPJ permit and police escort charged at cost.</small></div></div>
+      <div class="panel"><div class="panel-head"><h3>Charging rules</h3></div><div class="tbl-wrap" style="border:0"><table><tbody>
+        <tr><td>Working day</td><td>${RULES.dayHrs} h, Mon–Sat. Hours above are overtime (wet hire)</td></tr>
+        <tr><td>Hourly hire minimum</td><td>${RULES.minH} h a day</td></tr>
+        <tr><td>Monthly hire</td><td>Covers ${RULES.mHrs} h; part months by calendar days</td></tr>
+        <tr><td>Sunday / public holiday</td><td>×${RULES.sunX} day rate; holidays by the site's state</td></tr>
+        <tr><td>Standby (rain, site not ready)</td><td>${RULES.standbyPct}% of hourly rate on hourly hire; part of the day on day and month hire</td></tr>
+        <tr><td>Breakdown credit</td><td>Lost hours after the first ${RULES.bdGrace} h of a day</td></tr>
+        <tr><td>Operator outstation allowance</td><td>${RM0(RULES.allowance)} a night outside Klang Valley</td></tr>
+        <tr><td>Deposit</td><td>One month's hire (or 4 weeks) for new customers</td></tr>
+        <tr><td>SST</td><td>${RULES.sst}% on rental of machinery; taxable per charge type (to confirm with tax agent)</td></tr>
+      </tbody></table></div></div>
+    </div>`;
+}
+
+/* ---------- Reports ---------- */
+function renderReports(){
+  const us = hireUnits().filter(u=>fleet[u].ytd).sort((a,b)=>fleet[b].ytd.util-fleet[a].ytd.util);
+  const prof = hireUnits().map(u=>{ const y = fleet[u].ytd; return {u, ...y, contrib:y.rev-y.ws-y.opx, roc:Math.round(y.rev/9*12/fleet[u].cost*100)}; }).sort((a,b)=>b.contrib-a.contrib);
+  const lostBy = {}; lost.forEach(x=>{ const k = x.type; lostBy[k] = lostBy[k] || {n:0,why:{}}; lostBy[k].n++; lostBy[k].why[x.why]=(lostBy[k].why[x.why]||0)+1; });
+  $('#v-reports').innerHTML = `
+    <div class="view-head"><h2>Reports · Jan–Sep 2026</h2></div>
+    <div class="rgrid">
+      <div class="panel"><div class="panel-head"><h3>Time utilisation</h3><span class="muted">target 70%</span></div><div class="rbars">
+        ${us.map(u=>`<div class="rbar"><span>${u} ${esc(mOf(u).model)}</span><div class="track" style="position:relative"><div class="fill" style="width:${fleet[u].ytd.util}%;${fleet[u].ytd.util<50?'background:var(--warn)':''}"></div><i style="position:absolute;left:70%;top:-3px;bottom:-3px;width:1px;background:var(--ink);opacity:.5"></i></div><span class="v">${fleet[u].ytd.util}%</span></div>`).join('')}
+      </div></div>
+      <div class="panel"><div class="panel-head"><h3>Lost enquiries</h3><span class="muted">since Aug</span></div><div class="tbl-wrap" style="border:0"><table><tbody>
+        ${Object.entries(lostBy).sort((a,b)=>b[1].n-a[1].n).map(([t,v])=>`<tr><td><b>${esc(t)}</b><br><small class="muted">${Object.entries(v.why).map(([w,n])=>`${n} × ${esc(w.toLowerCase())}`).join(', ')}</small></td><td class="r num"><b>${v.n}</b></td></tr>`).join('')}
+      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">Three 50 t crane jobs were lost because RC-01 was out: worth pricing a second 50 t crane or a cross-hire partner.</small></div></div>
+    </div>
+    <div class="panel"><div class="panel-head"><h3>Profit per machine</h3><span class="muted">workshop cost comes from workshop jobs on the machine</span></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Machine</th><th class="r">Hire revenue</th><th class="r">Workshop cost</th><th class="r">Operator & transport</th><th class="r">Contribution</th><th class="r">Utilisation</th><th class="r">Revenue / purchase cost (yearly)</th></tr></thead><tbody>
+        ${prof.map(p=>`<tr class="click" data-unit="${p.u}"><td><b>${p.u}</b> ${esc(uName(p.u))}</td><td class="r num">${RM0(p.rev)}</td><td class="r num ${p.ws/p.rev>0.25?'stock-low':''}">${RM0(p.ws)}</td><td class="r num">${RM0(p.opx)}</td><td class="r num"><b>${RM0(p.contrib)}</b></td><td class="r num">${p.util}%</td><td class="r num">${p.roc}%</td></tr>`).join('')}
+      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">RC-03 (2009) spent ${Math.round(fleet['RC-03'].ytd.ws/fleet['RC-03'].ytd.rev*100)}% of its revenue in the workshop, and its CF is due on 30 Oct. A candidate to replace.</small></div></div>`;
+}
+
+/* ---------- sheet plumbing ---------- */
+function openSheet(title, sub, body, ctx){
+  state.sheet = ctx || null;
+  const same = !!($('.sheet-body') && ctx && state.lastSheet && state.lastSheet===JSON.stringify(ctx));
+  const scrollTop = same ? $('.sheet-body').scrollTop : 0;
+  state.lastSheet = JSON.stringify(ctx||null);
+  $('#sheetRoot').innerHTML = `<div class="scrim" data-action="close"></div><aside class="sheet ${same?'':'enter'}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sheet-head"><div>${sub}<h2>${title}</h2></div><button class="x" data-action="close" aria-label="Close">×</button></div><div class="sheet-body">${body}</div></aside>`;
+  document.body.style.overflow = 'hidden';
+  if(scrollTop) $('.sheet-body').scrollTop = scrollTop; else $('.sheet .x').focus();
+}
+function closeSheet(){ $('#sheetRoot').innerHTML=''; document.body.style.overflow=''; state.sheet=null; state.lastSheet=null; }
+function refreshSheet(){
+  const s = state.sheet; if(!s) return;
+  if(s.type==='hire') openHire(s.id); else if(s.type==='unit') openUnit(s.id); else if(s.type==='ts') openTimesheet(s.id); else if(s.type==='inv') openInvoice(s.id); else if(s.type==='nh') openNewHire(); else if(s.type==='insp') openInspection(s.id, s.kind);
+}
+function toast(t){ $('#toastRoot').innerHTML=`<div class="toast" role="status">${esc(t)}</div>`; clearTimeout(toast.h); toast.h=setTimeout(()=>$('#toastRoot').innerHTML='',3200); }
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  if(e.target.closest('input,select,textarea,canvas')) return;
+  const a = e.target.closest('[data-action],[data-hire],[data-unit],[data-ts],[data-inv],[data-view],[data-hiretab],[data-fleetgrp],[data-plangrp]');
+  if(!a) return;
+  const d = a.dataset;
+  if(d.action){
+    const act = d.action, h = d.id ? hire(d.id) : null;
+    if(act==='close') return closeSheet();
+    if(act==='new-hire'){ state.nh = newHireDefaults(); return openNewHire(); }
+    if(act==='book-unit'){ const u = d.u; state.nh = newHireDefaults({type:mOf(u).type, u, from:state.find.from, to:state.find.to}); return openNewHire(); }
+    if(act==='find-clear'){ state.find.type=''; return render(); }
+    if(act==='nh-save') return saveNewHire(d.as);
+    if(act==='send-quote'){ h.log.unshift({d:TODAY+' '+nowT(),t:'Quotation sent by WhatsApp.'}); toast(`Quotation PDF sent to ${customers[h.c].contact} by WhatsApp`); return rerender(); }
+    if(act==='confirm'){ h.status='Booked'; h.quoteValid=undefined; h.log.unshift({d:TODAY+' '+nowT(),t:'Customer confirmed. Booked.'}); toast(`${h.id} booked`); return rerender(); }
+    if(act==='lose'){ h.status='Lost'; h.log.unshift({d:TODAY+' '+nowT(),t:h.lines.some(l=>!l.u)?'Lost: no machine free.':'Lost: customer declined.'}); lost.unshift({d:TODAY,c:custName(h.c).replace(/ Sdn Bhd$/,''),type:models[lineModel(h.lines[0])].type,why:h.lines.some(l=>!l.u)?'No machine free':'Price'}); toast(`${h.id} marked lost`); return rerender(); }
+    if(act==='deposit'){ h.depositPaid=true; h.log.unshift({d:TODAY+' '+nowT(),t:`Deposit ${RM0(h.deposit)} received (bank transfer).`}); toast('Deposit recorded. Delivery can go ahead.'); return rerender(); }
+    if(act==='cancel'){ h.status='Lost'; h.log.unshift({d:TODAY+' '+nowT(),t:'Booking cancelled.'}); toast(`${h.id} cancelled; machine released`); return rerender(); }
+    if(act==='insp'){ if(d.kind==='delivery' && h.deposit && !h.depositPaid && !boss()){ toast('Deposit not received. Only the Head Manager can release the machine.'); return; } state.insp=null; return openInspection(d.id, d.kind); }
+    if(act==='snap'){ state.insp.photos[d.p]=true; state.insp.checks = collectChecks(); return openInspection(state.insp.id, state.insp.kind); }
+    if(act==='sig-clear') return initSig();
+    if(act==='insp-save'){ state.insp.checks = collectChecks(); return saveInspection(); }
+    if(act==='offhire'){ h.status='Off-hire called'; h.offCalled=TODAY; h.lines.forEach(l=>{ l.off=TODAY; }); const l = h.lines[0], self = models[fleet[l.u].m].size==='self';
+      h.lines.forEach(x=>{ if(!h.trips.some(t=>t.dir==='Collection' && t.u===x.u && t.status==='Planned')) h.trips.push({dir:'Collection',d:addDays(TODAY,1),u:x.u,veh:self?null:'TR-01',drv:self?(x.op||'D1'):'D1',zone:'Klang Valley',charge:transportCharge(fleet[x.u].m,'Klang Valley'),status:'Planned',self}); else h.trips.find(t=>t.dir==='Collection' && t.u===x.u).d = addDays(TODAY,1); });
+      h.log.unshift({d:TODAY+' '+nowT(),t:`Customer called off-hire from ${fmtD(TODAY)}. Collection ${fmtDW(addDays(TODAY,1))}.`}); toast('Off-hire recorded. Charges stop today; collection booked for tomorrow.'); return rerender(); }
+    if(act==='breakdown'){ h.log.unshift({d:TODAY+' '+nowT(),t:'Breakdown reported. Workshop emergency job J-2026-0424 created; lost hours stop being charged.'}); toast('Workshop alerted: emergency job J-2026-0424 created'); return rerender(); }
+    if(act==='extend'){ const l = h.lines[0], nt = addDays(l.to,7), av = availability(l.u, addDays(l.to,1), nt, h.id); if(!av.ok){ toast('Cannot extend: '+av.why[0]); return; } l.to = nt; h.log.unshift({d:TODAY+' '+nowT(),t:`Extended to ${fmtD(nt)}.`}); toast(`Extended to ${fmtD(nt)}`); return rerender(); }
+    if(act==='final-inv'){ const lines = charges(h, '2026-10-01', h.lines[0].off||TODAY); if(h.damage) lines.push({kind:'damage',desc:`Damage repair, workshop job ${h.damage.job} (${h.damage.done?'final':'estimate'})`,qty:1,unit:'lot',rate:h.damage.est,amt:h.damage.est});
+      const t = totals(lines), no = 'INV-2026-0'+(Math.max(...invoices.map(i=>+i.no.slice(-3)))+1), cu = customers[h.c];
+      invoices.push({no,c:h.c,hire:h.id,period:`${fmtD('2026-10-01')}–${fmtD(h.lines[0].off||TODAY)} 2026 (final)`,issued:TODAY,due:addDays(TODAY,cu.terms),lines,...t,status:cu.tin?'Sent':'Draft',einv:cu.tin?'Validated':'Rejected',einvNote:cu.tin?'':'Buyer TIN missing',uuid:cu.tin?uuidOf(no):''});
+      h.status='Closed'; h.log.unshift({d:TODAY+' '+nowT(),t:`Final invoice ${no} issued.`}); render(); return openInvoice(no); }
+    if(act==='ts-wa'){ toast(`Timesheet sent to ${esc(sheets.find(s=>s.id===d.id).signer)} by WhatsApp to approve with one tap`); return; }
+    if(act==='op-bd'){ toast('Workshop and rental desk alerted. Emergency job J-2026-0424 created.'); return; }
+    if(act==='op-map'){ toast('Opens the site pin in Google Maps / Waze'); return; }
+    if(act==='op-day'){ state.ts = {...(state.ts||{}), d:d.d, note:'', standby:0, bd:0, hmE:''}; return render(); }
+    if(act==='ts-submit' || act==='ts-nosign'){
+      if(act==='ts-submit' && !sigDrawn){ toast('The site supervisor has to sign'); return; }
+      const ts = state.ts, me = state.me, cur = hires.find(h=>h.status==='On hire' && h.lines.some(l=>l.op===me)), l = cur.lines.find(x=>x.op===me);
+      const prev = sheets.filter(s=>s.u===l.u && s.d<ts.d).sort((a,b)=>a.d<b.d?1:-1)[0], hmS = prev ? prev.hmE : fleet[l.u].hm;
+      const work = Math.max(0, toH(ts.finish)-toH(ts.start)-ts.brk/60-(+ts.standby)-(+ts.bd));
+      sheets = sheets.filter(s=>!(s.u===l.u && s.d===ts.d));
+      sheets.push({id:`${l.u}-${ts.d}`,hire:cur.id,u:l.u,op:me,d:ts.d,start:ts.start,finish:ts.finish,brk:+ts.brk,work,standby:+ts.standby,reason:ts.reason,bd:+ts.bd,hmS,hmE:+ts.hmE||hmS+work,note:ts.note||'—',status:act==='ts-submit'?'signed':'unsigned',signer:SITE_SIGNER[cur.c]});
+      toast(act==='ts-submit' ? `Timesheet for ${fmtDW(ts.d)} signed and sent` : `Sent to ${SITE_SIGNER[cur.c]} by WhatsApp to approve`);
+      state.ts = null; return render();
+    }
+    if(act==='inv-wa'){ toast('Invoice PDF with e-invoice QR sent by WhatsApp and e-mail'); return; }
+    if(act==='inv-paid'){ const i = invoices.find(x=>x.no===d.no); i.status='Paid'; i.paid=TODAY; toast(`${i.no} marked paid`); return rerender(); }
+    if(act==='inv-cn'){ toast('Credit note drafted. It is submitted to MyInvois when issued.'); return; }
+    return;
+  }
+  if(d.view) return setView(d.view);
+  if(d.hiretab!=null){ state.hireTab=d.hiretab; return render(); }
+  if(d.fleetgrp!=null){ state.fleetGrp=d.fleetgrp; return render(); }
+  if(d.plangrp!=null){ state.planGrp=d.plangrp; return render(); }
+  if(d.hire) return openHire(d.hire);
+  if(d.unit) return openUnit(d.unit);
+  if(d.ts) return openTimesheet(d.ts);
+  if(d.inv) return openInvoice(d.inv);
+});
+function collectChecks(){ const c = {}; document.querySelectorAll('[data-check]').forEach(x=>{ if(x.checked) c[x.dataset.check]=true; }); const dm = $('#iDmg'); if(dm && state.insp) state.insp.damage = dm.checked; return c; }
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape' && $('#sheetRoot').innerHTML) closeSheet();
+  if((e.key==='Enter' || e.key===' ') && e.target.matches('.attn[role=button]')){ e.preventDefault(); e.target.click(); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.id==='roleSel'){ state.role = t.value; document.body.dataset.role = t.value; closeSheet(); state.ts=null; return setView(t.value==='operator' ? 'timesheets' : state.view==='timesheets' ? 'today' : state.view); }
+  if(t.dataset.nh){ const f = t.dataset.nh; state.nh[f] = t.type==='checkbox' ? t.checked : t.value; if(f==='type') state.nh.u=null; if(f==='to' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; if(f==='from' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; return openNewHire(); }
+  if(t.dataset.tsF){ state.ts[t.dataset.tsF] = t.value; return render(); }
+  if(t.dataset.rate){ rates[t.dataset.rate][t.dataset.f] = +t.value; toast('Rate updated for new hires'); return; }
+});
+document.addEventListener('input', e => { const t = e.target; if(t.dataset.nh && t.type==='text') state.nh[t.dataset.nh] = t.value; });
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target;
+  if(f.dataset.form==='find'){ const fd = new FormData(f); state.find = {type:fd.get('type'), from:fd.get('from'), to:fd.get('to')<fd.get('from')?fd.get('from'):fd.get('to')}; return render(); }
+  if(f.dataset.form==='tin'){ const v = $('#tinIn').value.trim().toUpperCase(); if(!/^[A-Z]{1,2}\d{9,11}$/.test(v)){ toast('TIN looks wrong: letter(s) followed by 9–11 digits'); return; }
+    const i = invoices.find(x=>x.no===f.dataset.no); customers[i.c].tin = v; i.einv='Validated'; i.einvNote=''; i.uuid=uuidOf(i.no); i.status='Sent'; toast(`TIN saved. ${i.no} validated by MyInvois.`); return rerender(); }
+});
+
+document.getElementById('roleSel').value = state.role;
+document.body.dataset.role = state.role;
+setView(state.view);
+</script>
