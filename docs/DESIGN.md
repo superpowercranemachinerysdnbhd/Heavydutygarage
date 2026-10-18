@@ -522,3 +522,20 @@ last done, interval in months, next due (calculated from last done + interval, o
 Each labour line on a job has an **Edit** button: change date, hours and note (and the person, for supervisors), or
 remove the line. Supervisors and the Head Manager can change any line, also on completed jobs; crew can change only their
 own time while the job is open. Every change is written to the job's activity log (old and new hours, who changed it).
+
+## 23. Today dashboard (Head Manager, Supervisor)
+
+Built around the Supervisor's three questions: what is being worked on, what is stuck or left hanging, and what
+servicing is coming up.
+
+- **Summary counts** (tap to jump): working now, waiting for parts, not started, services due (14 days), crew free.
+  The Head Manager also sees the value of open jobs.
+- **Act now**: emergencies with no mechanic, overdue jobs, jobs stuck too long, open part requests, purchase orders
+  to approve or late. Five shown, the rest behind "Show all".
+- **Working today**: In Progress jobs, one line each: plate, job type, where, who, task progress, due.
+- **Waiting for parts**: days waiting and open part requests.
+- **Not started yet / on hold**: Received jobs, oldest first, with days waiting (amber from 5 days, red from 14).
+- Side column: **Services coming up** (overdue / 14 days / 30 days), **Crew today** (free first), **Bays & yard**
+  (compact), **Other reminders** folded (certificates, long-stay machines, follow-ups, stock and price alerts).
+
+The job board moved off the dashboard (it is on the Jobs page). Crew keep their own "My jobs" view.
