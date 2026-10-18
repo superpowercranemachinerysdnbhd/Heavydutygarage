@@ -6,7 +6,7 @@ import { coverPhotos, listJobs } from "@/lib/queries";
 import { addDays, fmtDate, today } from "@/lib/format";
 import { getI18n } from "@/i18n/server";
 import { catLabel, statusLabel } from "@/i18n/labels";
-import { CatChip, Pri, daysInStatus, dueInfo } from "@/components/ui";
+import { CatChip, Notice, Pri, daysInStatus, dueInfo } from "@/components/ui";
 import JobBox from "@/components/JobBox";
 import AutoSubmitSelect from "@/components/AutoSubmitSelect";
 import { machinePhotoUrl, unitRef } from "@/lib/machine-types";
@@ -16,7 +16,7 @@ export async function generateMetadata() {
   return { title: (await getI18n()).t("jobs.title") };
 }
 
-export default async function JobsPage({ searchParams }: { searchParams: Promise<{ q?: string; cat?: string; status?: string; view?: string }> }) {
+export default async function JobsPage({ searchParams }: { searchParams: Promise<{ q?: string; cat?: string; status?: string; view?: string; ok?: string; error?: string }> }) {
   const user = await requireUser();
   const { t, locale } = await getI18n();
   const sp = await searchParams;
@@ -45,6 +45,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   return (
     <div className="page">
       <div className="view-head"><h2>{crew ? t("jobs.onHand") : t("jobs.title")}</h2>{can(user.role, "job.create") && <Link className="btn primary" href="/jobs/new">{t("dash.newJob")}</Link>}</div>
+      <Notice ok={sp.ok} error={sp.error} />
       {!crew && (
         <nav className="chipbar status-chips" aria-label={t("col.status")}>
           {([...STATUSES, "open", "all"] as const).map((k) => (

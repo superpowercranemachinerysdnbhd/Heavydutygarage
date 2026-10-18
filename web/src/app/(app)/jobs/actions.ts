@@ -561,3 +561,30 @@ export async function recordServices(form: FormData) {
   revalidatePath(`/machinery/${job.unitId}`);
   back(user, jobId, { ok: "svc.recorded", hash: "services" });
 }
+
+/** Delete a work order entered by mistake (Head Manager). Parts issued from stock go back on the shelf; purchase
+ *  orders and stock history that pointed at it are kept, without the link. Everything else on it is removed. */
+export async function deleteJob(form: FormData) {
+  const user = await requirePermission("job.delete");
+  const jobId = num(form, "jobId");
+  const [job] = await db.select({ id: schema.jobs.id, jobNo: schema.jobs.jobNo }).from(schema.jobs).where(eq(schema.jobs.id, jobId));
+  if (!job) back(user, jobId, { error: "err.jobNotFound" });
+  if (form.get("confirm") !== "on") redirect(`/jobs/${jobId}/edit?error=${encodeURIComponent(translator(user.locale)("job.delConfirmErr"))}#delete`);
+  await db.transaction(async (tx) => {
+    const issued = await tx.select({ partId: schema.jobParts.partId, qty: schema.jobParts.qty }).from(schema.jobParts).where(eq(schema.jobParts.jobId, jobId));
+    const moved = await tx.select({ id: schema.stockMovements.id }).from(schema.stockMovements).where(and(eq(schema.stockMovements.jobId, jobId), eq(schema.stockMovements.type, "issue"))).limit(1);
+    // Only parts that really left the shelf (a stock movement exists) go back; imported history did not move stock.
+    if (moved.length) for (const it of issued) {
+      const [p] = await tx.select({ onHand: schema.parts.onHand, avg: schema.parts.avgCost }).from(schema.parts).where(eq(schema.parts.id, it.partId)).for("update");
+      const after = Number(p.onHand) + Number(it.qty);
+      await tx.update(schema.parts).set({ onHand: after.toFixed(2) }).where(eq(schema.parts.id, it.partId));
+      await tx.insert(schema.stockMovements).values({ partId: it.partId, type: "return", qty: Number(it.qty).toFixed(2), unitCost: p.avg, balanceAfter: after.toFixed(2), staffId: user.id, note: `Work order ${job.jobNo} deleted` });
+    }
+    await tx.update(schema.stockMovements).set({ jobId: null }).where(eq(schema.stockMovements.jobId, jobId));
+    await tx.update(schema.purchaseOrders).set({ jobId: null }).where(eq(schema.purchaseOrders.jobId, jobId));
+    await tx.update(schema.jobs).set({ parentJobId: null }).where(eq(schema.jobs.parentJobId, jobId));
+    await tx.delete(schema.jobs).where(eq(schema.jobs.id, jobId));
+  });
+  revalidatePath("/jobs"); revalidatePath("/");
+  redirect(`/jobs?ok=${encodeURIComponent(translator(user.locale)("job.deleted", { no: job.jobNo }))}`);
+}

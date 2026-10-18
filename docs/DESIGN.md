@@ -614,3 +614,10 @@ Head Manager picks which company owns the machines, then imports.
 - Photos stay in Google Drive (only file names are in the export).
 
 The .xlsx is read by a small built-in reader (`lib/xlsx.ts`); the mapping rules are in `lib/appsheet-map.ts` (tested).
+
+## 29. Deleting a work order
+
+Head Manager only: **Edit work order → Delete this work order** (tick to confirm). Meant for work orders entered by
+mistake. Tasks, labour, photos records, chat, checks, services-done links, crew plan entries and costs on it are removed.
+Parts issued from stock are returned to stock (a "return" movement notes the deleted number); purchase orders and stock
+history keep their records without the link; comeback work orders lose their link to it.

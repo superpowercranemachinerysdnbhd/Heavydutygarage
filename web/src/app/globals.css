@@ -693,3 +693,6 @@ details.panel[open]>summary h3::before{content:"▾ "}
 .att-month th.dcol.today{box-shadow:inset 0 -3px 0 var(--accent)}
 .att-month td.s-present{color:var(--ok)}.att-month td.s-late{color:var(--warn)}.att-month td.s-absent{color:var(--crit);background:color-mix(in srgb,var(--crit) 10%,var(--surface))}
 .att-month td.s-mc,.att-month td.s-leave{color:var(--info);background:color-mix(in srgb,var(--info) 8%,var(--surface))}
+.btn.danger{background:var(--crit);border-color:var(--crit);color:#fff;font-weight:600}
+.danger-zone{border-color:color-mix(in srgb,var(--crit) 40%,var(--line))}
+.danger-zone .panel-head h3{color:var(--crit)}

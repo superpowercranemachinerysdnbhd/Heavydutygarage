@@ -25,6 +25,7 @@ export type Action =
   | "job.handover"       // record customer sign-off and close
   | "job.anyStatus"      // move a job to any status (otherwise limited to crew statuses)
   | "job.report"         // generate the customer service report
+  | "job.delete"         // delete a work order entered by mistake
   | "money.selling"      // job value, labour charge, selling prices
   | "money.cost"         // part purchase prices (phase 2)
   | "money.labourCost"   // pay rates, labour cost, margins
@@ -40,6 +41,7 @@ export type Action =
 
 const GRANTS: Record<Action, Role[]> = {
   "job.viewAll": ["boss", "supervisor"],
+  "job.delete": ["boss"],
   "job.create": ["boss", "supervisor"],
   "job.assign": ["boss", "supervisor"],
   "job.editDetails": ["boss", "supervisor"],

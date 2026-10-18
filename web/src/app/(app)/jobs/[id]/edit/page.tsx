@@ -12,7 +12,7 @@ import { catLabel, priLabel } from "@/i18n/labels";
 import { Notice } from "@/components/ui";
 import SubmitButton from "@/components/SubmitButton";
 import WherePicker, { OUTSIDE, TBD } from "@/components/WherePicker";
-import { updateDetails } from "../../actions";
+import { deleteJob, updateDetails } from "../../actions";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("job.edit") };
@@ -49,6 +49,17 @@ export default async function EditJobPage({ params, searchParams }: { params: Pr
           <Link className="btn" href={`/jobs/${id}`}>{t("common.cancel")}</Link>
         </div>
       </form>
+      {can(user.role, "job.delete") && (
+        <form action={deleteJob} className="panel danger-zone" id="delete">
+          <div className="panel-head"><h3>{t("job.delTitle")}</h3></div>
+          <div className="stack" style={{ padding: 14, gap: 10 }}>
+            <input type="hidden" name="jobId" value={job.id} />
+            <p className="muted" style={{ margin: 0 }}>{t("job.delHelp")}</p>
+            <label className="set-check"><input type="checkbox" name="confirm" required /> {t("job.delConfirm", { no: job.jobNo })}</label>
+            <div><SubmitButton className="btn danger">{t("job.delBtn")}</SubmitButton></div>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
