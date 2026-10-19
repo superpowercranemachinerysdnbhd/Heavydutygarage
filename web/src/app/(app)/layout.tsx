@@ -7,6 +7,7 @@ import { can } from "@/lib/permissions";
 import { unreadTotal } from "@/lib/chat";
 import { ensureLists } from "@/lib/lists-server";
 import ListsProvider from "@/components/ListsProvider";
+import PhotoViewer from "@/components/PhotoViewer";
 import { getI18n } from "@/i18n/server";
 import { roleLabel } from "@/i18n/labels";
 import { logout } from "@/app/login/actions";
@@ -48,6 +49,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </header>
       <main className="wrap"><ListsProvider lists={lists}>{children}</ListsProvider></main>
+      <PhotoViewer />
     </>
   );
 }

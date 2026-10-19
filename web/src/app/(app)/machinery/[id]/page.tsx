@@ -62,7 +62,7 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
       </div>
       <Notice error={sp.error} ok={sp.ok} />
       <div className="panel mach-top">
-        {photo ? <a href={photo} target="_blank" rel="noreferrer"><img className="mach-photo" src={photo} alt={`${model.make} ${model.model}`} /></a> : <div className="mach-photo mach-thumb none" role="img" aria-label={t("mach.noPhoto")} />}
+        {photo ? <a href={photo} target="_blank" rel="noreferrer" data-viewer="machine"><img className="mach-photo" src={photo} alt={`${model.make} ${model.model}`} /></a> : <div className="mach-photo mach-thumb none" role="img" aria-label={t("mach.noPhoto")} />}
         <div className="facts">
         <div><span className="label">{t("u.plate")}</span><b className="mono">{unit.plateNo ?? "—"}</b></div>
         <div><span className="label">{t("col.serial")}</span><b className="mono">{unit.serialNo ?? "—"}</b></div>

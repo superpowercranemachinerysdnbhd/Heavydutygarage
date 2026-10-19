@@ -111,7 +111,7 @@ export default function ChatRoom({ threadId, meId, initial, info, priceHint, com
             <div key={m.id} className={`msg ${mine ? "mine" : ""}`}>
               {showName && <b className="who">{m.name}</b>}
               <div className="bubble">
-                {m.photo && <a href={`/api/chat/photo/${m.id}`} target="_blank" rel="noreferrer"><img src={`/api/chat/photo/${m.id}`} alt={t("chat.photo")} loading="lazy" /></a>}
+                {m.photo && <a href={`/api/chat/photo/${m.id}`} target="_blank" rel="noreferrer" data-viewer="chat"><img src={`/api/chat/photo/${m.id}`} alt={t("chat.photo")} loading="lazy" /></a>}
                 {m.body && <p>{m.body}</p>}
                 <time dateTime={m.at}>{time(m.at)}</time>
               </div>

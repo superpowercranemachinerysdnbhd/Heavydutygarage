@@ -709,3 +709,8 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Moving a work order to Completed asks "Completed on" (today by default, between the reported date and today).
 - Edit details: the reported date can be changed, and on a completed work order the completion date too. The job page shows "Completed on".
 - Recommended flow for a job that is already finished: create it with the real reported date → add labour (each entry has its own date), parts and photos → Completed on the real day.
+
+### 39. In-app photo viewer (Oct 2026)
+- Job, chat and machine photos open in a full-screen viewer inside the app instead of a new page. A home-screen app has no browser back button, so a photo opened as its own page could not be closed.
+- Close with ✕, the phone's back button or gesture, Esc, a tap outside the photo or a swipe down. Swipe or use ‹ › for the other photos on the same work order.
+- Implemented once in `components/PhotoViewer.tsx` (mounted in the app layout). Any link with `data-viewer="<group>"` opens in it.

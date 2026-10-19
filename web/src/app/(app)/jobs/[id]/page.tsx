@@ -149,7 +149,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           <section className="sect"><h3>{t("job.photos")} <span className="muted" style={subtle}>{photos.length}</span></h3><div className="in">
             {photos.length ? (
               <div className="photos">{photos.map((p) => (
-                <figure key={p.id} className="photo"><a href={`/api/photos/${p.id}`} target="_blank" rel="noreferrer"><img src={`/api/photos/${p.id}`} alt={p.caption ?? stageLabel(t, p.stage)} loading="lazy" /></a>
+                <figure key={p.id} className="photo"><a href={`/api/photos/${p.id}`} target="_blank" rel="noreferrer" data-viewer="job" data-caption={[stageLabel(t, p.stage), p.caption].filter(Boolean).join(" · ")}><img src={`/api/photos/${p.id}`} alt={p.caption ?? stageLabel(t, p.stage)} loading="lazy" /></a>
                   <figcaption><span className="stage">{stageLabel(t, p.stage)}</span> {p.caption}
                     {(can(user.role, "job.assign") ? canWrite : open && p.takenBy === user.id) && (
                       <form action={A.removePhoto} className="photo-del">{hidden("jobId", job.id)}{hidden("photoId", p.id)}<SubmitButton className="linkbtn muted" confirm={t("ph.confirm")}>{t("ph.remove")}</SubmitButton></form>
