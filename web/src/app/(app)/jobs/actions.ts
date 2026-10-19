@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, ilike, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requirePermission, requireUser, type CurrentUser } from "@/lib/auth";
 import { can, canWorkOnJob, LEAD_ROLES } from "@/lib/permissions";
@@ -9,7 +9,7 @@ import { PRIORITIES, STATUSES, checkTransition, nextJobNo, type Category, type P
 import { today } from "@/lib/format";
 import { addActivity } from "@/lib/queries";
 import { jobMachine, notifyRoles, notifyStaff } from "@/lib/notify";
-import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, saveFile } from "@/lib/storage";
+import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, deleteStoredFile, saveFile } from "@/lib/storage";
 import { issueToJob } from "@/lib/inventory";
 import { saveMachine } from "@/lib/machines";
 import { bayCodes, findItem, isCategory, itemLabel, qcSuggestions } from "@/lib/lists";
@@ -398,6 +398,22 @@ export async function uploadPhotos(form: FormData) {
   back(user, jobId, { ok: "ok.photosAdded" });
 }
 
+/** Delete a photo: whoever took it while the job is open; Supervisor / Head Manager any time. */
+export async function removePhoto(form: FormData) {
+  const user = await requireUser();
+  const jobId = num(form, "jobId"), id = num(form, "photoId");
+  const { job } = await access(jobId, user);
+  const P = schema.jobPhotos;
+  const [p] = await db.select().from(P).where(and(eq(P.id, id), eq(P.jobId, jobId)));
+  if (!p) back(user, jobId);
+  const allowed = can(user.role, "job.assign") ? (job.status !== "closed" || can(user.role, "job.editDetails")) : (job.status !== "closed" && p.takenBy === user.id);
+  if (!allowed) back(user, jobId, { error: "err.notOnJob" });
+  await db.delete(P).where(eq(P.id, id));
+  await deleteStoredFile(p.path).catch(() => {});
+  await addActivity(jobId, user.id, "act.photoRemoved", { stage: p.stage, name: user.name });
+  back(user, jobId, { ok: "ph.removed" });
+}
+
 /* ---------- handover & report ---------- */
 export async function handover(form: FormData) {
   const user = await requirePermission("job.handover");
@@ -537,10 +553,18 @@ export async function addJobPurchase(form: FormData) {
   if (!description || !(qty > 0) || !(cost >= 0)) back(user, jobId, { error: "jp.err.fields", hash: "parts" });
   // Work orders are costed, not priced: the price column simply mirrors the cost.
   const price = cost;
-  const supplierId = num(form, "supplierId") || null;
+  // Supplier: typed or picked by name; a name not on the list becomes a new supplier.
+  const supplierName = str(form, "supplierName").replace(/\s+/g, " ").slice(0, 160);
+  let supplierId: number | null = null;
+  if (supplierName) {
+    const S = schema.suppliers;
+    const [found] = await db.select({ id: S.id, active: S.active }).from(S).where(ilike(S.name, supplierName.replace(/[\\%_]/g, "\\$&"))).orderBy(sql`${S.active} desc`, S.id).limit(1);
+    supplierId = found?.id ?? (await db.insert(S).values({ name: supplierName }).returning({ id: S.id }))[0].id;
+    if (found && !found.active) await db.update(S).set({ active: true }).where(eq(S.id, found.id));
+  }
   const date = str(form, "purchasedAt");
   await db.insert(schema.jobPurchases).values({
-    jobId, description, partNo: str(form, "partNo") || null, supplierId, supplierName: supplierId ? null : str(form, "supplierName") || null,
+    jobId, description, partNo: str(form, "partNo") || null, supplierId, supplierName: null,
     qty: String(qty), uom: str(form, "uom") || "pc", unitCost: cost.toFixed(2), unitPrice: price.toFixed(2), ref: str(form, "ref") || null,
     purchasedAt: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : today(), addedBy: user.id,
   });

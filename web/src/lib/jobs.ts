@@ -10,7 +10,7 @@ export type Category = string;
 export type Status = "received" | "deferred" | "in_progress" | "awaiting_parts" | "closed";
 export type Priority = "critical" | "high" | "normal" | "low";
 
-export const STATUSES: Status[] = ["received", "deferred", "in_progress", "awaiting_parts", "closed"];
+export const STATUSES: Status[] = ["received", "in_progress", "awaiting_parts", "closed", "deferred"];
 /** The progress bar on a work order (Deferred is shown as a note, not a step). */
 export const STAGES: Status[] = ["received", "in_progress", "awaiting_parts", "closed"];
 export const PRIORITIES: Priority[] = ["critical", "high", "normal", "low"];

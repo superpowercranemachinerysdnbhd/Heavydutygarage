@@ -149,7 +149,10 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {photos.length ? (
               <div className="photos">{photos.map((p) => (
                 <figure key={p.id} className="photo"><a href={`/api/photos/${p.id}`} target="_blank" rel="noreferrer"><img src={`/api/photos/${p.id}`} alt={p.caption ?? stageLabel(t, p.stage)} loading="lazy" /></a>
-                  <figcaption><span className="stage">{stageLabel(t, p.stage)}</span> {p.caption}</figcaption></figure>
+                  <figcaption><span className="stage">{stageLabel(t, p.stage)}</span> {p.caption}
+                    {(can(user.role, "job.assign") ? canWrite : open && p.takenBy === user.id) && (
+                      <form action={A.removePhoto} className="photo-del">{hidden("jobId", job.id)}{hidden("photoId", p.id)}<SubmitButton className="linkbtn muted" confirm={t("ph.confirm")}>{t("ph.remove")}</SubmitButton></form>
+                    )}</figcaption></figure>
               ))}</div>
             ) : <span className="muted">{t("job.noPhotos")}</span>}
             <form action={A.uploadPhotos} className="upload">
@@ -258,8 +261,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                     {hidden("jobId", job.id)}
                     <label className="full">{t("jp.desc")}<input name="description" required placeholder="Hydraulic hose 1/2&quot; x 1.5 m" /></label>
                     <label>{t("jp.partNo")}<input name="partNo" /></label>
-                    <label>{t("jp.supplier")}<select className="field" name="supplierId" defaultValue=""><option value="">{t("sup.newBelow")}</option>{sups.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
-                    <label>{t("sup.name")}<input name="supplierName" placeholder={t("sup.name")} /></label>
+                    <label>{t("jp.supplier")}<input name="supplierName" list="sups-job" placeholder={t("jp.supplierPh")} autoComplete="off" /><small className="muted">{t("jp.supplierHelp")}</small></label>
+                    <datalist id="sups-job">{sups.map((x) => <option key={x.id} value={x.name} />)}</datalist>
                     <label>{t("po.qty")}<input type="number" name="qty" min="0.01" step="any" defaultValue={1} required /></label>
                     <label>{t("parts.uom")}<input name="uom" defaultValue="pc" list="uoms-job" /></label>
                     <datalist id="uoms-job"><option>pc</option><option>set</option><option>m</option><option>L</option><option>kg</option></datalist>

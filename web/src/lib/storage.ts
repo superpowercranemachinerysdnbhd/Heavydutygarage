@@ -1,5 +1,5 @@
 import "server-only";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 
@@ -23,4 +23,11 @@ export async function readStoredFile(rel: string): Promise<Buffer> {
   const full = path.resolve(/*turbopackIgnore: true*/ ROOT, rel);
   if (!full.startsWith(ROOT + path.sep)) throw new Error("Invalid path");
   return readFile(/*turbopackIgnore: true*/ full);
+}
+
+/** Delete a stored file; a file that is already gone is fine. */
+export async function deleteStoredFile(rel: string): Promise<void> {
+  const full = path.resolve(/*turbopackIgnore: true*/ ROOT, rel);
+  if (!full.startsWith(ROOT + path.sep)) throw new Error("Invalid path");
+  await rm(/*turbopackIgnore: true*/ full, { force: true });
 }

@@ -698,3 +698,8 @@ device unsubscribes). Sent for: assignment as lead or team member; emergency wor
 (Supervisor, Head Manager), parts issued or not issued (requester); purchase orders awaiting approval (Head Manager);
 chat messages (direct: the other person; work order chat: lead, team and supervisors). Quiet hours 22:00–07:00 MYT
 (only urgent ones go out). Sending is best-effort and never blocks the action (`lib/notify.ts`, `public/sw.js`).
+
+### 37. Photo delete, status order, typed supplier (Oct 2026)
+- Job photos can be deleted: by whoever took them while the work order is open, and by the Supervisor / Head Manager at any time. The file is removed from storage too, and the activity log records it.
+- Status chips and the status list go Received → In Progress → Pending Parts → Completed → Deferred, so parked work sits after the finished work.
+- "Add part bought": the supplier is one box where you type a name or pick one from the list. A name not on the list (any capitalisation) becomes a new supplier, and a hidden supplier with the same name is shown again.

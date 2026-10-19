@@ -741,3 +741,4 @@ details.panel[open]>summary h3::before{content:"▾ "}
 .qr-scan b{font-size:.95rem}
 .qr-url{font-size:.62rem;color:#444;word-break:break-all}
 @media print{.qr-sheet{grid-template-columns:repeat(2,1fr);gap:10mm}.qr-sticker{border-width:1.5px}}
+.photo-del{display:inline;margin-left:6px}.photo-del .linkbtn{font-size:.74rem}
