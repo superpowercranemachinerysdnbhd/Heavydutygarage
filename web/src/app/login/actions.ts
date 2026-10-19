@@ -31,7 +31,7 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
   }
   byPhone.clear(phone);
   await createSession(u.id);
-  redirect("/");
+  redirect("/jobs");
 }
 
 export async function logout() {

@@ -7,12 +7,15 @@ import { can } from "@/lib/permissions";
 import { PRIORITIES } from "@/lib/jobs";
 import { categoryCodes } from "@/lib/lists";
 import { unitRef } from "@/lib/machine-types";
+import { today } from "@/lib/format";
 import { getI18n } from "@/i18n/server";
 import { catLabel, priLabel } from "@/i18n/labels";
 import { Notice } from "@/components/ui";
 import SubmitButton from "@/components/SubmitButton";
 import WherePicker, { OUTSIDE, TBD } from "@/components/WherePicker";
-import { updateDetails } from "../../actions";
+import OutsourceFields from "@/components/OutsourceFields";
+import { activeSuppliers } from "@/lib/purchasing";
+import { deleteJob, updateDetails } from "../../actions";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("job.edit") };
@@ -30,6 +33,8 @@ export default async function EditJobPage({ params, searchParams }: { params: Pr
     .where(eq(schema.jobs.id, id)) : [];
   if (!row) notFound();
   const { job, unit, model } = row;
+  const vendors = await activeSuppliers();
+  const [vendor] = job.vendorId ? await db.select({ name: schema.suppliers.name }).from(schema.suppliers).where(eq(schema.suppliers.id, job.vendorId)) : [];
   return (
     <div className="page" style={{ maxWidth: 900 }}>
       <div className="crumbs"><Link href="/jobs">{t("nav.jobs")}</Link> / <Link href={`/jobs/${id}`}>{job.jobNo}</Link> / {t("job.edit")}</div>
@@ -39,8 +44,12 @@ export default async function EditJobPage({ params, searchParams }: { params: Pr
         <input type="hidden" name="jobId" value={job.id} />
         <label>{t("f.category")}<select className="field" name="category" defaultValue={job.category}>{[...new Set([...categoryCodes(), job.category])].map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select></label>
         <label>{t("f.priority")}<select className="field" name="priority" defaultValue={job.priority}>{PRIORITIES.map((p) => <option key={p} value={p}>{priLabel(t, p)}</option>)}</select></label>
+        <label>{t("f.reportedOn")}<input type="date" name="openedAt" defaultValue={job.openedAt} max={today()} required /></label>
+        {job.status === "closed" && <label>{t("job.completedOn")}<input type="date" name="closedAt" defaultValue={job.closedAt ?? ""} min={job.openedAt} max={today()} /></label>}
         <label>{t("f.dueOptional")}<input type="date" name="dueDate" defaultValue={job.dueDate ?? ""} /></label>
         <WherePicker defaultWhere={job.siteType === "field" ? OUTSIDE : job.siteLocation || TBD} defaultAddress={job.siteType === "field" ? job.siteLocation : ""} />
+        <OutsourceFields vendors={vendors.map((v) => v.name)} today={today()} showBack
+          initial={job.outsourced ? { vendorName: vendor?.name ?? "", vendorRef: job.vendorRef, sentOutAt: job.sentOutAt, expectedBackAt: job.expectedBackAt, backAt: job.backAt } : null} />
         <label>{t("f.hourMeterIn")}<input type="number" name="hourMeterIn" min={0} defaultValue={job.hourMeterIn ?? ""} /></label>
         <label>{t("f.reportedBy")}<input name="reportedBy" defaultValue={job.reportedBy ?? ""} placeholder={t("f.reportedByPh")} /></label>
         <label className="full">{t("f.complaint")}<textarea name="complaint" rows={4} required defaultValue={job.complaint} /></label>
@@ -49,6 +58,17 @@ export default async function EditJobPage({ params, searchParams }: { params: Pr
           <Link className="btn" href={`/jobs/${id}`}>{t("common.cancel")}</Link>
         </div>
       </form>
+      {can(user.role, "job.delete") && (
+        <form action={deleteJob} className="panel danger-zone" id="delete">
+          <div className="panel-head"><h3>{t("job.delTitle")}</h3></div>
+          <div className="stack" style={{ padding: 14, gap: 10 }}>
+            <input type="hidden" name="jobId" value={job.id} />
+            <p className="muted" style={{ margin: 0 }}>{t("job.delHelp")}</p>
+            <label className="set-check"><input type="checkbox" name="confirm" required /> {t("job.delConfirm", { no: job.jobNo })}</label>
+            <div><SubmitButton className="btn danger">{t("job.delBtn")}</SubmitButton></div>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

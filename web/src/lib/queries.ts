@@ -13,7 +13,8 @@ export type JobRow = {
   id: number; jobNo: string; category: typeof jobs.$inferSelect["category"]; priority: typeof jobs.$inferSelect["priority"];
   status: Status; statusSince: Date; siteType: "workshop" | "field"; siteLocation: string; openedAt: string; dueDate: string | null;
   closedAt: string | null; complaint: string; leadId: number | null; leadName: string | null; unitId: number;
-  make: string; model: string; serialNo: string | null; plateNo: string | null; unitPhotoPath: string | null; customerName: string; teamIds: number[]; labourHours: number; partsValue: number;
+  make: string; model: string; serialNo: string | null; plateNo: string | null; unitPhotoPath: string | null; customerName: string; teamIds: number[]; labourHours: number; partsValue: number; source: string; reportedBy: string | null;
+  outsourced: boolean; vendorName: string | null; sentOutAt: string | null; expectedBackAt: string | null; backAt: string | null;
 };
 
 /** Jobs the user may see. Boss and supervisor see all; crew see jobs they lead or are on. */
@@ -29,7 +30,8 @@ export async function listJobs(user: CurrentUser, opts: { open?: boolean; unitId
     .select({
       id: jobs.id, jobNo: jobs.jobNo, category: jobs.category, priority: jobs.priority, status: jobs.status, statusSince: jobs.statusSince,
       siteType: jobs.siteType, siteLocation: jobs.siteLocation, openedAt: jobs.openedAt, dueDate: jobs.dueDate, closedAt: jobs.closedAt,
-      complaint: jobs.complaint, leadId: jobs.leadId, leadName: staff.name, unitId: jobs.unitId,
+      complaint: jobs.complaint, leadId: jobs.leadId, leadName: staff.name, unitId: jobs.unitId, source: jobs.source, reportedBy: jobs.reportedBy,
+      outsourced: jobs.outsourced, vendorName: schema.suppliers.name, sentOutAt: jobs.sentOutAt, expectedBackAt: jobs.expectedBackAt, backAt: jobs.backAt,
       make: machineModels.make, model: machineModels.model, serialNo: machineUnits.serialNo, plateNo: machineUnits.plateNo, unitPhotoPath: machineUnits.photoPath, customerName: customers.name,
       teamIds: sql<number[]>`coalesce((select array_agg(${jobTeam.staffId}) from ${jobTeam} where ${jobTeam.jobId} = ${jobs.id}), '{}')`,
       labourHours: sql<string>`coalesce((select sum(${schema.labourEntries.hours}) from ${schema.labourEntries} where ${schema.labourEntries.jobId} = ${jobs.id}), 0)`,
@@ -41,6 +43,7 @@ export async function listJobs(user: CurrentUser, opts: { open?: boolean; unitId
     .innerJoin(machineModels, eq(machineUnits.modelId, machineModels.id))
     .innerJoin(customers, eq(machineUnits.customerId, customers.id))
     .leftJoin(staff, eq(jobs.leadId, staff.id))
+    .leftJoin(schema.suppliers, eq(jobs.vendorId, schema.suppliers.id))
     .where(conds.length ? and(...conds) : undefined)
     .orderBy(desc(jobs.openedAt), desc(jobs.id));
   return rows.map((r) => ({ ...r, teamIds: (r.teamIds ?? []).map(Number), labourHours: Number(r.labourHours), partsValue: Number(r.partsValue) }));
@@ -67,7 +70,8 @@ export async function getJob(id: number) {
     j.job.parentJobId ? db.select({ id: jobs.id, jobNo: jobs.jobNo }).from(jobs).where(eq(jobs.id, j.job.parentJobId)) : Promise.resolve([]),
   ]);
   const lead = j.job.leadId ? (await db.select({ id: staff.id, name: staff.name, role: staff.role }).from(staff).where(eq(staff.id, j.job.leadId)))[0] ?? null : null;
-  return { ...j, lead, team, tasks, qc, labour, photos, activity, parent: parent[0] ?? null };
+  const vendor = j.job.vendorId ? (await db.select({ id: schema.suppliers.id, name: schema.suppliers.name, phone: schema.suppliers.phone }).from(schema.suppliers).where(eq(schema.suppliers.id, j.job.vendorId)))[0] ?? null : null;
+  return { ...j, lead, vendor, team, tasks, qc, labour, photos, activity, parent: parent[0] ?? null };
 }
 export type JobDetail = NonNullable<Awaited<ReturnType<typeof getJob>>>;
 

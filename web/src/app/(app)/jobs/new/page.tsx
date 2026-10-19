@@ -9,6 +9,7 @@ import { addDays, today } from "@/lib/format";
 import { getI18n } from "@/i18n/server";
 import { roleLabel } from "@/i18n/labels";
 import { Notice } from "@/components/ui";
+import { activeSuppliers } from "@/lib/purchasing";
 import { createJob } from "../actions";
 import NewJobForm from "./NewJobForm";
 
@@ -26,12 +27,13 @@ export default async function NewJobPage({ searchParams }: { searchParams: Promi
     db.select({ siteType: schema.jobs.siteType, siteLocation: schema.jobs.siteLocation }).from(schema.jobs).where(ne(schema.jobs.status, "closed")),
     machineFormOptions(),
   ]);
+  const vendors = (await activeSuppliers()).map((s) => s.name);
   const emergency = sp.emergency === "1";
   return (
     <div className="page" style={{ maxWidth: 900 }}>
       <h2>{emergency ? t("new.emgTitle") : t("new.title")}</h2>
       <Notice error={sp.error} />
-      <NewJobForm action={createJob} emergency={emergency} today={today()} defaultDue={addDays(today(), 7)} unitId={Number(sp.unit) || undefined} machineOptions={machineOptions}
+      <NewJobForm action={createJob} emergency={emergency} today={today()} defaultDue={addDays(today(), 7)} unitId={Number(sp.unit) || undefined} machineOptions={machineOptions} vendors={vendors}
           units={units.map((u) => ({ id: u.id, label: `${unitRef(u)} · ${u.make} ${u.model} · ${u.customerName}` }))}
           leads={staff.filter((s) => LEAD_ROLES.includes(s.role)).map((s) => ({ id: s.id, label: `${s.name} · ${roleLabel(t, s.role)}${s.skills.length ? " · " + s.skills.slice(0, 2).join(", ") : ""}` }))}
           busyBays={open.filter((o) => o.siteType === "workshop").map((o) => o.siteLocation)} />

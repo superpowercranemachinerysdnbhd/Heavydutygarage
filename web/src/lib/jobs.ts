@@ -5,16 +5,19 @@ import type { MessageKey, Vars } from "@/i18n";
 
 /** Job category code: built-in (EMG, DIAG, PM, …) or added in Settings. Names and colours: lib/lists. */
 export type Category = string;
-/** Job stages: Received → In Progress → Pending Parts → Completed ("closed"). The database enum still holds retired values. */
-export type Status = "received" | "in_progress" | "awaiting_parts" | "closed";
+/** Job stages: Received → In Progress → Pending Parts → Completed ("closed"), plus Deferred: the fault is known but the
+ *  repair waits until the machine is free. The database enum still holds retired values. */
+export type Status = "received" | "deferred" | "in_progress" | "awaiting_parts" | "closed";
 export type Priority = "critical" | "high" | "normal" | "low";
 
-export const STATUSES: Status[] = ["received", "in_progress", "awaiting_parts", "closed"];
+export const STATUSES: Status[] = ["received", "in_progress", "awaiting_parts", "closed", "deferred"];
+/** The progress bar on a work order (Deferred is shown as a note, not a step). */
+export const STAGES: Status[] = ["received", "in_progress", "awaiting_parts", "closed"];
 export const PRIORITIES: Priority[] = ["critical", "high", "normal", "low"];
 /** CSS class per priority (styling only). */
 export const PRIORITY_CLASS: Record<Priority, string> = { critical: "Critical", high: "High", normal: "Normal", low: "Low" };
 
-/** Jobs still being worked on (a mechanic's jobs "on hand"): not yet Ready or Closed. */
+/** Jobs being worked on (a mechanic's jobs "on hand"): not Deferred, not Completed. */
 export const ON_HAND: Status[] = ["received", "in_progress", "awaiting_parts"];
 
 /** Statuses crew members (not boss/supervisor) may move their own job between. */
@@ -44,7 +47,7 @@ export function checkTransition(args: {
 
 /** Days a job has been in its current status, and how worrying that is. */
 export function ageLevel(status: Status, days: number): "" | "warn" | "crit" {
-  if (status === "closed") return "";
+  if (status === "closed" || status === "deferred") return "";
   const [lo, hi] = status === "in_progress" ? [7, 14] : status === "received" ? [1, 2] : [3, 7];
   return days >= hi ? "crit" : days >= lo ? "warn" : "";
 }

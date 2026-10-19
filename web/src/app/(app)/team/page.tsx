@@ -30,7 +30,7 @@ export default async function TeamPage() {
 
   return (
     <div className="page">
-      <div className="view-head"><h2>{t("team.title")}</h2>{can(user.role, "staff.manage") && <Link className="btn primary" href="/team/new">{t("team.add")}</Link>}</div>
+      <div className="view-head"><h2>{t("team.title")}</h2><Link className="btn" href="/team/attendance">{can(user.role, "job.assign") ? t("att.title") : t("att.mine")}</Link>{can(user.role, "staff.manage") && <Link className="btn primary" href="/team/new">{t("team.add")}</Link>}</div>
       {all && (
         <div className="panel"><div className="panel-head"><h3>{t("team.chain")}</h3></div><div className="org">
           {bosses.map((b) => (

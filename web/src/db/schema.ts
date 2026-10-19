@@ -1,13 +1,15 @@
 import {
   pgTable, pgEnum, serial, integer, text, varchar, boolean, date, timestamp, numeric, jsonb, uniqueIndex, index,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 import type { Status as JobStatus } from "@/lib/jobs";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["boss", "supervisor", "mechanic", "assistant", "fabricator", "painter", "cleaner"]);
 export const jobCategoryEnum = pgEnum("job_category", ["EMG", "DIAG", "PM", "MINOR", "MAJOR", "HYD", "FAB", "PAINT", "WARR"]);
 export const jobStatusEnum = pgEnum("job_status", [
-  "received", "diagnosing", "awaiting_approval", "awaiting_parts", "in_progress", "quality_check", "ready_for_pickup", "closed",
+  "received", "diagnosing", "awaiting_approval", "awaiting_parts", "in_progress", "quality_check", "ready_for_pickup", "closed", "deferred",
 ]);
 export const priorityEnum = pgEnum("priority", ["critical", "high", "normal", "low"]);
 export const siteTypeEnum = pgEnum("site_type", ["workshop", "field"]);
@@ -26,6 +28,8 @@ export const staff = pgTable("staff", {
   emergencyContact: text("emergency_contact"),
   joined: date("joined"),
   skills: text("skills").array().notNull().default([]),
+  /** Other names this person was known by (e.g. after merging a duplicate); imports match them too. */
+  aliases: text("aliases").array().notNull().default([]),
   payRate: numeric("pay_rate", { precision: 10, scale: 2 }).notNull().default("0"),
   active: boolean("active").notNull().default(true),
   passwordHash: text("password_hash"),
@@ -102,7 +106,9 @@ export const machineUnits = pgTable("machine_units", {
   nextServiceDate: date("next_service_date"),
   nextServiceType: varchar("next_service_type", { length: 80 }),
   notes: text("notes"),
-}, (t) => [index("units_customer_idx").on(t.customerId)]);
+  /** Secret in the machine's QR sticker: anyone with the sticker can report a fault without signing in. */
+  reportToken: varchar("report_token", { length: 32 }).notNull().default(sql`substr(md5(random()::text || clock_timestamp()::text), 1, 20)`),
+}, (t) => [index("units_customer_idx").on(t.customerId), uniqueIndex("units_report_token_idx").on(t.reportToken)]);
 
 /* ---------- jobs ---------- */
 export const jobs = pgTable("jobs", {
@@ -139,6 +145,15 @@ export const jobs = pgTable("jobs", {
   signoffBy: integer("signoff_by").references(() => staff.id),
   signaturePath: varchar("signature_path", { length: 200 }),
   createdBy: integer("created_by").references(() => staff.id),
+  /** Where the work order came from: the app, an operator's QR fault report, or the AppSheet import. */
+  source: varchar("source", { length: 10 }).notNull().default("app"),
+  /** Outsourced: an outside workshop / supplier does the work. A lead mechanic and hours are then optional. */
+  outsourced: boolean("outsourced").notNull().default(false),
+  vendorId: integer("vendor_id").references((): AnyPgColumn => suppliers.id),
+  vendorRef: varchar("vendor_ref", { length: 60 }),
+  sentOutAt: date("sent_out_at"),
+  expectedBackAt: date("expected_back_at"),
+  backAt: date("back_at"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("jobs_no_idx").on(t.jobNo), index("jobs_status_idx").on(t.status), index("jobs_unit_idx").on(t.unitId)]);
 
@@ -402,7 +417,7 @@ export const chatReads = pgTable("chat_reads", {
 /** Changes to the built-in lists and custom entries. See lib/lists for the built-ins. */
 export const listItems = pgTable("list_items", {
   id: serial("id").primaryKey(),
-  list: varchar("list", { length: 20 }).$type<"job_category" | "machine_type" | "bay" | "qc_item" | "service_item">().notNull(),
+  list: varchar("list", { length: 20 }).$type<"job_category" | "machine_type" | "bay" | "qc_item" | "service_item" | "event_type">().notNull(),
   code: varchar("code", { length: 60 }).notNull(),
   label: varchar("label", { length: 120 }),
   grp: varchar("grp", { length: 60 }),
@@ -427,6 +442,8 @@ export const appSettings = pgTable("app_settings", {
 export const jobPurchases = pgTable("job_purchases", {
   id: serial("id").primaryKey(),
   jobId: integer("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  /** part = something bought for the job; service = outside work (a vendor's repair / labour charge). */
+  kind: varchar("kind", { length: 10 }).$type<"part" | "service">().notNull().default("part"),
   description: varchar("description", { length: 200 }).notNull(),
   partNo: varchar("part_no", { length: 60 }),
   supplierId: integer("supplier_id").references(() => suppliers.id),
@@ -454,3 +471,64 @@ export const machineServices = pgTable("machine_services", {
   updatedBy: integer("updated_by").references(() => staff.id),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("machine_services_unit_item_idx").on(t.unitId, t.item), index("machine_services_due_idx").on(t.nextDue)]);
+
+/** Weekly crew plan: what each person does on a day — a job, or leave / MC / off. One entry per person per day. */
+export const crewPlan = pgTable("crew_plan", {
+  id: serial("id").primaryKey(),
+  staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+  day: date("day").notNull(),
+  kind: varchar("kind", { length: 10 }).$type<"job" | "leave" | "mc" | "off">().notNull(),
+  jobId: integer("job_id").references(() => jobs.id, { onDelete: "cascade" }),
+  note: text("note"),
+  updatedBy: integer("updated_by").references(() => staff.id),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("crew_plan_staff_day_idx").on(t.staffId, t.day), index("crew_plan_day_idx").on(t.day)]);
+
+/** Public holidays and workshop closures, shown on the calendar and the crew plan. */
+export const holidays = pgTable("holidays", {
+  day: date("day").primaryKey(),
+  name: varchar("name", { length: 80 }).notNull(),
+});
+
+/** Workshop events added by hand on the calendar: machine arriving, PUSPAKOM due, DOSH inspection, visits…
+ *  Repeating events (every N months) create the next one when marked done. */
+export const calendarEvents = pgTable("calendar_events", {
+  id: serial("id").primaryKey(),
+  day: date("day").notNull(),
+  endDay: date("end_day"),
+  time: varchar("time", { length: 5 }),
+  type: varchar("type", { length: 30 }).notNull(),
+  title: varchar("title", { length: 120 }).notNull(),
+  unitId: integer("unit_id").references(() => machineUnits.id, { onDelete: "set null" }),
+  customerId: integer("customer_id").references(() => customers.id, { onDelete: "set null" }),
+  notes: text("notes"),
+  repeatMonths: integer("repeat_months"),
+  doneAt: timestamp("done_at", { withTimezone: true }),
+  doneBy: integer("done_by").references(() => staff.id),
+  createdBy: integer("created_by").references(() => staff.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("calendar_events_day_idx").on(t.day), index("calendar_events_unit_idx").on(t.unitId)]);
+
+/** Daily attendance, marked by the Supervisor (one row per person per day). */
+export const attendance = pgTable("attendance", {
+  id: serial("id").primaryKey(),
+  staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+  day: date("day").notNull(),
+  status: varchar("status", { length: 10 }).$type<"present" | "late" | "half" | "leave" | "mc" | "absent" | "off">().notNull(),
+  timeIn: varchar("time_in", { length: 5 }),
+  timeOut: varchar("time_out", { length: 5 }),
+  note: text("note"),
+  updatedBy: integer("updated_by").references(() => staff.id),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("attendance_staff_day_idx").on(t.staffId, t.day), index("attendance_day_idx").on(t.day)]);
+
+/** Phone/browser push subscriptions (one per device a person turned notifications on). */
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: serial("id").primaryKey(),
+  staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  device: varchar("device", { length: 120 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("push_endpoint_idx").on(t.endpoint), index("push_staff_idx").on(t.staffId)]);

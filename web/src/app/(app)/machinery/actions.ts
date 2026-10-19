@@ -1,4 +1,5 @@
 "use server";
+import { randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 import { and, eq, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -124,4 +125,13 @@ export async function removeService(form: FormData) {
   await db.delete(schema.machineServices).where(and(eq(schema.machineServices.unitId, unitId), eq(schema.machineServices.item, item)));
   revalidatePath(`/machinery/${unitId}`);
   backToServices(unitId, t, { ok: "svc.removed" });
+}
+
+/** A new QR sticker secret for a machine (old stickers stop working, e.g. when one was lost or misused). */
+export async function newReportToken(form: FormData) {
+  const user = await requirePermission("machine.manage");
+  const id = Number(form.get("id"));
+  const token = randomBytes(10).toString("hex");
+  await db.update(schema.machineUnits).set({ reportToken: token }).where(eq(schema.machineUnits.id, id));
+  redirect(`/machinery/${id}/qr?ok=${encodeURIComponent(translator(user.locale)("qr.newDone"))}`);
 }

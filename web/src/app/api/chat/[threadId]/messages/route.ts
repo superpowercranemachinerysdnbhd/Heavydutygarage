@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { messagesFor, postMessage, threadFor } from "@/lib/chat";
+import { notifyChat } from "@/lib/notify";
 import { cleanBody, MAX_MESSAGE_LENGTH } from "@/lib/chat-rules";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, saveFile } from "@/lib/storage";
 
@@ -41,5 +42,6 @@ export async function POST(req: Request, ctx: Ctx) {
   }
   if (!body && !photo) return fail("chat.err.empty");
   const m = await postMessage(a.thread.id, a.user.id, body, photo);
+  await notifyChat(a.thread.id, a.user.id, a.user.name, body);
   return Response.json({ id: m.id });
 }

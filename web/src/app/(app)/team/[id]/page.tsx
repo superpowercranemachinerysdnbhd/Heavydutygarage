@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray, ne } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
@@ -12,7 +12,7 @@ import { langLabel, roleLabel, statusLabel } from "@/i18n/labels";
 import { Avatar, CatChip, Notice } from "@/components/ui";
 import StaffFields from "@/components/StaffFields";
 import SubmitButton from "@/components/SubmitButton";
-import { addCert, removeCert, resetPassword, setActive, updateStaff } from "../actions";
+import { addCert, mergeInto, removeCert, resetPassword, setActive, updateStaff } from "../actions";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("team.title") };
@@ -27,6 +27,7 @@ export default async function StaffPage({ params, searchParams }: { params: Prom
   const [p] = Number.isInteger(id) ? await db.select().from(schema.staff).where(eq(schema.staff.id, id)) : [];
   if (!p) notFound();
   const manage = can(user.role, "staff.manage"), editCerts = can(user.role, "staff.view");
+  const others = manage ? await db.select({ id: schema.staff.id, name: schema.staff.name }).from(schema.staff).where(ne(schema.staff.id, id)).orderBy(asc(schema.staff.name)) : [];
   const [certs, manager, managers, jobs] = await Promise.all([
     db.select().from(schema.certifications).where(eq(schema.certifications.staffId, id)).orderBy(asc(schema.certifications.expiry)),
     p.reportsTo ? db.select({ name: schema.staff.name }).from(schema.staff).where(eq(schema.staff.id, p.reportsTo)) : Promise.resolve([]),
@@ -39,6 +40,7 @@ export default async function StaffPage({ params, searchParams }: { params: Prom
     <div className="page">
       <div className="crumbs"><Link href="/team">{t("team.title")}</Link> / {p.name}</div>
       <div className="view-head"><Avatar name={p.name} size="lg" /><h2>{p.name} <span className="muted" style={{ fontSize: "1rem" }}>{roleLabel(t, p.role)}{manager[0] ? ` · ${t("team.reportsTo", { name: manager[0].name })}` : ""}</span></h2>{!p.active && <span className="state leave">{t("team.inactive")}</span>}</div>
+      {p.aliases.length > 0 && <p className="muted" style={{ margin: 0 }}>{t("team.aka", { names: p.aliases.join(", ") })}</p>}
       <Notice error={sp.error} ok={sp.ok} />
       <div className="panel"><div className="facts">
         <div><span className="label">{t("team.phone")}</span><b className="mono">{p.phone}</b></div>
@@ -87,6 +89,23 @@ export default async function StaffPage({ params, searchParams }: { params: Prom
           {id !== user.id && <form action={setActive}><input type="hidden" name="id" value={id} /><input type="hidden" name="active" value={p.active ? "0" : "1"} />
             <SubmitButton className={p.active ? "btn small" : "btn small primary"}>{p.active ? t("team.deactivate") : t("team.reactivate")}</SubmitButton></form>}
         </div></div>
+        {id !== user.id && (
+          <form action={mergeInto} className="panel danger-zone" id="merge">
+            <div className="panel-head"><h3>{t("team.mergeTitle")}</h3></div>
+            <div className="stack" style={{ padding: 14, gap: 10 }}>
+              <input type="hidden" name="id" value={id} />
+              <p className="muted" style={{ margin: 0 }}>{t("team.mergeHelp", { name: p.name })}</p>
+              <label className="label">{t("team.mergeInto")}
+                <select className="field" name="into" required defaultValue="" style={{ maxWidth: 420, display: "block", marginTop: 4 }}>
+                  <option value="" disabled>{t("common.choose")}</option>
+                  {others.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+                </select>
+              </label>
+              <label className="set-check"><input type="checkbox" name="confirm" required /> {t("team.mergeConfirm", { name: p.name })}</label>
+              <div><SubmitButton className="btn danger">{t("team.mergeBtn")}</SubmitButton></div>
+            </div>
+          </form>
+        )}
       </>)}
     </div>
   );

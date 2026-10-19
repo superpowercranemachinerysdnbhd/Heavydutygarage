@@ -1,12 +1,13 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requirePermission } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { adjustStock, recordPrice } from "@/lib/inventory";
 import { isBigPriceChange, priceChangePct, sellFromMarkup } from "@/lib/stock";
+import { STANDARD_PART_CATEGORIES } from "@/lib/part-categories";
 import { translator, type MessageKey, type Vars } from "@/i18n";
 
 const { parts, partCategories, partModels, suppliers, supplierParts, supplierPrices } = schema;
@@ -99,9 +100,17 @@ export async function stockTake(form: FormData) {
   goto(`/parts/${partId}`, user.locale, "ok", diff === 0 ? "ok.noChange" : "ok.stockAdjusted", { diff: diff > 0 ? `+${diff}` : String(diff) });
 }
 
+/** Rename a category (Supervisor, Head Manager); the Head Manager also sets its markup and target margin. */
 export async function saveCategory(form: FormData) {
-  const user = await requirePermission("price.set");
-  const id = num(form, "id"), markup = num(form, "markupPct"), target = num(form, "targetMarginPct");
+  const user = await requirePermission("stock.manage");
+  const id = num(form, "id"), name = str(form, "name").slice(0, 80);
+  if (name) {
+    const [dup] = await db.select({ id: partCategories.id }).from(partCategories).where(sql`lower(${partCategories.name}) = lower(${name})`);
+    if (dup && dup.id !== id) goto("/parts/categories", user.locale, "error", "err.categoryTaken");
+    await db.update(partCategories).set({ name }).where(eq(partCategories.id, id));
+  }
+  if (!can(user.role, "price.set") || !form.has("markupPct")) goto("/parts/categories", user.locale, "ok", "ok.saved");
+  const markup = num(form, "markupPct"), target = num(form, "targetMarginPct");
   if (!(markup >= 0) || !(target >= 0 && target < 100)) goto("/parts/categories", user.locale, "error", "err.percent");
   await db.transaction(async (tx) => {
     await tx.update(partCategories).set({ markupPct: String(markup), targetMarginPct: String(target) }).where(eq(partCategories.id, id));
@@ -109,6 +118,23 @@ export async function saveCategory(form: FormData) {
     for (const p of list) await tx.update(parts).set({ sellPrice: sellFromMarkup(Number(p.avg), markup).toFixed(2) }).where(eq(parts.id, p.id));
   });
   goto("/parts/categories", user.locale, "ok", "ok.markupSaved");
+}
+
+/** Delete a category that no part uses. */
+export async function deleteCategory(form: FormData) {
+  const user = await requirePermission("stock.manage");
+  const id = num(form, "id");
+  const [used] = await db.select({ id: parts.id }).from(parts).where(eq(parts.categoryId, id)).limit(1);
+  if (used) goto("/parts/categories", user.locale, "error", "err.categoryUsed");
+  await db.delete(partCategories).where(eq(partCategories.id, id));
+  goto("/parts/categories", user.locale, "ok", "ok.categoryDeleted");
+}
+
+/** Add any of the standard heavy-machinery categories that are missing. */
+export async function addStandardCategories() {
+  const user = await requirePermission("stock.manage");
+  await db.insert(partCategories).values(STANDARD_PART_CATEGORIES.map(([name, m]) => ({ name, markupPct: String(m) }))).onConflictDoNothing();
+  goto("/parts/categories", user.locale, "ok", "ok.saved");
 }
 
 export async function addCategory(form: FormData) {

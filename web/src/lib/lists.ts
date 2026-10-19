@@ -4,7 +4,7 @@
  *  merged lists (lib/lists-server) and the app layout hands them to the browser (ListsProvider). Pure module. */
 import type { MessageKey, T } from "@/i18n";
 
-export type ListName = "job_category" | "machine_type" | "bay" | "qc_item" | "service_item";
+export type ListName = "job_category" | "machine_type" | "bay" | "qc_item" | "service_item" | "event_type";
 export type Priority = "critical" | "high" | "normal" | "low";
 
 export type ListItem = {
@@ -13,7 +13,7 @@ export type ListItem = {
   label: string | null;
   /** machine_type: group code (built-in) or group name (custom). */
   grp: string | null;
-  /** job_category only. */
+  /** job_category and event_type: colour. job_category: priority. */
   color: string | null; priority: Priority | null;
   /** service_item: default interval in months. job_category: 1 = service job (the job page offers "Services done"), 0 = not. */
   num: number | null;
@@ -36,8 +36,8 @@ export const BUILTIN_CATEGORY_CODES = CATS.map(([c]) => c);
 /** Light-theme hex of a built-in category colour (null for custom categories). */
 export const builtinHex = (code: string): string | null => CATS.find(([k]) => k === code)?.[1] ?? null;
 /** Hex for a colour picker: stored hex, or the light-theme value of a built-in colour. */
-export function colorHex(code: string): string {
-  const c = findItem("job_category", code)?.color ?? "";
+export function colorHex(code: string, list: ListName = "job_category"): string {
+  const c = findItem(list, code)?.color ?? "";
   return c.startsWith("#") ? c : builtinHex(code) ?? "#6b7480";
 }
 export const MACHINE_GROUPS_BUILTIN = [
@@ -53,6 +53,11 @@ const SERVICE_ITEMS: [string, number][] = [
   ["engine_oil", 3], ["hydraulic_oil", 12], ["transmission_oil", 12], ["differential_oil", 12], ["greasing", 1],
   ["aircon", 6], ["brake", 6], ["coolant", 24], ["fuel_filter", 6], ["air_filter", 6], ["swing_gear_oil", 12], ["wire_rope", 6],
 ];
+/** Calendar event types: things the workshop needs to remember on a date. */
+const EVENT_TYPES: [string, string][] = [
+  ["machine_in", "#2d68a6"], ["machine_out", "#1b8a8a"], ["puspakom", "#d06a12"], ["road_tax", "#b0357c"],
+  ["dosh", "#c4342b"], ["visit", "#5146a8"], ["meeting", "#6b7480"], ["other", "#8a5a2b"],
+];
 const QC_CODES = ["testRun", "leakCheck", "allTasks", "afterPhotos", "cleanUp"];
 
 const env = (k: string) => (typeof process !== "undefined" ? process.env?.[k] : undefined);
@@ -67,6 +72,7 @@ export const BUILTIN: ListItem[] = [
   ...BAY_NAMES.map((code, i) => B("bay", code, i)),
   ...QC_CODES.map((code, i) => B("qc_item", code, i)),
   ...SERVICE_ITEMS.map(([code, months], i) => B("service_item", code, i, { num: months })),
+  ...EVENT_TYPES.map(([code, color], i) => B("event_type", code, i, { color })),
 ];
 
 /** Built-ins with the stored changes applied, plus custom entries. */
@@ -99,7 +105,7 @@ export function itemLabel(t: T, list: ListName, code: string | null | undefined)
   const it = findItem(list, code);
   if (it?.label) return it.label;
   if (it?.builtin || !it) {
-    const k = { job_category: `cat.${code}`, machine_type: `mtype.${code}`, qc_item: `qc.${code}`, service_item: `svc.${code}`, bay: "" }[list];
+    const k = { job_category: `cat.${code}`, machine_type: `mtype.${code}`, qc_item: `qc.${code}`, service_item: `svc.${code}`, event_type: `evt.${code}`, bay: "" }[list];
     if (k) { const s = t(k as MessageKey); if (s !== k) return s; }
   }
   return code;
@@ -110,6 +116,7 @@ export const categoryCodes = (opts: { all?: boolean } = {}) => listItems("job_ca
 export const isCategory = (x: unknown): x is string => typeof x === "string" && listItems("job_category").some((i) => i.code === x);
 export const catColor = (code: string) => findItem("job_category", code)?.color ?? "#6b7684";
 export const catPriority = (code: string): Priority => findItem("job_category", code)?.priority ?? "normal";
+export const eventColor = (code: string) => findItem("event_type", code)?.color ?? "#6b7480";
 export const isServiceCategory = (code: string) => findItem("job_category", code)?.num === 1;
 
 /* ---------- bays and work areas ---------- */

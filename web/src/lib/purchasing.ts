@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { asc, desc, eq, ilike, inArray, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 
 const n = (v: unknown) => Number(v ?? 0);
@@ -40,4 +40,18 @@ export async function getPo(id: number) {
 /** Active suppliers, for picking one on a form. */
 export async function activeSuppliers() {
   return db.select({ id: schema.suppliers.id, name: schema.suppliers.name }).from(schema.suppliers).where(eq(schema.suppliers.active, true)).orderBy(asc(schema.suppliers.name));
+}
+
+/** A supplier typed or picked by name: the existing one (any capitalisation; a hidden one is shown again), otherwise a new one. */
+export async function supplierByName(raw: string): Promise<{ id: number; name: string } | null> {
+  const name = raw.replace(/\s+/g, " ").trim().slice(0, 160);
+  if (!name) return null;
+  const S = schema.suppliers;
+  const [found] = await db.select({ id: S.id, name: S.name, active: S.active }).from(S).where(ilike(S.name, name.replace(/[\\%_]/g, "\\$&"))).orderBy(sql`${S.active} desc`, S.id).limit(1);
+  if (found) {
+    if (!found.active) await db.update(S).set({ active: true }).where(eq(S.id, found.id));
+    return { id: found.id, name: found.name };
+  }
+  const [row] = await db.insert(S).values({ name }).returning({ id: S.id, name: S.name });
+  return row;
 }

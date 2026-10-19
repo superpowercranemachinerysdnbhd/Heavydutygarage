@@ -16,7 +16,7 @@ export async function generateMetadata() {
   return { title: (await getI18n()).t("cust.title") };
 }
 
-export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string; error?: string }> }) {
+export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string; error?: string; ok?: string }> }) {
   const user = await requireUser();
   if (!can(user.role, "customer.manage")) notFound();
   const { t } = await getI18n();
@@ -28,7 +28,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
   return (
     <div className="page">
       <h2>{t("cust.title")}</h2>
-      <Notice error={sp.error} />
+      <Notice error={sp.error} ok={sp.ok} />
       <form className="filters" method="get"><input type="search" name="q" defaultValue={sp.q ?? ""} placeholder={t("cust.searchPh")} style={{ flex: "1 1 240px" }} aria-label={t("common.search")} /><button className="btn">{t("common.search")}</button></form>
       <div className="tbl-wrap"><table>
         <thead><tr><th>{t("col.company")}</th><th>{t("col.contact")}</th><th>{t("col.phone")}</th><th>{t("c.locale")}</th><th className="r">{t("col.machines")}</th></tr></thead>

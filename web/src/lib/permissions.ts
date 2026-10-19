@@ -25,10 +25,12 @@ export type Action =
   | "job.handover"       // record customer sign-off and close
   | "job.anyStatus"      // move a job to any status (otherwise limited to crew statuses)
   | "job.report"         // generate the customer service report
+  | "job.delete"         // delete a work order entered by mistake
   | "money.selling"      // job value, labour charge, selling prices
   | "money.cost"         // part purchase prices (phase 2)
   | "money.labourCost"   // pay rates, labour cost, margins
   | "customer.manage"
+  | "customer.delete"    // delete a company (its machines move to another company first)
   | "machine.manage"
   | "stock.manage"       // parts, suppliers, issue and adjust stock
   | "po.create"          // raise purchase orders and receive goods
@@ -40,6 +42,7 @@ export type Action =
 
 const GRANTS: Record<Action, Role[]> = {
   "job.viewAll": ["boss", "supervisor"],
+  "job.delete": ["boss"],
   "job.create": ["boss", "supervisor"],
   "job.assign": ["boss", "supervisor"],
   "job.editDetails": ["boss", "supervisor"],
@@ -47,15 +50,17 @@ const GRANTS: Record<Action, Role[]> = {
   "job.handover": ["boss", "supervisor"],
   "job.anyStatus": ["boss", "supervisor"],
   "job.report": ["boss", "supervisor"],
-  "money.selling": ["boss", "supervisor"],
+  // Work orders are costed, not priced: selling prices, labour charge and markup are no longer shown to anyone.
+  "money.selling": [],
   "money.cost": ["boss", "supervisor"],
   "money.labourCost": ["boss"],
   "customer.manage": ["boss", "supervisor"],
+  "customer.delete": ["boss"],
   "machine.manage": ["boss", "supervisor"],
   "stock.manage": ["boss", "supervisor"],
   "po.create": ["boss", "supervisor"],
   "po.approve": ["boss"],
-  "price.set": ["boss"],
+  "price.set": [],
   "staff.view": ["boss", "supervisor"],
   "staff.manage": ["boss"],
   "settings.manage": ["boss"],

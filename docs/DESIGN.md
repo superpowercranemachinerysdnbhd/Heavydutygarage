@@ -543,3 +543,183 @@ The job board moved off the dashboard (it is on the Jobs page). Crew keep their 
 ## 24. Machinery rental module
 
 Hiring out our own fleet (dry hire, wet hire with operator, lowloader transport and long-term contracts) is designed as a module of this system, sharing machines, companies, staff and roles. See [`RENTAL.md`](RENTAL.md) and the prototype [`prototype/rental.html`](../prototype/rental.html).
+
+## 25. Calendar and weekly crew plan
+
+**Calendar → Month** (everyone; crew see only their own jobs and leave): month grid on iPad/computer, a day-by-day list
+on phone. Shows open jobs on their due date (colour = job type), overdue jobs on today in red until moved or completed,
+machine services due (dashed), follow-up dates, purchase-order delivery dates (purchasing staff), leave / MC / off, and
+public holidays. Filter chips switch each kind on or off. Head Manager and Supervisor keep the public holiday list
+(folded panel under the month).
+
+**Calendar → Crew plan** (Head Manager, Supervisor): one row per crew member, Monday–Saturday, a choice per day of a job,
+Leave, MC or Off; one Save for the week, week navigation, and "Copy last week" (fills empty days, skips completed jobs).
+Planning someone on a job adds them to the job team. On Sunday the plan opens on the coming week.
+
+**Calendar → My week** (crew): this week and next, the job planned each day (plate, machine, where) or leave.
+
+The dashboard's **Crew today** uses today's plan first (people on leave are greyed and listed last, and not counted as
+free); without a plan it falls back to the job teams.
+
+Tables: `crew_plan` (staff, day, kind, job; one row per person per day) and `holidays` (day, name).
+
+## 26. Own calendar events
+
+The Head Manager and Supervisor add events to the calendar by hand: **+ Add event**, or tap a day number. Fields: type,
+title (empty = the type's name), date, optional time, optional end date (multi-day, up to 90 days), repeat every 1–36
+months, optional machine and company, notes.
+
+- **Event types** are an editable list (Settings → Calendar event types, with a colour each). Built-in: machine
+  arriving, machine collection / delivery, PUSPAKOM inspection, road tax / insurance renewal, DOSH / PMA inspection,
+  customer visit, meeting, other.
+- **Mark done**: crossed out on the calendar. A repeating event (e.g. PUSPAKOM every 6 months) adds its next date when
+  marked done.
+- Events not done after their date show red on the calendar and in the dashboard's **Act now**; the next 7 days show in
+  the dashboard's **Events this week**. A machine's page lists its events (PUSPAKOM, road tax, DOSH) with **+ Add event**.
+- Everyone sees events; only the Head Manager and Supervisor add, edit, mark done or delete.
+
+Table: `calendar_events`.
+
+## 27. Attendance
+
+Marked by the Supervisor (or Head Manager): **Team → Attendance**.
+
+- **Daily sheet**: everyone except the Head Manager, one row each: Present / Late / Half day / Leave / MC / Absent / Off,
+  optional time in and out, and a note. Leave, MC and Off from the Calendar crew plan are filled in (shown as "from crew
+  plan" until saved). **Mark the other N present** marks everyone not yet marked in one tap. One **Save attendance**
+  for the whole day. Days up to today only.
+- **Monthly summary**: per person days worked (Present and Late = 1, Half day = ½), Late, MC, Leave, Absent, and a
+  day-by-day grid (tap a day to open its sheet). **Download for Excel** gives a CSV of the month.
+- Crew see **My attendance**: their own month, read-only.
+- The dashboard's **Act now** reminds the Supervisor when today's attendance has not been taken (not on Sundays or
+  public holidays).
+
+Table: `attendance` (one row per person per day).
+
+## 28. Import from AppSheet
+
+**Settings → Import from AppSheet** (Head Manager): upload the .xlsx downloaded from the AppSheet Google Sheet (CMMC
+layout: WORK ORDER, ASSETS, LABOR, Bills, USED PARTS, PARTS & INVENTORY, SUPLLIER LIST, TEAM, PREVENTATIVE
+MAINTENANCE, LOCATION). The page shows what is in the file, what is already in the app and what will be added; the
+Head Manager picks which company owns the machines, then imports.
+
+- Nothing is deleted or overwritten; machines are matched by plate (or serial), staff and suppliers by name, parts by
+  part number, work orders by their AppSheet number (`AS-<WO#>`). Importing the same file again adds nothing.
+- Work orders: title + description → complaint; repair actions → work carried out; remarks and supplier refs →
+  internal follow-up; statuses, priorities and MT-categories mapped (Statutory, Damage by customer / operator and
+  Predictive are added as work order categories); lead and second technician; outside vendors noted, not made staff.
+- LABOR → labour hours; Bills → bought for the work order; USED PARTS → parts used (history only, stock not changed).
+- TEAM → staff without login (a placeholder phone; the Head Manager adds the real number to let them sign in), with
+  hourly pay rate. PREVENTATIVE MAINTENANCE → machine service schedule.
+- Photos stay in Google Drive (only file names are in the export).
+
+The .xlsx is read by a small built-in reader (`lib/xlsx.ts`); the mapping rules are in `lib/appsheet-map.ts` (tested).
+
+## 29. Deleting a work order
+
+Head Manager only: **Edit work order → Delete this work order** (tick to confirm). Meant for work orders entered by
+mistake. Tasks, labour, photos records, chat, checks, services-done links, crew plan entries and costs on it are removed.
+Parts issued from stock are returned to stock (a "return" movement notes the deleted number); purchase orders and stock
+history keep their records without the link; comeback work orders lose their link to it.
+
+## 30. Deferred work orders
+
+A fifth status, **Deferred**: the fault is found and recorded, but the repair waits until the machine is free (it is
+still working or out on rent). Deferred work orders stay out of Received so new work orders do not get lost among them.
+
+- **New work order → "Repair later (deferred)"** tick, or move an existing one to Deferred (Head Manager, Supervisor).
+- The work order page shows a note instead of a step; the progress bar stays on Received. Move it to In Progress when
+  work starts.
+- Dashboard: a **Deferred** tile and a folded **Deferred — repair when the machine is free** box (oldest first, days
+  waiting). They are not counted in Not started, do not raise "stuck" alerts, and are not on a mechanic's jobs on hand.
+- Work orders page: a **Deferred** status button.
+
+## 31. Deleting or merging a company
+
+Head Manager only, at the bottom of a company's page. A company with no machines is simply deleted. A company with
+machines must name another company: its machines (with all their work orders and history) and calendar events move
+there, then the company is deleted, which is also how a duplicate company is merged into the right one.
+
+## 32. No separate dashboard: Work orders is the home page
+
+The Dashboard page is gone; signing in (and the logo) opens **Work orders**. For the Head Manager and Supervisor its top
+holds, folded:
+
+- **Act now** (red, with a count): emergencies with no mechanic, overdue and stuck work orders, attendance not taken,
+  part requests, purchase orders to approve or late, late calendar events, overdue machine services.
+- **Other reminders**: follow-ups due, machines here a long time, certificates expiring, services due within 14 days,
+  low stock and price alerts.
+- **Bays & yard** ("4 of 9 free"): what is in each bay.
+
+Lists of work orders by stage are the status buttons below; events and upcoming services are in Calendar and Machinery.
+Mechanics still open on their work orders on hand. (Alert rules: `lib/board.ts`.)
+
+## 33. Merging a duplicate staff member
+
+Head Manager, at the bottom of a team member's page: **Same person as someone else? → Merge into …**. Every table
+that points at staff (found from the database catalogue, so new tables are covered) is moved to the person kept; where a
+unique rule would clash (same job team, same attendance day…) the kept person's row stays. The duplicate is removed and
+its name saved in `staff.aliases`, shown as "Also known as", and used by the AppSheet import so a re-import does not
+create the old name again.
+
+## 34. Costs, not prices
+
+The workshop maintains its own fleet, so work orders are **costed**, not priced (this replaces the labour rate, parts
+markup, selling prices and job value):
+
+- `money.selling` and `price.set` are granted to no one: selling prices, labour charge, margins and markup are gone from
+  work orders, parts, categories, Settings, service reports and machine history reports. Bought-for-work-order lines
+  store their cost (price = cost).
+- **Work order cost** box (work order page): parts from stock at cost, bought for this work order, and — Head Manager
+  only — labour at each person's pay rate, with the total. The Supervisor sees parts cost only.
+- **Maintenance cost** on each machine page: this year / last 12 months / all time.
+- **Reports** (Head Manager): one year at a time — totals, by month (with bars), by machine (most expensive first, % of
+  total) and by work order category. A work order counts in the month it was opened (`lib/costs.ts`).
+
+## 35. QR fault reports from operators
+
+Every machine has a secret `report_token` (made automatically). **Machine page → QR sticker** (Head Manager, Supervisor)
+prints a sticker: company, QR code, plate, model and "Scan to report a problem" in BM / English / 中文;
+**Machinery → QR stickers** prints the whole fleet. **Make a new QR code** replaces a lost or misused sticker (the old
+one stops working).
+
+Scanning opens `/r/<token>` with no login (BM by default, EN / 中文 switch): what is wrong, can the machine still work
+safely, up to 4 photos, name and phone. It creates a **Received** work order (`source = qr`): "stopped / not safe" →
+Emergency, High; otherwise Minor repair, Normal; photos as "before"; the operator in "Reported by". It appears in
+**Act now** until someone is assigned, carries a "Reported by operator (QR)" badge, and notifies the Head Manager and
+Supervisor. At most 5 reports per machine per hour.
+
+## 36. Phone notifications (Web Push)
+
+**Account → Phone notifications → Turn on** on each phone/iPad (iPhone/iPad: from the Home Screen app, iOS 16.4+).
+Signing keys are generated once and kept in `app_settings`; subscriptions in `push_subscriptions` (removed when a
+device unsubscribes). Sent for: assignment as lead or team member; emergency work orders and operator fault reports
+(Head Manager, Supervisor); a mechanic moving a work order to Pending Parts or Completed (Supervisor); part requests
+(Supervisor, Head Manager), parts issued or not issued (requester); purchase orders awaiting approval (Head Manager);
+chat messages (direct: the other person; work order chat: lead, team and supervisors). Quiet hours 22:00–07:00 MYT
+(only urgent ones go out). Sending is best-effort and never blocks the action (`lib/notify.ts`, `public/sw.js`).
+
+### 37. Photo delete, status order, typed supplier (Oct 2026)
+- Job photos can be deleted: by whoever took them while the work order is open, and by the Supervisor / Head Manager at any time. The file is removed from storage too, and the activity log records it.
+- Status chips and the status list go Received → In Progress → Pending Parts → Completed → Deferred, so parked work sits after the finished work.
+- "Add part bought": the supplier is one box where you type a name or pick one from the list. A name not on the list (any capitalisation) becomes a new supplier, and a hidden supplier with the same name is shown again.
+
+### 38. Work orders entered late (Oct 2026)
+- New work order: "Date reported" (today by default, never in the future). The job number uses that date's year.
+- Moving a work order to Completed asks "Completed on" (today by default, between the reported date and today).
+- Edit details: the reported date can be changed, and on a completed work order the completion date too. The job page shows "Completed on".
+- Recommended flow for a job that is already finished: create it with the real reported date → add labour (each entry has its own date), parts and photos → Completed on the real day.
+
+### 39. In-app photo viewer (Oct 2026)
+- Job, chat and machine photos open in a full-screen viewer inside the app instead of a new page. A home-screen app has no browser back button, so a photo opened as its own page could not be closed.
+- Close with ✕, the phone's back button or gesture, Esc, a tap outside the photo or a swipe down. Swipe or use ‹ › for the other photos on the same work order.
+- Implemented once in `components/PhotoViewer.tsx` (mounted in the app layout). Any link with `data-viewer="<group>"` opens in it.
+
+### 40. Outsourced work orders (Oct 2026)
+- "Who does the work?" on new and edit: **Our crew** or **Outside workshop / supplier**. The vendor is typed or picked (a new name becomes a supplier), with their quote / job no., sent-out date, expected-back date and (on edit) back date. Stored on `jobs` (`outsourced`, `vendor_id`, `vendor_ref`, `sent_out_at`, `expected_back_at`, `back_at`).
+- Work order page: a purple "Outsourced · vendor" badge and an "Outside workshop" box (vendor, ref, phone, dates, days late) with **Back from vendor**. The labour section says hours are optional (own crew's time only).
+- **Outside work cost** lines (`job_purchases.kind = 'service'`): what the vendor did, vendor, amount, invoice no., date. They can be added or removed after the work order is completed (the invoice often comes later; Supervisor / Head Manager). They show as "Outside work" in the work order cost, the machine's maintenance cost and the Reports page.
+- Reminders: outsourced work orders never raise "no mechanic" or "stuck" while at the vendor. Act now: "expected back from <vendor> N days ago". Other reminders: "<machine> at <vendor> (N days)". The machine's location reads "At vendor · <name>" until it is back.
+- Lists show the vendor instead of "Unassigned".
+- Reports: an Outside work column, **In-house vs outsourced**, and **By outside workshop** (vendor invoice totals).
+- AppSheet: work orders whose technician was an outside workshop are imported as outsourced. Migration 0018 updates work orders imported earlier. The workshop is matched to a supplier ignoring case and punctuation, and a longer supplier name also matches ("LST Supply" → "LST SUPPLY & TRADING"). That workshop's bills on those work orders become outside work.

@@ -7,6 +7,7 @@ import { can } from "@/lib/permissions";
 import { unreadTotal } from "@/lib/chat";
 import { ensureLists } from "@/lib/lists-server";
 import ListsProvider from "@/components/ListsProvider";
+import PhotoViewer from "@/components/PhotoViewer";
 import { getI18n } from "@/i18n/server";
 import { roleLabel } from "@/i18n/labels";
 import { logout } from "@/app/login/actions";
@@ -15,14 +16,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await requireUser();
   const { t } = await getI18n();
   const items = [
-    { href: "/", label: t("nav.dashboard") },
     { href: "/jobs", label: t("nav.jobs") },
+    { href: "/calendar", label: t("nav.calendar") },
     { href: "/chat", label: t("nav.chat") },
     { href: "/machinery", label: t("nav.machinery") },
     { href: "/parts", label: t("nav.parts") },
     ...(can(user.role, "po.create") ? [{ href: "/purchasing", label: t("nav.purchasing") }] : []),
     ...(can(user.role, "customer.manage") ? [{ href: "/customers", label: t("nav.customers") }] : []),
     { href: "/team", label: t("nav.team") },
+    ...(can(user.role, "money.labourCost") ? [{ href: "/reports", label: t("nav.reports") }] : []),
     ...(can(user.role, "settings.manage") ? [{ href: "/settings", label: t("nav.settings") }] : []),
   ];
   const lists = await ensureLists();
@@ -32,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <header className="top">
         <div className="wrap">
           <div className="top-row">
-            <Link href="/" className="brand plain">
+            <Link href="/jobs" className="brand plain">
               <Image src="/logo.jpg" alt="" width={40} height={40} priority />
               <div><h1>{t("app.name")}</h1><small>{t("app.tagline")}</small></div>
             </Link>
@@ -47,6 +49,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </header>
       <main className="wrap"><ListsProvider lists={lists}>{children}</ListsProvider></main>
+      <PhotoViewer />
     </>
   );
 }

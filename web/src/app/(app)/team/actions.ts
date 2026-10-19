@@ -1,4 +1,5 @@
 "use server";
+import { mergeStaff } from "@/lib/merge-staff";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { and, eq, ne } from "drizzle-orm";
@@ -90,4 +91,16 @@ export async function removeCert(form: FormData) {
   await db.delete(schema.certifications).where(and(eq(schema.certifications.id, Number(form.get("certId"))), eq(schema.certifications.staffId, staffId)));
   revalidatePath(`/team/${staffId}`);
   redirect(`/team/${staffId}`);
+}
+
+/** "Same person": merge a duplicate staff record into another (Head Manager). */
+export async function mergeInto(form: FormData) {
+  const user = await requirePermission("staff.manage");
+  const t = translator(user.locale);
+  const fromId = Number(form.get("id")), toId = Number(form.get("into"));
+  if (!toId || toId === fromId || fromId === user.id || form.get("confirm") !== "on")
+    redirect(`/team/${fromId}?error=${encodeURIComponent(t("team.mergeErr"))}#merge`);
+  await mergeStaff(fromId, toId);
+  revalidatePath("/team"); revalidatePath("/jobs");
+  redirect(`/team/${toId}?ok=${encodeURIComponent(t("team.merged"))}`);
 }

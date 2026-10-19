@@ -5,7 +5,7 @@ import type { CurrentUser } from "./auth";
 import { can } from "./permissions";
 import { addDays, today } from "./format";
 import { listParts, requestsFor } from "./inventory";
-import { isLowStock, marginPct } from "./stock";
+import { isLowStock } from "./stock";
 import { translator, type Locale } from "@/i18n";
 
 /** `now`: something to act on today (dashboard "Act now"); otherwise a background reminder. */
@@ -34,8 +34,6 @@ export async function purchasingAlerts(user: CurrentUser, locale: Locale): Promi
   if (low.length && can(user.role, "po.create")) out.push({ sev: "var(--warn)", text: t("att.lowStock", { n: low.length }), href: "/purchasing/new?suggest=1" });
   if (can(user.role, "money.labourCost")) {
     for (const x of diffs) out.push({ sev: "var(--warn)", text: t("att.invoiceDiff", { po: x.poNo, n: Number(x.n) }), href: `/purchasing/${x.poId}` });
-    const thin = parts.filter((p) => p.pricingMode === "fixed" && p.avgCost > 0 && (marginPct(p.sellPrice, p.avgCost) ?? 100) < p.targetMarginPct);
-    for (const p of thin) out.push({ sev: "var(--warn)", text: t("att.lowMargin", { part: p.description, pct: marginPct(p.sellPrice, p.avgCost) ?? 0, target: p.targetMarginPct }), href: `/parts/${p.id}` });
   }
   return out;
 }

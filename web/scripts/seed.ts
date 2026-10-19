@@ -12,6 +12,7 @@ const { qcTemplate } = await import("../src/lib/lists");
 const { addDays, today } = await import("../src/lib/format");
 const { translator } = await import("../src/i18n/index");
 const { sellFromMarkup } = await import("../src/lib/stock");
+const { weekDays, planWeekStart } = await import("../src/lib/calendar");
 const en = translator("en");
 
 const existing = await db.select({ id: schema.staff.id }).from(schema.staff).limit(1);
@@ -35,7 +36,7 @@ const haf = await S({ name: "Mohd Hafiz", role: "mechanic", reportsTo: sup.id, p
 const sur = await S({ name: "Suresh Muthu", role: "assistant", reportsTo: raj.id, phone: "0120000005", joined: "2023-02-01", skills: ["Servicing", "Hose making"], payRate: "16" });
 const azm = await S({ name: "Azman Ismail", role: "fabricator", reportsTo: sup.id, phone: "0120000006", joined: "2015-09-12", skills: ["MIG/MMAW welding", "Hardfacing"], payRate: "24" });
 const kum = await S({ name: "Kumaravel", role: "painter", reportsTo: sup.id, phone: "0120000007", joined: "2020-11-02", skills: ["Spray painting", "Sandblasting"], payRate: "20" });
-await S({ name: "Siti Aminah", role: "cleaner", reportsTo: sup.id, phone: "0120000008", joined: "2022-05-16", skills: ["Steam wash", "Degreasing"], payRate: "12" });
+const siti = await S({ name: "Siti Aminah", role: "cleaner", reportsTo: sup.id, phone: "0120000008", joined: "2022-05-16", skills: ["Steam wash", "Degreasing"], payRate: "12" });
 await db.insert(schema.certifications).values([
   { staffId: sup.id, name: "CIDB Green Card", expiry: d(46) }, { staffId: raj.id, name: "First Aid", expiry: d(35) },
   { staffId: haf.id, name: "DOSH Crane Operator", expiry: d(14) }, { staffId: azm.id, name: "Welder Cert 3G/4G", expiry: d(-16) },
@@ -107,11 +108,14 @@ const fabJob = await J({ category: "FAB", status: "in_progress", unitId: u2.id, 
 await J({ category: "WARR", priority: "high", status: "closed", closedAt: d(-1), unitId: u3.id, siteLocation: "Open yard", complaint: "Oil leak at swing motor after repair in August.", diagnosis: "O-ring pinched during last assembly. Replaced under warranty.", leadId: lim.id, hourMeterIn: 14150, openedAt: d(-8), dueDate: d(-1), statusSince: ago(2), parentJobId: old.id },
   { tasks: [["Replace swing motor O-ring", true, lim.id], ["Leak test 1 hr", true, lim.id]], labour: [[lim.id, 3, 7]], qcDone: 6 });
 await J({ category: "PAINT", priority: "low", status: "received", unitId: u2.id, siteLocation: "Paint bay", complaint: "Touch-up and repaint boom before return.", leadId: kum.id, hourMeterIn: 12430, openedAt: d(-5), dueDate: d(21), statusSince: ago(4) });
+await J({ category: "HYD", priority: "normal", status: "deferred", unitId: kato1.id, siteLocation: "", complaint: "Slight oil seep at boom elevating cylinder rod seal. Crane still working; reseal when it comes back from site.", reportedBy: "Operator Rashide", leadId: null, openedAt: d(-6), dueDate: null, statusSince: ago(6) });
 
 /* ---------- Phase 2 demo: categories, suppliers, parts, prices, purchase orders, stock ---------- */
-const CAT = async (name: string, markup: number, target: number) => (await db.insert(schema.partCategories).values({ name, markupPct: String(markup), targetMarginPct: String(target) }).returning())[0];
-const cFilters = await CAT("Filters", 45, 30), cFluids = await CAT("Fluids & lubricants", 35, 22), cSeals = await CAT("Seal kits", 40, 25),
-  cHoses = await CAT("Hoses & fittings", 60, 35), cGet = await CAT("Ground engaging", 45, 25), cWeld = await CAT("Welding", 40, 25), cElec = await CAT("Electrical", 45, 25);
+// The standard categories are already there (migration 0013); demo values are set on them.
+const CAT = async (name: string, markup: number, target: number) => (await db.insert(schema.partCategories).values({ name, markupPct: String(markup), targetMarginPct: String(target) })
+  .onConflictDoUpdate({ target: schema.partCategories.name, set: { markupPct: String(markup), targetMarginPct: String(target) } }).returning())[0];
+const cFilters = await CAT("Filters (oil, fuel, air, hydraulic)", 45, 30), cFluids = await CAT("Oils, grease & lubricants", 35, 22), cSeals = await CAT("Hydraulic seals & seal kits", 40, 25),
+  cHoses = await CAT("Hydraulic hoses & fittings", 60, 35), cGet = await CAT("Ground engaging tools (teeth, cutting edges)", 45, 25), cWeld = await CAT("Welding & fabrication materials", 40, 25), cElec = await CAT("Electrical, sensors & switches", 45, 25);
 const SUP = async (v: typeof schema.suppliers.$inferInsert) => (await db.insert(schema.suppliers).values(v).returning())[0];
 const sinar = await SUP({ name: "Sinar Heavy Parts (demo)", contactName: "Mr. Lee", phone: "03-0000 5000", paymentTerms: "30 days", leadTimeDays: 2 });
 const borneo = await SUP({ name: "Borneo Earthmoving Spares (demo)", contactName: "En. Hakim", phone: "03-0000 5100", paymentTerms: "COD", leadTimeDays: 3 });
@@ -119,6 +123,13 @@ const hidro = await SUP({ name: "Hidro Seal Engineering (demo)", contactName: "M
 const mega = await SUP({ name: "Mega Lubricants (demo)", contactName: "Mr. Siva", phone: "03-0000 7000", paymentTerms: "COD", leadTimeDays: 1 });
 const united = await SUP({ name: "United Hydraulic Supply (demo)", contactName: "Mr. Ong", phone: "03-0000 6100", paymentTerms: "30 days", leadTimeDays: 3 });
 const weld = await SUP({ name: "Weld-Pro Supplies (demo)", contactName: "En. Farid", phone: "03-0000 8000", paymentTerms: "14 days", leadTimeDays: 1 });
+// Outsourced: the hydraulic pump went to an outside workshop for a rebuild; it is 2 days later than they promised.
+const outJob = await J({ category: "HYD", priority: "high", status: "in_progress", unitId: u3.id, siteLocation: "", complaint: "Main hydraulic pump weak, slow boom and arm. Pump removed and sent out for rebuild.",
+  reportedBy: "Operator", leadId: null, openedAt: d(-10), statusSince: ago(9), outsourced: true, vendorId: hidro.id, vendorRef: "HS-Q-2231", sentOutAt: d(-9), expectedBackAt: d(-2) },
+  { labour: [[raj.id, 4, 9]] });
+await db.insert(schema.jobPurchases).values({ jobId: outJob.id, kind: "service", description: "Rebuild main hydraulic pump (deposit)", supplierId: hidro.id, qty: "1", uom: "job",
+  unitCost: "1500.00", unitPrice: "1500.00", ref: "HS-INV-0912", purchasedAt: d(-8), addedBy: sup.id });
+await db.update(schema.machineUnits).set({ location: "At vendor · Hidro Seal Engineering (demo)" }).where(eq(schema.machineUnits.id, u3.id));
 
 type PartSeed = { sku: string; oem?: string; desc: string; cat: { id: number; markupPct: string }; uom: string; bin: string; fits?: number[]; onHand: number; min: number; reorder?: number; avg: number; fixedSell?: number;
   prices: [number, number, number, "quote" | "po" | "invoice" | "import", string?][]; codes?: [number, string][] };
@@ -199,6 +210,42 @@ await db.insert(schema.chatMessages).values([
 for (const [threadId, staffId] of [[teamT.id, sup.id], [teamT.id, boss.id], [pumpT.id, sup.id], [pumpT.id, raj.id]]) {
   const [last] = await db.select({ id: schema.chatMessages.id }).from(schema.chatMessages).where(and(eq(schema.chatMessages.threadId, threadId), eq(schema.chatMessages.staffId, staffId))).orderBy(desc(schema.chatMessages.id)).limit(1);
   if (last) await db.insert(schema.chatReads).values({ threadId, staffId, lastReadId: last.id });
+}
+
+/* ---------- calendar: this week's crew plan and two public holidays ---------- */
+{
+  const week = weekDays(planWeekStart(T));
+  const P: { staffId: number; day: string; kind: "job" | "leave" | "mc" | "off"; jobId?: number }[] = [];
+  for (const day of week) {
+    P.push({ staffId: raj.id, day, kind: "job", jobId: pumpJob.id }, { staffId: lim.id, day, kind: "job", jobId: pmJob.id },
+      { staffId: haf.id, day, kind: "job", jobId: diagJob.id }, { staffId: azm.id, day, kind: "job", jobId: fabJob.id });
+    P.push(day === week[1] ? { staffId: sur.id, day, kind: "mc" } : { staffId: sur.id, day, kind: "job", jobId: pumpJob.id });
+  }
+  P.push({ staffId: kum.id, day: week[5], kind: "leave" }, { staffId: siti.id, day: week[5], kind: "off" });
+  await db.insert(schema.crewPlan).values(P);
+  await db.insert(schema.calendarEvents).values([
+    { day: d(5), time: "09:00", type: "puspakom", title: "PUSPAKOM inspection", unitId: kato1.id, customerId: tunas.id, repeatMonths: 6, notes: "PUSPAKOM Shah Alam. Bring grant and insurance cover note.", createdBy: sup.id },
+    { day: d(1), type: "machine_in", title: "Tadano GR-600 arriving on low loader", customerId: tunas.id, notes: "Park at Open yard. Customer reports slewing noise.", createdBy: sup.id },
+    { day: d(-3), type: "dosh", title: "DOSH PMA inspection", unitId: u4.id, customerId: tunas.id, repeatMonths: 12, createdBy: boss.id },
+    { day: d(9), endDay: d(10), type: "visit", title: "Kuari Selatan site visit (2 days)", customerId: kuari.id, createdBy: boss.id },
+  ]);
+  await db.insert(schema.holidays).values([{ day: "2026-11-08", name: "Deepavali" }, { day: "2026-12-25", name: "Christmas Day" }]).onConflictDoNothing();
+}
+
+/* ---------- attendance: the last two weeks (Mon–Sat), mostly present ---------- */
+{
+  const { weekday } = await import("../src/lib/calendar");
+  const people = [sup, raj, lim, haf, sur, azm, kum, siti];
+  const rows: (typeof schema.attendance.$inferInsert)[] = [];
+  for (let n = 14; n >= 1; n--) {
+    const day = d(-n);
+    if (weekday(day) === 6) continue;
+    people.forEach((p, i) => {
+      const status = p === sur && n === 3 ? "mc" : p === lim && n % 5 === 0 ? "late" : p === kum && n === 6 ? "leave" : p === azm && n === 9 ? "absent" : "present";
+      rows.push({ staffId: p.id, day, status, timeIn: status === "late" ? "08:40" : status === "present" ? `0${7 + (i % 2)}:${i % 2 ? "05" : "55"}` : null, timeOut: status === "present" || status === "late" ? "17:30" : null, note: status === "absent" ? "No call, no show" : null, updatedBy: sup.id });
+    });
+  }
+  await db.insert(schema.attendance).values(rows);
 }
 
 console.log(`Demo data loaded. Sign in with any demo phone (Boss 0120000000, Supervisor 0120000001, Mechanic 0120000003) and password demo-pass-1.`);

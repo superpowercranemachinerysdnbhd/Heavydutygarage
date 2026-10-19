@@ -1,0 +1,1 @@
+ALTER TABLE "staff" ADD COLUMN "aliases" text[] DEFAULT '{}' NOT NULL;
