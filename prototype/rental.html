@@ -611,6 +611,7 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
     <div class="navg"><span class="navh">Run</span>
       <button data-view="fleet">Fleet</button>
       <button data-view="transport">Transport</button>
+      <button data-view="fuel">Fuel</button>
       <button data-view="timesheets">Timesheets</button>
       <button data-view="staff">Staff</button>
     </div>
@@ -618,6 +619,7 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
       <button data-view="billing">Billing</button>
       <button data-view="rates">Rates</button>
       <button data-view="reports">Reports</button>
+      <button data-view="connect">Connections</button>
     </div>
   </nav>
 </aside>
@@ -632,6 +634,8 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
   <section class="view" id="v-calendar" hidden></section>
   <section class="view" id="v-staff" hidden></section>
   <section class="view" id="v-planner" hidden></section>
+  <section class="view" id="v-fuel" hidden></section>
+  <section class="view" id="v-connect" hidden></section>
   <section class="view" id="v-lift" hidden></section>
   <section class="view" id="v-hires" hidden></section>
   <section class="view" id="v-fleet" hidden></section>
@@ -962,6 +966,7 @@ function lineCharges(h, l, from, to){
 }
 function charges(h, from, to){
   const out = h.lines.flatMap(l => lineCharges(h, l, from, to));
+  if(h.fuel==='charged'){ const fs = fuel.filter(f=>f.hire===h.id && f.d>=from && f.d<=to); if(fs.length){ const L = sum(fs.map(f=>f.l)), cost = sum(fs.map(f=>f.l*f.price)); out.push({kind:'fuel',desc:`Diesel supplied: ${num(L)} L at cost + 10%`,qty:L,unit:'L',rate:+(cost/L*1.1).toFixed(3),amt:cost*1.1}); } }
   h.trips.filter(t => t.status==='Done' && t.d>=from && t.d<=to).forEach(t => out.push({kind:'transport',desc:`${t.self?'Mobilisation (self-drive)':'Transport by lowloader'}: ${t.dir.toLowerCase()}, ${t.u}, ${t.zone}`,qty:1,unit:'trip',rate:t.charge,amt:t.charge}));
   return out;
 }
@@ -975,6 +980,39 @@ function estimate(mk, k, basis, from, to, hrsDay=8){
   if(basis==='month'){ if(!r.month) return null; let amt = 0; for(let d=from; d<=to; d=addDays(d,1)) amt += r.month/dim(d); return {amt, text:`${num(+(amt/r.month).toFixed(2))} month × ${RM0(r.month)} (${r.mHrs} h a month included)`}; }
 }
 function transportCharge(mk, zone){ const z = zones.find(x=>x.z===zone) || zones[0]; return z[models[mk].size] || 0; }
+
+/* ---------- fuel ---------- */
+/* Normal diesel use in litres per working hour, per model (sample figures until the owner's records replace them). */
+const FUEL_RATE = {NK160:7, NK200:8, NK250:9, TL450:12, RK500:13, SS500:12.5, TL500:12.5, GR600:14, ATF60:16, SL700:15, SA1100:19, SL1300:21, UNIC:6};
+const DIESEL = 3.15;   // sample pump price, RM per litre: the actual price is taken from each receipt
+const FUEL_FLAG = 1.2; // flag a fill when use is 20% above the machine's normal L/h
+const STATIONS = {C1:'Shell Persiaran Kerjaya, Shah Alam', C3:'Petron Jalan Kapar, Klang'};
+const FUEL_PAID = ['Fleet card','Petty cash','Own tank (yard)','Supplied by customer'];
+hires.forEach(h => { h.fuel = h.lines.some(l=>l.k==='wet') ? 'included' : 'customer'; });
+hire('H-2026-0141').fuel = 'charged'; hire('H-2026-0153').fuel = 'charged';
+let fuel = [];
+(function genFuel(){
+  let id = 1, flagged = false;
+  hires.forEach(h => h.lines.forEach(l => {
+    if(l.k!=='wet' || !l.on) return;
+    const ts = sheets.filter(s=>s.u===l.u && s.hire===h.id).sort((a,b)=>a.d<b.d?-1:1);
+    let acc = 0;
+    ts.forEach(s => {
+      acc += s.work;
+      if(acc < 24) return;
+      const rate = FUEL_RATE[fleet[l.u].m] || 10;
+      let litres = Math.round(acc*rate*(0.94 + rnd('f'+l.u+s.d)*0.12)), odd = false;
+      if(l.u==='TC-02' && s.d>='2026-10-08' && !flagged){ litres = Math.round(litres*1.38); flagged = odd = true; }
+      fuel.push({id:id++, d:s.d, u:l.u, l:litres, price:DIESEL, hm:Math.round(s.hmE), hours:+acc.toFixed(1), hire:h.id, where:STATIONS[h.c]||'Petronas near site', by:l.op, paid:'Fleet card', receipt:true, note:odd?'':undefined});
+      acc = 0;
+    });
+  }));
+  fuel.push({id:id++, d:'2026-10-16', u:'LC-01', l:60, price:2.98, hm:fleet['LC-01'].hm, hours:null, hire:'H-2026-0155', where:'Own tank (yard)', by:'O3', paid:'Own tank (yard)', receipt:false});
+  fuel.push({id:id++, d:'2026-10-02', u:'TR-01', l:310, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Bukit Raja, Klang', by:'D1', paid:'Fleet card', receipt:true});
+  fuel.push({id:id++, d:'2026-10-12', u:'TR-02', l:240, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Bukit Raja, Klang', by:'D2', paid:'Fleet card', receipt:true});
+})();
+const fuelRate = f => f.hours ? f.l/f.hours : null;
+const fuelFlag = f => f.hours && FUEL_RATE[fleet[f.u].m] ? fuelRate(f) > FUEL_RATE[fleet[f.u].m]*FUEL_FLAG : false;
 
 /* ---------- invoices ---------- */
 let invoices = [];
@@ -999,7 +1037,7 @@ const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Pai
 const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
 
 /* ---------- state ---------- */
-const state = {view:'today', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
+const state = {view:'today', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
 try{ const v = localStorage.getItem('hdg-rental-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
@@ -1013,7 +1051,7 @@ function setView(v){
   try{ localStorage.setItem('hdg-rental-view', v); }catch(e){}
   render();
 }
-function render(){ ({today:renderToday,enquiries:renderEnquiries,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
+function render(){ ({today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
 function rerender(){ render(); refreshSheet(); }
 
 /* ---------- Today ---------- */
@@ -1190,6 +1228,7 @@ function openHire(id){
       <div class="cost"><span class="label">Billing</span><b>${esc(h.cycle)}</b><small class="muted">${cu.terms?cu.terms+' days credit':'Cash / deposit'}</small></div>
       ${h.contract?`<div><span class="label">Contract</span><b>${esc(h.contract)}</b></div>`:''}
       ${h.quoteValid?`<div><span class="label">Quotation valid to</span><b>${fmtDY(h.quoteValid)}</b></div>`:''}
+      <div><span class="label">Diesel</span><b>${esc(FUEL_POLICY[h.fuel || (h.lines.some(l=>l.k==='wet')?'included':'customer')])}</b></div>
       ${h.deposit?`<div class="cost"><span class="label">Deposit</span><b>${RM0(h.deposit)} ${h.depositPaid?'<span class="pill ok">Received</span>':'<span class="pill warn">Due</span>'}</b></div>`:''}
     </div></div>
     <div class="sect"><h3>Machines</h3><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Machine</th><th>Hire</th><th class="cost">Rate</th><th>Operator</th><th>On hire</th><th>Off hire</th></tr></thead><tbody>
@@ -1502,6 +1541,7 @@ function renderOperator(){
     ${hist.length?`<div class="panel"><div class="panel-head"><h3>My last days</h3></div><div class="tbl-wrap" style="border:0"><table><tbody>
       ${hist.map(s=>`<tr class="click" data-ts="${s.id}"><td class="num">${fmtDW(s.d)}</td><td class="r num">${num(s.work)} h${s.standby?` <small class="muted">+${s.standby} standby</small>`:''}</td><td>${s.status==='signed'?'<span class="pill ok">Signed</span>':'<span class="pill warn">Waiting</span>'}</td></tr>`).join('')}
     </tbody></table></div></div>`:''}
+    ${fuelOpHtml()}
     ${leaveApplyHtml()}
     <div class="panel"><div class="panel-head"><h3>My certificates</h3></div><div class="panel-body">${Object.entries(op.certs).map(([k,e])=>`<div class="attn" style="--sev:var(--${docState(e)==='ok'?'ok':docState(e)})"><i></i><div><b>${esc(k)}</b><br><small class="muted">Expires ${fmtDY(e)}</small></div></div>`).join('')}</div></div>
   </div>`;
@@ -1550,8 +1590,8 @@ function renderBilling(){
       ${run.map(({h,t})=>{ const e = exc(h); return `<tr class="click" data-hire="${h.id}"><td class="mono">${h.id}</td><td>${esc(custName(h.c))}</td><td>${esc(h.cycle)}</td><td>${e.length?e.map(x=>`<span class="pill warn">${esc(x)}</span>`).join(' '):'<span class="pill ok">Ready</span>'}</td><td class="r num">${RM(t.sub)}</td><td class="r num">${RM(t.sst)}</td><td class="r num"><b>${RM(t.total)}</b></td></tr>`; }).join('')}
       </tbody><tfoot><tr><td colspan="4"><b>Total</b></td><td class="r num"><b>${RM(sum(run.map(x=>x.t.sub)))}</b></td><td class="r num">${RM(sum(run.map(x=>x.t.sst)))}</td><td class="r num"><b>${RM(sum(run.map(x=>x.t.total)))}</b></td></tr></tfoot></table></div></div>
     <div class="panel"><div class="panel-head"><h3>Invoices</h3><span class="muted">e-Invoice via LHDN MyInvois</span></div>
-      <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Period</th><th>Due</th><th class="r">Total</th><th>Payment</th><th>MyInvois</th></tr></thead><tbody>
-      ${invoices.slice().sort((a,b)=>a.no<b.no?1:-1).map(i=>`<tr class="click" data-inv="${i.no}"><td class="mono">${i.no}</td><td>${esc(custName(i.c))}<br><small class="muted mono">${i.hire}</small></td><td>${esc(i.period)}</td><td class="num">${fmtD(i.due)}</td><td class="r num">${RM(i.total)}</td><td>${invPill(i)}</td><td>${einvPill(i)}</td></tr>`).join('')}
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Period</th><th>Due</th><th class="r">Total</th><th>Payment</th><th>MyInvois</th><th>Bukku</th></tr></thead><tbody>
+      ${invoices.slice().sort((a,b)=>a.no<b.no?1:-1).map(i=>`<tr class="click" data-inv="${i.no}"><td class="mono">${i.no}</td><td>${esc(custName(i.c))}<br><small class="muted mono">${i.hire}</small></td><td>${esc(i.period)}</td><td class="num">${fmtD(i.due)}</td><td class="r num">${RM(i.total)}</td><td>${invPill(i)}</td><td>${einvPill(i)}</td><td>${bukkuPill(i)}</td></tr>`).join('')}
       </tbody></table></div></div>`;
 }
 function openInvoice(no){
@@ -1636,8 +1676,8 @@ Object.entries({HM:'012-300 1001',S1:'012-388 2201',S2:'012-660 3317',S3:'016-22
 const OFFICE = ['HM','S1','S2','S3'], FIELD = ['O1','O2','O3','O4','O5','D1','D2'];
 const meStaff = () => ({boss:'HM',supervisor:'S1',sales:'S2'})[role()] || state.me;
 const ROLE_VIEWS = {
-  boss:['today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','timesheets','staff','billing','rates','reports'],
-  supervisor:['today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','timesheets','staff','billing','rates'],
+  boss:['today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates','reports','connect'],
+  supervisor:['today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates'],
   sales:['today','enquiries','customers','hires','planner','lift','calendar','fleet','rates'],
   operator:['timesheets'],
 };
@@ -2375,6 +2415,172 @@ document.addEventListener('submit', e => {
     toast(`Chart replaced: ${booms.length} boom lengths × ${rows.length} radii`); return render(); }
 });
 
+/* ---------- Fuel page ---------- */
+const FUEL_POLICY = {charged:'Charged to customer at cost + 10%', included:'Included in the hire rate', customer:'Customer supplies (dry hire)'};
+function renderFuel(){
+  const m = state.fuelMonth, list = fuel.filter(f=>f.d.startsWith(m)).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.id-a.id);
+  const L = sum(list.map(f=>f.l)), cost = sum(list.map(f=>f.l*f.price));
+  const toBill = sum(list.filter(f=>hire(f.hire)?.fuel==='charged').map(f=>f.l*f.price*1.1));
+  const flags = list.filter(fuelFlag);
+  const units = [...new Set(list.map(f=>f.u))];
+  const rows = units.map(u => { const fs = list.filter(f=>f.u===u), hrs = sum(fs.filter(f=>f.hours).map(f=>f.hours)), lt = sum(fs.filter(f=>f.hours).map(f=>f.l));
+    const norm = FUEL_RATE[fleet[u].m], act = hrs ? lt/hrs : null; return {u, n:fs.length, l:sum(fs.map(f=>f.l)), cost:sum(fs.map(f=>f.l*f.price)), hrs, act, norm, flag:fs.some(fuelFlag)}; }).sort((a,b)=>b.cost-a.cost);
+  $('#v-fuel').innerHTML = `
+    <div class="view-head"><h2>Fuel · ${MON[+m.slice(5)-1]} ${m.slice(0,4)}</h2>
+      <div class="seg">${['2026-09','2026-10'].map(x=>`<button data-fuelmonth="${x}" aria-pressed="${x===m}">${MON[+x.slice(5)-1]}</button>`).join('')}</div>
+      <button class="btn primary" data-action="fuel-add">Record a fill</button></div>
+    <div class="kpis">
+      <div class="kpi"><b>${num(L)} L</b><span>Diesel this month</span></div>
+      <div class="kpi"><b style="font-size:1.45rem">${RM0(cost)}</b><span>Fuel cost</span></div>
+      <div class="kpi"><b style="font-size:1.45rem">${RM0(toBill)}</b><span>To bill customers (cost + 10%)</span></div>
+      <div class="kpi ${flags.length?'alert':''}"><b>${flags.length}</b><span>Fills to check (over ${Math.round((FUEL_FLAG-1)*100)}% above normal)</span></div>
+      <div class="kpi"><b>${list.filter(f=>f.paid!=='Supplied by customer').length}</b><span>Receipts sent to Bukku</span></div>
+    </div>
+    ${flags.length?`<div class="banner crit"><b>${flags.map(f=>`${f.u} on ${fmtD(f.d)}: ${num(+fuelRate(f).toFixed(1))} L/h against a normal ${FUEL_RATE[fleet[f.u].m]} L/h`).join(' · ')}. Check for a leak, a wrong hour-meter reading, or fuel going missing.</b></div>`:''}
+    <div class="panel"><div class="panel-head"><h3>By machine</h3><span class="muted">litres per working hour from hour meter and timesheets</span></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Machine</th><th class="r">Fills</th><th class="r">Litres</th><th class="r">Cost</th><th class="r">Hours</th><th class="r">L/h</th><th class="r">Normal</th><th>Use</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr class="click" data-unit="${r.u}"><td><b>${r.u}</b> ${esc(uName(r.u))}</td><td class="r num">${r.n}</td><td class="r num">${num(r.l)}</td><td class="r num">${RM0(r.cost)}</td><td class="r num">${r.hrs?num(+r.hrs.toFixed(1)):'—'}</td><td class="r num">${r.act?num(+r.act.toFixed(1)):'—'}</td><td class="r num">${r.norm?r.norm:'—'}</td>
+        <td>${r.act&&r.norm?`<span class="pill ${r.act>r.norm*FUEL_FLAG?'crit':r.act>r.norm*1.08?'warn':'ok'}">${r.act>=r.norm?'+':''}${Math.round((r.act/r.norm-1)*100)}%</span>${r.flag?' <small class="muted">1+ fill to check</small>':''}`:`<span class="pill mute">${fleet[r.u].transport?'by km':'no hours'}</span>`}</td></tr>`).join('')}
+      </tbody></table></div></div>
+    <div class="panel"><div class="panel-head"><h3>Fills</h3><span class="muted">${list.length} this month</span></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Date</th><th>Machine</th><th class="r">Litres</th><th class="r">RM / L</th><th class="r">Amount</th><th class="r">Hour meter</th><th>Where · who</th><th>Hire · fuel terms</th><th>Bukku</th></tr></thead><tbody>
+      ${list.map(f=>{ const h = hire(f.hire); return `<tr><td class="num">${fmtDW(f.d)}</td><td><b>${f.u}</b> ${esc(mOf(f.u).model)}${fuelFlag(f)?' <span class="pill crit">Check</span>':''}</td><td class="r num">${num(f.l)}</td><td class="r num">${f.price.toFixed(2)}</td><td class="r num">${RM(f.l*f.price)}</td><td class="r num">${f.hm?num(f.hm):'—'}${f.hours?`<br><small class="muted">${num(f.hours)} h since last</small>`:''}</td>
+        <td>${esc(f.where)}<br><small class="muted">${esc(staff[f.by]?.name||'')} · ${esc(f.paid)}${f.receipt?' · receipt photo':''}</small></td>
+        <td>${h?`<button class="btn small" data-hire="${h.id}">${h.id}</button><br><small class="muted">${esc(FUEL_POLICY[h.fuel])}</small>`:'<small class="muted">Own use (transport)</small>'}</td>
+        <td>${f.paid==='Supplied by customer'||f.paid==='Own tank (yard)'?'<span class="pill mute">Not needed</span>':'<span class="pill ok">Expense sent</span>'}</td></tr>`; }).join('')}
+      </tbody></table></div></div>
+    <p class="muted" style="margin:0">Normal L/h figures and the diesel price here are sample values; the real price comes from each receipt. Own-tank fills are costed at the tank's average purchase price. Fuel charged to a customer goes onto that hire's next invoice automatically.</p>`;
+}
+function openFuelAdd(pre={}){
+  const fa = state.fa = state.fa || {u:'TC-01', d:TODAY, l:'', price:DIESEL, hm:'', where:'', paid:'Fleet card', receipt:false, ...pre};
+  const last = fuel.filter(f=>f.u===fa.u && f.hm).sort((a,b)=>a.d<b.d?1:-1)[0];
+  const live = hires.find(h=>LIVE.includes(h.status) && h.lines.some(l=>l.u===fa.u && (l.on||l.from)<=fa.d && lineEnd(l)>=fa.d));
+  const hrs = fa.hm && last ? +fa.hm - last.hm : null, rate = hrs>0 && fa.l ? fa.l/hrs : null, norm = FUEL_RATE[fleet[fa.u].m];
+  const body = `<form class="stack" data-form="fuel-add">
+    <div class="sect"><h3>Fill</h3><div class="in form">
+      <label>Machine<select class="field" data-fa="u">${Object.keys(fleet).map(u=>`<option value="${u}" ${u===fa.u?'selected':''}>${u} ${esc(uName(u))}</option>`).join('')}</select></label>
+      <label>Date<input type="date" data-fa="d" value="${fa.d}"></label>
+      <label>Litres<input type="number" min="1" step="1" data-fa="l" value="${fa.l}" placeholder="e.g. 220"></label>
+      <label>Price per litre (RM)<input type="number" min="0" step="0.01" data-fa="price" value="${fa.price}"></label>
+      <label>Hour meter now<input type="number" data-fa="hm" value="${fa.hm}" placeholder="${last?'last fill '+num(last.hm):''}"></label>
+      <label>Station / tank<input type="text" data-fa="where" value="${esc(fa.where)}" placeholder="e.g. Petron Jalan Kapar"></label>
+      <label>Paid by<select class="field" data-fa="paid">${FUEL_PAID.map(p=>`<option ${p===fa.paid?'selected':''}>${p}</option>`).join('')}</select></label>
+      <label>Receipt photo<button type="button" class="slot ${fa.receipt?'done':''}" data-action="fuel-snap" style="aspect-ratio:auto;height:44px">${fa.receipt?'Receipt attached':'＋ Take photo'}</button></label>
+    </div></div>
+    <div class="sect"><h3>Checks</h3><div class="in">
+      <div>${live?`On hire <b>${live.id}</b> (${esc(custName(live.c))}): ${esc(FUEL_POLICY[live.fuel])}.`:'Not on hire on this date: company cost.'}</div>
+      <div>${rate?`${num(hrs)} h since the last fill → <b>${num(+rate.toFixed(1))} L/h</b> (normal ${norm} L/h) ${rate>norm*FUEL_FLAG?'<span class="pill crit">Above normal: will be flagged</span>':'<span class="pill ok">Normal</span>'}`:'Enter litres and the hour meter to check the usage.'}</div>
+      <small class="muted">${fa.paid==='Supplied by customer'||fa.paid==='Own tank (yard)'?'No bill goes to Bukku for this fill.':'Saved as a fuel expense in Bukku, tagged with the machine, with the receipt photo attached.'}</small>
+    </div></div>
+    <div class="btnrow"><button class="btn primary" type="button" data-action="fuel-save">Save fill</button></div></form>`;
+  openSheet('Record a fill', '<span class="mono">Fuel</span>', body, {type:'fuel'});
+}
+function saveFuel(fa){
+  if(!(+fa.l>0)){ toast('Enter the litres'); return false; }
+  const last = fuel.filter(f=>f.u===fa.u && f.hm).sort((a,b)=>a.d<b.d?1:-1)[0];
+  const live = hires.find(h=>LIVE.includes(h.status) && h.lines.some(l=>l.u===fa.u && (l.on||l.from)<=fa.d && lineEnd(l)>=fa.d));
+  const hm = +fa.hm || null;
+  fuel.push({id:Math.max(...fuel.map(f=>f.id))+1, d:fa.d, u:fa.u, l:+fa.l, price:+fa.price||DIESEL, hm, hours: hm && last && hm>last.hm ? hm-last.hm : null, hire:live?.id||null, where:fa.where||'—', by:meStaff(), paid:fa.paid, receipt:!!fa.receipt});
+  if(hm) fleet[fa.u].hm = Math.max(fleet[fa.u].hm||0, hm);
+  const f = fuel[fuel.length-1];
+  toast(fuelFlag(f) ? `Saved. ${f.u} used ${num(+fuelRate(f).toFixed(1))} L/h: flagged for checking.` : fa.paid==='Supplied by customer'||fa.paid==='Own tank (yard)' ? 'Fill saved' : 'Fill saved and sent to Bukku as a fuel expense');
+  return true;
+}
+function fuelOpHtml(){
+  const cur = hires.find(h=>h.status==='On hire' && h.lines.some(l=>l.op===state.me));
+  if(!cur) return '';
+  const u = cur.lines.find(l=>l.op===state.me).u, last = fuel.filter(f=>f.u===u).sort((a,b)=>a.d<b.d?1:-1)[0];
+  return `<form class="sect" data-form="fuel-op"><h3>Add diesel · ${u}</h3><div class="in"><div class="form">
+    <label>Litres<input type="number" name="l" min="1" step="1" placeholder="e.g. 220"></label>
+    <label>RM per litre<input type="number" name="price" step="0.01" value="${DIESEL}"></label>
+    <label>Hour meter<input type="number" name="hm" value="${Math.round(fleet[u].hm||0)}"></label>
+    <label>Station<input type="text" name="where" value="${esc(last?.where||'')}"></label></div>
+    <small class="muted">Take a photo of the receipt and the pump. Last fill: ${last?`${fmtDW(last.d)}, ${num(last.l)} L`:'none'}.</small>
+    <div class="btnrow"><button class="btn primary">Save diesel</button></div></div></form>`;
+}
+
+/* ---------- Connections: Bukku and Worksy ---------- */
+const BUKKU_MAP = [
+  ['Hire charges','4100 Rental income – cranes & machinery'],['Transport and mobilisation','4110 Transport income'],['Overtime, Sunday, standby','4100 Rental income – cranes & machinery'],
+  ['Diesel recharged to customers','4120 Fuel recharge income'],['Damage repairs charged','4130 Damage recovery income'],['Fuel bought','6210 Fuel – diesel'],['Customer deposits','2300 Customer deposits']];
+let bukkuSeq = 1180;
+function bukkuOf(i){
+  if(!i.bukku || (i.bukku.st==='Waiting' && i.uuid)) i.bukku = i.uuid ? {st:'Synced', no:'IV-0'+(bukkuSeq++), at:i.issued} : {st:'Waiting'};
+  return i.bukku;
+}
+const bukkuPill = i => { const b = bukkuOf(i); return b.st==='Synced' ? `<span class="pill ok" title="Bukku ${b.no}">${b.no}</span>` : '<span class="pill warn" title="Sent once the e-invoice is fixed">Waiting</span>'; };
+function payrollRows(month){
+  return FIELD.map((s,k)=>{ const ts = sheets.filter(x=>x.op===s && x.d.startsWith(month));
+    const day = x => x.work + x.standby + x.bd;
+    const normal = sum(ts.filter(x=>dow(x.d)!==0).map(x=>Math.min(8, day(x)))), ot = sum(ts.filter(x=>dow(x.d)!==0).map(x=>Math.max(0, day(x)-8))), sun = sum(ts.filter(x=>dow(x.d)===0).map(day));
+    const trips = allTrips().filter(t=>t.drv===s && t.d.startsWith(month) && t.status==='Done').length;
+    let lv = 0, mc = 0; leave.filter(l=>l.s===s && l.status==='Approved').forEach(l=>{ for(let d=l.from; d<=l.to; d=addDays(d,1)) if(d.startsWith(month) && dow(d)!==0){ if(l.type.startsWith('Medical')) mc++; else lv++; } });
+    return {id:'HW'+String(101+k), s, normal, ot, sun, trips, lv, mc}; });
+}
+function renderConnect(){
+  const inv = invoices.slice().sort((a,b)=>a.issued<b.issued?1:-1);
+  const log = [
+    ...inv.map(i=>{ const b = bukkuOf(i); return b.st==='Synced' ? {d:i.issued, t:`Invoice ${i.no} (${RM(i.total)}) → Bukku ${b.no}`, ok:true} : {d:i.issued, t:`Invoice ${i.no} held: e-invoice rejected (${i.einvNote||'fix first'})`, ok:false}; }),
+    ...inv.filter(i=>i.status==='Paid').map(i=>({d:i.paid, t:`Payment ${RM(i.total)} recorded in Bukku → ${i.no} marked paid here`, ok:true, back:true})),
+    ...[...new Set(fuel.filter(f=>f.paid==='Fleet card'||f.paid==='Petty cash').map(f=>f.d))].map(d=>{ const fs = fuel.filter(f=>f.d===d && (f.paid==='Fleet card'||f.paid==='Petty cash')); return {d, t:`${fs.length} fuel receipt${fs.length>1?'s':''} (${RM(sum(fs.map(f=>f.l*f.price)))}) → Bukku expenses, tagged ${[...new Set(fs.map(f=>f.u))].join(', ')}`, ok:true}; }),
+  ].sort((a,b)=>a.d<b.d?1:-1).slice(0,14);
+  const pr = payrollRows(state.payMonth);
+  $('#v-connect').innerHTML = `
+    <div class="view-head"><h2>Connections</h2></div>
+    <div class="banner"><b>Prototype: the connections here are simulated with the example data. In the real system Bukku is linked with an API token from Bukku (Control Panel → Integrations → API Access).</b></div>
+    <div class="two">
+      <div class="panel"><div class="panel-head"><h3>Bukku · accounting</h3><span class="pill ok">Connected</span></div><div class="in" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+        <div class="facts" style="padding:0"><div><span class="label">Company</span><b>heavyworks.bukku.my</b></div><div><span class="label">Access token</span><b class="mono">••••••••3f9a</b></div><div><span class="label">Last sync</span><b>${fmtDW(TODAY)} 09:15</b></div></div>
+        <table><tbody>
+          <tr><td>→</td><td><b>Invoices and credit notes</b><br><small class="muted">The moment they are issued here, with customer, lines, SST and hire number</small></td><td><span class="pill ok">Automatic</span></td></tr>
+          <tr><td>→</td><td><b>Customers</b><br><small class="muted">Name, SSM no., TIN, SST no., address, credit terms</small></td><td><span class="pill ok">Automatic</span></td></tr>
+          <tr><td>←</td><td><b>Payments received</b><br><small class="muted">Recorded in Bukku; the invoice here is marked paid and the follow-ups stop</small></td><td><span class="pill ok">Every 15 min</span></td></tr>
+          <tr><td>→</td><td><b>Fuel and parts bills</b><br><small class="muted">As expenses with the receipt photo, tagged by machine for cost per machine</small></td><td><span class="pill ok">Automatic</span></td></tr>
+          <tr><td>⇄</td><td><b>e-Invoice (MyInvois)</b><br><small class="muted">Choose one place to submit, so nothing is sent twice</small></td><td><select class="field" id="einvBy"><option>Bukku submits</option><option>This app submits</option></select></td></tr>
+        </tbody></table></div></div>
+      <div class="panel"><div class="panel-head"><h3>Worksy · HR and payroll</h3><span class="pill warn">File exchange</span></div><div class="in" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+        <p style="margin:0">Worksy has no public API, so until Worksy gives API access the link works with files in Worksy's import format.</p>
+        <table><tbody>
+          <tr><td>←</td><td><b>Staff list</b><br><small class="muted">Employee ID, name, IC / passport, position. Upload Worksy's staff export once, then when staff join or leave</small></td><td><span class="pill mute">Upload</span></td></tr>
+          <tr><td>→</td><td><b>Monthly payroll hours</b><br><small class="muted">Normal and overtime hours, Sunday / public holiday hours, trips, outstation nights, leave and MC, from signed timesheets</small></td><td><span class="pill mute">Monthly file</span></td></tr>
+          <tr><td>⇄</td><td><b>Leave</b><br><small class="muted">Keep leave in one system: either apply here (roster clash check) and send to Worksy, or apply in Worksy and import</small></td><td><span class="pill warn">To decide</span></td></tr>
+        </tbody></table>
+        <small class="muted">EPF, SOCSO, EIS and PCB are worked out in Worksy as today. If Worksy provides an API, these become automatic like Bukku.</small></div></div>
+    </div>
+    <div class="panel"><div class="panel-head"><h3>Bukku account mapping</h3><span class="muted">which Bukku account each kind of line posts to</span></div><div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><tbody>
+      ${BUKKU_MAP.map(([a,b],k)=>`<tr><td>${esc(a)}</td><td><input type="text" id="bmap${k}" value="${esc(b)}" style="width:100%"></td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="panel"><div class="panel-head"><h3>Sync log</h3><button class="btn small" data-action="bukku-sync">Sync now</button></div><div class="panel-body">
+      ${log.map(x=>`<div class="attn" style="--sev:var(--${x.ok?'ok':'warn'})"><i></i><div><b>${esc(x.t)}</b><br><small class="muted">${fmtDY(x.d)}${x.back?' · from Bukku':''}</small></div></div>`).join('')}
+    </div></div>
+    <div class="panel"><div class="panel-head"><h3>Payroll file for Worksy · ${MON[+state.payMonth.slice(5)-1]}</h3><div class="seg">${['2026-09','2026-10'].map(x=>`<button data-paymonth="${x}" aria-pressed="${x===state.payMonth}">${MON[+x.slice(5)-1]}</button>`).join('')}</div></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Employee ID</th><th>Name</th><th class="r">Normal h</th><th class="r">OT h</th><th class="r">Sun / PH h</th><th class="r">Trips</th><th class="r">Leave days</th><th class="r">MC days</th></tr></thead><tbody>
+      ${pr.map(r=>`<tr><td class="mono">${r.id}</td><td>${esc(staff[r.s].name)}<br><small class="muted">${esc(staff[r.s].role)}</small></td><td class="r num">${num(r.normal)}</td><td class="r num">${num(r.ot)}</td><td class="r num">${num(r.sun)}</td><td class="r num">${r.trips}</td><td class="r num">${r.lv}</td><td class="r num">${r.mc}</td></tr>`).join('')}
+      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">Built from signed timesheets, trips and approved leave${state.payMonth===TODAY.slice(0,7)?' (October so far)':''}. The real system makes this an Excel file in Worksy's import layout; the column names will follow Worksy's template once we have it.</small></div></div>`;
+}
+
+document.addEventListener('click', e => {
+  if(e.target.closest('input,select,textarea,canvas')) return;
+  const a = e.target.closest('[data-action^="fuel-"],[data-action="bukku-sync"],[data-fuelmonth],[data-paymonth]');
+  if(!a) return;
+  const d = a.dataset;
+  if(d.fuelmonth){ state.fuelMonth = d.fuelmonth; return render(); }
+  if(d.paymonth){ state.payMonth = d.paymonth; return render(); }
+  if(d.action==='fuel-add'){ state.fa = null; return openFuelAdd(); }
+  if(d.action==='fuel-snap'){ state.fa.receipt = true; return openFuelAdd(); }
+  if(d.action==='fuel-save'){ if(saveFuel(state.fa)){ state.fa = null; closeSheet(); render(); } return; }
+  if(d.action==='bukku-sync'){ toast('Bukku is up to date: nothing new to send'); return; }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.dataset.fa){ state.fa[t.dataset.fa] = t.value; if(t.dataset.fa==='u'){ state.fa.hm=''; } return openFuelAdd(); }
+});
+document.addEventListener('submit', e => {
+  const f = e.target;
+  if(f.dataset.form==='fuel-op'){ e.preventDefault(); const fd = new FormData(f), cur = hires.find(h=>h.status==='On hire' && h.lines.some(l=>l.op===state.me)), u = cur.lines.find(l=>l.op===state.me).u;
+    if(saveFuel({u, d:TODAY, l:fd.get('l'), price:fd.get('price'), hm:fd.get('hm'), where:fd.get('where'), paid:'Fleet card', receipt:true})) render(); }
+});
+
 /* ---------- sheet plumbing ---------- */
 function openSheet(title, sub, body, ctx){
   state.sheet = ctx || null;
@@ -2388,7 +2594,7 @@ function openSheet(title, sub, body, ctx){
 function closeSheet(){ $('#sheetRoot').innerHTML=''; document.body.style.overflow=''; state.sheet=null; state.lastSheet=null; }
 function refreshSheet(){
   const s = state.sheet; if(!s) return;
-  if(s.type==='hire') openHire(s.id); else if(s.type==='unit') openUnit(s.id); else if(s.type==='ts') openTimesheet(s.id); else if(s.type==='inv') openInvoice(s.id); else if(s.type==='nh') openNewHire(); else if(s.type==='insp') openInspection(s.id, s.kind); else if(s.type==='enq') openEnquiry(s.id); else if(s.type==='cust') openCustomer(s.id); else if(s.type==='ne') openNewEnquiry();
+  if(s.type==='hire') openHire(s.id); else if(s.type==='unit') openUnit(s.id); else if(s.type==='ts') openTimesheet(s.id); else if(s.type==='inv') openInvoice(s.id); else if(s.type==='nh') openNewHire(); else if(s.type==='insp') openInspection(s.id, s.kind); else if(s.type==='enq') openEnquiry(s.id); else if(s.type==='cust') openCustomer(s.id); else if(s.type==='ne') openNewEnquiry(); else if(s.type==='fuel') openFuelAdd();
 }
 function toast(t){ $('#toastRoot').innerHTML=`<div class="toast" role="status">${esc(t)}</div>`; clearTimeout(toast.h); toast.h=setTimeout(()=>$('#toastRoot').innerHTML='',3200); }
 

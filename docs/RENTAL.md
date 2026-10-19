@@ -483,7 +483,44 @@ Charts loaded so far from the owner's PDFs (all *from PDF, not checked*): Kato N
 | `load_chart_cells` | chart_id, radius_m, boom_length_m, capacity_t |
 | `lift_checks` | enquiry_id, load_t, radius_m, height_m, rigging_t, headroom_m, result (crane, boom, use of chart), checked_by, at |
 
-## 22. Open questions for the owner
+## 23. Fuel
+
+Every diesel fill is recorded: machine, date, litres, price per litre (from the receipt), hour meter, station or own tank, who filled it, how it was paid (fleet card, petty cash, own tank, supplied by the customer) and a **receipt photo**. Operators record fills on the phone from their timesheet screen; the office can add any fill.
+
+- **Use per machine:** litres ÷ working hours since the last fill (from the hour meter or signed timesheets), compared with the machine's normal L/h. A fill more than 20% above normal is flagged: a leak, a wrong hour-meter reading, or fuel going missing.
+- **Who pays:** each hire states its diesel terms: *included in the hire rate*, *charged to the customer at cost + 10%*, or *customer supplies* (dry hire). Chargeable fills go onto that hire's next invoice automatically as a diesel line.
+- **Cost per machine:** fuel cost is added to the machine's running costs (with workshop costs) in the profit-per-machine report.
+- Transport vehicles are tracked by litres per 100 km instead of per hour.
+
+| Table | Key fields |
+|---|---|
+| `fuel_fills` | unit_id, date, litres, price_per_litre, hour_meter, odometer, station, paid_by, staff_id, hire_id (detected from the date), receipt_photo, flagged, bukku_expense_id |
+| `fuel_norms` | model_id, litres_per_hour (or per 100 km), from date |
+
+## 24. Connections: Bukku and Worksy
+
+The aim: staff use only this system, and the accounting and payroll systems are filled in from it.
+
+**Bukku (accounting): two-way, through Bukku's API.** Bukku issues an access token under Control Panel → Integrations → API Access; the link also needs the company's Bukku subdomain. Third-party apps (for example HitPay and Shoppego) already push invoices and payments into Bukku this way.
+
+| Direction | What | When |
+|---|---|---|
+| → Bukku | Invoices and credit notes (customer, lines, SST, hire number) | As soon as they are issued here |
+| → Bukku | Customers (name, SSM no., TIN, SST no., address, terms) | With their first invoice; updated on change |
+| → Bukku | Fuel and parts bills as expenses, with the receipt photo, tagged by machine | When the fill or purchase is saved |
+| ← Bukku | Payments received | Every 15 minutes; the invoice is marked paid here and its payment-chase follow-ups stop |
+| ⇄ | e-Invoice (MyInvois) | Submitted from **one** place only (setting: Bukku submits, or this system submits), and the UUID / QR is kept in both |
+
+An account-mapping table sets which Bukku account each kind of line posts to (hire, transport, overtime, diesel recharge, damage recovery, fuel expense, deposits). Every sync is written to a sync log, and an item that fails (e.g. a rejected e-invoice) is held and retried after it is fixed. Bukku's exact endpoints and field names must be confirmed against Bukku's API documentation when we build this.
+
+**Worksy (HR and payroll): file exchange until Worksy offers an API.** Worksy publishes no API documentation; it supports bulk import. So:
+
+- **Staff list ←** upload Worksy's staff export (employee ID, name, IC / passport, position) once, and when staff join or leave.
+- **Monthly payroll hours →** a file in Worksy's import layout: normal hours, overtime, Sunday / public holiday hours, trips, outstation nights, leave and MC per person, built from signed timesheets, trips and approved leave.
+- **Leave:** keep it in one system only (decision for the owner): apply here, with the roster clash check, and send to Worksy; or apply in Worksy and import.
+- EPF, SOCSO, EIS and PCB stay in Worksy. Ask Worksy for API access; if they provide it, these become automatic like Bukku.
+
+## 25. Open questions for the owner
 
 1. How many machines are in the hire fleet, and do we cross-hire machines in from other companies when we run short?
 2. Which machines are only wet hire (cranes?) and which are only dry hire?
@@ -499,3 +536,6 @@ Charts loaded so far from the owner's PDFs (all *from PDF, not checked*): Kato N
 12. Do operators clock in at the yard every day, or go straight to site?
 13. Which load-chart set-ups are used for each crane (full / mid outriggers, counterweight options, jib)? Are the manufacturer charts available as PDFs?
 14. What use-of-chart limits does the company apply (e.g. 75% normal, 85% or 90% maximum with a lift plan)?
+15. Fuel: do operators fill at stations with a fleet card, from our own tank, or both? What is each machine's normal L/h?
+16. Bukku: who will switch on API Access and share the token? Does Bukku submit our e-invoices to MyInvois today?
+17. Worksy: can Worksy provide an API or its payroll import template? Is leave applied in Worksy today?
