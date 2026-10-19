@@ -510,6 +510,9 @@ td.r.num{white-space:nowrap}
 .segbar i.none,.none-sw{background:repeating-linear-gradient(135deg,var(--warn) 0 3px,transparent 3px 6px);box-shadow:inset 0 0 0 1.5px var(--warn)}
 .none-sw{width:10px;height:10px;border-radius:2px;flex:none;display:inline-block}
 .mini{display:flex;flex-direction:column;gap:6px;font-size:.84rem;border-top:1px solid var(--line);padding-top:10px}
+.docwarn{display:block;color:var(--crit);font-weight:600;font-size:.8rem;margin-top:3px}
+.pick label.docbad{border-color:var(--crit);background:color-mix(in srgb,var(--crit) 6%,var(--surface))}
+.pick label.docbad:has(input:checked){border-color:var(--crit);background:color-mix(in srgb,var(--crit) 12%,var(--surface))}
 .grp-h{padding:7px 14px;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
 button.step{background:none;border-left:0;border-right:0;border-bottom:0;cursor:pointer;font-family:inherit}
 button.step:disabled{cursor:default}
@@ -1009,9 +1012,15 @@ function availability(u, from, to, ignoreHire){
   hires.forEach(h => { if(h.id===ignoreHire || !LIVE.includes(h.status)) return;
     h.lines.forEach(l => { if(l.u===u && overlaps(from,to,l.on||l.from,lineEnd(l))) why.push(`${h.status==='Booked'?'Booked':'On hire'} to ${customers[h.c].name.replace(/ Sdn Bhd$/,'')} ${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))} (${h.id})`); }); });
   workshop.forEach(w => { if(w.u===u && overlaps(from,to,w.from,w.to)) why.push(`In workshop ${fmtD(w.from)}–${fmtD(w.to)} (${w.job})`); });
-  Object.entries(fleet[u].docs).forEach(([k,exp]) => { if(exp < to && ['cf','road','ins','pusp'].includes(k)) why.push(`${DOCS[k]} expires ${fmtD(exp)}${k==='cf'?' (cannot be overridden)':''}`); });
-  return {ok:!why.length, why};
+  Object.entries(fleet[u].docs).forEach(([k,exp]) => { if(exp < to && ['road','ins'].includes(k)) why.push(`${DOCS[k]} ${exp<from?'expired':'expires'} ${fmtD(exp)}: renew before booking`); });
+  return {ok:!why.length, why, warn:docIssues(u, from, to).map(x=>x.msg)};
 }
+/* DOSH Certificate of Fitness and Puspakom: the machine can still be booked, but every screen marks it red until renewed. */
+function docIssues(u, from, to){
+  return ['cf','pusp'].map(k=>[k, fleet[u].docs[k]]).filter(([,e])=>e && e < to).map(([k,e])=>({k, exp:e, expired:e < from,
+    msg: e < from ? `${DOCS[k]} expired ${fmtD(e)}: renew before delivery` : `${DOCS[k]} expires ${fmtD(e)}, during this hire: renew before then`}));
+}
+const warnHtml = w => w && w.length ? w.map(m=>`<span class="docwarn">⚠ ${esc(m)}</span>`).join('') : '';
 function operatorFree(o, from, to, ignoreHire){
   return !hires.some(h => h.id!==ignoreHire && LIVE.includes(h.status) && h.lines.some(l => l.op===o && overlaps(from,to,l.on||l.from,lineEnd(l))));
 }
@@ -1157,6 +1166,7 @@ function attention(){
       else if(t && t.status==='unsigned') items.push({sev:'warn',t:`Timesheet not signed: ${l.u} on ${fmtDW(d)}`,s:`Send to ${SITE_SIGNER[h.c]} by WhatsApp for approval`,a:`data-ts="${t.id}"`});
     }
   });
+  hires.filter(h=>LIVE.includes(h.status)).forEach(h => h.lines.forEach(l => { if(l.u) docIssues(l.u, maxD(TODAY, l.on||l.from), lineEnd(l)).forEach(x => items.push({sev:'crit', t:`${l.u}: ${x.msg}`, s:`${h.id} · ${custName(h.c)} · hire to ${fmtD(lineEnd(l))}`, a:`data-hire="${h.id}"`})); }));
   hires.filter(h=>h.status==='Booked' && h.deposit && !h.depositPaid).forEach(h => items.push({sev:'warn',t:`Deposit ${RM0(h.deposit)} not received: ${h.id}`,s:`${custName(h.c)} · delivery ${fmtDW(h.lines[0].from)}`,a:`data-hire="${h.id}"`}));
   hires.filter(h=>h.status==='Off-hire called').forEach(h => items.push({sev:'info',t:`Off-hire: ${h.lines.map(l=>l.u).join(', ')} from ${fmtD(h.lines[0].off)}`,s:`${custName(h.c)} · collection ${fmtDW(h.trips.find(t=>t.dir==='Collection')?.d)}`,a:`data-hire="${h.id}"`}));
   hires.filter(h=>h.status==='Quotation' && h.lines.some(l=>!l.u)).forEach(h => items.push({sev:'warn',t:`No machine free for quotation ${h.id}`,s:`${models[h.lines[0].m].type}, ${fmtD(h.lines[0].from)}–${fmtD(h.lines[0].to)} · ${custName(h.c)}`,a:`data-hire="${h.id}"`}));
@@ -1264,7 +1274,7 @@ function renderPlanner(){
       <button class="btn">Check</button>${fType?'<button class="btn" type="button" data-action="find-clear">Clear</button>':''}
     </form>
     ${fType ? `<div class="panel"><div class="panel-head"><h3>${esc(fType)} · ${fmtD(f.from)}–${fmtD(f.to)}</h3><span class="muted">${res.filter(r=>r.ok).length} of ${res.length} free</span></div><div class="findres">
-      ${res.map(r=>`<div class="fr"><div><b>${r.u} ${esc(uName(r.u))}</b> <span class="pill ${r.ok?'ok':'crit'}">${r.ok?'Free':'Not free'}</span><small>${r.ok?'No bookings, workshop jobs or document expiries in these dates.':r.why.map(esc).join(' · ')}</small></div>${r.ok?`<button class="btn small primary" data-action="book-unit" data-u="${r.u}">Book</button>`:''}</div>`).join('')}
+      ${res.map(r=>`<div class="fr"><div><b>${r.u} ${esc(uName(r.u))}</b> <span class="pill ${r.ok?'ok':'crit'}">${r.ok?'Free':'Not free'}</span>${r.ok&&r.warn.length?' <span class="pill crit">Document issue</span>':''}<small>${r.ok?(r.warn.length?'Can still be booked.':'No bookings, workshop jobs or document expiries in these dates.'):r.why.map(esc).join(' · ')}</small>${r.ok?warnHtml(r.warn):''}</div>${r.ok?`<button class="btn small primary" data-action="book-unit" data-u="${r.u}">Book</button>`:''}</div>`).join('')}
       ${!res.some(r=>r.ok)?`<div class="fr"><div><b>Nothing free.</b><small>Offer another size, other dates, or cross-hire from another company. The enquiry is kept as lost (no machine free) for the fleet report.</small></div></div>`:''}
     </div></div>` : ''}
     <div class="g-legend"><span><i class="sw" style="background:var(--k-wet)"></i>Wet hire</span><span><i class="sw" style="background:var(--k-dry)"></i>Dry hire</span><span><i class="sw bar booked dry" style="position:static;height:12px;width:22px;padding:0"></i>Booked</span><span><i class="sw" style="outline:1.5px dashed var(--k-quote);outline-offset:-1.5px"></i>Quotation</span><span><i class="sw bar ws" style="position:static;height:12px;width:22px;padding:0"></i>Workshop</span><span><i class="sw" style="background:var(--crit);width:5px"></i>Breakdown</span><span><i class="sw" style="width:0;height:0;border-radius:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid var(--warn)"></i>Delivery / collection</span><span class="muted">Shaded = Sunday · orange line = today</span></div>
@@ -1324,7 +1334,7 @@ function openHire(id){
     </div></div>
     <div class="sect"><h3>Machines</h3><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Machine</th><th>Hire</th><th class="cost">Rate</th><th>Operator</th><th>On hire</th><th>Off hire</th></tr></thead><tbody>
       ${h.lines.map(l=>{ const r = rate(lineModel(l), l.k)||{}; const main = {hour:r.hr,day:r.day,week:r.week,month:r.month}[l.basis];
-        return `<tr><td>${l.u?`<b>${l.u}</b> ${esc(uName(l.u))}<br><small class="muted">${esc(uRef(l.u))}</small>`:`<span class="pill crit">Not assigned</span><br><small class="muted">${esc(models[l.m].type)}</small>`}</td>
+        return `<tr><td>${l.u?`<b>${l.u}</b> ${esc(uName(l.u))}<br><small class="muted">${esc(uRef(l.u))}</small>${warnHtml(docIssues(l.u, l.on||l.from, lineEnd(l)).map(x=>x.msg))}`:`<span class="pill crit">Not assigned</span><br><small class="muted">${esc(models[l.m].type)}</small>`}</td>
         <td>${kindLabel(l.k)}<br><small class="muted">${basisLabel[l.basis]}</small></td>
         <td class="cost num">${RM0(main||0)} / ${({hour:'h',day:'day',week:'week',month:'month'})[l.basis]}${l.basis==='month'?`<br><small class="muted">${r.mHrs} h incl., then ${RM0(r.ex)}/h</small>`:l.basis==='hour'?`<br><small class="muted">min ${r.minH} h a day</small>`:l.k==='wet'?`<br><small class="muted">OT ${RM0(r.ot)}/h</small>`:''}</td>
         <td>${l.op?esc(staff[l.op].name):'<span class="muted">Customer\'s own</span>'}</td>
@@ -1361,7 +1371,7 @@ function openNewHire(){
   const n = state.nh, types = [...new Set(hireUnits().map(u=>mOf(u).type))];
   const units = hireUnits().filter(u=>mOf(u).type===n.type).map(u=>({u,...availability(u,n.from,n.to)}));
   if(n.u && !units.some(x=>x.u===n.u && x.ok)) n.u = null;
-  if(!n.u){ const f = units.find(x=>x.ok); n.u = f ? f.u : null; }
+  if(!n.u){ const f = units.find(x=>x.ok && !x.warn.length) || units.find(x=>x.ok); n.u = f ? f.u : null; }
   const mk = n.u ? fleet[n.u].m : Object.values(fleet).find(f=>models[f.m].type===n.type)?.m;
   const kinds = ['dry','wet'].filter(k=>rate(mk,k));
   if(!kinds.includes(n.k)) n.k = kinds[0];
@@ -1391,7 +1401,8 @@ function openNewHire(){
           <label>From<input type="date" data-nh="from" value="${n.from}"></label>
           <label>To<input type="date" data-nh="to" value="${n.to}"></label>
         </div>
-        <div class="pick">${units.map(x=>`<label class="${x.ok?'':'no'}"><input type="radio" name="nhu" data-nh="u" value="${x.u}" ${x.u===n.u?'checked':''} ${x.ok?'':'disabled'}><span><b>${x.u} ${esc(uName(x.u))}</b> · ${esc(uRef(x.u))} ${x.ok?'<span class="pill ok">Free</span>':'<span class="pill crit">Not free</span>'}<small>${x.ok?Object.entries(fleet[x.u].docs).map(([k,e])=>docPill(k,e)).join(' '):x.why.map(esc).join(' · ')}</small></span></label>`).join('')}</div>
+        <div class="pick">${units.map(x=>`<label class="${x.ok?(x.warn.length?'docbad':''):'no'}"><input type="radio" name="nhu" data-nh="u" value="${x.u}" ${x.u===n.u?'checked':''} ${x.ok?'':'disabled'}><span><b>${x.u} ${esc(uName(x.u))}</b> · ${esc(uRef(x.u))} ${x.ok?'<span class="pill ok">Free</span>':'<span class="pill crit">Not free</span>'}${x.ok&&x.warn.length?' <span class="pill crit">Document issue</span>':''}<small>${x.ok?Object.entries(fleet[x.u].docs).map(([k,e])=>docPill(k,e)).join(' '):x.why.map(esc).join(' · ')}</small>${x.ok?warnHtml(x.warn):''}</span></label>`).join('')}</div>
+        ${n.u && units.find(x=>x.u===n.u)?.warn.length ? `<div class="banner crit"><b>${n.u}: ${units.find(x=>x.u===n.u).warn.map(esc).join(' · ')}. You can still book it. The Supervisor gets a follow-up to renew it, and the hire stays marked red until it is renewed.</b></div>` : ''}
         ${!n.u?'<div class="banner crit"><b>No machine of this type is free for these dates. Save as a quotation to keep the enquiry, change the dates, or pick another size.</b></div>':''}
       </div></div>
       <div class="sect"><h3>Hire terms</h3><div class="in">
@@ -1434,7 +1445,11 @@ function saveNewHire(as){
     lines:[{u:n.u,m:n._mk,k:n.k,basis:n.basis,from:n.from,to:n.to,op:n.k==='wet'?n.op:undefined}], trips: n.u ? trips : [],
     log:[{d:TODAY+' '+nowT(),t:`${as==='Booked'?'Booked':'Quotation created'} by ${staff[meStaff()].name}.`}]});
   linkEnquiry(n, id, as);
-  toast(as==='Booked' ? `${id} booked. ${n.u} reserved on the planner.` : `${id} saved as quotation.`);
+  const di = n.u ? docIssues(n.u, n.from, n.to) : [];
+  if(di.length){ const h = hire(id);
+    di.forEach(x => { h.log.unshift({d:TODAY+' '+nowT(), t:`Booked with a document issue: ${n.u} ${x.msg}.`});
+      tasks.push({id:++taskSeq, d: x.expired ? TODAY : maxD(TODAY, addDays(x.exp,-14)), type:'Renew document', who:'S1', hire:id, cust:n.c, t:`Renew ${DOCS[x.k]} for ${n.u} (${x.expired?'expired':'expires'} ${fmtD(x.exp)}) before ${x.expired?'delivery on '+fmtD(n.from):fmtD(x.exp)}`, rule:'Booked with a document issue', done:false}); }); }
+  toast((as==='Booked' ? `${id} booked. ${n.u} reserved on the planner.` : `${id} saved as quotation.`) + (di.length ? ` Note: ${di.map(x=>DOCS[x.k]).join(' and ')} needs renewing.` : ''));
   state.nh = null; render(); openHire(id);
 }
 const nowT = () => '09:'+String(10+Math.floor(Math.random()*40)).padStart(2,'0');
@@ -1971,7 +1986,7 @@ function openEnquiry(id){
       <div><span class="label">Owner</span><select class="field" data-enqf="owner" data-id="${id}">${OFFICE.map(s=>`<option value="${s}" ${s===e.owner?'selected':''}>${esc(staff[s].name)}</option>`).join('')}</select></div>
       <div><span class="label">How hot</span><select class="field" data-enqf="temp" data-id="${id}">${Object.keys(TEMP).map(t=>`<option ${t===e.temp?'selected':''}>${t}</option>`).join('')}</select></div>
     </div>${e.notes?`<div class="in" style="border-top:1px solid var(--line)">${esc(e.notes)}</div>`:''}</div>
-    ${openStage(e)?`<div class="sect"><h3>Availability</h3><div class="findres">${us.map(r=>`<div class="fr"><div><b>${r.u} ${esc(uName(r.u))}</b> <span class="pill ${r.ok?'ok':'crit'}">${r.ok?'Free':'Not free'}</span><small>${r.ok?'Free for these dates.':r.why.map(esc).join(' · ')}</small></div></div>`).join('')}
+    ${openStage(e)?`<div class="sect"><h3>Availability</h3><div class="findres">${us.map(r=>`<div class="fr"><div><b>${r.u} ${esc(uName(r.u))}</b> <span class="pill ${r.ok?'ok':'crit'}">${r.ok?'Free':'Not free'}</span><small>${r.ok?'Free for these dates.':r.why.map(esc).join(' · ')}</small>${r.ok?warnHtml(r.warn):''}</div></div>`).join('')}
       ${us.filter(r=>r.ok).length<(e.qty||1)?`<div class="fr"><div><b>Short by ${(e.qty||1)-us.filter(r=>r.ok).length}.</b><small>Offer other dates or another size, or cross-hire from a partner.</small></div></div>`:''}</div></div>`:''}
     <div class="sect"><h3>Follow-ups</h3><div>${ts.map(t=>taskRow(t)).join('') || '<p class="muted" style="padding:8px 14px;margin:0">No follow-up set.</p>'}</div>
       ${openStage(e)?`<form class="in form" data-form="task" data-enq="${id}" style="border-top:1px solid var(--line)">
@@ -2383,7 +2398,7 @@ function renderLift(){
           <td><span class="pill ${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'}">${x.verdict==='ok'?'Can lift':x.verdict==='crit'?'Critical lift':'Cannot'}</span><br><small class="muted">${esc(x.verdict==='no'?x.why:b?`tip ${num(+b.tip.toFixed(1))} m (needs ${num(x.reqTip)} m), boom angle ${Math.round(b.angle)}°`:'')}</small></td>
           <td class="r num">${b?b.L+' m':'—'}</td><td class="r num">${b?num(b.cap)+' t':'—'}<br>${b?`<small class="muted">at ${b.r} m</small>`:''}</td><td class="r num">${num(+x.gross.toFixed(2))} t</td>
           <td>${b?`<div class="rbar" style="grid-template-columns:minmax(70px,1fr) auto"><div class="track"><div class="fill" style="width:${Math.min(pct,100)}%;background:var(--${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'})"></div></div><span class="v">${pct}%</span></div>`:''}</td>
-          ${j.from?`<td>${x.avail.ok?'<span class="pill ok">Free</span>':`<span class="pill crit" title="${esc(x.avail.why.join(' · '))}">Busy</span><br><small class="muted">${esc(x.avail.why[0])}</small>`}</td>`:''}
+          ${j.from?`<td>${x.avail.ok?'<span class="pill ok">Free</span>'+(x.avail.warn.length?'<br>'+warnHtml(x.avail.warn):''):`<span class="pill crit" title="${esc(x.avail.why.join(' · '))}">Busy</span><br><small class="muted">${esc(x.avail.why[0])}</small>`}</td>`:''}
           <td class="r num cost">${r?RM0(r.day):'—'}</td></tr>`; }).join('')}
         </tbody></table></div></div>
       ${sel ? `<div class="rail"><div class="panel"><div class="panel-head"><h3>${sel.u} · ${esc(mOf(sel.u).model)}</h3>${sel.best?`<span class="pill ${sel.verdict==='ok'?'ok':sel.verdict==='crit'?'warn':'crit'}">${Math.ceil(sel.best.util*100)}%</span>`:''}</div>

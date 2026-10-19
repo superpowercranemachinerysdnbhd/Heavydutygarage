@@ -133,11 +133,13 @@ stateDiagram-v2
 | Not for hire | Head Manager | Row greyed out |
 
 **Blocks** that stop a machine from being booked for a date range:
-- a DOSH Certificate of Fitness (lifting machinery), road tax, insurance or Puspakom inspection that expires before the hire ends
+- another booking or hire on those dates
 - a workshop job that is open on those dates
-- a service due during the hire (warning only: the booking can go ahead with the service done on site)
+- road tax or insurance that expires before the hire ends
 
-The Head Manager can override a warning with a reason. An expired DOSH Certificate of Fitness cannot be overridden.
+**Red warnings** (the machine can still be booked, as the owner decided):
+- a **DOSH Certificate of Fitness** or **Puspakom** inspection that has expired or expires during the hire. The machine is marked red with the reason on New hire / quotation, the planner search, enquiries and Lift check; the booking confirms the issue; a "Renew document" follow-up goes to the Supervisor (due 14 days before expiry, or today if already expired); and the hire page, Today and the Dashboard keep showing it in red until the document is renewed.
+- a service due during the hire (the service can be done on site).
 
 ---
 
@@ -246,9 +248,9 @@ Operators and riggers also get **site allowances** and **overtime** for payroll 
 
 | Machine documents | Who issues | Rule in the system |
 |---|---|---|
-| DOSH Certificate of Fitness (CF / PMA) | DOSH (JKKP), for cranes and other lifting machinery | Expired: cannot go on hire. Warn 60 days ahead so the inspection is booked |
+| DOSH Certificate of Fitness (CF / PMA) | DOSH (JKKP), for cranes and other lifting machinery | Expired or expiring during a hire: can still be booked, marked red everywhere with a renewal follow-up. Warn 60 days ahead so the inspection is booked |
 | Road tax and insurance | JPJ / insurer, for road-registered units | Expired: cannot travel or go on hire |
-| Puspakom inspection | For lorry cranes, prime movers and lowloaders | Expired: cannot be used for transport |
+| Puspakom inspection | For lorry cranes, prime movers and lowloaders | Expired or expiring during a hire: can still be booked, marked red with a renewal follow-up |
 | Contractor's plant & machinery insurance | Insurer | Warn; Head Manager can override |
 | Load test and wire rope certificates | Third-party inspector | Warn |
 
