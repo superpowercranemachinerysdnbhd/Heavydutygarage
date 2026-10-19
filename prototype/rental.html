@@ -475,9 +475,10 @@ input[type=time]{border:1px solid var(--line);background:var(--surface);border-r
 .lc thead th{position:sticky;top:0}
 .lc th:first-child{text-align:left;white-space:nowrap}
 .lc td.na{background:var(--surface-2)}
-.lc td.can{background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.lc td.can{background:color-mix(in srgb,var(--ok) 24%,var(--surface))}
 .lc td.pick{background:var(--accent);color:var(--accent-ink);font-weight:700}
-.lc th.hl{color:var(--accent-ink);background:var(--accent-soft)}
+.lc th.hl{color:var(--accent);background:var(--accent-soft);font-weight:700}
+td.r.num{white-space:nowrap}
 .lc .ratein{width:64px}
 .liftsvg{width:100%;height:auto;display:block;margin-bottom:6px}
 .grp-h{padding:7px 14px;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
@@ -678,9 +679,9 @@ const CO = {name:'Heavyworks Garage Sdn Bhd', ssm:'202001023456 (1371234-K)', ti
 const RULES = {dayHrs:8, minH:4, mHrs:200, sunX:1.5, standbyPct:50, bdGrace:2, sst:8, allowance:80};
 const GROUPS = {crane:'Mobile cranes', lift:'Lifting & access', earth:'Earthmoving', power:'Power', transport:'Our transport'};
 const models = {
-  GR500:{make:'Tadano',model:'GR-500EX',type:'Rough terrain crane 50 t',grp:'crane',size:'self'},
-  KR25:{make:'Kato',model:'KR-25H-V',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
-  TR250:{make:'Tadano',model:'TR-250M',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
+  RK500:{make:'Kobelco',model:'RK500-2',type:'Rough terrain crane 50 t',grp:'crane',size:'self'},
+  NK250:{make:'Kato',model:'NK-250-5',type:'Truck crane 25 t',grp:'crane',size:'self'},
+  TL450:{make:'Tadano',model:'TL-450-3',type:'Truck crane 45 t',grp:'crane',size:'self'},
   UNIC:{make:'Hino / Unic',model:'URV550 lorry crane',type:'Lorry crane 10 t',grp:'crane',size:'self'},
   FD30:{make:'Toyota',model:'8FD30',type:'Forklift 3 t',grp:'lift',size:'small'},
   FD50:{make:'TCM',model:'FD50',type:'Forklift 5 t',grp:'lift',size:'small'},
@@ -695,9 +696,9 @@ const models = {
 };
 const DOCS = {cf:'DOSH Certificate of Fitness', road:'Road tax', ins:'Insurance', pusp:'Puspakom', cpm:'Plant insurance', apad:'APAD licence'};
 const fleet = {
-  'RC-01':{m:'GR500',plate:'WVX 5501',year:2016,hm0:11580,docs:{cf:'2027-03-02',road:'2027-01-15',ins:'2027-01-15'},cost:1650000,ytd:{rev:486000,ws:38500,opx:52000,util:86}},
-  'RC-02':{m:'KR25',plate:'BMK 2250',year:2012,hm0:18320,docs:{cf:'2026-11-28',road:'2027-04-10',ins:'2027-04-10'},cost:720000,ytd:{rev:268000,ws:61200,opx:47000,util:71}},
-  'RC-03':{m:'TR250',plate:'WTB 7121',year:2009,hm0:9790,docs:{cf:'2026-10-30',road:'2027-02-01',ins:'2027-02-01'},cost:540000,ytd:{rev:214000,ws:72400,opx:41000,util:64}},
+  'RC-01':{m:'RK500',plate:'WVX 5501',year:2016,hm0:11580,docs:{cf:'2027-03-02',road:'2027-01-15',ins:'2027-01-15'},cost:1650000,ytd:{rev:486000,ws:38500,opx:52000,util:86}},
+  'TC-01':{m:'NK250',plate:'BMK 2250',year:2012,hm0:18320,docs:{cf:'2026-11-28',road:'2027-04-10',ins:'2027-04-10'},cost:720000,ytd:{rev:268000,ws:61200,opx:47000,util:71}},
+  'TC-02':{m:'TL450',plate:'WTB 7121',year:2009,hm0:9790,docs:{cf:'2026-10-30',road:'2027-02-01',ins:'2027-02-01'},cost:540000,ytd:{rev:214000,ws:72400,opx:41000,util:64}},
   'LC-01':{m:'UNIC',plate:'BPQ 6610',year:2018,hm:6120,docs:{cf:'2027-05-11',road:'2027-03-01',ins:'2027-03-01',pusp:'2026-12-04'},cost:380000,ytd:{rev:96000,ws:12800,opx:28000,util:48}},
   'FL-01':{m:'FD30',serial:'8FD30-61822',year:2019,hm:4502,docs:{ins:'2027-02-20'},cost:85000,ytd:{rev:21800,ws:3100,opx:900,util:62}},
   'FL-02':{m:'FD50',serial:'FD50T9-30417',year:2017,hm:6305,docs:{ins:'2027-02-20'},cost:120000,ytd:{rev:30200,ws:4200,opx:900,util:70}},
@@ -731,9 +732,9 @@ const customers = {
   C7:{name:'Port Klang Logistics Sdn Bhd',brn:'199601012233',tin:'C11223344060',sst:'B16-1702-31000233',terms:30,limit:60000,contact:'Mr. Ravi Shankar',phone:'012-388 7701'},
 };
 let rates = {
-  'GR500/wet':{hr:450,minH:4,day:3200,month:58000,mHrs:200,ex:300,ot:450},
-  'KR25/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300},
-  'TR250/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300},
+  'RK500/wet':{hr:450,minH:4,day:3200,month:58000,mHrs:200,ex:300,ot:450},
+  'NK250/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300},
+  'TL450/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300},
   'UNIC/wet':{hr:180,minH:4,day:1300,ot:180},
   'FD30/dry':{day:180,week:900,month:2800,mHrs:200,ex:15},
   'FD50/dry':{day:260,week:1300,month:4200,mHrs:200,ex:22},
@@ -782,12 +783,12 @@ let hires = [
    trips:[{dir:'Delivery',d:'2026-10-01',u:'FL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'}],
    log:[{d:'2026-10-01 11:00',t:'On hire. Delivery inspection signed by Mr. Ravi.'}]},
   {id:'H-2026-0152',c:'C3',site:'Jalan Kapar piling site, Klang',state:'Selangor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-311',status:'On hire',created:'2026-09-29',cycle:'End of hire',
-   lines:[{u:'RC-02',k:'wet',basis:'day',from:'2026-10-05',to:'2026-10-24',on:'2026-10-05',op:'O2'}],
-   trips:[{dir:'Delivery',d:'2026-10-05',u:'RC-02',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-24',u:'RC-02',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   lines:[{u:'TC-01',k:'wet',basis:'day',from:'2026-10-05',to:'2026-10-24',on:'2026-10-05',op:'O2'}],
+   trips:[{dir:'Delivery',d:'2026-10-05',u:'TC-01',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-24',u:'TC-01',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-13 11:40',t:'Breakdown: telescope circuit hose burst at 08:30. Workshop job J-2026-0417. Fixed on site 11:30 (3 h lost).'},{d:'2026-10-05 09:00',t:'On hire.'}]},
   {id:'H-2026-0153',c:'C3',site:'Pulau Indah jetty extension',state:'Selangor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-298',status:'Off-hire called',created:'2026-09-15',cycle:'Monthly in arrears',offCalled:'2026-10-14',
-   lines:[{u:'RC-03',k:'wet',basis:'day',from:'2026-09-21',to:'2026-10-31',on:'2026-09-21',off:'2026-10-15',op:'O5'}],
-   trips:[{dir:'Delivery',d:'2026-09-21',u:'RC-03',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-16',u:'RC-03',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   lines:[{u:'TC-02',k:'wet',basis:'day',from:'2026-09-21',to:'2026-10-31',on:'2026-09-21',off:'2026-10-15',op:'O5'}],
+   trips:[{dir:'Delivery',d:'2026-09-21',u:'TC-02',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-16',u:'TC-02',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-14 16:20',t:'Mr. Gan called off-hire from 15 Oct (WhatsApp). Crane drives back on 16 Oct.'},{d:'2026-09-21 10:00',t:'On hire.'}]},
   {id:'H-2026-0155',c:'C4',site:'Lot 88 Jalan Haji Sirat, Klang',state:'Selangor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2290',status:'Booked',created:'2026-10-13',cycle:'End of hire',note:'Lifting roof trusses, about 6 hours.',
    lines:[{u:'LC-01',k:'wet',basis:'hour',from:'2026-10-16',to:'2026-10-16',op:'O3'}],
@@ -803,8 +804,8 @@ let hires = [
    trips:[{dir:'Delivery',d:'2026-10-19',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:1200,status:'Planned'},{dir:'Collection',d:'2026-10-31',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:1200,status:'Planned'}],
    log:[{d:'2026-10-14 10:30',t:'New customer: deposit RM 3,000 required before delivery.'}]},
   {id:'H-2026-0160',c:'C1',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',siteContact:'En. Rosli 013-202 4471',po:'',status:'Quotation',created:'2026-10-15',cycle:'Monthly in arrears',quoteValid:'2026-10-22',
-   note:'Second 50 t crane for roof steel. No 50 t free (RC-01 is on this site to 30 Nov). Options: offer 25 t RC-03 after its CF renewal, or cross-hire.',
-   lines:[{u:null,m:'GR500',k:'wet',basis:'day',from:'2026-11-02',to:'2026-11-13'}], trips:[],
+   note:'Second 50 t crane for roof steel. No 50 t free (RC-01 is on this site to 30 Nov). Options: the 60 t GR-600-1 (RC-02) or a 50 t truck crane (TC-03, TC-04) is free; run Lift check to confirm.',
+   lines:[{u:null,m:'RK500',k:'wet',basis:'day',from:'2026-11-02',to:'2026-11-13'}], trips:[],
    log:[{d:'2026-10-15 15:40',t:'Enquiry by Mr. Lim. Quotation started.'}]},
   {id:'H-2026-0161',c:'C5',site:'Taman Desa drainage works, Rawang',state:'Selangor',siteContact:'En. Kamarul 013-388 4410',po:'',status:'Quotation',created:'2026-10-16',cycle:'Monthly in arrears',quoteValid:'2026-10-30',
    lines:[{u:'GS-01',k:'dry',basis:'month',from:'2026-11-02',to:'2026-12-31'}],
@@ -815,7 +816,7 @@ const workshop = [
   {u:'EX-01',from:'2026-10-10',to:'2026-10-20',job:'J-2026-0414',note:'Return damage repair, chargeable to H-2026-0130'},
   {u:'GS-01',from:'2026-10-26',to:'2026-10-27',job:'J-2026-0422',note:'500 h service before next hire'},
 ];
-const breakdowns = [{hire:'H-2026-0152',u:'RC-02',d:'2026-10-13',hrs:3,job:'J-2026-0417',note:'Telescope circuit hose burst. Fixed on site by Rajesh Kumar.'}];
+const breakdowns = [{hire:'H-2026-0152',u:'TC-01',d:'2026-10-13',hrs:3,job:'J-2026-0417',note:'Telescope circuit hose burst. Fixed on site by Rajesh Kumar.'}];
 const lost = [
   {d:'2026-10-15',c:'Bina Jaya Construction',type:'Rough terrain crane 50 t',why:'No machine free'},
   {d:'2026-10-02',c:'Sri Kenari Builders',type:'Rough terrain crane 50 t',why:'No machine free'},
@@ -846,7 +847,7 @@ let sheets = [];
       const hmS = hm; hm += work;
       sheets.push({id:`${l.u}-${d}`,hire:h.id,u:l.u,op:l.op,d,start:'08:00',finish:hhmm(fin),brk:60,work,standby,reason,bd,hmS,hmE:hm,
         note: bd ? 'Hose burst on telescope, waited for mechanic.' : reason ? 'Stopped for rain, standby on site.' : ['Lifting steel trusses grid C–F','Lifting rebar cages and casing','Unloading precast panels','Lifting roof purlins','Placing piling casing'][Math.floor(rnd('n'+l.u+d)*5)],
-        status: (l.u==='RC-02' && d==='2026-10-15') ? 'unsigned' : 'signed', signer: SITE_SIGNER[h.c]});
+        status: (l.u==='TC-01' && d==='2026-10-15') ? 'unsigned' : 'signed', signer: SITE_SIGNER[h.c]});
     }
     fleet[l.u].hm = Math.round(hm);
   }));
@@ -998,7 +999,7 @@ const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Pai
 const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
 
 /* ---------- state ---------- */
-const state = {view:'today', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'RC-02', week:'2026-10-12', sheet:null, lastSheet:null};
+const state = {view:'today', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
 try{ const v = localStorage.getItem('hdg-rental-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
@@ -1224,7 +1225,7 @@ function openHire(id){
 
 /* ---------- New hire ---------- */
 function newHireDefaults(pre={}){
-  return {c:'C1', site:'', state:'Selangor', siteContact:'', po:'', k:'wet', basis:'day', type:'Rough terrain crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Klang Valley', del:true, col:true, ...pre};
+  return {c:'C1', site:'', state:'Selangor', siteContact:'', po:'', k:'wet', basis:'day', type:'Truck crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Klang Valley', del:true, col:true, ...pre};
 }
 function openNewHire(){
   const n = state.nh, types = [...new Set(hireUnits().map(u=>mOf(u).type))];
@@ -1623,7 +1624,7 @@ function renderReports(){
     <div class="panel"><div class="panel-head"><h3>Profit per machine</h3><span class="muted">workshop cost comes from workshop jobs on the machine</span></div>
       <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Machine</th><th class="r">Hire revenue</th><th class="r">Workshop cost</th><th class="r">Operator & transport</th><th class="r">Contribution</th><th class="r">Utilisation</th><th class="r">Revenue / purchase cost (yearly)</th></tr></thead><tbody>
         ${prof.map(p=>`<tr class="click" data-unit="${p.u}"><td><b>${p.u}</b> ${esc(uName(p.u))}</td><td class="r num">${RM0(p.rev)}</td><td class="r num ${p.ws/p.rev>0.25?'stock-low':''}">${RM0(p.ws)}</td><td class="r num">${RM0(p.opx)}</td><td class="r num"><b>${RM0(p.contrib)}</b></td><td class="r num">${p.util}%</td><td class="r num">${p.roc}%</td></tr>`).join('')}
-      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">RC-03 (2009) spent ${Math.round(fleet['RC-03'].ytd.ws/fleet['RC-03'].ytd.rev*100)}% of its revenue in the workshop, and its CF is due on 30 Oct. A candidate to replace.</small></div></div>`;
+      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">TC-02 (2009) spent ${Math.round(fleet['TC-02'].ytd.ws/fleet['TC-02'].ytd.rev*100)}% of its revenue in the workshop, and its CF is due on 30 Oct. A candidate to replace.</small></div></div>`;
 }
 
 /* ---------- people ---------- */
@@ -1665,8 +1666,8 @@ const SOURCES = ['Phone','WhatsApp','Email','Website form','Walk-in','Referral',
 const LOST_WHY = ['No machine free','Price','Went elsewhere','Project postponed','No reply'];
 const HIST = {won:31, lost:19};
 let enquiries = [
-  {id:'E-2026-0231',at:'2026-10-16 08:20',src:'WhatsApp',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Rough terrain crane 25 t',qty:1,k:'wet',from:'2026-10-26',to:'2026-10-30',site:'Bandar Rimbayu, Kota Kemuning',state:'Selangor',stage:'New',owner:'S2',temp:'Hot',
-   notes:'Lifting precast beams, heaviest 3.2 t at 18 m radius, set 12 m high. Site needs the crane CF copy and operator DOSH card.',lift:{w:3.2,r:18,h:12},log:[{d:'2026-10-16 08:20',t:'WhatsApp from Mr. Ong: 25 t crane 26–30 Oct.'}]},
+  {id:'E-2026-0231',at:'2026-10-16 08:20',src:'WhatsApp',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Truck crane 25 t',qty:1,k:'wet',from:'2026-10-26',to:'2026-10-30',site:'Bandar Rimbayu, Kota Kemuning',state:'Selangor',stage:'New',owner:'S2',temp:'Hot',
+   notes:'Lifting precast beams, heaviest 3.2 t at 18 m radius, set 12 m high. Site needs the crane CF copy and operator DOSH card.',lift:{w:3.2,r:18,h:12},log:[{d:'2026-10-16 08:20',t:'WhatsApp from Mr. Ong: 25 t truck crane 26–30 Oct.'}]},
   {id:'E-2026-0230',at:'2026-10-15 15:30',src:'Phone',c:'C1',need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-11-02',to:'2026-11-13',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0160',
    notes:'Second crane for roof steel. Our only 50 t (RC-01) is already on their site.',log:[{d:'2026-10-15 15:40',t:'Quotation H-2026-0160 started; no 50 t free.'},{d:'2026-10-15 15:30',t:'Call from Mr. Lim.'}]},
   {id:'E-2026-0229',at:'2026-10-15 11:05',src:'Phone',c:'C5',need:'Generator 150 kVA',qty:1,k:'dry',from:'2026-11-02',to:'2026-12-31',site:'Taman Desa drainage works, Rawang',state:'Selangor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0161',
@@ -1692,9 +1693,9 @@ const enqName = e => e.c ? custName(e.c) : e.prospect.name;
 const openStage = e => !['Won','Lost'].includes(e.stage);
 
 let tasks = [
-  {id:1,d:'2026-10-16',time:'10:00',type:'Call',who:'S2',enq:'E-2026-0231',t:'Call Mr. Ong back: load weights, radius and site access for the 25 t crane'},
+  {id:1,d:'2026-10-16',time:'10:00',type:'Call',who:'S2',enq:'E-2026-0231',t:'Call Mr. Ong back: load weights, radius and site access for the 25 t truck crane'},
   {id:2,d:'2026-10-16',time:'11:30',type:'WhatsApp',who:'S2',enq:'E-2026-0227',cust:'C7',t:'Reply Mr. Ravi on the 10% discount (up to 5% without the Head Manager)'},
-  {id:3,d:'2026-10-15',time:'16:00',type:'Call',who:'S2',enq:'E-2026-0230',cust:'C1',t:'Bina Jaya 50 t: offer the 25 t RC-02 option or a cross-hire'},
+  {id:3,d:'2026-10-15',time:'16:00',type:'Call',who:'S2',enq:'E-2026-0230',cust:'C1',t:'Bina Jaya 50 t: offer the free 60 t GR-600-1 (RC-02) or a 50 t truck crane'},
   {id:4,d:'2026-10-19',time:'09:30',type:'Site visit',who:'S1',enq:'E-2026-0228',t:'Site visit Ladang Sungai Tinggi with En. Hairul: ground and lowloader access'},
   {id:5,d:'2026-10-20',time:'10:00',type:'Send documents',who:'HM',enq:'E-2026-0226',t:'Send company profile, BL-01 CF and insurance for the tender'},
   {id:6,d:'2026-10-14',type:'Chase PO',who:'S2',enq:'E-2026-0225',cust:'C6',t:'Get the LOU from Lian Hup before booking',done:true,doneAt:'2026-10-14',note:'LOU received by e-mail.'},
@@ -1948,7 +1949,7 @@ let events = [
   {d:'2026-10-09',time:'08:00',type:'Company',t:'Toolbox talk: lifting near power lines'},
   {d:'2026-10-17',time:'08:00',type:'Company',t:'Monthly safety briefing, all operators and drivers (yard)'},
   {d:'2026-10-20',time:'10:30',type:'Meeting',t:'Bina Jaya site progress meeting, Shah Alam',cust:'C1'},
-  {d:'2026-10-22',time:'10:00',type:'Inspection',t:'DOSH CF inspection: RC-03 at the yard',unit:'RC-03'},
+  {d:'2026-10-22',time:'10:00',type:'Inspection',t:'DOSH CF inspection: TC-02 at the yard',unit:'TC-02'},
   {d:'2026-10-24',time:'08:30',type:'Training',t:'CIDB green card renewal course: Azman bin Yusof'},
   {d:'2026-10-27',time:'09:00',type:'Inspection',t:'Puspakom inspection: TR-01',unit:'TR-01'},
   {d:'2026-10-30',time:'15:00',type:'Company',t:'Month-end planning meeting: fleet, staff and billing'},
@@ -2131,20 +2132,41 @@ document.addEventListener('submit', e => {
 });
 
 /* ---------- crane selector & load charts ---------- */
+/* The company's crane fleet. Types and capacity classes come from the model names; confirm each with the owner. */
 Object.assign(models, {
-  SR250:{make:'Kato',model:'SR-250VR',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
-  TL250:{make:'Tadano',model:'TL-250-2',type:'Truck crane 25 t',grp:'crane',size:'self'},
+  GR600:{make:'Tadano',model:'GR-600-1',type:'Rough terrain crane 60 t',grp:'crane',size:'self'},
+  SS500:{make:'Kato',model:'SS-500SP',type:'Truck crane 50 t',grp:'crane',size:'self'},
+  TL500:{make:'Tadano',model:'TL-500-3',type:'Truck crane 50 t',grp:'crane',size:'self'},
+  ATF60:{make:'Faun',model:'ATF 60-4',type:'All terrain crane 60 t',grp:'crane',size:'self'},
+  SL700:{make:'Kato',model:'SL-700',type:'Mobile crane 70 t',grp:'crane',size:'self'},
+  SA1100:{make:'Sumitomo',model:'SA-1100',type:'Mobile crane 110 t',grp:'crane',size:'self'},
+  SL1300:{make:'Kato',model:'SL-1300',type:'Mobile crane 130 t',grp:'crane',size:'self'},
 });
 Object.assign(fleet, {
-  'RC-04':{m:'SR250',plate:'WYD 2504',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:820000,ytd:{rev:228000,ws:21400,opx:43000,util:69}},
-  'TC-01':{m:'TL250',plate:'BJH 2502',year:2008,hm:24310,docs:{cf:'2026-12-20',road:'2027-01-05',ins:'2027-01-05',pusp:'2027-02-11'},cost:410000,ytd:{rev:152000,ws:38800,opx:36000,util:57}},
+  'RC-02':{m:'GR600',plate:'WYD 6001',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:1450000,ytd:{rev:298000,ws:24400,opx:46000,util:66}},
+  'TC-03':{m:'SS500',plate:'BJH 5002',year:2010,hm:24310,docs:{cf:'2026-12-20',road:'2027-01-05',ins:'2027-01-05',pusp:'2027-02-11'},cost:620000,ytd:{rev:205000,ws:41800,opx:39000,util:58}},
+  'TC-04':{m:'TL500',plate:'WRK 5003',year:2014,hm:16880,docs:{cf:'2027-02-26',road:'2027-05-02',ins:'2027-05-02',pusp:'2027-03-15'},cost:780000,ytd:{rev:232000,ws:30500,opx:41000,util:62}},
+  'AT-01':{m:'ATF60',plate:'VFA 6004',year:2016,hm:11250,docs:{cf:'2027-06-07',road:'2027-04-21',ins:'2027-04-21'},cost:1600000,ytd:{rev:318000,ws:35600,opx:47000,util:68}},
+  'MC-01':{m:'SL700',plate:'WMK 7005',year:2015,hm:13960,docs:{cf:'2027-01-14',road:'2027-02-09',ins:'2027-02-09'},cost:1850000,ytd:{rev:356000,ws:44100,opx:52000,util:61}},
+  'MC-02':{m:'SA1100',plate:'WSA 1106',year:2013,hm:18720,docs:{cf:'2026-11-30',road:'2027-01-22',ins:'2027-01-22'},cost:2600000,ytd:{rev:462000,ws:68300,opx:61000,util:54}},
+  'MC-03':{m:'SL1300',plate:'WKL 1307',year:2017,hm:9880,docs:{cf:'2027-07-19',road:'2027-03-11',ins:'2027-03-11'},cost:3400000,ytd:{rev:588000,ws:57900,opx:72000,util:52}},
 });
-rates['SR250/wet'] = {hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300};
-rates['TL250/wet'] = {hr:280,minH:4,day:1950,month:34000,mHrs:200,ex:190,ot:280};
+Object.assign(rates, {
+  'NK250/wet':{hr:280,minH:4,day:2000,month:34000,mHrs:200,ex:190,ot:280},
+  'TL450/wet':{hr:400,minH:4,day:2900,month:50000,mHrs:200,ex:260,ot:400},
+  'RK500/wet':{hr:450,minH:4,day:3200,month:58000,mHrs:200,ex:300,ot:450},
+  'SS500/wet':{hr:440,minH:4,day:3100,month:56000,mHrs:200,ex:290,ot:440},
+  'TL500/wet':{hr:440,minH:4,day:3100,month:56000,mHrs:200,ex:290,ot:440},
+  'GR600/wet':{hr:500,minH:4,day:3600,month:65000,mHrs:200,ex:330,ot:500},
+  'ATF60/wet':{hr:520,minH:4,day:3800,month:68000,mHrs:200,ex:350,ot:520},
+  'SL700/wet':{hr:620,minH:4,day:4500,month:80000,mHrs:200,ex:410,ot:620},
+  'SA1100/wet':{hr:1050,minH:4,day:7500,month:135000,mHrs:200,ex:690,ot:1050},
+  'SL1300/wet':{hr:1250,minH:4,day:9000,month:160000,mHrs:200,ex:830,ot:1250},
+});
 
 /* Sample charts only: generated for the prototype, NOT manufacturer data. Real charts are typed or pasted
    from the manufacturer's load chart for each configuration and verified before use. */
-const RGRID = [2.5,3,3.5,4,4.5,5,5.5,6,7,8,9,10,11,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40];
+const RGRID = [2.5,3,3.5,4,4.5,5,5.5,6,7,8,9,10,11,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,44,48,52,56,60];
 function sampleChart(booms, maxT, K, h0, a, hook){
   const rows = RGRID.map(r => ({r, caps: booms.map(L => {
     const rMin = a + L*Math.cos(80*Math.PI/180), rMax = a + L*Math.cos(15*Math.PI/180);
@@ -2156,12 +2178,16 @@ function sampleChart(booms, maxT, K, h0, a, hook){
   return {booms, rows, h0, a, hook, maxT, cfg:'Outriggers fully extended, 360°, full counterweight, on firm level ground', verified:false, source:'Sample values for the prototype — not from the manufacturer', pdf:''};
 }
 let charts = {
-  'LC-01':sampleChart([3.6,5.8,8.0,10.2,12.4,14.5], 2.93, 10.2, 2.9, 0.3, 0.05),
-  'RC-02':sampleChart([9.35,15.15,20.95,26.75,30.5], 25, 100, 1.9, 0.5, 0.30),
-  'RC-03':sampleChart([9.5,14.8,20.1,25.4,30.7], 25, 95, 1.9, 0.5, 0.30),
-  'RC-04':sampleChart([9.6,13.9,18.3,22.6,27.0,31.3], 25, 105, 1.9, 0.5, 0.30),
-  'TC-01':sampleChart([10.0,16.0,22.0,28.0,33.0], 25, 98, 2.4, 0.9, 0.35),
-  'RC-01':sampleChart([10.6,16.8,23.0,29.2,35.4,41.6,47.0], 50, 225, 2.2, 0.6, 0.55),
+  'TC-01':sampleChart([10.0,15.5,21.0,26.5,32.0], 25, 98, 2.4, 0.9, 0.30),
+  'TC-02':sampleChart([11.0,17.0,23.0,29.0,35.0,40.0], 45, 190, 2.5, 1.0, 0.45),
+  'RC-01':sampleChart([10.5,16.6,22.7,28.8,34.9,41.0], 50, 220, 2.2, 0.6, 0.50),
+  'TC-03':sampleChart([11.0,17.5,24.0,30.5,37.0,43.0], 50, 215, 2.5, 1.0, 0.50),
+  'TC-04':sampleChart([11.0,17.4,23.8,30.2,36.6,43.0], 50, 212, 2.5, 1.0, 0.50),
+  'RC-02':sampleChart([10.6,17.0,23.4,29.8,36.2,42.6], 60, 260, 2.3, 0.6, 0.60),
+  'AT-01':sampleChart([10.7,17.0,23.4,29.8,36.2,42.6,48.0], 60, 270, 2.4, 0.9, 0.60),
+  'MC-01':sampleChart([11.3,18.5,25.7,32.9,40.1,47.3], 70, 320, 2.5, 0.8, 0.70),
+  'MC-02':sampleChart([12.5,20.5,28.5,36.5,44.5,52.5,60.0], 110, 520, 2.8, 1.0, 1.10),
+  'MC-03':sampleChart([13.0,21.5,30.0,38.5,47.0,55.5,64.0], 130, 620, 2.9, 1.0, 1.30),
 };
 const LIFT_OK = 0.75, LIFT_MAX = 0.90;
 function liftCheck(u, j){
@@ -2180,9 +2206,9 @@ function liftCheck(u, j){
     if(!best || opt.util < best.util) best = opt;
   });
   let verdict, why;
-  if(best && best.util <= LIFT_OK){ verdict = 'ok'; why = `${Math.round(best.util*100)}% of chart: normal lift`; }
-  else if(best && best.util <= LIFT_MAX){ verdict = 'crit'; why = `${Math.round(best.util*100)}% of chart: critical lift, needs a lift plan and Head Manager approval`; }
-  else if(best){ verdict = 'no'; why = `Over capacity: gross ${num(best.gross)} t vs ${num(best.cap)} t rated at ${best.r} m (${Math.round(best.util*100)}%)`; }
+  if(best && best.util <= LIFT_OK){ verdict = 'ok'; why = `${Math.ceil(best.util*100)}% of chart: normal lift`; }
+  else if(best && best.util <= LIFT_MAX){ verdict = 'crit'; why = `${Math.ceil(best.util*100)}% of chart: critical lift, needs a lift plan and Head Manager approval`; }
+  else if(best){ verdict = 'no'; why = `Over capacity: gross ${num(best.gross)} t vs ${num(best.cap)} t rated at ${best.r} m (${Math.ceil(best.util*100)}%)`; }
   else {
     verdict = 'no';
     const h = tried.filter(t=>t.why==='height'), reach = tried.filter(t=>t.why==='reach');
@@ -2214,7 +2240,7 @@ function liftSvg(x, j){
     <line x1="${X(tipX)+16}" y1="${Y(0)}" x2="${X(tipX)+16}" y2="${Y(loadY)}" style="stroke:var(--c-pm);stroke-width:1;stroke-dasharray:3 3"/>
     <text x="${X(tipX)+20}" y="${Y(loadY/2)}" style="fill:var(--c-pm);font-size:11px">lift ${j.h} m</text>
     <text x="${X(tipX)+6}" y="${Y(tipY)-4}" style="fill:var(--ink);font-size:11px">tip ${num(+b.tip.toFixed(1))} m</text>
-    <text x="${(X(c.a)+X(tipX))/2 - 10}" y="${(Y(c.h0)+Y(tipY))/2 - 8}" text-anchor="end" style="fill:var(--ink);font-size:11px;font-weight:600">boom ${b.L} m · ${Math.round(b.angle)}°</text>
+    <text x="${(X(c.a)+X(tipX))/2 + 10}" y="${(Y(c.h0)+Y(tipY))/2 + 16}" text-anchor="start" style="fill:var(--ink);font-size:11px;font-weight:600">boom ${b.L} m · ${Math.round(b.angle)}°</text>
   </svg>`;
 }
 function chartTable(u, hl, gross){
@@ -2245,12 +2271,12 @@ function renderLift(){
     </form>
     <p class="muted" style="margin:0">Gross load = load + rigging + the crane's hook block. Needed tip height = lifting height + load and sling height. Capacity is read at the next larger radius in the chart (never interpolated up). Up to ${LIFT_OK*100}% of chart is a normal lift; ${LIFT_OK*100}–${LIFT_MAX*100}% is a critical lift; above ${LIFT_MAX*100}% is not allowed.</p>
     ${j.done ? `
-    ${best ? `<div class="banner" style="border-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--surface))"><b>Closest fit: ${best.u} ${esc(uName(best.u))}, boom ${best.best.L} m, ${Math.round(best.best.util*100)}% of chart${best.avail?' · free for those dates':''}.</b><button class="btn small primary" data-action="lift-enq" data-u="${best.u}">New enquiry with this crane</button></div>`
+    ${best ? `<div class="banner" style="border-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--surface))"><b>Closest fit: ${best.u} ${esc(uName(best.u))}, boom ${best.best.L} m, ${Math.ceil(best.best.util*100)}% of chart${best.avail?' · free for those dates':''}.</b><button class="btn small primary" data-action="lift-enq" data-u="${best.u}">New enquiry with this crane</button></div>`
       : `<div class="banner crit"><b>No crane in the fleet can do this lift${res.some(x=>x.verdict!=='no')?' on those dates':''}. Options: a bigger crane by cross-hire, a shorter radius (move the crane closer), or a lighter load.</b></div>`}
     <div class="dash">
       <div class="panel"><div class="panel-head"><h3>${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high</h3><span class="muted">${res.filter(x=>x.verdict!=='no').length} of ${res.length} cranes can lift it</span></div>
         <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Crane</th><th>Result</th><th class="r">Boom</th><th class="r">Rated</th><th class="r">Gross</th><th>Use of chart</th>${j.from?'<th>Dates</th>':''}<th class="r cost">Day rate</th></tr></thead><tbody>
-        ${res.map(x=>{ const b = x.best, r = rate(fleet[x.u].m,'wet'), pct = b ? Math.round(b.util*100) : null;
+        ${res.map(x=>{ const b = x.best, r = rate(fleet[x.u].m,'wet'), pct = b ? Math.ceil(b.util*100) : null;
           return `<tr class="click" data-liftsel="${x.u}" ${sel&&sel.u===x.u?'style="background:var(--accent-soft)"':''}><td><b>${x.u}</b> ${esc(uName(x.u))}<br><small class="muted">${esc(mOf(x.u).type)}${charts[x.u].verified?'':' · chart not verified'}</small></td>
           <td><span class="pill ${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'}">${x.verdict==='ok'?'Can lift':x.verdict==='crit'?'Critical lift':'Cannot'}</span><br><small class="muted">${esc(x.verdict==='no'?x.why:b?`tip ${num(+b.tip.toFixed(1))} m (needs ${num(x.reqTip)} m), boom angle ${Math.round(b.angle)}°`:'')}</small></td>
           <td class="r num">${b?b.L+' m':'—'}</td><td class="r num">${b?num(b.cap)+' t':'—'}<br>${b?`<small class="muted">at ${b.r} m</small>`:''}</td><td class="r num">${num(+x.gross.toFixed(2))} t</td>
@@ -2258,7 +2284,7 @@ function renderLift(){
           ${j.from?`<td>${x.avail.ok?'<span class="pill ok">Free</span>':`<span class="pill crit" title="${esc(x.avail.why.join(' · '))}">Busy</span><br><small class="muted">${esc(x.avail.why[0])}</small>`}</td>`:''}
           <td class="r num cost">${r?RM0(r.day):'—'}</td></tr>`; }).join('')}
         </tbody></table></div></div>
-      ${sel ? `<div class="rail"><div class="panel"><div class="panel-head"><h3>${sel.u} · ${esc(mOf(sel.u).model)}</h3>${sel.best?`<span class="pill ${sel.verdict==='ok'?'ok':sel.verdict==='crit'?'warn':'crit'}">${Math.round(sel.best.util*100)}%</span>`:''}</div>
+      ${sel ? `<div class="rail"><div class="panel"><div class="panel-head"><h3>${sel.u} · ${esc(mOf(sel.u).model)}</h3>${sel.best?`<span class="pill ${sel.verdict==='ok'?'ok':sel.verdict==='crit'?'warn':'crit'}">${Math.ceil(sel.best.util*100)}%</span>`:''}</div>
         <div class="in" style="padding:10px 14px">${sel.best ? liftSvg(sel, j) : `<p class="muted" style="margin:0">${esc(sel.why)}</p>`}
           <small class="muted">${esc(sel.c.cfg)}. Hook block ${num(sel.c.hook)} t.</small>
           ${sel.verdict!=='no'?`<div class="btnrow" style="margin-top:8px"><button class="btn small" data-action="lift-enq" data-u="${sel.u}">New enquiry with ${sel.u}</button></div>`:''}</div></div>
@@ -2306,7 +2332,7 @@ document.addEventListener('click', e => {
   if(act==='lift-edit'){ state.chartU = d.u; state.liftTab = 'charts'; return render(); }
   if(act==='lift-enq'){ const j = state.lift, x = liftCheck(d.u, j);
     state.ne = neDefaults({need:mOf(d.u).type, k:'wet', from:j.from||addDays(TODAY,7), to:j.to||addDays(TODAY,11),
-      notes:`Lift: ${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high. Crane selector: ${d.u} ${uName(d.u)}, boom ${x.best.L} m, ${Math.round(x.best.util*100)}% of chart${charts[d.u].verified?'':' (chart not verified)'}.`});
+      notes:`Lift: ${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high. Crane selector: ${d.u} ${uName(d.u)}, boom ${x.best.L} m, ${Math.ceil(x.best.util*100)}% of chart${charts[d.u].verified?'':' (chart not verified)'}.`});
     return openNewEnquiry(); }
   if(act==='lc-addrow'){ const last = c.rows[c.rows.length-1]; c.rows.push({r:(last?last.r:0)+2, caps:c.booms.map(()=>null)}); chartChanged(state.chartU); return render(); }
   if(act==='lc-addcol'){ c.booms.push(+(c.booms[c.booms.length-1]+4).toFixed(2)); c.rows.forEach(row=>row.caps.push(null)); chartChanged(state.chartU); return render(); }
