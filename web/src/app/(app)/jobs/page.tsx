@@ -95,7 +95,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                 <td>{j.customerName}</td>
                 <td>{statusLabel(t, j.status)}<br /><Pri p={j.priority} t={t} /></td>
                 <td className={`num age ${ageLevel(j.status, d)}`}>{j.status === "closed" ? "—" : t("mach.days", { n: d })}</td>
-                <td>{j.leadName ?? <span className="due over">{t("dash.unassigned")}</span>}</td>
+                <td>{j.outsourced ? <><span className="pill out">🔧 {t("out.badge")}</span><br /><small>{j.vendorName}</small>{j.leadName ? <small className="muted"> · {j.leadName}</small> : null}</> : j.leadName ?? <span className="due over">{t("dash.unassigned")}</span>}</td>
                 <td className={`num due ${due.cls}`}>{due.text}</td>
               </tr>
             );

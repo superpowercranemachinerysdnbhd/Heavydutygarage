@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can, canWorkOnJob, CREW_ROLES, LEAD_ROLES } from "@/lib/permissions";
 import { CREW_STATUSES, PRIORITIES, STAGES as STEPS, STATUSES, qcMessageKey } from "@/lib/jobs";
-import { fmtDate, fmtDateTime, rm, today, hmText } from "@/lib/format";
+import { daysBetween, fmtDate, fmtDateTime, rm, today, hmText } from "@/lib/format";
 import { activeStaff, getJob } from "@/lib/queries";
 import { jobPartsFor, jobPurchasesFor, partsForJob, requestsFor } from "@/lib/inventory";
 import { qcSuggestions } from "@/lib/lists";
@@ -40,7 +40,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const sp = await searchParams;
   const d = Number.isInteger(id) ? await getJob(id) : null;
   if (!d) notFound();
-  const { job, unit, model, customer, lead, team, tasks, qc, labour, photos, activity, parent } = d;
+  const { job, unit, model, customer, lead, vendor, team, tasks, qc, labour, photos, activity, parent } = d;
   const teamIds = team.map((m) => m.id);
   if (!canWorkOnJob(user, { leadId: job.leadId, teamIds })) notFound();
 
@@ -51,9 +51,14 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const staffList = sup ? await activeStaff() : [];
   const chatId = await jobThreadId(job.id);
   const [issued, bought, requests, stockParts, chatInitial, sups] = await Promise.all([jobPartsFor(job.id), jobPurchasesFor(job.id), requestsFor(job.id), open ? partsForJob(model.id) : Promise.resolve([]), messagesFor(user, chatId),
-    open && can(user.role, "stock.manage") ? activeSuppliers() : Promise.resolve([])]);
+    can(user.role, "stock.manage") ? activeSuppliers() : Promise.resolve([])]);
   const suggestions = qcSuggestions(job.category, t).filter((g) => !qc.some((q) => (g.itemKey && q.itemKey === g.itemKey) || q.item.toLowerCase() === g.item.toLowerCase()));
-  const stockCost = issued.reduce((a, x) => a + x.qty * x.unitCost, 0), boughtCost = bought.reduce((a, x) => a + x.qty * x.unitCost, 0);
+  const stockCost = issued.reduce((a, x) => a + x.qty * x.unitCost, 0);
+  const boughtCost = bought.filter((x) => x.kind !== "service").reduce((a, x) => a + x.qty * x.unitCost, 0);
+  const outsideCost = bought.filter((x) => x.kind === "service").reduce((a, x) => a + x.qty * x.unitCost, 0);
+  const canLines = can(user.role, "stock.manage") && (open || can(user.role, "job.editDetails"));
+  const canOutside = canLines;
+  const vendorLate = job.outsourced && !job.backAt && job.expectedBackAt && job.expectedBackAt < today() ? daysBetween(job.expectedBackAt, today()) : 0;
   const q2 = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
   const crew = staffList.filter((s) => CREW_ROLES.includes(s.role));
   // Time entries: supervisors change any (also after completion); crew their own while the job is open.
@@ -92,10 +97,26 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
         <CatChip cat={job.category} t={t} /><Pri p={job.priority} t={t} /><span className={`due ${due.cls}`}>{due.text}</span><AgeText status={job.status} since={job.statusSince} t={t} />
         {job.source === "qr" && <span className="pill info">{t("job.fromQr")}</span>}
+        {job.outsourced && <span className="pill out">🔧 {t("out.badge")}{vendor ? ` · ${vendor.name}` : ""}</span>}
         {parent && <span className="muted">{t("job.comebackOf")} <Link href={`/jobs/${parent.id}`}>{parent.jobNo}</Link></span>}
       </div>
       <Notice error={sp.error} ok={sp.ok} />
       {job.status === "deferred" && <div className="notice deferred-note">{t("job.deferredNote")}</div>}
+      {job.outsourced && (
+        <div className={`notice out-note ${vendorLate ? "late" : ""}`}>
+          <div><b>{t("out.title")}: {vendor?.name ?? "—"}</b>{job.vendorRef ? <span className="mono"> · {job.vendorRef}</span> : ""}{vendor?.phone ? <> · <a href={`tel:${vendor.phone}`}>{vendor.phone}</a></> : ""}</div>
+          <div className="muted">
+            {job.sentOutAt && t("out.since", { date: fmtDate(job.sentOutAt, false, locale) })}
+            {job.backAt ? ` · ${t("out.isBack", { date: fmtDate(job.backAt, false, locale) })}` : job.expectedBackAt ? ` · ${t("out.expectedOn", { date: fmtDate(job.expectedBackAt, false, locale) })}` : ""}
+            {vendorLate > 0 && <b className="due over"> · {t("out.late", { n: vendorLate })}</b>}
+          </div>
+          {!job.backAt && open && can(user.role, "job.assign") && (
+            <form action={A.markBackFromVendor} className="filters" style={{ marginTop: 6 }}>{hidden("jobId", job.id)}
+              <input type="date" name="backAt" defaultValue={today()} min={job.sentOutAt ?? undefined} max={today()} aria-label={t("out.backOn")} style={{ width: 160 }} />
+              <SubmitButton className="btn small primary">{t("out.markBack")}</SubmitButton></form>
+          )}
+        </div>
+      )}
       <div className="steps">{STEPS.map((s, i) => <div key={s} className={`step ${i < idx ? "done" : i === idx ? "cur" : ""}`}>{statusLabel(t, s)}</div>)}</div>
       {open && statusOptions.length > 0 && (
         <form action={A.setStatus} className="filters status-move">
@@ -166,6 +187,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           </div></section>
 
           <section className="sect" id="labour"><h3>{t("job.labour")} <span className="muted" style={subtle}>{hours} h</span></h3><div className="in">
+            {job.outsourced && <small className="muted">{t("out.labourHint")}</small>}
             {labour.length > 0 && (
               <div className="tbl-wrap"><table><thead><tr><th>{t("col.date")}</th><th>{t("col.person")}</th><th>{t("col.note")}</th><th className="r">{t("col.hours")}</th>{can(user.role, "money.labourCost") && <th className="r">{t("col.labourCost")}</th>}<th></th></tr></thead>
                 <tbody>{labour.map((l) => <tr key={l.id} className={editing?.id === l.id ? "row-sel" : ""}><td className="num">{fmtDate(l.workDate, false, locale)}</td><td>{l.name}</td><td>{l.note}</td><td className="r num">{Number(l.hours)}</td>{can(user.role, "money.labourCost") && <td className="r num">{rm(Number(l.hours) * Number(l.payRate))}</td>}
@@ -249,11 +271,11 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               <span className="label">{t("jp.bought")}</span>
               {bought.length > 0 ? (
                 <div className="tbl-wrap"><table>
-                  <thead><tr><th>{t("jp.desc")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.selling") && <th className="r">{t("parts.sell")}</th>}{can(user.role, "money.cost") && <th className="r">{t("parts.costCol")}</th>}{open && can(user.role, "stock.manage") && <th />}</tr></thead>
-                  <tbody>{bought.map((x) => <tr key={x.id}><td>{x.partNo && <span className="mono">{x.partNo} </span>}{x.description}<br /><small className="muted">{fmtDate(x.purchasedAt, false, locale)}{x.supplier ? ` · ${t("jp.from", { s: x.supplier })}` : ""}{x.ref ? ` · ${x.ref}` : ""}</small></td>
+                  <thead><tr><th>{t("jp.desc")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.selling") && <th className="r">{t("parts.sell")}</th>}{can(user.role, "money.cost") && <th className="r">{t("parts.costCol")}</th>}{canLines && <th />}</tr></thead>
+                  <tbody>{bought.map((x) => <tr key={x.id}><td>{x.kind === "service" && <span className="pill out">{t("out.line")}</span>} {x.partNo && <span className="mono">{x.partNo} </span>}{x.description}<br /><small className="muted">{fmtDate(x.purchasedAt, false, locale)}{x.supplier ? ` · ${t("jp.from", { s: x.supplier })}` : ""}{x.ref ? ` · ${x.ref}` : ""}</small></td>
                     <td className="r num">{q2(x.qty)} {x.uom}</td>
                     {can(user.role, "money.selling") && <td className="r num">{rm(x.qty * x.unitPrice)}</td>}{can(user.role, "money.cost") && <td className="r num">{rm(x.qty * x.unitCost)}</td>}
-                    {open && can(user.role, "stock.manage") && <td className="r"><form action={A.removeJobPurchase}>{hidden("jobId", job.id)}{hidden("purchaseId", x.id)}<button className="linkbtn muted">{t("jp.remove")}</button></form></td>}</tr>)}</tbody>
+                    {canLines && <td className="r">{(open || x.kind === "service") && <form action={A.removeJobPurchase}>{hidden("jobId", job.id)}{hidden("purchaseId", x.id)}<button className="linkbtn muted">{t("jp.remove")}</button></form>}</td>}</tr>)}</tbody>
                 </table></div>
               ) : <small className="muted">{t("jp.noBought")}</small>}
               {open && can(user.role, "stock.manage") && (
@@ -274,6 +296,21 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                   </form>
                 </details>
               )}
+              {canOutside && (
+                <details className="add-bought add-outside" open={job.outsourced && bought.every((x) => x.kind !== "service") && !open}><summary className="btn small">{t("out.addCost")}</summary>
+                  <form action={A.addJobPurchase} className="form" style={{ marginTop: 10 }}>
+                    {hidden("jobId", job.id)}{hidden("kind", "service")}
+                    <label className="full">{t("out.costDesc")}<input name="description" required placeholder={t("out.costDescPh")} /></label>
+                    <label>{t("out.vendor")}<input name="supplierName" list="sups-job" defaultValue={vendor?.name ?? ""} placeholder={t("jp.supplierPh")} autoComplete="off" /></label>
+                    <label>{t("out.amount")}<input type="number" name="unitCost" min={0} step="0.01" required /></label>
+                    <label>{t("out.invoice")}<input name="ref" /></label>
+                    <label>{t("jp.date")}<input type="date" name="purchasedAt" defaultValue={today()} max={today()} /></label>
+                    <p className="full hint" style={{ margin: 0 }}>{t("out.costHelp")}</p>
+                    <div className="full"><SubmitButton className="btn small primary">{t("common.add")}</SubmitButton></div>
+                  </form>
+                </details>
+              )}
+              {canOutside && !(open && can(user.role, "stock.manage")) && <datalist id="sups-job">{sups.map((x) => <option key={x.id} value={x.name} />)}</datalist>}
             </div>
           </section>
 
@@ -398,8 +435,9 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             <section className="sect"><h3>{t("job.cost")}</h3><div className="totals" style={{ borderTop: 0 }}>
               <span>{t("job.costStock")}</span><b>{rm(stockCost)}</b>
               <span>{t("job.costBought")}</span><b>{rm(boughtCost)}</b>
+              {(outsideCost > 0 || job.outsourced) && <><span>{t("job.costOutside")}</span><b>{rm(outsideCost)}</b></>}
               {can(user.role, "money.labourCost") && <><span>{t("job.costLabour", { h: hours })}</span><b>{rm(labourCost)}</b></>}
-              <span><b>{can(user.role, "money.labourCost") ? t("job.costTotal") : t("job.costParts")}</b></span><b>{rm(stockCost + boughtCost + (can(user.role, "money.labourCost") ? labourCost : 0))}</b>
+              <span><b>{can(user.role, "money.labourCost") ? t("job.costTotal") : t("job.costParts")}</b></span><b>{rm(stockCost + boughtCost + outsideCost + (can(user.role, "money.labourCost") ? labourCost : 0))}</b>
             </div></section>
           )}
 

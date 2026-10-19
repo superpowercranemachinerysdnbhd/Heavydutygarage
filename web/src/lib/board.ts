@@ -41,9 +41,15 @@ export async function workshopAlerts(user: CurrentUser, locale: Locale, t: T, op
   const now: Alert[] = [], later: Alert[] = [];
   // New fault reports from operators (QR sticker) that nobody has picked up yet.
   open.filter((j) => j.source === "qr" && j.status === "received" && !j.leadId).forEach((j) => now.push({ sev: j.category === "EMG" ? "var(--crit)" : "var(--warn)", text: t("att.faultReport", { machine: plate(j), who: j.reportedBy ?? "" }), href: `/jobs/${j.id}` }));
-  open.filter((j) => j.priority === "critical" && !j.leadId).forEach((j) => now.push({ sev: "var(--crit)", text: t("att.emgUnassigned", { no: plate(j), machine: `${j.make} ${j.model}`, place: place(j, t) }), href: `/jobs/${j.id}` }));
+  open.filter((j) => j.priority === "critical" && !j.leadId && !j.outsourced).forEach((j) => now.push({ sev: "var(--crit)", text: t("att.emgUnassigned", { no: plate(j), machine: `${j.make} ${j.model}`, place: place(j, t) }), href: `/jobs/${j.id}` }));
   open.filter((j) => dueInfo(j, t, locale).cls === "over").forEach((j) => now.push({ sev: "var(--crit)", text: t("att.overdue", { no: plate(j), date: fmtDate(j.dueDate, false, locale) }), href: `/jobs/${j.id}` }));
-  open.filter((j) => j.status !== "received" && ageLevel(j.status, daysInStatus(j.statusSince)) === "crit")
+  // Outsourced and still at the vendor: chase it once the expected date has passed (not "stuck" before that).
+  const atVendor = open.filter((j) => j.outsourced && !j.backAt);
+  atVendor.filter((j) => j.expectedBackAt && j.expectedBackAt < d).forEach((j) => now.push({ sev: "var(--warn)", href: `/jobs/${j.id}`,
+    text: t("att.vendorLate", { machine: plate(j), vendor: j.vendorName ?? "?", n: daysBetween(j.expectedBackAt!, d) }) }));
+  atVendor.filter((j) => !(j.expectedBackAt && j.expectedBackAt < d)).forEach((j) => later.push({ sev: "var(--info)", href: `/jobs/${j.id}`,
+    text: t("att.atVendor", { machine: plate(j), vendor: j.vendorName ?? "?", n: daysBetween(j.sentOutAt ?? j.openedAt, d) }) }));
+  open.filter((j) => j.status !== "received" && !(j.outsourced && !j.backAt) && ageLevel(j.status, daysInStatus(j.statusSince)) === "crit")
     .forEach((j) => now.push({ sev: "var(--warn)", text: t("att.stuck", { no: plate(j), n: daysInStatus(j.statusSince), status: statusLabel(t, j.status) }), href: `/jobs/${j.id}` }));
   // Attendance not taken yet on a working day.
   if (can(user.role, "job.assign") && !attToday.length && weekday(d) !== 6 && !holToday.size) now.push({ sev: "var(--info)", text: t("att.notTaken"), href: "/team/attendance" });

@@ -50,7 +50,7 @@ export function JobCard({ j, names, t, locale }: { j: JobRow; names: Map<number,
       <AgeText status={j.status} since={j.statusSince} t={t} />
       <div className="card-foot">
         <span className={`due ${due.cls}`}>{due.text}</span>
-        <span className="avatars">{j.leadId ? people.map((p) => <Avatar key={p} name={names.get(p) ?? "?"} />) : <span className="due over">{t("dash.unassigned")}</span>}</span>
+        <span className="avatars">{j.leadId ? people.map((p) => <Avatar key={p} name={names.get(p) ?? "?"} />) : j.outsourced ? <span className="pill out">🔧 {j.vendorName ?? t("out.badge")}</span> : <span className="due over">{t("dash.unassigned")}</span>}</span>
       </div>
     </Link>
   );

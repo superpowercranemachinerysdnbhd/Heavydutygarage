@@ -123,6 +123,13 @@ const hidro = await SUP({ name: "Hidro Seal Engineering (demo)", contactName: "M
 const mega = await SUP({ name: "Mega Lubricants (demo)", contactName: "Mr. Siva", phone: "03-0000 7000", paymentTerms: "COD", leadTimeDays: 1 });
 const united = await SUP({ name: "United Hydraulic Supply (demo)", contactName: "Mr. Ong", phone: "03-0000 6100", paymentTerms: "30 days", leadTimeDays: 3 });
 const weld = await SUP({ name: "Weld-Pro Supplies (demo)", contactName: "En. Farid", phone: "03-0000 8000", paymentTerms: "14 days", leadTimeDays: 1 });
+// Outsourced: the hydraulic pump went to an outside workshop for a rebuild; it is 2 days later than they promised.
+const outJob = await J({ category: "HYD", priority: "high", status: "in_progress", unitId: u3.id, siteLocation: "", complaint: "Main hydraulic pump weak, slow boom and arm. Pump removed and sent out for rebuild.",
+  reportedBy: "Operator", leadId: null, openedAt: d(-10), statusSince: ago(9), outsourced: true, vendorId: hidro.id, vendorRef: "HS-Q-2231", sentOutAt: d(-9), expectedBackAt: d(-2) },
+  { labour: [[raj.id, 4, 9]] });
+await db.insert(schema.jobPurchases).values({ jobId: outJob.id, kind: "service", description: "Rebuild main hydraulic pump (deposit)", supplierId: hidro.id, qty: "1", uom: "job",
+  unitCost: "1500.00", unitPrice: "1500.00", ref: "HS-INV-0912", purchasedAt: d(-8), addedBy: sup.id });
+await db.update(schema.machineUnits).set({ location: "At vendor · Hidro Seal Engineering (demo)" }).where(eq(schema.machineUnits.id, u3.id));
 
 type PartSeed = { sku: string; oem?: string; desc: string; cat: { id: number; markupPct: string }; uom: string; bin: string; fits?: number[]; onHand: number; min: number; reorder?: number; avg: number; fixedSell?: number;
   prices: [number, number, number, "quote" | "po" | "invoice" | "import", string?][]; codes?: [number, string][] };

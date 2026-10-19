@@ -714,3 +714,12 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Job, chat and machine photos open in a full-screen viewer inside the app instead of a new page. A home-screen app has no browser back button, so a photo opened as its own page could not be closed.
 - Close with ✕, the phone's back button or gesture, Esc, a tap outside the photo or a swipe down. Swipe or use ‹ › for the other photos on the same work order.
 - Implemented once in `components/PhotoViewer.tsx` (mounted in the app layout). Any link with `data-viewer="<group>"` opens in it.
+
+### 40. Outsourced work orders (Oct 2026)
+- "Who does the work?" on new and edit: **Our crew** or **Outside workshop / supplier**. The vendor is typed or picked (a new name becomes a supplier), with their quote / job no., sent-out date, expected-back date and (on edit) back date. Stored on `jobs` (`outsourced`, `vendor_id`, `vendor_ref`, `sent_out_at`, `expected_back_at`, `back_at`).
+- Work order page: a purple "Outsourced · vendor" badge and an "Outside workshop" box (vendor, ref, phone, dates, days late) with **Back from vendor**. The labour section says hours are optional (own crew's time only).
+- **Outside work cost** lines (`job_purchases.kind = 'service'`): what the vendor did, vendor, amount, invoice no., date. They can be added or removed after the work order is completed (the invoice often comes later; Supervisor / Head Manager). They show as "Outside work" in the work order cost, the machine's maintenance cost and the Reports page.
+- Reminders: outsourced work orders never raise "no mechanic" or "stuck" while at the vendor. Act now: "expected back from <vendor> N days ago". Other reminders: "<machine> at <vendor> (N days)". The machine's location reads "At vendor · <name>" until it is back.
+- Lists show the vendor instead of "Unassigned".
+- Reports: an Outside work column, **In-house vs outsourced**, and **By outside workshop** (vendor invoice totals).
+- AppSheet: work orders whose technician was an outside workshop are imported as outsourced. Migration 0018 updates work orders imported earlier. The workshop is matched to a supplier ignoring case and punctuation, and a longer supplier name also matches ("LST Supply" → "LST SUPPLY & TRADING"). That workshop's bills on those work orders become outside work.

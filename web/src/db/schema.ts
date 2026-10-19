@@ -4,6 +4,7 @@ import {
 import { sql } from "drizzle-orm";
 
 import type { Status as JobStatus } from "@/lib/jobs";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["boss", "supervisor", "mechanic", "assistant", "fabricator", "painter", "cleaner"]);
 export const jobCategoryEnum = pgEnum("job_category", ["EMG", "DIAG", "PM", "MINOR", "MAJOR", "HYD", "FAB", "PAINT", "WARR"]);
@@ -146,6 +147,13 @@ export const jobs = pgTable("jobs", {
   createdBy: integer("created_by").references(() => staff.id),
   /** Where the work order came from: the app, an operator's QR fault report, or the AppSheet import. */
   source: varchar("source", { length: 10 }).notNull().default("app"),
+  /** Outsourced: an outside workshop / supplier does the work. A lead mechanic and hours are then optional. */
+  outsourced: boolean("outsourced").notNull().default(false),
+  vendorId: integer("vendor_id").references((): AnyPgColumn => suppliers.id),
+  vendorRef: varchar("vendor_ref", { length: 60 }),
+  sentOutAt: date("sent_out_at"),
+  expectedBackAt: date("expected_back_at"),
+  backAt: date("back_at"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("jobs_no_idx").on(t.jobNo), index("jobs_status_idx").on(t.status), index("jobs_unit_idx").on(t.unitId)]);
 
@@ -434,6 +442,8 @@ export const appSettings = pgTable("app_settings", {
 export const jobPurchases = pgTable("job_purchases", {
   id: serial("id").primaryKey(),
   jobId: integer("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  /** part = something bought for the job; service = outside work (a vendor's repair / labour charge). */
+  kind: varchar("kind", { length: 10 }).$type<"part" | "service">().notNull().default("part"),
   description: varchar("description", { length: 200 }).notNull(),
   partNo: varchar("part_no", { length: 60 }),
   supplierId: integer("supplier_id").references(() => suppliers.id),

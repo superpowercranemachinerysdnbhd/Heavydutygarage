@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, eq, ilike, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requirePermission, requireUser, type CurrentUser } from "@/lib/auth";
 import { can, canWorkOnJob, LEAD_ROLES } from "@/lib/permissions";
@@ -11,6 +11,7 @@ import { addActivity } from "@/lib/queries";
 import { jobMachine, notifyRoles, notifyStaff } from "@/lib/notify";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, deleteStoredFile, saveFile } from "@/lib/storage";
 import { issueToJob } from "@/lib/inventory";
+import { supplierByName } from "@/lib/purchasing";
 import { saveMachine } from "@/lib/machines";
 import { bayCodes, findItem, isCategory, itemLabel, qcSuggestions } from "@/lib/lists";
 import { markServiceDone } from "@/lib/services";
@@ -21,6 +22,7 @@ import { activityText, statusLabel } from "@/i18n/labels";
 const { jobs, jobTeam } = schema;
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
+const atVendor = (name: string) => `At vendor · ${name}`.slice(0, 200);
 const isDate = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
 const num = (f: FormData, k: string) => { const v = Number(f.get(k)); return Number.isFinite(v) ? v : NaN; };
 
@@ -59,6 +61,17 @@ function locationFrom(form: FormData): { siteType: "workshop" | "field"; siteLoc
   if (where) return where === "__outside" ? { siteType: "field", siteLocation: str(form, "siteAddress") } : { siteType: "workshop", siteLocation: where };
   const siteType = str(form, "siteType") === "field" ? "field" : "workshop";
   return { siteType, siteLocation: siteType === "field" ? str(form, "siteAddress") : str(form, "bay") };
+}
+
+/** "Who does the work" fields: our crew, or an outside workshop / supplier (typed or picked; a new name is added to Suppliers). */
+async function outsourceFrom(form: FormData): Promise<{ error: MessageKey } | { outsourced: false } | {
+  outsourced: true; vendorId: number; vendorName: string; vendorRef: string | null; sentOutAt: string; expectedBackAt: string | null }> {
+  if (str(form, "doneBy") !== "vendor") return { outsourced: false };
+  const sent = str(form, "sentOutAt") || today(), back = str(form, "expectedBackAt");
+  if (!isDate(sent) || sent > today() || (back && (!isDate(back) || back < sent))) return { error: "out.err.dates" };
+  if (!str(form, "vendorName")) return { error: "out.err.vendor" };
+  const v = (await supplierByName(str(form, "vendorName")))!;
+  return { outsourced: true, vendorId: v.id, vendorName: v.name, vendorRef: str(form, "vendorRef").slice(0, 60) || null, sentOutAt: sent, expectedBackAt: back || null };
 }
 
 /** Photos attached to a form, checked; an error key if one is not acceptable. */
@@ -104,6 +117,8 @@ export async function createJob(form: FormData) {
   if (!complaint) fail("err.complaint");
   const before = photosFrom(form);
   if ("error" in before) fail(before.error, before.vars);
+  const outR = await outsourceFrom(form);
+  const out = "error" in outR ? fail(outR.error) : outR;
 
   let parentJobId: number | null = null;
   if (parentNo) {
@@ -134,6 +149,7 @@ export async function createJob(form: FormData) {
       jobNo, category, priority, status: form.get("deferred") === "on" ? "deferred" : "received", unitId, siteType, siteLocation, complaint,
       reportedBy: str(form, "reportedBy") || null, leadId, hourMeterIn: Number.isFinite(hourMeter) && hourMeter > 0 ? hourMeter : unit.hourMeter,
       openedAt: d, dueDate: dueDate || null, parentJobId, createdBy: user.id,
+      ...(out.outsourced ? { outsourced: true, vendorId: out.vendorId, vendorRef: out.vendorRef, sentOutAt: out.sentOutAt, expectedBackAt: out.expectedBackAt } : {}),
     }).returning({ id: jobs.id });
     // Quality checks are chosen per job on the job page (suggestions come from Settings).
     const params = { no: jobNo, name: user.name };
@@ -141,6 +157,7 @@ export async function createJob(form: FormData) {
     const unitUpdate: Partial<typeof schema.machineUnits.$inferInsert> = {};
     if (Number.isFinite(hourMeter) && hourMeter > unit.hourMeter) unitUpdate.hourMeter = hourMeter;
     if (siteType === "workshop" && siteLocation) { unitUpdate.location = `Workshop · ${siteLocation}`; if (!unit.arrivedAt) unitUpdate.arrivedAt = d; }
+    if (out.outsourced) unitUpdate.location = atVendor(out.vendorName);
     if (Object.keys(unitUpdate).length) await tx.update(schema.machineUnits).set(unitUpdate).where(eq(schema.machineUnits.id, unitId));
     return row.id;
   });
@@ -235,12 +252,23 @@ export async function updateDetails(form: FormData) {
   const openedAt = str(form, "openedAt") || job.openedAt, closedAt = str(form, "closedAt") || job.closedAt;
   if (!isDate(openedAt) || openedAt > today()) fail("err.reportedDate");
   if (job.status === "closed" && closedAt && (!isDate(closedAt) || closedAt > today() || closedAt < openedAt)) fail("err.closedDate");
+  const outR = await outsourceFrom(form);
+  const out = "error" in outR ? fail(outR.error) : outR;
+  const backAt = out.outsourced ? str(form, "backAt") || null : null;
+  if (backAt && (!isDate(backAt) || backAt > today() || (out.outsourced && backAt < out.sentOutAt))) fail("out.err.dates");
   await db.update(jobs).set({
     category, priority, dueDate: dueDate || null, siteType, siteLocation, complaint, openedAt, ...(job.status === "closed" ? { closedAt } : {}),
+    ...(out.outsourced
+      ? { outsourced: true, vendorId: out.vendorId, vendorRef: out.vendorRef, sentOutAt: out.sentOutAt, expectedBackAt: out.expectedBackAt, backAt }
+      : { outsourced: false, vendorId: null, vendorRef: null, sentOutAt: null, expectedBackAt: null, backAt: null }),
     reportedBy: str(form, "reportedBy") || null, ...(hm ? { hourMeterIn: Number(hm) } : {}),
   }).where(eq(jobs.id, jobId));
   if (siteType === "workshop" && siteLocation && siteLocation !== job.siteLocation) {
     await db.update(schema.machineUnits).set({ location: `Workshop · ${siteLocation}` }).where(eq(schema.machineUnits.id, job.unitId));
+  }
+  // Sent to a vendor now (and not back yet): the machine is at the vendor.
+  if (out.outsourced && !backAt && job.status !== "closed" && (!job.outsourced || job.vendorId !== out.vendorId || job.backAt)) {
+    await db.update(schema.machineUnits).set({ location: atVendor(out.vendorName) }).where(eq(schema.machineUnits.id, job.unitId));
   }
   await addActivity(jobId, user.id, "act.details", { name: user.name });
   back(user, jobId, { ok: "ok.detailsSaved" });
@@ -557,35 +585,31 @@ export async function addJobPurchase(form: FormData) {
   const user = await requirePermission("stock.manage");
   const jobId = num(form, "jobId");
   const { job } = await access(jobId, user);
-  if (job.status === "closed") back(user, jobId, { error: "tr.closed", hash: "parts" });
-  const description = str(form, "description").slice(0, 200), qty = Number(str(form, "qty")), cost = Number(str(form, "unitCost"));
+  // Outside work: one amount from the vendor's invoice. It often arrives after the work order is completed.
+  const kind = str(form, "kind") === "service" ? "service" : "part";
+  if (job.status === "closed" && !(kind === "service" && can(user.role, "job.editDetails"))) back(user, jobId, { error: "tr.closed", hash: "parts" });
+  const description = str(form, "description").slice(0, 200), qty = kind === "service" ? 1 : Number(str(form, "qty")), cost = Number(str(form, "unitCost"));
   if (!description || !(qty > 0) || !(cost >= 0)) back(user, jobId, { error: "jp.err.fields", hash: "parts" });
   // Work orders are costed, not priced: the price column simply mirrors the cost.
   const price = cost;
   // Supplier: typed or picked by name; a name not on the list becomes a new supplier.
-  const supplierName = str(form, "supplierName").replace(/\s+/g, " ").slice(0, 160);
-  let supplierId: number | null = null;
-  if (supplierName) {
-    const S = schema.suppliers;
-    const [found] = await db.select({ id: S.id, active: S.active }).from(S).where(ilike(S.name, supplierName.replace(/[\\%_]/g, "\\$&"))).orderBy(sql`${S.active} desc`, S.id).limit(1);
-    supplierId = found?.id ?? (await db.insert(S).values({ name: supplierName }).returning({ id: S.id }))[0].id;
-    if (found && !found.active) await db.update(S).set({ active: true }).where(eq(S.id, found.id));
-  }
+  const supplierId = (await supplierByName(str(form, "supplierName")))?.id ?? null;
   const date = str(form, "purchasedAt");
   await db.insert(schema.jobPurchases).values({
-    jobId, description, partNo: str(form, "partNo") || null, supplierId, supplierName: null,
-    qty: String(qty), uom: str(form, "uom") || "pc", unitCost: cost.toFixed(2), unitPrice: price.toFixed(2), ref: str(form, "ref") || null,
+    jobId, kind, description, partNo: kind === "part" ? str(form, "partNo") || null : null, supplierId, supplierName: null,
+    qty: String(qty), uom: kind === "service" ? "job" : str(form, "uom") || "pc", unitCost: cost.toFixed(2), unitPrice: price.toFixed(2), ref: str(form, "ref") || null,
     purchasedAt: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : today(), addedBy: user.id,
   });
-  await addActivity(jobId, user.id, "act.bought", { what: `${qty} × ${description}`, name: user.name });
-  back(user, jobId, { ok: "jp.added", hash: "parts" });
+  await addActivity(jobId, user.id, kind === "service" ? "act.outsideCost" : "act.bought", { what: kind === "service" ? description : `${qty} × ${description}`, name: user.name });
+  back(user, jobId, { ok: kind === "service" ? "out.added" : "jp.added", hash: "parts" });
 }
 
 export async function removeJobPurchase(form: FormData) {
   const user = await requirePermission("stock.manage");
   const jobId = num(form, "jobId"), id = num(form, "purchaseId");
   const { job } = await access(jobId, user);
-  if (job.status === "closed") back(user, jobId, { error: "tr.closed", hash: "parts" });
+  const [line] = await db.select({ kind: schema.jobPurchases.kind }).from(schema.jobPurchases).where(and(eq(schema.jobPurchases.id, id), eq(schema.jobPurchases.jobId, jobId)));
+  if (job.status === "closed" && !(line?.kind === "service" && can(user.role, "job.editDetails"))) back(user, jobId, { error: "tr.closed", hash: "parts" });
   await db.delete(schema.jobPurchases).where(and(eq(schema.jobPurchases.id, id), eq(schema.jobPurchases.jobId, jobId)));
   back(user, jobId, { ok: "jp.removed", hash: "parts" });
 }
@@ -630,4 +654,19 @@ export async function deleteJob(form: FormData) {
   });
   revalidatePath("/jobs"); revalidatePath("/");
   redirect(`/jobs?ok=${encodeURIComponent(translator(user.locale)("job.deleted", { no: job.jobNo }))}`);
+}
+
+/** The machine (or part) is back from the outside workshop. */
+export async function markBackFromVendor(form: FormData) {
+  const user = await requirePermission("job.assign");
+  const jobId = num(form, "jobId");
+  const { job } = await access(jobId, user);
+  if (!job.outsourced || job.backAt) back(user, jobId);
+  const day = str(form, "backAt") || today();
+  if (!isDate(day) || day > today() || (job.sentOutAt && day < job.sentOutAt)) back(user, jobId, { error: "out.err.dates" });
+  await db.update(jobs).set({ backAt: day }).where(eq(jobs.id, jobId));
+  const location = job.siteType === "workshop" && job.siteLocation ? `Workshop · ${job.siteLocation}` : "Own yard";
+  await db.update(schema.machineUnits).set({ location }).where(eq(schema.machineUnits.id, job.unitId));
+  await addActivity(jobId, user.id, "act.backFromVendor", { name: user.name });
+  back(user, jobId, { ok: "out.backSaved" });
 }

@@ -199,7 +199,20 @@ export async function applyImport(d: AppSheetData, userId: number, ownerId?: num
 
     /* ---- work orders ---- */
     const done = new Set((await tx.select({ no: S.jobs.jobNo }).from(S.jobs).where(sql`${S.jobs.jobNo} like 'AS-%'`)).map((j) => j.no));
-    const jobByWo = new Map<string, { id: number; leadId: number | null; day: string }>();
+    const jobByWo = new Map<string, { id: number; leadId: number | null; day: string; vendorId: number | null }>();
+    // The outside workshop a work order went to, found or added as a supplier.
+    // Matched ignoring case, spaces and punctuation; a longer supplier name also matches ("LST Supply" = "LST SUPPLY & TRADING").
+    const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const vendorId = async (name: string) => {
+      const key = lower(name);
+      if (supByName.has(key)) return supByName.get(key)!;
+      const like = [...supByName].filter(([k]) => norm(k).startsWith(norm(name))).sort((x, y) => x[0].length - y[0].length)[0];
+      if (like && norm(name)) { supByName.set(key, like[1]); return like[1]; }
+      const id = (await tx.insert(S.suppliers).values({ name: name.slice(0, 160), notes: "Outside workshop (from the AppSheet import)." }).returning({ id: S.suppliers.id }))[0].id;
+      supByName.set(key, id);
+      n.suppliers++;
+      return id;
+    };
     for (const w of d.workOrders) {
       const no = woNo(w["WO#"]);
       if (done.has(no)) { n.skipped++; continue; }
@@ -213,6 +226,7 @@ export async function applyImport(d: AppSheetData, userId: number, ownerId?: num
       const loc = (w["LOCATION"] ?? "").trim();
       const field = loc.length > 3 && (loc.includes(",") || VENDOR_HINT.test(loc) || / /.test(loc));
       const workDone = [cancelled ? "CANCELLED — not carried out." : "", w["REPAIR ACTIONS TAKEN"], outsourced.length ? `Outsourced to: ${outsourced.join(", ")}` : ""].filter(Boolean).join("\n");
+      const vendor = outsourced.length ? await vendorId(outsourced[0]) : null;
       const followUp = [w["REMARKS"], w["PO"] ? `Supplier refs: ${w["PO"]}` : "", w["TASKS & CHECKLIST"]].filter(Boolean).join("\n") || null;
       const [j] = await tx.insert(S.jobs).values({
         jobNo: no, category: woCategory(w["CATEGORY"] ?? ""), priority: woPriority(w["PRIORITY"] ?? ""), status,
@@ -220,9 +234,10 @@ export async function applyImport(d: AppSheetData, userId: number, ownerId?: num
         siteType: field ? "field" : "workshop", siteLocation: field ? loc.slice(0, 200) : loc === "GDS" ? "GDS" : "",
         complaint: [w["WORK ORDER TITLE"], w["DESCRIPTION"]].filter(Boolean).join("\n") || "(no description)", reportedBy: w["REQUESTED BY:"] || null,
         workDone, followUp, leadId: lead, openedAt: opened, closedAt: closed, createdBy: userId, source: "appsheet",
+        ...(vendor ? { outsourced: true, vendorId: vendor, sentOutAt: opened, backAt: closed } : {}),
       }).returning({ id: S.jobs.id });
       if (second && second !== lead) await tx.insert(S.jobTeam).values({ jobId: j.id, staffId: second }).onConflictDoNothing();
-      jobByWo.set(w["WO#"], { id: j.id, leadId: lead, day: excelDate(w["START DATE"]) ?? opened });
+      jobByWo.set(w["WO#"], { id: j.id, leadId: lead, day: excelDate(w["START DATE"]) ?? opened, vendorId: vendor });
       n.workOrders++;
     }
 
@@ -238,7 +253,7 @@ export async function applyImport(d: AppSheetData, userId: number, ownerId?: num
       const j = jobByWo.get(b["WORK ORDER ID"]); if (!j) continue;
       const sup = supById.get(b["SUPPLIER NAME"] ?? "");
       const amount = num(b["AMOUNT"]);
-      await tx.insert(S.jobPurchases).values({ jobId: j.id, description: (b["DESCRIPTION"] || "Bill").slice(0, 200), supplierId: sup?.id ?? null,
+      await tx.insert(S.jobPurchases).values({ jobId: j.id, kind: j.vendorId && sup?.id === j.vendorId ? "service" : "part", description: (b["DESCRIPTION"] || "Bill").slice(0, 200), supplierId: sup?.id ?? null,
         supplierName: sup?.name ?? (b["SUPPLIER NAME"] || null), qty: "1", unitCost: String(amount), unitPrice: String(amount), purchasedAt: j.day, addedBy: userId, ref: "AppSheet bill" });
       n.bills++;
     }

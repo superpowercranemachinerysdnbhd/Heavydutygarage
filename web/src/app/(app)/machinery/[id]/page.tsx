@@ -85,8 +85,9 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
             <tbody>
               <tr><td>{t("mc.orders")}</td>{costCols.map(([l, c]) => <td key={l} className="r num">{c.n}</td>)}</tr>
               <tr><td>{t("mc.parts")}</td>{costCols.map(([l, c]) => <td key={l} className="r num">{rm(c.parts)}</td>)}</tr>
+              {costs.some((c) => c.outside > 0) && <tr><td>{t("rp.outside")}</td>{costCols.map(([l, c]) => <td key={l} className="r num">{rm(c.outside)}</td>)}</tr>}
               {seeLabour && <tr><td>{t("mc.labour")}</td>{costCols.map(([l, c]) => <td key={l} className="r num">{rm(c.labour)}</td>)}</tr>}
-              <tr><td><b>{seeLabour ? t("mc.total") : t("mc.partsTotal")}</b></td>{costCols.map(([l, c]) => <td key={l} className="r num"><b>{rm(c.parts + (seeLabour ? c.labour : 0))}</b></td>)}</tr>
+              <tr><td><b>{seeLabour ? t("mc.total") : t("mc.partsTotal")}</b></td>{costCols.map(([l, c]) => <td key={l} className="r num"><b>{rm(c.parts + c.outside + (seeLabour ? c.labour : 0))}</b></td>)}</tr>
             </tbody>
           </table></div>
         </section>
@@ -115,7 +116,7 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
           {shown.map((j) => (
             <li key={j.id} style={{ ["--cat" as string]: catColor(j.category) }}>
               <span className="tl-date">{fmtDate(j.openedAt, true, locale)}</span><span className="tl-mark" />
-              <div className="tl-body"><Link href={`/jobs/${j.id}`}><b>{j.complaint}</b></Link><small>{j.jobNo} · {catLabel(t, j.category)} · {j.leadName ?? t("dash.unassigned")} · {statusLabel(t, j.status)}</small></div>
+              <div className="tl-body"><Link href={`/jobs/${j.id}`}><b>{j.complaint}</b></Link><small>{j.jobNo} · {catLabel(t, j.category)} · {j.outsourced ? `${t("out.badge")}: ${j.vendorName ?? ""}` : j.leadName ?? t("dash.unassigned")} · {statusLabel(t, j.status)}</small></div>
             </li>
           ))}
           {shown.length === 0 && <li className="muted" style={{ display: "block" }}>{can(user.role, "job.viewAll") ? t("mach.noHistory") : t("mach.noHistoryMine")}</li>}

@@ -13,6 +13,8 @@ import { catLabel, priLabel } from "@/i18n/labels";
 import { Notice } from "@/components/ui";
 import SubmitButton from "@/components/SubmitButton";
 import WherePicker, { OUTSIDE, TBD } from "@/components/WherePicker";
+import OutsourceFields from "@/components/OutsourceFields";
+import { activeSuppliers } from "@/lib/purchasing";
 import { deleteJob, updateDetails } from "../../actions";
 
 export async function generateMetadata() {
@@ -31,6 +33,8 @@ export default async function EditJobPage({ params, searchParams }: { params: Pr
     .where(eq(schema.jobs.id, id)) : [];
   if (!row) notFound();
   const { job, unit, model } = row;
+  const vendors = await activeSuppliers();
+  const [vendor] = job.vendorId ? await db.select({ name: schema.suppliers.name }).from(schema.suppliers).where(eq(schema.suppliers.id, job.vendorId)) : [];
   return (
     <div className="page" style={{ maxWidth: 900 }}>
       <div className="crumbs"><Link href="/jobs">{t("nav.jobs")}</Link> / <Link href={`/jobs/${id}`}>{job.jobNo}</Link> / {t("job.edit")}</div>
@@ -44,6 +48,8 @@ export default async function EditJobPage({ params, searchParams }: { params: Pr
         {job.status === "closed" && <label>{t("job.completedOn")}<input type="date" name="closedAt" defaultValue={job.closedAt ?? ""} min={job.openedAt} max={today()} /></label>}
         <label>{t("f.dueOptional")}<input type="date" name="dueDate" defaultValue={job.dueDate ?? ""} /></label>
         <WherePicker defaultWhere={job.siteType === "field" ? OUTSIDE : job.siteLocation || TBD} defaultAddress={job.siteType === "field" ? job.siteLocation : ""} />
+        <OutsourceFields vendors={vendors.map((v) => v.name)} today={today()} showBack
+          initial={job.outsourced ? { vendorName: vendor?.name ?? "", vendorRef: job.vendorRef, sentOutAt: job.sentOutAt, expectedBackAt: job.expectedBackAt, backAt: job.backAt } : null} />
         <label>{t("f.hourMeterIn")}<input type="number" name="hourMeterIn" min={0} defaultValue={job.hourMeterIn ?? ""} /></label>
         <label>{t("f.reportedBy")}<input name="reportedBy" defaultValue={job.reportedBy ?? ""} placeholder={t("f.reportedByPh")} /></label>
         <label className="full">{t("f.complaint")}<textarea name="complaint" rows={4} required defaultValue={job.complaint} /></label>

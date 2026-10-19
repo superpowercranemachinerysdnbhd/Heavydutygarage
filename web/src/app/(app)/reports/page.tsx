@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { rm, today } from "@/lib/format";
-import { costRows, groupBy, sum, type CostSum } from "@/lib/costs";
+import { EMPTY_SUM, costRows, costTotal as total, groupBy, outsideByVendor, sum, type CostSum } from "@/lib/costs";
 import { unitsWithNames } from "@/lib/queries";
 import { catColor, itemLabel } from "@/lib/lists";
 import { ensureLists } from "@/lib/lists-server";
@@ -15,7 +15,6 @@ export async function generateMetadata() {
   return { title: (await getI18n()).t("nav.reports") };
 }
 
-const total = (c: CostSum) => c.parts + c.labour;
 
 /** Maintenance cost report (Head Manager): by month, by machine and by work order category, for one year. */
 export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ y?: string }> }) {
@@ -26,11 +25,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const thisYear = Number(today().slice(0, 4));
   const year = /^\d{4}$/.test(sp.y ?? "") && Number(sp.y) > 2000 && Number(sp.y) <= thisYear ? Number(sp.y) : thisYear;
-  const [rows, units] = await Promise.all([costRows({ from: `${year}-01-01`, to: `${year}-12-31` }), unitsWithNames()]);
+  const [rows, units, vendors] = await Promise.all([costRows({ from: `${year}-01-01`, to: `${year}-12-31` }), unitsWithNames(), outsideByVendor(`${year}-01-01`, `${year}-12-31`)]);
+  const inHouse = sum(rows.filter((r) => !r.outsourced)), outsourced = sum(rows.filter((r) => r.outsourced));
   const all = sum(rows);
   const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
   const byMonth = groupBy(rows, (r) => r.opened.slice(0, 7));
-  const maxMonth = Math.max(1, ...months.map((m) => total(byMonth.get(m) ?? { n: 0, parts: 0, labour: 0, hours: 0 })));
+  const maxMonth = Math.max(1, ...months.map((m) => total(byMonth.get(m) ?? EMPTY_SUM)));
   const byUnit = [...groupBy(rows, (r) => r.unitId)].sort((a, b) => total(b[1]) - total(a[1]));
   const byCat = [...groupBy(rows, (r) => r.category)].sort((a, b) => total(b[1]) - total(a[1]));
   const unit = new Map(units.map((u) => [u.id, u]));
@@ -49,6 +49,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       <nav className="sum" aria-label={t("rp.title")}>
         <div><b style={{ fontSize: "1.4rem" }}>{rm(total(all))}</b><span>{t("rp.total")}</span></div>
         <div><b style={{ fontSize: "1.4rem" }}>{rm(all.parts)}</b><span>{t("mc.parts")}</span></div>
+        <div><b style={{ fontSize: "1.4rem" }}>{rm(all.outside)}</b><span>{t("rp.outside")}</span></div>
         <div><b style={{ fontSize: "1.4rem" }}>{rm(all.labour)}</b><span>{t("rp.labour", { h: Math.round(all.hours) })}</span></div>
         <div><b>{all.n}</b><span>{t("mc.orders")}</span></div>
       </nav>
@@ -56,9 +57,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       <section className="panel">
         <div className="panel-head"><h3>{t("rp.byMonth")}</h3></div>
         <div className="tbl-wrap" style={{ border: 0, borderRadius: 0 }}><table className="rp">
-          <thead><tr><th>{t("rp.month")}</th><th className="r">{t("mc.orders")}</th><th className="r">{t("mc.parts")}</th><th className="r">{t("mc.labour")}</th><th className="r">{t("mc.total")}</th><th className="bar-col"></th></tr></thead>
-          <tbody>{months.map((m) => { const c = byMonth.get(m) ?? { n: 0, parts: 0, labour: 0, hours: 0 }; return (
-            <tr key={m}><td>{monthName(m)}</td><td className="r num">{c.n || ""}</td><td className="r num">{c.n ? rm(c.parts) : ""}</td><td className="r num">{c.n ? rm(c.labour) : ""}</td><td className="r num"><b>{c.n ? rm(total(c)) : ""}</b></td>
+          <thead><tr><th>{t("rp.month")}</th><th className="r">{t("mc.orders")}</th><th className="r">{t("mc.parts")}</th><th className="r">{t("rp.outside")}</th><th className="r">{t("mc.labour")}</th><th className="r">{t("mc.total")}</th><th className="bar-col"></th></tr></thead>
+          <tbody>{months.map((m) => { const c = byMonth.get(m) ?? EMPTY_SUM; return (
+            <tr key={m}><td>{monthName(m)}</td><td className="r num">{c.n || ""}</td><td className="r num">{c.n ? rm(c.parts) : ""}</td><td className="r num">{c.outside ? rm(c.outside) : ""}</td><td className="r num">{c.n ? rm(c.labour) : ""}</td><td className="r num"><b>{c.n ? rm(total(c)) : ""}</b></td>
               <td className="bar-col"><span className="bar" style={{ width: `${(total(c) / maxMonth) * 100}%` }} /></td></tr>); })}</tbody>
         </table></div>
       </section>
@@ -67,11 +68,32 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         <div className="panel-head"><h3>{t("rp.byMachine")}</h3><span className="count">{byUnit.length}</span></div>
         <p className="hint" style={{ margin: 0, padding: "6px 14px 0" }}>{t("rp.byMachineHelp")}</p>
         <div className="tbl-wrap" style={{ border: 0, borderRadius: 0 }}><table className="rp">
-          <thead><tr><th>{t("col.machine")}</th><th className="r">{t("mc.orders")}</th><th className="r">{t("mc.parts")}</th><th className="r">{t("mc.labour")}</th><th className="r">{t("mc.total")}</th><th className="r">%</th></tr></thead>
+          <thead><tr><th>{t("col.machine")}</th><th className="r">{t("mc.orders")}</th><th className="r">{t("mc.parts")}</th><th className="r">{t("rp.outside")}</th><th className="r">{t("mc.labour")}</th><th className="r">{t("mc.total")}</th><th className="r">%</th></tr></thead>
           <tbody>{byUnit.map(([id, c]) => { const u = unit.get(id); return (
             <tr key={id}><td><Link href={`/machinery/${id}#cost`}><b className={u?.plateNo ? "mono" : ""}>{u ? unitRef(u) : id}</b></Link>{u && <small className="muted"> {u.make} {u.model}</small>}</td>
-              <td className="r num">{c.n}</td><td className="r num">{rm(c.parts)}</td><td className="r num">{rm(c.labour)}</td><td className="r num"><b>{rm(total(c))}</b></td><td className="r num">{pct(c)}%</td></tr>); })}
-            {byUnit.length === 0 && <tr><td colSpan={6} className="muted">{t("rp.none")}</td></tr>}</tbody>
+              <td className="r num">{c.n}</td><td className="r num">{rm(c.parts)}</td><td className="r num">{c.outside ? rm(c.outside) : ""}</td><td className="r num">{rm(c.labour)}</td><td className="r num"><b>{rm(total(c))}</b></td><td className="r num">{pct(c)}%</td></tr>); })}
+            {byUnit.length === 0 && <tr><td colSpan={7} className="muted">{t("rp.none")}</td></tr>}</tbody>
+        </table></div>
+      </section>
+
+      <section className="panel">
+        <div className="panel-head"><h3>{t("rp.split")}</h3></div>
+        <div className="tbl-wrap" style={{ border: 0, borderRadius: 0 }}><table className="rp">
+          <thead><tr><th></th><th className="r">{t("mc.orders")}</th><th className="r">{t("mc.parts")}</th><th className="r">{t("rp.outside")}</th><th className="r">{t("mc.labour")}</th><th className="r">{t("mc.total")}</th><th className="r">%</th></tr></thead>
+          <tbody>{([[t("rp.inHouse"), inHouse], [t("rp.outsourced"), outsourced]] as const).map(([l, c]) => (
+            <tr key={l}><td><b>{l}</b></td><td className="r num">{c.n}</td><td className="r num">{rm(c.parts)}</td><td className="r num">{rm(c.outside)}</td><td className="r num">{rm(c.labour)}</td><td className="r num"><b>{rm(total(c))}</b></td><td className="r num">{pct(c)}%</td></tr>))}</tbody>
+        </table></div>
+      </section>
+
+      <section className="panel">
+        <div className="panel-head"><h3>{t("rp.byVendor")}</h3><span className="count">{vendors.length}</span></div>
+        <p className="hint" style={{ margin: 0, padding: "6px 14px 0" }}>{t("rp.byVendorHelp")}</p>
+        <div className="tbl-wrap" style={{ border: 0, borderRadius: 0 }}><table className="rp">
+          <thead><tr><th>{t("out.vendor")}</th><th className="r">{t("mc.orders")}</th><th className="r">{t("rp.lines")}</th><th className="r">{t("mc.total")}</th><th className="r">%</th></tr></thead>
+          <tbody>{vendors.map((v) => (
+            <tr key={`${v.supplierId}-${v.vendor}`}><td>{v.supplierId ? <Link href={`/purchasing/suppliers/${v.supplierId}`}>{v.vendor}</Link> : v.vendor}</td><td className="r num">{v.jobs}</td><td className="r num">{v.n}</td><td className="r num"><b>{rm(v.amount)}</b></td>
+              <td className="r num">{all.outside ? Math.round((v.amount / all.outside) * 100) : 0}%</td></tr>))}
+            {vendors.length === 0 && <tr><td colSpan={5} className="muted">{t("rp.none")}</td></tr>}</tbody>
         </table></div>
       </section>
 

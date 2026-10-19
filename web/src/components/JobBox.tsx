@@ -22,7 +22,7 @@ export default function JobBox({ j, cover, t, locale }: { j: JobRow; cover?: num
                   {j.plateNo && <small>{j.make} {j.model}</small>}
                   <small className="muted">{j.customerName} · <span className="mono">{j.jobNo}</span></small>
                   <div className="jcard-tags"><CatChip cat={j.category} t={t} /><span className="pill mute">{statusLabel(t, j.status)}</span></div>
-                  <div className="jcard-foot"><span className={`due ${due.cls}`}>{due.text}</span><span>{j.leadName ?? <span className="due over">{t("dash.unassigned")}</span>}</span></div>
+                  <div className="jcard-foot"><span className={`due ${due.cls}`}>{due.text}</span><span>{j.outsourced ? <span className="pill out">🔧 {j.vendorName ?? t("out.badge")}</span> : j.leadName ?? <span className="due over">{t("dash.unassigned")}</span>}</span></div>
                 </div>
               </Link>
   );
