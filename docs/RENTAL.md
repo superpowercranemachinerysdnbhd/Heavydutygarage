@@ -448,7 +448,38 @@ Anyone in the office can add an event; it can be linked to a customer or a machi
 | `leave_balances` | staff_id, year, type, entitled, taken |
 | `attendance` | staff_id, date, clock_in, clock_out, location (lat/lng, site or yard) |
 
-## 21. Open questions for the owner
+## 21. Crane selector (lift check) and load charts
+
+A page where the office types in a job's **load weight**, **working radius** and **lifting height** (plus rigging weight and the height of the load and slings), optionally the dates, and gets every crane in the fleet ranked, with the **closest fit** on top: the smallest crane that can do the lift and is free.
+
+**Load charts.** Each crane (e.g. Kato SR-250VR, Tadano TL-250-2, Kato KR-25H-V, Tadano GR-500EX, the lorry crane) has its rated capacity table entered once: boom lengths across, radii down, tonnes in the cells. A chart belongs to a **set-up** (outriggers fully extended / mid / minimum, 360° or over the rear, counterweight, jib), so a crane can have several charts; the main one is fully extended, 360°. The chart can be typed in or **pasted from Excel**. Each chart also records the boom foot height and offset from the slew centre (for the height geometry) and the **hook block weight**. The manufacturer's chart (PDF or photo) is attached, and the Head Manager marks the chart **verified** after checking every value. Any later change sets it back to not verified, and results from unverified charts are clearly flagged.
+
+**How a crane is checked**, for each boom length in its chart:
+
+1. **Reach:** the radius must be within the chart's range for that boom length.
+2. **Height:** boom tip height = boom foot height + √(boom length² − (radius − foot offset)²). It must be at least the lifting height + load and sling height.
+3. **Capacity:** the rated capacity is read at the **next larger radius** listed in the chart (never interpolated upwards). Gross load = load + rigging + hook block.
+4. **Use of chart** = gross load ÷ rated capacity. The boom length with the lowest figure is that crane's best set-up.
+
+| Use of chart | Result |
+|---|---|
+| Up to 75% | Can lift (normal lift) |
+| 75–90% | Critical lift: lift plan and Head Manager approval required |
+| Over 90% | Not allowed |
+
+(The 75% and 90% limits are company settings.)
+
+**Ranking:** cranes that can lift first, smallest crane class first, then free on the dates, then the highest use of chart within the limit (the tightest suitable fit). Each crane that cannot do it shows why: over capacity (and by how much), boom too short (highest tip at that radius), or out of reach. The page draws the lift (boom, angle, tip height, radius) and shows the load chart with the cell used highlighted. From the result, **New enquiry with this crane** starts an enquiry with the lift written into its notes; an enquiry that has lift details has a **Lift check** button that opens the page filled in.
+
+**Limits.** The lift check is for choosing and quoting a crane. It does not replace the lift plan by a competent person, the crane's LMI / SLI, the manufacturer's chart and notes (ground bearing, wind, deductions for jib and attachments), or the DOSH requirements for the lift. The prototype's charts are **sample values, not manufacturer data**.
+
+| Table | Key fields |
+|---|---|
+| `load_charts` | unit_id, set-up (outriggers, slew range, counterweight, jib), boom_lengths, foot_height, foot_offset, hook_block_t, source_file, verified_by, verified_at |
+| `load_chart_cells` | chart_id, radius_m, boom_length_m, capacity_t |
+| `lift_checks` | enquiry_id, load_t, radius_m, height_m, rigging_t, headroom_m, result (crane, boom, use of chart), checked_by, at |
+
+## 22. Open questions for the owner
 
 1. How many machines are in the hire fleet, and do we cross-hire machines in from other companies when we run short?
 2. Which machines are only wet hire (cranes?) and which are only dry hire?
@@ -462,3 +493,5 @@ Anyone in the office can add an event; it can be linked to a customer or a machi
 10. How are enquiries tracked now (WhatsApp, notebook, Excel), and is there history worth importing?
 11. How is leave applied for and approved today, and how many days of annual leave does each grade get?
 12. Do operators clock in at the yard every day, or go straight to site?
+13. Which load-chart set-ups are used for each crane (full / mid outriggers, counterweight options, jib)? Are the manufacturer charts available as PDFs?
+14. What use-of-chart limits does the company apply (e.g. 75% normal, 85% or 90% maximum with a lift plan)?

@@ -468,6 +468,16 @@ input[type=time]{border:1px solid var(--line);background:var(--surface);border-r
 .tr-main small{display:block}
 @media (max-width:640px){.task-row{grid-template-columns:minmax(0,1fr) auto}.task-row .btnrow{grid-column:1/-1}}
 .card-foot{flex-wrap:wrap}
+.lc{width:auto;font-size:.78rem}
+.lc th,.lc td{padding:4px 8px;text-align:right}
+.lc thead th{position:sticky;top:0}
+.lc th:first-child{text-align:left;white-space:nowrap}
+.lc td.na{background:var(--surface-2)}
+.lc td.can{background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.lc td.pick{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.lc th.hl{color:var(--accent-ink);background:var(--accent-soft)}
+.lc .ratein{width:64px}
+.liftsvg{width:100%;height:auto;display:block;margin-bottom:6px}
 .grp-h{padding:7px 14px;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
 button.step{background:none;border-left:0;border-right:0;border-bottom:0;cursor:pointer;font-family:inherit}
 button.step:disabled{cursor:default}
@@ -506,6 +516,7 @@ button.step:disabled{cursor:default}
       <button data-view="customers">Customers</button>
       <button data-view="hires">Hires</button>
       <button data-view="planner">Planner</button>
+      <button data-view="lift">Lift check</button>
       <button data-view="calendar">Calendar</button>
       <button data-view="fleet">Fleet</button>
       <button data-view="transport">Transport</button>
@@ -527,6 +538,7 @@ button.step:disabled{cursor:default}
   <section class="view" id="v-calendar" hidden></section>
   <section class="view" id="v-staff" hidden></section>
   <section class="view" id="v-planner" hidden></section>
+  <section class="view" id="v-lift" hidden></section>
   <section class="view" id="v-hires" hidden></section>
   <section class="view" id="v-fleet" hidden></section>
   <section class="view" id="v-transport" hidden></section>
@@ -892,7 +904,7 @@ const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Pai
 const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
 
 /* ---------- state ---------- */
-const state = {view:'today', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', week:'2026-10-12', sheet:null, lastSheet:null};
+const state = {view:'today', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'RC-02', week:'2026-10-12', sheet:null, lastSheet:null};
 try{ const v = localStorage.getItem('hdg-rental-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
@@ -906,7 +918,7 @@ function setView(v){
   try{ localStorage.setItem('hdg-rental-view', v); }catch(e){}
   render();
 }
-function render(){ ({today:renderToday,enquiries:renderEnquiries,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
+function render(){ ({today:renderToday,enquiries:renderEnquiries,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
 function rerender(){ render(); refreshSheet(); }
 
 /* ---------- Today ---------- */
@@ -1529,9 +1541,9 @@ Object.entries({HM:'012-300 1001',S1:'012-388 2201',S2:'012-660 3317',S3:'016-22
 const OFFICE = ['HM','S1','S2','S3'], FIELD = ['O1','O2','O3','O4','O5','D1','D2'];
 const meStaff = () => ({boss:'HM',supervisor:'S1',sales:'S2'})[role()] || state.me;
 const ROLE_VIEWS = {
-  boss:['today','enquiries','customers','hires','planner','calendar','fleet','transport','timesheets','staff','billing','rates','reports'],
-  supervisor:['today','enquiries','customers','hires','planner','calendar','fleet','transport','timesheets','staff','billing','rates'],
-  sales:['today','enquiries','customers','hires','planner','calendar','fleet','rates'],
+  boss:['today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','timesheets','staff','billing','rates','reports'],
+  supervisor:['today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','timesheets','staff','billing','rates'],
+  sales:['today','enquiries','customers','hires','planner','lift','calendar','fleet','rates'],
   operator:['timesheets'],
 };
 let leave = [
@@ -1560,7 +1572,7 @@ const LOST_WHY = ['No machine free','Price','Went elsewhere','Project postponed'
 const HIST = {won:31, lost:19};
 let enquiries = [
   {id:'E-2026-0231',at:'2026-10-16 08:20',src:'WhatsApp',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Rough terrain crane 25 t',qty:1,k:'wet',from:'2026-10-26',to:'2026-10-30',site:'Bandar Rimbayu, Kota Kemuning',state:'Selangor',stage:'New',owner:'S2',temp:'Hot',
-   notes:'Lifting precast beams, max 6 t at 18 m radius. Site needs the crane CF copy and operator DOSH card.',log:[{d:'2026-10-16 08:20',t:'WhatsApp from Mr. Ong: 25 t crane 26–30 Oct.'}]},
+   notes:'Lifting precast beams, heaviest 3.2 t at 18 m radius, set 12 m high. Site needs the crane CF copy and operator DOSH card.',lift:{w:3.2,r:18,h:12},log:[{d:'2026-10-16 08:20',t:'WhatsApp from Mr. Ong: 25 t crane 26–30 Oct.'}]},
   {id:'E-2026-0230',at:'2026-10-15 15:30',src:'Phone',c:'C1',need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-11-02',to:'2026-11-13',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0160',
    notes:'Second crane for roof steel. Our only 50 t (RC-01) is already on their site.',log:[{d:'2026-10-15 15:40',t:'Quotation H-2026-0160 started; no 50 t free.'},{d:'2026-10-15 15:30',t:'Call from Mr. Lim.'}]},
   {id:'E-2026-0229',at:'2026-10-15 11:05',src:'Phone',c:'C5',need:'Generator 150 kVA',qty:1,k:'dry',from:'2026-11-02',to:'2026-12-31',site:'Taman Desa drainage works, Rawang',state:'Selangor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0161',
@@ -1719,6 +1731,7 @@ function openEnquiry(id){
     ${e.stage==='Lost'?`<div class="banner crit"><b>Lost: ${esc(e.lostWhy||'')}</b></div>`:''}
     <div class="btnrow">
       ${e.hire?`<button class="btn" data-hire="${e.hire}">Open ${e.hire}</button>`:openStage(e)?`<button class="btn primary" data-action="enq-quote" data-id="${id}">Make quotation</button>`:''}
+      ${e.lift?`<button class="btn" data-action="lift-from-enq" data-id="${id}">Lift check: ${num(e.lift.w)} t at ${num(e.lift.r)} m</button>`:''}
       ${!e.c && openStage(e)?`<button class="btn" data-action="enq-cust" data-id="${id}">Add as customer</button>`:''}
     </div>
     <div class="sect"><h3>Enquiry</h3><div class="facts">
@@ -2021,6 +2034,214 @@ document.addEventListener('submit', e => {
   if(f.dataset.form==='lost'){ const x = enq(f.dataset.enq); x.stage = 'Lost'; x.lostWhy = v('why'); x.log.unshift({d:`${TODAY} ${nowT()}`,t:`Lost: ${v('why')}.`}); tasks.filter(t=>t.enq===x.id && !t.done).forEach(t=>{ t.done = true; t.doneAt = TODAY; t.note = 'closed: enquiry lost'; }); lost.unshift({d:TODAY,c:enqName(x).replace(/ Sdn Bhd$/,''),type:x.need,why:x.lostWhy}); toast(`${x.id} marked lost`); return rerender(); }
   if(f.dataset.form==='event'){ if(!v('t')){ toast('Enter what the event is'); return; } events.push({d:state.calDay, time:v('time'), type:v('type'), t:v('t')}); toast('Event added'); return render(); }
   if(f.dataset.form==='leave'){ if(v('to') < v('from')){ toast('The end date is before the start date'); return; } leave.push({id:leave.length+1, s:state.me, type:v('type'), from:v('from'), to:v('to'), status:'Pending', note:v('note')}); toast('Leave request sent to the Supervisor'); return render(); }
+});
+
+/* ---------- crane selector & load charts ---------- */
+Object.assign(models, {
+  SR250:{make:'Kato',model:'SR-250VR',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
+  TL250:{make:'Tadano',model:'TL-250-2',type:'Truck crane 25 t',grp:'crane',size:'self'},
+});
+Object.assign(fleet, {
+  'RC-04':{m:'SR250',plate:'WYD 2504',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:820000,ytd:{rev:228000,ws:21400,opx:43000,util:69}},
+  'TC-01':{m:'TL250',plate:'BJH 2502',year:2008,hm:24310,docs:{cf:'2026-12-20',road:'2027-01-05',ins:'2027-01-05',pusp:'2027-02-11'},cost:410000,ytd:{rev:152000,ws:38800,opx:36000,util:57}},
+});
+rates['SR250/wet'] = {hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300};
+rates['TL250/wet'] = {hr:280,minH:4,day:1950,month:34000,mHrs:200,ex:190,ot:280};
+
+/* Sample charts only: generated for the prototype, NOT manufacturer data. Real charts are typed or pasted
+   from the manufacturer's load chart for each configuration and verified before use. */
+const RGRID = [2.5,3,3.5,4,4.5,5,5.5,6,7,8,9,10,11,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40];
+function sampleChart(booms, maxT, K, h0, a, hook){
+  const rows = RGRID.map(r => ({r, caps: booms.map(L => {
+    const rMin = a + L*Math.cos(80*Math.PI/180), rMax = a + L*Math.cos(15*Math.PI/180);
+    if(r < rMin || r > rMax) return null;
+    const cap = Math.min(maxT*Math.pow(booms[0]/L, 1.1), K/(r+1), maxT);
+    const v = Math.floor(cap*20)/20;
+    return v >= 0.3 ? v : null;
+  })})).filter(row => row.caps.some(c=>c!=null));
+  return {booms, rows, h0, a, hook, maxT, cfg:'Outriggers fully extended, 360°, full counterweight, on firm level ground', verified:false, source:'Sample values for the prototype — not from the manufacturer', pdf:''};
+}
+let charts = {
+  'LC-01':sampleChart([3.6,5.8,8.0,10.2,12.4,14.5], 2.93, 10.2, 2.9, 0.3, 0.05),
+  'RC-02':sampleChart([9.35,15.15,20.95,26.75,30.5], 25, 100, 1.9, 0.5, 0.30),
+  'RC-03':sampleChart([9.5,14.8,20.1,25.4,30.7], 25, 95, 1.9, 0.5, 0.30),
+  'RC-04':sampleChart([9.6,13.9,18.3,22.6,27.0,31.3], 25, 105, 1.9, 0.5, 0.30),
+  'TC-01':sampleChart([10.0,16.0,22.0,28.0,33.0], 25, 98, 2.4, 0.9, 0.35),
+  'RC-01':sampleChart([10.6,16.8,23.0,29.2,35.4,41.6,47.0], 50, 225, 2.2, 0.6, 0.55),
+};
+const LIFT_OK = 0.75, LIFT_MAX = 0.90;
+function liftCheck(u, j){
+  const c = charts[u], gross = j.w + j.rig + c.hook, reqTip = j.h + j.head, tried = [];
+  let best = null;
+  c.booms.forEach((L, bi) => {
+    const dR = j.r - c.a;
+    const rows = c.rows.filter(row => row.caps[bi] != null);
+    if(!rows.length) return;
+    if(dR >= L || j.r > rows[rows.length-1].r){ tried.push({L, why:'reach', maxR:rows[rows.length-1].r}); return; }
+    const tip = c.h0 + Math.sqrt(L*L - dR*dR);
+    if(tip < reqTip){ tried.push({L, why:'height', tip}); return; }
+    if(j.r < rows[0].r){ tried.push({L, why:'close', minR:rows[0].r}); return; }
+    const row = rows.find(x => x.r >= j.r - 1e-9), cap = row.caps[bi];
+    const opt = {L, bi, r:row.r, cap, tip, gross, util:gross/cap, angle:Math.acos(dR/L)*180/Math.PI};
+    if(!best || opt.util < best.util) best = opt;
+  });
+  let verdict, why;
+  if(best && best.util <= LIFT_OK){ verdict = 'ok'; why = `${Math.round(best.util*100)}% of chart: normal lift`; }
+  else if(best && best.util <= LIFT_MAX){ verdict = 'crit'; why = `${Math.round(best.util*100)}% of chart: critical lift, needs a lift plan and Head Manager approval`; }
+  else if(best){ verdict = 'no'; why = `Over capacity: gross ${num(best.gross)} t vs ${num(best.cap)} t rated at ${best.r} m (${Math.round(best.util*100)}%)`; }
+  else {
+    verdict = 'no';
+    const h = tried.filter(t=>t.why==='height'), reach = tried.filter(t=>t.why==='reach');
+    why = h.length ? `Boom too short: highest tip at ${j.r} m radius is ${num(+Math.max(...h.map(t=>t.tip)).toFixed(1))} m, needs ${num(reqTip)} m`
+        : reach.length ? `Out of reach: chart goes to ${Math.max(...reach.map(t=>t.maxR))} m radius at most` : 'Radius too close for this crane';
+  }
+  return {u, c, best, verdict, why, gross, reqTip};
+}
+function liftResults(j){
+  const res = Object.keys(charts).map(u => { const x = liftCheck(u, j); x.avail = j.from && j.to ? availability(u, j.from, j.to) : null; return x; });
+  const rank = {ok:0, crit:1, no:2};
+  return res.sort((a,b) => rank[a.verdict]-rank[b.verdict] || (a.verdict==='no' ? 0 : a.c.maxT-b.c.maxT) || ((a.avail&&!a.avail.ok)-(b.avail&&!b.avail.ok)) || (b.best?.util||0)-(a.best?.util||0));
+}
+function liftSvg(x, j){
+  if(!x.best) return '';
+  const c = x.c, b = x.best, W = 340, H = 230, pad = 28;
+  const span = Math.max(j.r + 3, 8), top = Math.max(b.tip + 2, j.h + 3);
+  const s = Math.min((W-2*pad)/span, (H-2*pad)/top);
+  const X = v => pad + v*s, Y = v => H - pad - v*s;
+  const tipX = j.r, tipY = b.tip, loadY = j.h;
+  return `<svg viewBox="0 0 ${W} ${H}" class="liftsvg" role="img" aria-label="Lift geometry: boom ${b.L} m at ${Math.round(b.angle)} degrees, radius ${j.r} m">
+    <line x1="${X(-2)}" y1="${Y(0)}" x2="${X(span)}" y2="${Y(0)}" style="stroke:var(--muted);stroke-width:1.5"/>
+    <rect x="${X(-1.6)}" y="${Y(1.5)}" width="${3.2*s}" height="${1.5*s}" rx="3" style="fill:var(--surface-2);stroke:var(--ink)"/>
+    <line x1="${X(c.a)}" y1="${Y(c.h0)}" x2="${X(tipX)}" y2="${Y(tipY)}" style="stroke:var(--accent);stroke-width:5;stroke-linecap:round"/>
+    <line x1="${X(tipX)}" y1="${Y(tipY)}" x2="${X(tipX)}" y2="${Y(loadY+0.8)}" style="stroke:var(--ink);stroke-width:1.2"/>
+    <rect x="${X(tipX)-9}" y="${Y(loadY+0.8)}" width="18" height="12" style="fill:var(--k-wet)"/>
+    <line x1="${X(0)}" y1="${Y(0)+12}" x2="${X(tipX)}" y2="${Y(0)+12}" style="stroke:var(--info);stroke-width:1" marker-end=""/>
+    <text x="${(X(0)+X(tipX))/2}" y="${Y(0)+24}" text-anchor="middle" style="fill:var(--info);font-size:11px">radius ${j.r} m</text>
+    <line x1="${X(tipX)+16}" y1="${Y(0)}" x2="${X(tipX)+16}" y2="${Y(loadY)}" style="stroke:var(--c-pm);stroke-width:1;stroke-dasharray:3 3"/>
+    <text x="${X(tipX)+20}" y="${Y(loadY/2)}" style="fill:var(--c-pm);font-size:11px">lift ${j.h} m</text>
+    <text x="${X(tipX)+6}" y="${Y(tipY)-4}" style="fill:var(--ink);font-size:11px">tip ${num(+b.tip.toFixed(1))} m</text>
+    <text x="${(X(c.a)+X(tipX))/2 - 10}" y="${(Y(c.h0)+Y(tipY))/2 - 8}" text-anchor="end" style="fill:var(--ink);font-size:11px;font-weight:600">boom ${b.L} m · ${Math.round(b.angle)}°</text>
+  </svg>`;
+}
+function chartTable(u, hl, gross){
+  const c = charts[u];
+  return `<div class="tbl-wrap"><table class="lc"><thead><tr><th>Radius (m) \\ Boom (m)</th>${c.booms.map((L,bi)=>`<th class="r ${hl&&hl.bi===bi?'hl':''}">${L}</th>`).join('')}</tr></thead><tbody>
+    ${c.rows.map(row=>`<tr><th class="${hl&&hl.r===row.r?'hl':''}">${row.r}</th>${row.caps.map((v,bi)=>`<td class="r num ${v==null?'na':''} ${hl&&hl.r===row.r&&hl.bi===bi?'pick':gross&&v!=null&&gross/v<=LIFT_OK?'can':''}">${v==null?'':v.toFixed(2)}</td>`).join('')}</tr>`).join('')}
+  </tbody></table></div>`;
+}
+function renderLift(){
+  const tab = state.liftTab;
+  const head = `<div class="view-head"><h2>Crane selector</h2><div class="seg"><button data-lifttab="find" aria-pressed="${tab==='find'}">Find a crane</button><button data-lifttab="charts" aria-pressed="${tab==='charts'}">Load charts</button></div></div>`;
+  const unverified = Object.keys(charts).filter(u=>!charts[u].verified);
+  const warn = unverified.length ? `<div class="banner crit"><b>${unverified.length} of ${Object.keys(charts).length} load charts are not verified${unverified.length===Object.keys(charts).length?' (sample values in this prototype)':''}. Do not quote or lift from them until each is checked against the manufacturer's chart.</b></div>` : '';
+  if(tab==='charts') return $('#v-lift').innerHTML = head + warn + chartsEditor();
+  const j = state.lift, res = j.done ? liftResults(j) : [];
+  const sel = res.find(x=>x.u===state.liftSel) || res.find(x=>x.verdict!=='no') || res[0];
+  const best = res.find(x=>x.verdict==='ok' && (!x.avail || x.avail.ok)) || res.find(x=>x.verdict!=='no' && (!x.avail || x.avail.ok));
+  $('#v-lift').innerHTML = head + warn + `
+    <form class="findbar" data-form="lift">
+      <label>Load weight (t)<input type="number" step="0.05" min="0.05" name="w" value="${j.w}" required></label>
+      <label>Working radius (m)<input type="number" step="0.5" min="1" name="r" value="${j.r}" required></label>
+      <label>Lifting height (m)<input type="number" step="0.5" min="0" name="h" value="${j.h}" required></label>
+      <label>Rigging weight (t)<input type="number" step="0.05" min="0" name="rig" value="${j.rig}"></label>
+      <label>Load + sling height (m)<input type="number" step="0.5" min="0" name="head" value="${j.head}"></label>
+      <label>From<input type="date" name="from" value="${j.from||''}"></label>
+      <label>To<input type="date" name="to" value="${j.to||''}"></label>
+      <button class="btn primary">Find cranes</button>
+    </form>
+    <p class="muted" style="margin:0">Gross load = load + rigging + the crane's hook block. Needed tip height = lifting height + load and sling height. Capacity is read at the next larger radius in the chart (never interpolated up). Up to ${LIFT_OK*100}% of chart is a normal lift; ${LIFT_OK*100}–${LIFT_MAX*100}% is a critical lift; above ${LIFT_MAX*100}% is not allowed.</p>
+    ${j.done ? `
+    ${best ? `<div class="banner" style="border-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--surface))"><b>Closest fit: ${best.u} ${esc(uName(best.u))}, boom ${best.best.L} m, ${Math.round(best.best.util*100)}% of chart${best.avail?' · free for those dates':''}.</b><button class="btn small primary" data-action="lift-enq" data-u="${best.u}">New enquiry with this crane</button></div>`
+      : `<div class="banner crit"><b>No crane in the fleet can do this lift${res.some(x=>x.verdict!=='no')?' on those dates':''}. Options: a bigger crane by cross-hire, a shorter radius (move the crane closer), or a lighter load.</b></div>`}
+    <div class="dash">
+      <div class="panel"><div class="panel-head"><h3>${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high</h3><span class="muted">${res.filter(x=>x.verdict!=='no').length} of ${res.length} cranes can lift it</span></div>
+        <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Crane</th><th>Result</th><th class="r">Boom</th><th class="r">Rated</th><th class="r">Gross</th><th>Use of chart</th>${j.from?'<th>Dates</th>':''}<th class="r cost">Day rate</th></tr></thead><tbody>
+        ${res.map(x=>{ const b = x.best, r = rate(fleet[x.u].m,'wet'), pct = b ? Math.round(b.util*100) : null;
+          return `<tr class="click" data-liftsel="${x.u}" ${sel&&sel.u===x.u?'style="background:var(--accent-soft)"':''}><td><b>${x.u}</b> ${esc(uName(x.u))}<br><small class="muted">${esc(mOf(x.u).type)}${charts[x.u].verified?'':' · chart not verified'}</small></td>
+          <td><span class="pill ${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'}">${x.verdict==='ok'?'Can lift':x.verdict==='crit'?'Critical lift':'Cannot'}</span><br><small class="muted">${esc(x.verdict==='no'?x.why:b?`tip ${num(+b.tip.toFixed(1))} m (needs ${num(x.reqTip)} m), boom angle ${Math.round(b.angle)}°`:'')}</small></td>
+          <td class="r num">${b?b.L+' m':'—'}</td><td class="r num">${b?num(b.cap)+' t':'—'}<br>${b?`<small class="muted">at ${b.r} m</small>`:''}</td><td class="r num">${num(+x.gross.toFixed(2))} t</td>
+          <td>${b?`<div class="rbar" style="grid-template-columns:minmax(70px,1fr) auto"><div class="track"><div class="fill" style="width:${Math.min(pct,100)}%;background:var(--${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'})"></div></div><span class="v">${pct}%</span></div>`:''}</td>
+          ${j.from?`<td>${x.avail.ok?'<span class="pill ok">Free</span>':`<span class="pill crit" title="${esc(x.avail.why.join(' · '))}">Busy</span><br><small class="muted">${esc(x.avail.why[0])}</small>`}</td>`:''}
+          <td class="r num cost">${r?RM0(r.day):'—'}</td></tr>`; }).join('')}
+        </tbody></table></div></div>
+      ${sel ? `<div class="rail"><div class="panel"><div class="panel-head"><h3>${sel.u} · ${esc(mOf(sel.u).model)}</h3>${sel.best?`<span class="pill ${sel.verdict==='ok'?'ok':sel.verdict==='crit'?'warn':'crit'}">${Math.round(sel.best.util*100)}%</span>`:''}</div>
+        <div class="in" style="padding:10px 14px">${sel.best ? liftSvg(sel, j) : `<p class="muted" style="margin:0">${esc(sel.why)}</p>`}
+          <small class="muted">${esc(sel.c.cfg)}. Hook block ${num(sel.c.hook)} t.</small>
+          ${sel.verdict!=='no'?`<div class="btnrow" style="margin-top:8px"><button class="btn small" data-action="lift-enq" data-u="${sel.u}">New enquiry with ${sel.u}</button></div>`:''}</div></div>
+        </div>` : ''}
+    </div>
+    ${sel ? `<div class="panel"><div class="panel-head"><h3>${sel.u} ${esc(uName(sel.u))}: load chart (t)</h3><button class="btn small" data-action="lift-edit" data-u="${sel.u}">Edit chart</button></div><div class="in" style="padding:8px">${chartTable(sel.u, sel.best, sel.gross)}<small class="muted">Orange: the cell used. Green: cells where this load is ${LIFT_OK*100}% or less of chart. Click another crane above to see its chart.</small></div></div>` : ''}` : ''}`;
+}
+function chartsEditor(){
+  const u = state.chartU, c = charts[u];
+  return `<div class="split">
+    <div class="panel"><div class="list">${Object.keys(charts).map(k=>`<button class="li" data-chartu="${k}" aria-current="${k===u}"><div class="li-main"><b>${k} ${esc(uName(k))}</b><small>${esc(mOf(k).type)} · ${charts[k].booms.length} boom lengths</small></div><span class="pill ${charts[k].verified?'ok':'crit'}">${charts[k].verified?'Verified':'Not verified'}</span></button>`).join('')}</div>
+      <div class="in" style="padding:10px 14px"><small class="muted">Each crane needs a chart for every set-up it is used in (outrigger width, counterweight, jib). Add the main one first: outriggers fully extended, 360°.</small></div></div>
+    <div class="detail">
+      <div class="sect"><h3>${u} ${esc(uName(u))} <span class="pill ${c.verified?'ok':'crit'}">${c.verified?'Verified '+esc(c.verifiedBy||''):'Not verified'}</span></h3><div class="in form">
+        <label class="full">Set-up this chart is for<input type="text" data-geo="${u}|cfg" value="${esc(c.cfg)}"></label>
+        <label>Boom foot height (m)<input type="number" step="0.1" data-geo="${u}|h0" value="${c.h0}"></label>
+        <label>Boom foot offset from slew centre (m)<input type="number" step="0.1" data-geo="${u}|a" value="${c.a}"></label>
+        <label>Hook block weight (t)<input type="number" step="0.05" data-geo="${u}|hook" value="${c.hook}"></label>
+        <label>Source<input type="text" value="${esc(c.pdf || c.source)}" readonly></label>
+      </div></div>
+      <div class="sect"><h3>Rated capacity (t) <span class="btnrow"><button class="btn small" data-action="lc-addrow">+ Radius</button><button class="btn small" data-action="lc-addcol">+ Boom length</button></span></h3><div class="in" style="padding:8px">
+        <div class="tbl-wrap"><table class="lc"><thead><tr><th>Radius \\ Boom</th>${c.booms.map((L,bi)=>`<th><input class="ratein" type="number" step="0.01" data-boom="${u}|${bi}" value="${L}" aria-label="Boom length ${bi+1}"></th>`).join('')}</tr></thead><tbody>
+          ${c.rows.map((row,ri)=>`<tr><th><input class="ratein" type="number" step="0.5" data-rad="${u}|${ri}" value="${row.r}" aria-label="Radius"></th>${row.caps.map((v,bi)=>`<td><input class="ratein" type="number" step="0.05" data-cell="${u}|${ri}|${bi}" value="${v??''}" aria-label="Capacity at ${row.r} m, boom ${c.booms[bi]} m"></td>`).join('')}</tr>`).join('')}
+        </tbody></table></div><small class="muted">Leave a cell empty where the chart has no value (boom angle out of range). Values exclude the hook block and rigging, as on most manufacturer charts.</small></div></div>
+      <form class="docbar" data-form="lc-paste"><label class="label" for="lcPaste">Paste from Excel: first row boom lengths, first column radius</label>
+        <textarea id="lcPaste" rows="4" placeholder="Radius&#9;9.35&#9;15.15&#9;20.95&#10;3.0&#9;25.00&#9;&#9;&#10;3.5&#9;23.50&#9;18.00&#9;"></textarea>
+        <div class="btnrow"><button class="btn">Replace chart with pasted table</button></div></form>
+      <div class="docbar boss"><span class="label">Verify against the manufacturer's chart</span>
+        <div class="btnrow"><input type="file" id="lcPdf" accept="application/pdf,image/*"><button class="btn primary" data-action="lc-verify">Mark verified</button></div>
+        <small class="muted">Attach the manufacturer's load chart (PDF or photo), check every value, then mark verified. Any later change sets it back to not verified.</small></div>
+    </div></div>`;
+}
+const chartChanged = u => { const c = charts[u]; if(c.verified){ c.verified = false; toast('Chart changed: it needs verifying again'); } };
+
+document.addEventListener('click', e => {
+  if(e.target.closest('input,select,textarea,canvas')) return;
+  const a = e.target.closest('[data-lifttab],[data-liftsel],[data-chartu],[data-action^="lift-"],[data-action^="lc-"]');
+  if(!a) return;
+  const d = a.dataset;
+  if(d.lifttab){ state.liftTab = d.lifttab; return render(); }
+  if(d.liftsel){ state.liftSel = d.liftsel; return render(); }
+  if(d.chartu){ state.chartU = d.chartu; return render(); }
+  const act = d.action, c = charts[state.chartU];
+  if(act==='lift-from-enq'){ const x = enq(d.id); state.lift = {...x.lift, rig:0.2, head:3, from:x.from, to:x.to, done:true}; state.liftTab = 'find'; state.liftSel = null; closeSheet(); return setView('lift'); }
+  if(act==='lift-edit'){ state.chartU = d.u; state.liftTab = 'charts'; return render(); }
+  if(act==='lift-enq'){ const j = state.lift, x = liftCheck(d.u, j);
+    state.ne = neDefaults({need:mOf(d.u).type, k:'wet', from:j.from||addDays(TODAY,7), to:j.to||addDays(TODAY,11),
+      notes:`Lift: ${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high. Crane selector: ${d.u} ${uName(d.u)}, boom ${x.best.L} m, ${Math.round(x.best.util*100)}% of chart${charts[d.u].verified?'':' (chart not verified)'}.`});
+    return openNewEnquiry(); }
+  if(act==='lc-addrow'){ const last = c.rows[c.rows.length-1]; c.rows.push({r:(last?last.r:0)+2, caps:c.booms.map(()=>null)}); chartChanged(state.chartU); return render(); }
+  if(act==='lc-addcol'){ c.booms.push(+(c.booms[c.booms.length-1]+4).toFixed(2)); c.rows.forEach(row=>row.caps.push(null)); chartChanged(state.chartU); return render(); }
+  if(act==='lc-verify'){ if(!boss()){ toast('Only the Head Manager can verify a load chart'); return; }
+    const f = $('#lcPdf').files[0]; if(!f){ toast("Attach the manufacturer's chart first"); return; }
+    c.verified = true; c.pdf = f.name; c.verifiedBy = `by ${staff.HM.name}, ${fmtDY(TODAY)}`; toast(`${state.chartU} chart verified`); return render(); }
+});
+document.addEventListener('change', e => {
+  const t = e.target, d = t.dataset;
+  if(d.geo){ const [u,f] = d.geo.split('|'); charts[u][f] = f==='cfg' ? t.value : +t.value; chartChanged(u); return; }
+  if(d.boom){ const [u,bi] = d.boom.split('|'); charts[u].booms[+bi] = +t.value; chartChanged(u); return; }
+  if(d.rad){ const [u,ri] = d.rad.split('|'); charts[u].rows[+ri].r = +t.value; charts[u].rows.sort((x,y)=>x.r-y.r); chartChanged(u); return render(); }
+  if(d.cell){ const [u,ri,bi] = d.cell.split('|'); charts[u].rows[+ri].caps[+bi] = t.value==='' ? null : +t.value; chartChanged(u); return; }
+});
+document.addEventListener('submit', e => {
+  const f = e.target;
+  if(f.dataset.form==='lift'){ e.preventDefault(); const fd = new FormData(f), n = k => +(fd.get(k)||0);
+    if(n('w')<=0 || n('r')<=0){ toast('Enter the load weight and radius'); return; }
+    state.lift = {w:n('w'), r:n('r'), h:n('h'), rig:n('rig'), head:n('head'), from:fd.get('from')||'', to:fd.get('to')||'', done:true};
+    if(state.lift.to && state.lift.from && state.lift.to < state.lift.from) state.lift.to = state.lift.from;
+    state.liftSel = null; return render(); }
+  if(f.dataset.form==='lc-paste'){ e.preventDefault();
+    const lines = $('#lcPaste').value.trim().split(/\r?\n/).map(l=>l.split(/\t|;|,(?=\s*\d)/).map(x=>x.trim()));
+    if(lines.length < 2){ toast('Paste the header row and at least one radius row'); return; }
+    const booms = lines[0].slice(1).map(Number).filter(v=>v>0);
+    const rows = lines.slice(1).map(l=>({r:+l[0], caps:booms.map((_,i)=>{ const v = l[i+1]; return v===undefined || v==='' || v==='-' ? null : +v; })})).filter(r=>r.r>0);
+    if(!booms.length || !rows.length || rows.some(r=>r.caps.some(v=>v!=null && !(v>0)))){ toast('Could not read the table: check numbers and tabs'); return; }
+    const c = charts[state.chartU]; c.booms = booms; c.rows = rows.sort((x,y)=>x.r-y.r); c.source = 'Pasted table'; chartChanged(state.chartU);
+    toast(`Chart replaced: ${booms.length} boom lengths × ${rows.length} radii`); return render(); }
 });
 
 /* ---------- sheet plumbing ---------- */
