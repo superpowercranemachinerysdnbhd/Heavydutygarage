@@ -52,6 +52,7 @@ export default function NewJobForm({ action, units, leads, busyBays, emergency, 
       <label>{t("f.category")}<select className="field" name="category" value={cat} onChange={(e) => setCat(e.target.value as Category)}>{categoryCodes().map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select></label>
       <label>{t("f.priority")}<select className="field" name="priority" key={cat} defaultValue={catPriority(cat)}>{PRIORITIES.map((p) => <option key={p} value={p}>{priLabel(t, p)}</option>)}</select></label>
       <WherePicker defaultWhere={emergency ? OUTSIDE : undefined} busy={busyBays} />
+      <label>{t("f.reportedOn")}<input type="date" name="openedAt" defaultValue={today} max={today} required /><small className="muted">{t("f.reportedOnHelp")}</small></label>
       <label>{t("f.dueOptional")}<input type="date" name="dueDate" defaultValue={emergency ? today : ""} min={today} /></label>
       <label className="full set-check" style={{ alignItems: "flex-start" }}><input type="checkbox" name="deferred" /> <span><b>{t("f.deferred")}</b><br /><small className="muted">{t("f.deferredHelp")}</small></span></label>
       <label>{t("f.lead")}<select className="field" name="leadId" defaultValue=""><option value="">{t("f.assignLater")}</option>{leads.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}</select></label>

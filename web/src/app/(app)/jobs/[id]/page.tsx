@@ -16,6 +16,7 @@ import SignaturePad from "@/components/SignaturePad";
 import SubmitButton from "@/components/SubmitButton";
 import ChatRoom from "@/components/ChatRoom";
 import PhotoInput from "@/components/PhotoInput";
+import StatusPicker from "@/components/StatusPicker";
 import { ServiceDue } from "@/components/ServicePanel";
 import { servicesFor } from "@/lib/services";
 import { isServiceCategory, itemLabel, listItems } from "@/lib/lists";
@@ -101,7 +102,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           {hidden("jobId", job.id)}
           <span className="label status-now">{t("job.statusNow", { status: statusLabel(t, job.status) })}</span>
           <label className="label" htmlFor="to">{t("job.moveTo")}</label>
-          <select className="field" id="to" name="to">{statusOptions.map((s) => <option key={s} value={s}>{statusLabel(t, s)}</option>)}</select>
+          <StatusPicker options={statusOptions.map((s) => ({ value: s, label: statusLabel(t, s) }))} openedAt={job.openedAt} today={today()} dateLabel={t("job.completedOn")} />
           <SubmitButton className="btn small primary">{t("job.move")}</SubmitButton>
         </form>
       )}
@@ -390,6 +391,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             <div><span className="label">{t("job.customer")}</span><b>{customer.name}</b></div>
             <div><span className="label">{t("job.contact")}</span><b>{customer.contactName ?? "—"} · <span className="mono">{customer.phone ?? ""}</span></b></div>
             <div><span className="label">{t("job.openedDue")}</span><b>{fmtDate(job.openedAt, false, locale)} → {fmtDate(job.dueDate, false, locale)}</b></div>
+            {job.closedAt && <div><span className="label">{t("job.completedOn")}</span><b>{fmtDate(job.closedAt, false, locale)}</b></div>}
           </div></section>
 
           {can(user.role, "money.cost") && (

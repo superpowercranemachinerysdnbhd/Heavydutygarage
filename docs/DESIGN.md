@@ -703,3 +703,9 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Job photos can be deleted: by whoever took them while the work order is open, and by the Supervisor / Head Manager at any time. The file is removed from storage too, and the activity log records it.
 - Status chips and the status list go Received → In Progress → Pending Parts → Completed → Deferred, so parked work sits after the finished work.
 - "Add part bought": the supplier is one box where you type a name or pick one from the list. A name not on the list (any capitalisation) becomes a new supplier, and a hidden supplier with the same name is shown again.
+
+### 38. Work orders entered late (Oct 2026)
+- New work order: "Date reported" (today by default, never in the future). The job number uses that date's year.
+- Moving a work order to Completed asks "Completed on" (today by default, between the reported date and today).
+- Edit details: the reported date can be changed, and on a completed work order the completion date too. The job page shows "Completed on".
+- Recommended flow for a job that is already finished: create it with the real reported date → add labour (each entry has its own date), parts and photos → Completed on the real day.

@@ -7,6 +7,7 @@ import { can } from "@/lib/permissions";
 import { PRIORITIES } from "@/lib/jobs";
 import { categoryCodes } from "@/lib/lists";
 import { unitRef } from "@/lib/machine-types";
+import { today } from "@/lib/format";
 import { getI18n } from "@/i18n/server";
 import { catLabel, priLabel } from "@/i18n/labels";
 import { Notice } from "@/components/ui";
@@ -39,6 +40,8 @@ export default async function EditJobPage({ params, searchParams }: { params: Pr
         <input type="hidden" name="jobId" value={job.id} />
         <label>{t("f.category")}<select className="field" name="category" defaultValue={job.category}>{[...new Set([...categoryCodes(), job.category])].map((k) => <option key={k} value={k}>{catLabel(t, k)}</option>)}</select></label>
         <label>{t("f.priority")}<select className="field" name="priority" defaultValue={job.priority}>{PRIORITIES.map((p) => <option key={p} value={p}>{priLabel(t, p)}</option>)}</select></label>
+        <label>{t("f.reportedOn")}<input type="date" name="openedAt" defaultValue={job.openedAt} max={today()} required /></label>
+        {job.status === "closed" && <label>{t("job.completedOn")}<input type="date" name="closedAt" defaultValue={job.closedAt ?? ""} min={job.openedAt} max={today()} /></label>}
         <label>{t("f.dueOptional")}<input type="date" name="dueDate" defaultValue={job.dueDate ?? ""} /></label>
         <WherePicker defaultWhere={job.siteType === "field" ? OUTSIDE : job.siteLocation || TBD} defaultAddress={job.siteType === "field" ? job.siteLocation : ""} />
         <label>{t("f.hourMeterIn")}<input type="number" name="hourMeterIn" min={0} defaultValue={job.hourMeterIn ?? ""} /></label>

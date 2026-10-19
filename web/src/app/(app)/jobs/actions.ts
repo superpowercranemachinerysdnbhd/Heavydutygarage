@@ -21,6 +21,7 @@ import { activityText, statusLabel } from "@/i18n/labels";
 const { jobs, jobTeam } = schema;
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
+const isDate = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
 const num = (f: FormData, k: string) => { const v = Number(f.get(k)); return Number.isFinite(v) ? v : NaN; };
 
 /** Return to the job page with a message in the user's language. */
@@ -87,6 +88,7 @@ export async function createJob(form: FormData) {
   const priority = str(form, "priority") as Priority;
   const { siteType, siteLocation } = locationFrom(form);
   const dueDate = str(form, "dueDate");
+  const openedAt = str(form, "openedAt") || today();
   const complaint = str(form, "complaint");
   const leadId = num(form, "leadId") || null;
   const hourMeter = num(form, "hourMeter");
@@ -98,6 +100,7 @@ export async function createJob(form: FormData) {
   if (!siteLocation && siteType === "field") fail("err.siteAddress");
   if (siteType === "workshop" && siteLocation && !bayCodes().includes(siteLocation)) fail("err.bay");
   if (dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) fail("err.due");
+  if (!isDate(openedAt) || openedAt > today()) fail("err.reportedDate");
   if (!complaint) fail("err.complaint");
   const before = photosFrom(form);
   if ("error" in before) fail(before.error, before.vars);
@@ -121,7 +124,7 @@ export async function createJob(form: FormData) {
   const [unit] = await db.select().from(schema.machineUnits).where(eq(schema.machineUnits.id, unitId));
   if (!unit) fail("err.machineNotFound");
 
-  const d = today();
+  const d = openedAt; // a late entry keeps its real reported date (and that year's job number)
   const en = translator("en");
   const id = await db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(4201)`);
@@ -162,7 +165,10 @@ export async function setStatus(form: FormData) {
   const openTasks = await db.select({ id: schema.jobTasks.id }).from(schema.jobTasks).where(and(eq(schema.jobTasks.jobId, jobId), sql`${schema.jobTasks.doneAt} is null`));
   const check = checkTransition({ role: user.role, from: job.status, to, isOnJob: onJob, qcTotal: qc.length, qcPassed: qc.filter((q) => q.passedAt).length, signedOff: !!job.signoffAt, tasksOpen: openTasks.length });
   if (!check.ok) back(user, jobId, { error: check.reason, vars: check.vars });
-  await db.update(jobs).set({ status: to, statusSince: new Date(), ...(to === "closed" ? { closedAt: today() } : {}) }).where(eq(jobs.id, jobId));
+  // Completion date: today, or an earlier day (not before the reported date) when the work order is entered late.
+  const closedOn = str(form, "closedAt") || today();
+  if (to === "closed" && (!isDate(closedOn) || closedOn > today() || closedOn < job.openedAt)) back(user, jobId, { error: "err.closedDate" });
+  await db.update(jobs).set({ status: to, statusSince: new Date(), ...(to === "closed" ? { closedAt: closedOn } : {}) }).where(eq(jobs.id, jobId));
   await addActivity(jobId, user.id, "act.status", { from: job.status, to, name: user.name });
   if (!can(user.role, "job.anyStatus") && (to === "awaiting_parts" || to === "closed"))
     await notifyRoles(["supervisor"], { key: to === "closed" ? "nt.done" : "nt.waitingParts", vars: { machine: await jobMachine(jobId), name: user.name }, url: `/jobs/${jobId}` }, user.id);
@@ -226,8 +232,11 @@ export async function updateDetails(form: FormData) {
   const complaint = str(form, "complaint");
   if (!complaint) fail("err.complaint");
   if (hm && !(Number.isInteger(Number(hm)) && Number(hm) >= 0)) fail("err.yearHm");
+  const openedAt = str(form, "openedAt") || job.openedAt, closedAt = str(form, "closedAt") || job.closedAt;
+  if (!isDate(openedAt) || openedAt > today()) fail("err.reportedDate");
+  if (job.status === "closed" && closedAt && (!isDate(closedAt) || closedAt > today() || closedAt < openedAt)) fail("err.closedDate");
   await db.update(jobs).set({
-    category, priority, dueDate: dueDate || null, siteType, siteLocation, complaint,
+    category, priority, dueDate: dueDate || null, siteType, siteLocation, complaint, openedAt, ...(job.status === "closed" ? { closedAt } : {}),
     reportedBy: str(form, "reportedBy") || null, ...(hm ? { hourMeterIn: Number(hm) } : {}),
   }).where(eq(jobs.id, jobId));
   if (siteType === "workshop" && siteLocation && siteLocation !== job.siteLocation) {
