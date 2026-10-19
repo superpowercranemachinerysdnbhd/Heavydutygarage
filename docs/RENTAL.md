@@ -1,8 +1,8 @@
-# Heavyworks Rental: Machinery Hire Module Design
+# Super Power Crane Machinery Sdn Bhd: Rental System Design
 
 Software for running a heavy machinery rental business in Malaysia: customer enquiries and follow-ups, quotations and orders (hires), the fleet and its bookings, delivery and return, operators and drivers, staff rosters and leave, a shared calendar of everything that is happening, billing and reports. The fleet is cranes, excavators, loaders, forklifts, lifts and generators. It covers four kinds of hire: **dry hire** (machine only), **wet hire** (machine with our operator), **transport** (lowloader delivery and collection) and **long-term contracts** (monthly hire with an hour allowance).
 
-It is a **module of Heavyworks Garage**, not a separate system. It shares the same login, roles, languages (English, Bahasa Melayu, Chinese), companies, machines and staff. The workshop and the rental desk see the same machine, so:
+The system is for **Super Power Crane Machinery Sdn Bhd**. It is built as a module of the Heavyworks Garage workshop system in this repository, not a separate system. It shares the same login, roles, languages (English, Bahasa Melayu, Chinese), companies, machines and staff. The workshop and the rental desk see the same machine, so:
 
 - a machine that breaks down on hire becomes an emergency job in the workshop
 - a machine that comes back damaged becomes a chargeable repair job
@@ -520,7 +520,24 @@ An account-mapping table sets which Bukku account each kind of line posts to (hi
 - **Leave:** keep it in one system only (decision for the owner): apply here, with the roster clash check, and send to Worksy; or apply in Worksy and import.
 - EPF, SOCSO, EIS and PCB stay in Worksy. Ask Worksy for API access; if they provide it, these become automatic like Bukku.
 
-## 25. Open questions for the owner
+## 25. Dashboard (first page)
+
+The first page after login for the Head Manager, Supervisor and Sales (operators and drivers go straight to their phone screen). Every tile and panel opens the page behind it.
+
+| Area | Shows |
+|---|---|
+| Headline tiles | Machinery on rental (out of the fleet) · utilisation rate this month, with the change against last month · hire revenue this month to date and the amount owed to us · attendance today (present out of staff) · sales pipeline (weighted) and follow-ups due · fuel this month (litres, RM, fills to check) |
+| Fleet utilisation | Line chart of the last six months against the 70% target; this month shown as "to date" |
+| Attendance today | Who is on site or on the road, in the yard or office, on leave / MC, and not clocked in; late arrivals listed by name |
+| Machinery on rental | Every machine out: customer and site, dry / wet and basis, operator, days on hire, end date, off-hire notices and hires ending within 7 days |
+| Utilisation by type | Mobile cranes, lifting and access, earthmoving, power: share of days on hire and how many are out today |
+| Hire revenue by month | Invoiced hire revenue before SST for six months (Head Manager and Supervisor; hidden from operators) |
+| Needs attention | The most urgent items from Today (missing timesheets, deposits, off-hires, quotations with no machine, rejected e-invoices, overdue invoices) and licences / documents expiring within 60 days |
+| Next 7 days | Deliveries and collections with vehicle and driver |
+
+*Today* stays as the working to-do list behind the dashboard.
+
+## 26. Open questions for the owner
 
 1. How many machines are in the hire fleet, and do we cross-hire machines in from other companies when we run short?
 2. Which machines are only wet hire (cranes?) and which are only dry hire?

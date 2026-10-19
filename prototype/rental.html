@@ -1,4 +1,4 @@
-<title>Heavyworks Rental</title>
+<title>Super Power Crane Machinery</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,6 +18,7 @@
   --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
   --r-lg:14px; --r-md:9px;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0c1413; --surface:#13201f; --surface-2:#1a2b29; --ink:#e2ece9; --muted:#91a8a3; --line:#28403d;
@@ -27,6 +28,7 @@
   --c-emg:#ff6b5e; --c-diag:#6ea8f0; --c-pm:#5fcb8a; --c-minor:#4cc8c4; --c-major:#a597f2;
   --c-hyd:#f5964a; --c-fab:#c99760; --c-paint:#ec6fb7; --c-warr:#9aa7a3;
   --shadow:0 1px 2px rgba(0,0,0,.5); --chart:#4fc3bf; color-scheme:dark;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
 }}
 :root[data-theme="dark"]{
   --bg:#0c1413; --surface:#13201f; --surface-2:#1a2b29; --ink:#e2ece9; --muted:#91a8a3; --line:#28403d;
@@ -36,6 +38,7 @@
   --c-emg:#ff6b5e; --c-diag:#6ea8f0; --c-pm:#5fcb8a; --c-minor:#4cc8c4; --c-major:#a597f2;
   --c-hyd:#f5964a; --c-fab:#c99760; --c-paint:#ec6fb7; --c-warr:#9aa7a3;
   --shadow:0 1px 2px rgba(0,0,0,.5); --chart:#4fc3bf; color-scheme:dark;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
 }
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -481,6 +484,32 @@ input[type=time]{border:1px solid var(--line);background:var(--surface);border-r
 td.r.num{white-space:nowrap}
 .lc .ratein{width:64px}
 .liftsvg{width:100%;height:auto;display:block;margin-bottom:6px}
+.dk{grid-template-columns:repeat(6,minmax(0,1fr))}
+@media (max-width:1300px){.dk{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.dk{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.dk .kpi{cursor:pointer;text-align:left;font:inherit;color:inherit;background:var(--surface);gap:4px}
+.dk .kpi:hover{border-color:var(--muted)}
+.dk .kpi .label{font-size:.62rem}
+.kpi small.up{color:var(--ok);font-weight:600}.kpi small.down{color:var(--crit);font-weight:600}
+.dgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.dgrid .span2{grid-column:1/-1}
+@media (max-width:900px){.dgrid{grid-template-columns:minmax(0,1fr)}}
+.dchart{width:100%;height:auto;display:block}
+.dchart .gl{stroke:var(--line);stroke-width:1}
+.dchart .ax{fill:var(--muted);font:500 11px var(--f-mono)}
+.dchart .target{stroke:var(--muted);stroke-width:1;stroke-dasharray:4 4}
+.dchart .area{fill:color-mix(in srgb,var(--chart) 12%,transparent)}
+.dchart .ln{fill:none;stroke:var(--chart);stroke-width:2;stroke-linejoin:round}
+.dchart .pt{fill:var(--chart);stroke:var(--surface);stroke-width:2}
+.dchart .pt.open{fill:var(--surface);stroke:var(--chart)}
+.dchart .endv{fill:var(--ink);font:700 12px var(--f-body)}
+.dchart .bar-m{fill:var(--chart)}
+.dchart .bar-m.partial{fill:color-mix(in srgb,var(--chart) 35%,var(--surface));stroke:var(--chart);stroke-width:1.5}
+.segbar{display:flex;gap:2px;height:16px;border-radius:5px;overflow:hidden}
+.segbar i{display:block;height:100%}
+.segbar i.none,.none-sw{background:repeating-linear-gradient(135deg,var(--warn) 0 3px,transparent 3px 6px);box-shadow:inset 0 0 0 1.5px var(--warn)}
+.none-sw{width:10px;height:10px;border-radius:2px;flex:none;display:inline-block}
+.mini{display:flex;flex-direction:column;gap:6px;font-size:.84rem;border-top:1px solid var(--line);padding-top:10px}
 .grp-h{padding:7px 14px;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
 button.step{background:none;border-left:0;border-right:0;border-bottom:0;cursor:pointer;font-family:inherit}
 button.step:disabled{cursor:default}
@@ -583,7 +612,7 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
   <div class="side-top">
     <div class="side-brand">
       <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="8" style="fill:var(--accent)"/><path d="M8 24V8h2v16M10 9l13 3M10 13l13-1M21 12v5" style="fill:none;stroke:var(--accent-ink);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"/><path d="M21 17c0 2 2.6 2 2.6 0" style="fill:none;stroke:var(--accent-ink);stroke-width:1.8;stroke-linecap:round"/><path d="M6 24h7" style="stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round"/></svg>
-      <div><b>Heavyworks</b><small>Rental &amp; lifting</small></div>
+      <div><b>Super Power Crane</b><small>Machinery Sdn Bhd</small></div>
     </div>
     <div class="side-foot">
       <label for="roleSel">Viewing as</label>
@@ -597,8 +626,11 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
     </div>
   </div>
   <nav class="tabs" aria-label="Sections">
-    <div class="navg"><span class="navh">Sell</span>
+    <div class="navg"><span class="navh">Overview</span>
+      <button data-view="dashboard">Dashboard</button>
       <button data-view="today">Today</button>
+    </div>
+    <div class="navg"><span class="navh">Sell</span>
       <button data-view="enquiries">Enquiries</button>
       <button data-view="customers">Customers</button>
     </div>
@@ -625,10 +657,11 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
 </aside>
 <div class="shell">
 
-<div class="wrap"><p class="sample-note">Rental module prototype with example data (today is set to Fri 16 Oct 2026). Changes stay until the page reloads. Switch "Viewing as" to see each role: the Supervisor sees rates and invoices but not machine cost or profit; Sales works enquiries, customers and follow-ups; operators see only their own timesheet and leave, with no prices. The workshop prototype and the full design (docs/RENTAL.md) are in the project repository.</p></div>
+<div class="wrap"><p class="sample-note">Prototype of the Super Power Crane Machinery system with example data (today is set to Fri 16 Oct 2026). Changes stay until the page reloads. Switch "Viewing as" to see each role: the Supervisor sees rates and invoices but not machine cost or profit; Sales works enquiries, customers and follow-ups; operators see only their own timesheet and leave, with no prices. The full design (docs/RENTAL.md) is in the project repository.</p></div>
 
 <main class="wrap">
-  <section class="view" id="v-today"></section>
+  <section class="view" id="v-dashboard"></section>
+  <section class="view" id="v-today" hidden></section>
   <section class="view" id="v-enquiries" hidden></section>
   <section class="view" id="v-customers" hidden></section>
   <section class="view" id="v-calendar" hidden></section>
@@ -678,8 +711,8 @@ function ph(label, hue){
 
 /* ---------- settings ---------- */
 const TODAY = '2026-10-16', G0 = '2026-09-28', GN = 42;
-const CO = {name:'Heavyworks Garage Sdn Bhd', ssm:'202001023456 (1371234-K)', tin:'C25841230090', sst:'W10-2507-32000417', msic:'77300 Renting of other machinery and equipment',
-  addr:'Lot 12, Jalan Perusahaan 3, Kawasan Perindustrian Bukit Raja, 41050 Klang, Selangor', phone:'03-3341 2288'};
+const CO = {name:'Super Power Crane Machinery Sdn Bhd', ssm:'(sample) 2020XXXXXXXX', tin:'(sample) C2XXXXXXXXX', sst:'(sample) W10-XXXX-XXXXXXXX', msic:'77300 Renting of other machinery and equipment',
+  addr:'Company address (set in Settings)', phone:'Office phone (set in Settings)'};
 const RULES = {dayHrs:8, minH:4, mHrs:200, sunX:1.5, standbyPct:50, bdGrace:2, sst:8, allowance:80};
 const GROUPS = {crane:'Mobile cranes', lift:'Lifting & access', earth:'Earthmoving', power:'Power', transport:'Our transport'};
 const models = {
@@ -723,6 +756,10 @@ const staff = {
   O3:{name:'Zulkifli bin Hassan',role:'Lorry crane operator',certs:{'DOSH lorry crane operator':'2027-02-01','CIDB green card':'2027-03-01','GDL licence':'2027-06-30'},skills:['crane']},
   O4:{name:'Tan Kok Wai',role:'Excavator operator',certs:{'CIDB green card':'2027-01-10'},skills:['earth']},
   O5:{name:'Rajan a/l Muniandy',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-04-02','CIDB green card':'2027-09-09'},skills:['crane']},
+  O6:{name:'Lim Boon Keat',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-08-19','CIDB green card':'2027-02-03'},skills:['crane']},
+  O7:{name:'Mohd Faizal bin Ismail',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-01-25','CIDB green card':'2026-12-07'},skills:['crane']},
+  O8:{name:'Kumar a/l Selvam',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-06-11','CIDB green card':'2027-04-30'},skills:['crane']},
+  O9:{name:'Ng Wei Liang',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-03-16','CIDB green card':'2027-05-22'},skills:['crane']},
   D1:{name:'Suresh a/l Kumar',role:'Lowloader driver',certs:{'GDL licence':'2027-01-20'}},
   D2:{name:'Hafiz bin Rahman',role:'Lowloader driver',certs:{'GDL licence':'2026-10-28'}},
 };
@@ -759,6 +796,44 @@ let zones = [
 ];
 const STATES = ['Selangor','Kuala Lumpur','Putrajaya','Negeri Sembilan','Melaka','Johor','Perak','Pahang','Penang','Kedah','Terengganu','Kelantan','Perlis'];
 
+/* The company's crane fleet. Types and capacity classes come from the model names; confirm each with the owner. */
+Object.assign(models, {
+  GR600:{make:'Tadano',model:'GR-600-1',type:'Rough terrain crane 60 t',grp:'crane',size:'self'},
+  SS500:{make:'Kato',model:'SS-500SP',type:'Truck crane 50 t',grp:'crane',size:'self'},
+  TL500:{make:'Tadano',model:'TL-500-3',type:'Truck crane 50 t',grp:'crane',size:'self'},
+  ATF60:{make:'Faun',model:'ATF 60-4',type:'All terrain crane 60 t',grp:'crane',size:'self'},
+  SL700:{make:'Kato',model:'SL-700R',type:'Rough terrain crane 70 t',grp:'crane',size:'self'},
+  SA1100:{make:'Sumitomo',model:'SA-1100',type:'Mobile crane 110 t',grp:'crane',size:'self'},
+  SL1300:{make:'Kato',model:'KA-1300SL',type:'All terrain crane 130 t',grp:'crane',size:'self'},
+  NK160:{make:'Kato',model:'NK-160',type:'Truck crane 16 t',grp:'crane',size:'self'},
+  NK200:{make:'Kato',model:'NK-200E-III',type:'Truck crane 20 t',grp:'crane',size:'self'},
+});
+Object.assign(fleet, {
+  'RC-02':{m:'GR600',plate:'WYD 6001',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:1450000,ytd:{rev:298000,ws:24400,opx:46000,util:66}},
+  'TC-03':{m:'SS500',plate:'BJH 5002',year:2010,hm:24310,docs:{cf:'2026-12-20',road:'2027-01-05',ins:'2027-01-05',pusp:'2027-02-11'},cost:620000,ytd:{rev:205000,ws:41800,opx:39000,util:58}},
+  'TC-04':{m:'TL500',plate:'WRK 5003',year:2014,hm:16880,docs:{cf:'2027-02-26',road:'2027-05-02',ins:'2027-05-02',pusp:'2027-03-15'},cost:780000,ytd:{rev:232000,ws:30500,opx:41000,util:62}},
+  'AT-01':{m:'ATF60',plate:'VFA 6004',year:2016,hm:11250,docs:{cf:'2027-06-07',road:'2027-04-21',ins:'2027-04-21'},cost:1600000,ytd:{rev:318000,ws:35600,opx:47000,util:68}},
+  'MC-01':{m:'SL700',plate:'WMK 7005',year:2015,hm:13960,docs:{cf:'2027-01-14',road:'2027-02-09',ins:'2027-02-09'},cost:1850000,ytd:{rev:356000,ws:44100,opx:52000,util:61}},
+  'MC-02':{m:'SA1100',plate:'WSA 1106',year:2013,hm:18720,docs:{cf:'2026-11-30',road:'2027-01-22',ins:'2027-01-22'},cost:2600000,ytd:{rev:462000,ws:68300,opx:61000,util:54}},
+  'TC-05':{m:'NK160',plate:'BCK 1608',year:1996,hm:31240,docs:{cf:'2027-03-04',road:'2027-02-17',ins:'2027-02-17',pusp:'2027-01-08'},cost:150000,ytd:{rev:88000,ws:21600,opx:30000,util:55}},
+  'TC-06':{m:'NK200',plate:'BDQ 2009',year:2001,hm:27650,docs:{cf:'2027-05-26',road:'2027-04-02',ins:'2027-04-02',pusp:'2027-03-21'},cost:210000,ytd:{rev:104000,ws:19800,opx:32000,util:59}},
+  'MC-03':{m:'SL1300',plate:'WKL 1307',year:2017,hm:9880,docs:{cf:'2027-07-19',road:'2027-03-11',ins:'2027-03-11'},cost:3400000,ytd:{rev:588000,ws:57900,opx:72000,util:52}},
+});
+Object.assign(rates, {
+  'NK250/wet':{hr:280,minH:4,day:2000,month:34000,mHrs:200,ex:190,ot:280},
+  'TL450/wet':{hr:400,minH:4,day:2900,month:50000,mHrs:200,ex:260,ot:400},
+  'RK500/wet':{hr:450,minH:4,day:3200,month:58000,mHrs:200,ex:300,ot:450},
+  'SS500/wet':{hr:440,minH:4,day:3100,month:56000,mHrs:200,ex:290,ot:440},
+  'TL500/wet':{hr:440,minH:4,day:3100,month:56000,mHrs:200,ex:290,ot:440},
+  'GR600/wet':{hr:500,minH:4,day:3600,month:65000,mHrs:200,ex:330,ot:500},
+  'ATF60/wet':{hr:520,minH:4,day:3800,month:68000,mHrs:200,ex:350,ot:520},
+  'SL700/wet':{hr:620,minH:4,day:4500,month:80000,mHrs:200,ex:410,ot:620},
+  'SA1100/wet':{hr:1050,minH:4,day:7500,month:135000,mHrs:200,ex:690,ot:1050},
+  'NK160/wet':{hr:220,minH:4,day:1500,month:26000,mHrs:200,ex:150,ot:220},
+  'NK200/wet':{hr:250,minH:4,day:1750,month:30000,mHrs:200,ex:170,ot:250},
+  'SL1300/wet':{hr:1250,minH:4,day:9000,month:160000,mHrs:200,ex:830,ot:1250},
+});
+
 /* ---------- hires ---------- */
 let hires = [
   {id:'H-2026-0109',c:'C7',site:'Westport warehouse 2, Pulau Indah',state:'Selangor',siteContact:'Mr. Ravi Shankar 012-388 7701',po:'PKL-PO-26-0418',status:'Closed',created:'2026-08-01',cycle:'Monthly in arrears',
@@ -778,6 +853,22 @@ let hires = [
    lines:[{u:'FL-02',k:'dry',basis:'month',from:'2026-09-01',to:'2026-09-30',on:'2026-09-01',off:'2026-09-30',hm:[{d:'2026-09-01',v:6120},{d:'2026-09-30',v:6305}]}],
    trips:[{dir:'Delivery',d:'2026-09-01',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-30',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'}],
    log:[{d:'2026-09-30 16:00',t:'Returned, no damage.'}]},
+  {id:'H-2026-0124',c:'C1',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',siteContact:'En. Rosli (site supervisor) 013-202 4471',po:'BJ/PO/26/0744',status:'On hire',created:'2026-08-10',cycle:'Monthly in arrears',
+   lines:[{u:'MC-02',k:'wet',basis:'month',from:'2026-08-17',to:'2026-12-15',on:'2026-08-17',op:'O6'}],
+   trips:[{dir:'Delivery',d:'2026-08-17',u:'MC-02',veh:null,drv:'O6',zone:'Klang Valley',charge:500,status:'Done',self:true}],
+   log:[{d:'2026-08-17 10:00',t:'On hire for the roof truss lifts. Delivery inspection signed by En. Rosli.'}]},
+  {id:'H-2026-0144',c:'C3',site:'Port Klang Free Zone, pier 3',state:'Selangor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-277',status:'On hire',created:'2026-09-02',cycle:'Monthly in arrears',
+   lines:[{u:'AT-01',k:'wet',basis:'month',from:'2026-09-07',to:'2026-11-30',on:'2026-09-07',op:'O7'}],
+   trips:[{dir:'Delivery',d:'2026-09-07',u:'AT-01',veh:null,drv:'O7',zone:'Klang Valley',charge:500,status:'Done',self:true}],
+   log:[{d:'2026-09-07 09:40',t:'On hire.'}]},
+  {id:'H-2026-0147',c:'C4',site:'Bukit Raja steel warehouse, Klang',state:'Selangor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2241',status:'On hire',created:'2026-09-22',cycle:'Monthly in arrears',
+   lines:[{u:'MC-01',k:'wet',basis:'month',from:'2026-09-28',to:'2026-12-27',on:'2026-09-28',op:'O9'}],
+   trips:[{dir:'Delivery',d:'2026-09-28',u:'MC-01',veh:null,drv:'O9',zone:'Klang Valley',charge:500,status:'Done',self:true}],
+   log:[{d:'2026-09-28 10:20',t:'On hire.'}]},
+  {id:'H-2026-0150',c:'C5',site:'Rawang interchange bridge works',state:'Selangor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0802',status:'On hire',created:'2026-09-25',cycle:'End of hire',
+   lines:[{u:'TC-03',k:'wet',basis:'day',from:'2026-10-01',to:'2026-10-22',on:'2026-10-01',op:'O8'}],
+   trips:[{dir:'Delivery',d:'2026-10-01',u:'TC-03',veh:null,drv:'O8',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-23',u:'TC-03',veh:null,drv:'O8',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   log:[{d:'2026-10-01 09:00',t:'On hire.'}]},
   {id:'H-2026-0141',c:'C1',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',siteContact:'En. Rosli (site supervisor) 013-202 4471',po:'BJ/PO/26/0912',status:'On hire',created:'2026-08-25',cycle:'Monthly in arrears',
    lines:[{u:'RC-01',k:'wet',basis:'month',from:'2026-09-01',to:'2026-11-30',on:'2026-09-01',op:'O1'}],
    trips:[{dir:'Delivery',d:'2026-09-01',u:'RC-01',veh:null,drv:'O1',zone:'Klang Valley',charge:500,status:'Done',self:true}],
@@ -838,7 +929,7 @@ let sheets = [];
 (function genSheets(){
   hires.forEach(h => h.lines.forEach(l => {
     if(l.k!=='wet' || !l.on) return;
-    let hm = fleet[l.u].hm0;
+    let hm = fleet[l.u].hm0 ?? fleet[l.u].hm;
     const last = l.off && l.off < TODAY ? l.off : addDays(TODAY,-1);
     for(let d=l.on; d<=last; d=addDays(d,1)){
       const r = rnd(l.u+d);
@@ -1037,8 +1128,8 @@ const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Pai
 const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
 
 /* ---------- state ---------- */
-const state = {view:'today', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
-try{ const v = localStorage.getItem('hdg-rental-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
+const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
+try{ const v = localStorage.getItem('spc-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
 function setView(v){
@@ -1048,10 +1139,10 @@ function setView(v){
   state.view = v;
   document.querySelectorAll('section.view').forEach(s => s.hidden = s.id !== 'v-'+v);
   document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.view===v ? 'page' : 'false'));
-  try{ localStorage.setItem('hdg-rental-view', v); }catch(e){}
+  try{ localStorage.setItem('spc-view', v); }catch(e){}
   render();
 }
-function render(){ ({today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
+function render(){ ({dashboard:renderDashboard,today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
 function rerender(){ render(); refreshSheet(); }
 
 /* ---------- Today ---------- */
@@ -1672,13 +1763,13 @@ Object.assign(staff, {
   S2:{name:'Aisyah binti Karim',role:'Sales & customer service'},
   S3:{name:'Lee Mei Fong',role:'Accounts'},
 });
-Object.entries({HM:'012-300 1001',S1:'012-388 2201',S2:'012-660 3317',S3:'016-224 9081',O1:'013-447 2190',O2:'016-301 8824',O3:'019-662 0475',O4:'012-905 3316',O5:'017-338 4021',D1:'012-771 0932',D2:'013-280 5517'}).forEach(([k,v])=>staff[k].phone=v);
-const OFFICE = ['HM','S1','S2','S3'], FIELD = ['O1','O2','O3','O4','O5','D1','D2'];
+Object.entries({HM:'012-300 1001',S1:'012-388 2201',S2:'012-660 3317',S3:'016-224 9081',O1:'013-447 2190',O6:'012-218 5530',O7:'019-307 4416',O8:'016-552 9083',O9:'017-664 1209',O2:'016-301 8824',O3:'019-662 0475',O4:'012-905 3316',O5:'017-338 4021',D1:'012-771 0932',D2:'013-280 5517'}).forEach(([k,v])=>staff[k].phone=v);
+const OFFICE = ['HM','S1','S2','S3'], FIELD = ['O1','O2','O3','O4','O5','O6','O7','O8','O9','D1','D2'];
 const meStaff = () => ({boss:'HM',supervisor:'S1',sales:'S2'})[role()] || state.me;
 const ROLE_VIEWS = {
-  boss:['today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates','reports','connect'],
-  supervisor:['today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates'],
-  sales:['today','enquiries','customers','hires','planner','lift','calendar','fleet','rates'],
+  boss:['dashboard','today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates','reports','connect'],
+  supervisor:['dashboard','today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates'],
+  sales:['dashboard','today','enquiries','customers','hires','planner','lift','calendar','fleet','rates'],
   operator:['timesheets'],
 };
 let leave = [
@@ -1688,8 +1779,8 @@ let leave = [
   {id:4,s:'S2',type:'Annual leave',from:'2026-11-09',to:'2026-11-09',status:'Approved',note:''},
 ];
 const LTYPES = ['Annual leave','Medical leave (MC)','Emergency leave','Unpaid leave','Replacement leave'];
-const leaveBal = {HM:14,S1:10,S2:12,S3:9,O1:8,O2:3,O3:11,O4:6,O5:9,D1:7,D2:4};
-const CLOCK = {O1:'07:46 · Seksyen 13 site',O2:'07:58 · Jalan Kapar site',O3:'07:30 · yard',O4:'07:55 · yard',O5:'08:05 · Pulau Indah',D1:'07:40 · yard',S1:'08:30 · office',S2:'08:41 · office',S3:'08:52 · office',HM:'08:15 · office'};
+const leaveBal = {O6:9,O7:5,O8:12,O9:7,HM:14,S1:10,S2:12,S3:9,O1:8,O2:3,O3:11,O4:6,O5:9,D1:7,D2:4};
+const CLOCK = {O6:'07:41 · Seksyen 13 site',O7:'07:50 · Pulau Indah',O8:'07:57 · Rawang site',O9:'07:48 · Bukit Raja site',O1:'07:46 · Seksyen 13 site',O2:'07:58 · Jalan Kapar site',O3:'07:30 · yard',O5:'08:05 · Pulau Indah',D1:'07:40 · yard',S1:'08:30 · office',S2:'08:41 · office',S3:'08:52 · office',HM:'08:15 · office'};
 
 /* ---------- customers, enquiries, follow-ups ---------- */
 customers.C8 = {name:'Sinar Timur Engineering Sdn Bhd',brn:'201101034455',tin:'C22334455070',sst:'',terms:30,limit:50000,contact:'Mr. Yap Kok Leong',phone:'012-338 7766'};
@@ -2172,44 +2263,6 @@ document.addEventListener('submit', e => {
 });
 
 /* ---------- crane selector & load charts ---------- */
-/* The company's crane fleet. Types and capacity classes come from the model names; confirm each with the owner. */
-Object.assign(models, {
-  GR600:{make:'Tadano',model:'GR-600-1',type:'Rough terrain crane 60 t',grp:'crane',size:'self'},
-  SS500:{make:'Kato',model:'SS-500SP',type:'Truck crane 50 t',grp:'crane',size:'self'},
-  TL500:{make:'Tadano',model:'TL-500-3',type:'Truck crane 50 t',grp:'crane',size:'self'},
-  ATF60:{make:'Faun',model:'ATF 60-4',type:'All terrain crane 60 t',grp:'crane',size:'self'},
-  SL700:{make:'Kato',model:'SL-700R',type:'Rough terrain crane 70 t',grp:'crane',size:'self'},
-  SA1100:{make:'Sumitomo',model:'SA-1100',type:'Mobile crane 110 t',grp:'crane',size:'self'},
-  SL1300:{make:'Kato',model:'KA-1300SL',type:'All terrain crane 130 t',grp:'crane',size:'self'},
-  NK160:{make:'Kato',model:'NK-160',type:'Truck crane 16 t',grp:'crane',size:'self'},
-  NK200:{make:'Kato',model:'NK-200E-III',type:'Truck crane 20 t',grp:'crane',size:'self'},
-});
-Object.assign(fleet, {
-  'RC-02':{m:'GR600',plate:'WYD 6001',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:1450000,ytd:{rev:298000,ws:24400,opx:46000,util:66}},
-  'TC-03':{m:'SS500',plate:'BJH 5002',year:2010,hm:24310,docs:{cf:'2026-12-20',road:'2027-01-05',ins:'2027-01-05',pusp:'2027-02-11'},cost:620000,ytd:{rev:205000,ws:41800,opx:39000,util:58}},
-  'TC-04':{m:'TL500',plate:'WRK 5003',year:2014,hm:16880,docs:{cf:'2027-02-26',road:'2027-05-02',ins:'2027-05-02',pusp:'2027-03-15'},cost:780000,ytd:{rev:232000,ws:30500,opx:41000,util:62}},
-  'AT-01':{m:'ATF60',plate:'VFA 6004',year:2016,hm:11250,docs:{cf:'2027-06-07',road:'2027-04-21',ins:'2027-04-21'},cost:1600000,ytd:{rev:318000,ws:35600,opx:47000,util:68}},
-  'MC-01':{m:'SL700',plate:'WMK 7005',year:2015,hm:13960,docs:{cf:'2027-01-14',road:'2027-02-09',ins:'2027-02-09'},cost:1850000,ytd:{rev:356000,ws:44100,opx:52000,util:61}},
-  'MC-02':{m:'SA1100',plate:'WSA 1106',year:2013,hm:18720,docs:{cf:'2026-11-30',road:'2027-01-22',ins:'2027-01-22'},cost:2600000,ytd:{rev:462000,ws:68300,opx:61000,util:54}},
-  'TC-05':{m:'NK160',plate:'BCK 1608',year:1996,hm:31240,docs:{cf:'2027-03-04',road:'2027-02-17',ins:'2027-02-17',pusp:'2027-01-08'},cost:150000,ytd:{rev:88000,ws:21600,opx:30000,util:55}},
-  'TC-06':{m:'NK200',plate:'BDQ 2009',year:2001,hm:27650,docs:{cf:'2027-05-26',road:'2027-04-02',ins:'2027-04-02',pusp:'2027-03-21'},cost:210000,ytd:{rev:104000,ws:19800,opx:32000,util:59}},
-  'MC-03':{m:'SL1300',plate:'WKL 1307',year:2017,hm:9880,docs:{cf:'2027-07-19',road:'2027-03-11',ins:'2027-03-11'},cost:3400000,ytd:{rev:588000,ws:57900,opx:72000,util:52}},
-});
-Object.assign(rates, {
-  'NK250/wet':{hr:280,minH:4,day:2000,month:34000,mHrs:200,ex:190,ot:280},
-  'TL450/wet':{hr:400,minH:4,day:2900,month:50000,mHrs:200,ex:260,ot:400},
-  'RK500/wet':{hr:450,minH:4,day:3200,month:58000,mHrs:200,ex:300,ot:450},
-  'SS500/wet':{hr:440,minH:4,day:3100,month:56000,mHrs:200,ex:290,ot:440},
-  'TL500/wet':{hr:440,minH:4,day:3100,month:56000,mHrs:200,ex:290,ot:440},
-  'GR600/wet':{hr:500,minH:4,day:3600,month:65000,mHrs:200,ex:330,ot:500},
-  'ATF60/wet':{hr:520,minH:4,day:3800,month:68000,mHrs:200,ex:350,ot:520},
-  'SL700/wet':{hr:620,minH:4,day:4500,month:80000,mHrs:200,ex:410,ot:620},
-  'SA1100/wet':{hr:1050,minH:4,day:7500,month:135000,mHrs:200,ex:690,ot:1050},
-  'NK160/wet':{hr:220,minH:4,day:1500,month:26000,mHrs:200,ex:150,ot:220},
-  'NK200/wet':{hr:250,minH:4,day:1750,month:30000,mHrs:200,ex:170,ot:250},
-  'SL1300/wet':{hr:1250,minH:4,day:9000,month:160000,mHrs:200,ex:830,ot:1250},
-});
-
 /* Sample charts only: generated for the prototype, NOT manufacturer data. Real charts are typed or pasted
    from the manufacturer's load chart for each configuration and verified before use. */
 const RGRID = [2.5,3,3.5,4,4.5,5,5.5,6,7,8,9,10,11,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,44,48,52,56,60];
@@ -2530,7 +2583,7 @@ function renderConnect(){
     <div class="banner"><b>Prototype: the connections here are simulated with the example data. In the real system Bukku is linked with an API token from Bukku (Control Panel → Integrations → API Access).</b></div>
     <div class="two">
       <div class="panel"><div class="panel-head"><h3>Bukku · accounting</h3><span class="pill ok">Connected</span></div><div class="in" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-        <div class="facts" style="padding:0"><div><span class="label">Company</span><b>heavyworks.bukku.my</b></div><div><span class="label">Access token</span><b class="mono">••••••••3f9a</b></div><div><span class="label">Last sync</span><b>${fmtDW(TODAY)} 09:15</b></div></div>
+        <div class="facts" style="padding:0"><div><span class="label">Company</span><b>superpowercrane.bukku.my</b></div><div><span class="label">Access token</span><b class="mono">••••••••3f9a</b></div><div><span class="label">Last sync</span><b>${fmtDW(TODAY)} 09:15</b></div></div>
         <table><tbody>
           <tr><td>→</td><td><b>Invoices and credit notes</b><br><small class="muted">The moment they are issued here, with customer, lines, SST and hire number</small></td><td><span class="pill ok">Automatic</span></td></tr>
           <tr><td>→</td><td><b>Customers</b><br><small class="muted">Name, SSM no., TIN, SST no., address, credit terms</small></td><td><span class="pill ok">Automatic</span></td></tr>
@@ -2580,6 +2633,120 @@ document.addEventListener('submit', e => {
   if(f.dataset.form==='fuel-op'){ e.preventDefault(); const fd = new FormData(f), cur = hires.find(h=>h.status==='On hire' && h.lines.some(l=>l.op===state.me)), u = cur.lines.find(l=>l.op===state.me).u;
     if(saveFuel({u, d:TODAY, l:fd.get('l'), price:fd.get('price'), hm:fd.get('hm'), where:fd.get('where'), paid:'Fleet card', receipt:true})) render(); }
 });
+
+/* ---------- Dashboard (home page) ---------- */
+const ATT_CAT = [
+  {k:'work', label:'On site / on the road', c:'var(--s1)'},
+  {k:'base', label:'In yard or office', c:'var(--s2)'},
+  {k:'leave', label:'On leave / MC', c:'var(--s3)'},
+];
+function attendanceToday(){
+  return [...OFFICE, ...FIELD].map(s => {
+    const lv = leave.find(l=>l.s===s && l.status==='Approved' && l.from<=TODAY && l.to>=TODAY);
+    const a = assignment(s, TODAY)[0], clock = CLOCK[s];
+    const start = OFFICE.includes(s) ? '08:30' : '08:00', time = clock ? clock.split(' · ')[0] : null;
+    const k = lv ? 'leave' : !clock ? 'none' : (a.cls==='job' || a.cls==='trip') ? 'work' : 'base';
+    return {s, k, time, where: clock ? clock.split(' · ')[1] : null, late: time && time > start, what: lv ? lv.type : a.t};
+  });
+}
+function monthSeries(){
+  const months = ['2026-05','2026-06','2026-07','2026-08','2026-09','2026-10'];
+  const uSep = utilisation('2026-09-01','2026-09-30'), uOct = utilisation('2026-10-01', TODAY);
+  const rSep = sum(invoices.filter(i=>i.period==='Sep 2026').map(i=>i.sub));
+  const rOct = sum(hires.filter(h=>h.status!=='Quotation').map(h=>totals(charges(h,'2026-10-01',TODAY)).sub));
+  const uHist = [uSep-9, uSep-5, uSep-2, uSep+3], rHist = [0.84, 0.9, 0.95, 1.06].map(f=>Math.round(rSep*f/100)*100);
+  return months.map((m,i) => ({m, label:MON[+m.slice(5)-1], util: i<4 ? uHist[i] : i===4 ? uSep : uOct, rev: i<4 ? rHist[i] : i===4 ? rSep : rOct, sample:i<4, partial:i===5}));
+}
+function lineChart(ms){
+  const W = 520, H = 210, L = 40, R = 46, T = 14, B = 30, w = W-L-R, h = H-T-B;
+  const x = i => L + i*(w/(ms.length-1)), y = v => T + h - v/100*h;
+  const pts = ms.map((d,i)=>[x(i), y(d.util)]);
+  const path = pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area = path + ` L${x(ms.length-1)} ${y(0)} L${x(0)} ${y(0)} Z`;
+  const last = ms[ms.length-1];
+  return `<svg viewBox="0 0 ${W} ${H}" class="dchart" role="img" aria-label="Fleet utilisation by month, ${ms.map(d=>d.label+' '+d.util+'%').join(', ')}">
+    ${[0,25,50,75,100].map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" class="gl"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" class="ax">${v}%</text>`).join('')}
+    <line x1="${L}" x2="${W-R}" y1="${y(70)}" y2="${y(70)}" class="target"/><text x="${W-R+4}" y="${y(70)+4}" class="ax">Target 70%</text>
+    <path d="${area}" class="area"/><path d="${path}" class="ln"/>
+    ${ms.map((d,i)=>`<text x="${x(i)}" y="${H-8}" text-anchor="middle" class="ax">${d.label}</text>
+      <circle cx="${x(i)}" cy="${y(d.util)}" r="5" class="pt ${d.partial?'open':''}"/>
+      <rect x="${x(i)-22}" y="${T}" width="44" height="${h}" fill="transparent" data-tip="${d.label} 2026: ${d.util}% utilisation${d.partial?' (1–16 Oct)':''}${d.sample?' · sample history':''}"/>`).join('')}
+    <text x="${x(ms.length-1)}" y="${y(last.util)-12}" text-anchor="middle" class="endv">${last.util}%</text>
+  </svg>`;
+}
+function barChart(ms){
+  const W = 520, H = 210, L = 58, R = 10, T = 18, B = 30, w = W-L-R, h = H-T-B;
+  const max = Math.ceil(Math.max(...ms.map(d=>d.rev))/50000)*50000, bw = w/ms.length*0.56;
+  const x = i => L + (i+0.5)*(w/ms.length), y = v => T + h - v/max*h;
+  const ticks = [0, max/2, max];
+  return `<svg viewBox="0 0 ${W} ${H}" class="dchart" role="img" aria-label="Invoiced hire revenue by month before SST, ${ms.map(d=>d.label+' RM '+Math.round(d.rev)).join(', ')}">
+    ${ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" class="gl"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" class="ax">${v>=1000?'RM '+Math.round(v/1000)+'k':'0'}</text>`).join('')}
+    ${ms.map((d,i)=>{ const top = y(d.rev), hh = y(0)-top, r = Math.min(4, hh);
+      return `<path d="M${x(i)-bw/2} ${y(0)} V${top+r} Q${x(i)-bw/2} ${top} ${x(i)-bw/2+r} ${top} H${x(i)+bw/2-r} Q${x(i)+bw/2} ${top} ${x(i)+bw/2} ${top+r} V${y(0)} Z" class="bar-m ${d.partial?'partial':''}" data-tip="${d.label} 2026: ${RM0(d.rev)}${d.partial?' so far (1–16 Oct)':''}${d.sample?' · sample history':''}"/>
+      <text x="${x(i)}" y="${H-8}" text-anchor="middle" class="ax">${d.label}</text>`; }).join('')}
+    <text x="${x(ms.length-2)}" y="${y(ms[ms.length-2].rev)-6}" text-anchor="middle" class="endv">${RM0(ms[ms.length-2].rev)}</text>
+  </svg>`;
+}
+function renderDashboard(){
+  const units = hireUnits(), st = units.map(u=>[u,unitStatus(u)]);
+  const rented = st.filter(([,s])=>['On hire','Off-hire called'].includes(s.k));
+  const ms = monthSeries(), uNow = ms[5].util, uPrev = ms[4].util;
+  const att = attendanceToday(), present = att.filter(a=>a.k==='work'||a.k==='base').length;
+  const none = att.filter(a=>a.k==='none'), late = att.filter(a=>a.late);
+  const open = enquiries.filter(openStage), pipe = sum(open.map(e=>e.value*PROB[e.stage]));
+  const fOct = fuel.filter(f=>f.d.startsWith('2026-10')), fL = sum(fOct.map(f=>f.l)), fRM = sum(fOct.map(f=>f.l*f.price));
+  const att3 = ATT_CAT.map(c=>({...c, n:att.filter(a=>a.k===c.k).length}));
+  const alerts = attention().slice(0,6), due = tasks.filter(t=>!t.done && t.d<=TODAY).length, exp = expiring().length;
+  const week = allTrips().filter(t=>t.d>=TODAY && t.d<=addDays(TODAY,7)).sort((a,b)=>a.d<b.d?-1:1);
+  const byGrp = Object.keys(GROUPS).filter(g=>g!=='transport').map(g=>{ const us = units.filter(u=>mOf(u).grp===g); return {g, n:us.length, on:us.filter(u=>onHireOn(u,TODAY)).length, util:utilisation('2026-10-01',TODAY,us)}; }).filter(x=>x.n);
+  const outstanding = sum(invoices.filter(i=>i.status!=='Paid' && i.status!=='Draft').map(i=>i.total)), overdue = sum(invoices.filter(i=>invStatus(i)==='Overdue').map(i=>i.total));
+  const delta = (a,b) => { const d = a-b; return `<small class="${d>=0?'up':'down'}">${d>=0?'▲':'▼'} ${Math.abs(d)} pts vs Sep</small>`; };
+  $('#v-dashboard').innerHTML = `
+    <div class="view-head"><div><h2>Dashboard</h2><span class="muted">${esc(CO.name)} · ${fmtDW(TODAY)} 2026, 9:15 am</span></div>
+      <div class="btnrow"><button class="btn" data-action="new-enq">New enquiry</button><button class="btn primary" data-action="new-hire">New hire / quotation</button></div></div>
+    <div class="kpis dk">
+      <button class="kpi" data-view="fleet"><span class="label">Machinery on rental</span><b>${rented.length}<small class="muted"> / ${units.length}</small></b><span>${units.length-rented.length} in yard, booked or in workshop</span></button>
+      <button class="kpi" data-view="reports"><span class="label">Utilisation rate</span><b>${uNow}%</b><span>Oct to date ${delta(uNow,uPrev)}</span></button>
+      <button class="kpi cost" data-view="billing"><span class="label">Hire revenue, Oct</span><b style="font-size:1.4rem">${RM0(ms[5].rev)}</b><span>to date, before SST · ${RM0(outstanding)} owed to us</span></button>
+      <button class="kpi" data-view="staff"><span class="label">Attendance today</span><b>${present}<small class="muted"> / ${att.length}</small></b><span>${none.length} not clocked in · ${att3[2].n} on leave / MC</span></button>
+      <button class="kpi cost" data-view="enquiries"><span class="label">Sales pipeline</span><b style="font-size:1.4rem">${RM0(pipe)}</b><span>${open.length} open enquiries · ${due} follow-ups due</span></button>
+      <button class="kpi" data-view="fuel"><span class="label">Fuel, Oct</span><b style="font-size:1.4rem">${num(fL)} L</b><span class="cost">${RM0(fRM)} · ${fuel.filter(f=>f.d.startsWith('2026-10') && fuelFlag(f)).length} fill to check</span></button>
+    </div>
+    <div class="dgrid">
+      <div class="panel"><div class="panel-head"><h3>Fleet utilisation</h3><span class="muted">days on hire ÷ days available</span></div><div class="in" style="padding:6px 10px 10px">${lineChart(ms)}
+        <small class="muted">May–Aug are sample history; Sep and Oct come from the hires in this prototype.</small></div></div>
+      <div class="panel"><div class="panel-head"><h3>Attendance today</h3><button class="btn small" data-view="staff">Staff</button></div><div class="in" style="padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+        <div class="segbar" role="img" aria-label="${att3.map(c=>c.label+' '+c.n).join(', ')}, not clocked in ${none.length}">${att3.filter(c=>c.n).map(c=>`<i style="flex:${c.n};background:${c.c}" data-tip="${c.label}: ${c.n}"></i>`).join('')}${none.length?`<i class="none" style="flex:${none.length}" data-tip="Not clocked in: ${none.length}"></i>`:''}</div>
+        <div class="slegend" style="padding:0">${att3.map(c=>`<div><i style="background:${c.c}"></i>${c.label}<b>${c.n}</b></div>`).join('')}<div><i class="none-sw"></i>Not clocked in<b>${none.length}</b></div></div>
+        ${none.length||late.length?`<div class="mini">${none.map(a=>`<div><span class="pill warn">! Not in</span> ${esc(staff[a.s].name)} <small class="muted">· ${esc(a.what)}</small></div>`).join('')}${late.map(a=>`<div><span class="pill mute">Late ${a.time}</span> ${esc(staff[a.s].name)} <small class="muted">· ${esc(a.where)}</small></div>`).join('')}</div>`:''}
+      </div></div>
+      <div class="panel span2"><div class="panel-head"><h3>Machinery on rental</h3><button class="btn small" data-view="planner">Planner</button></div>
+        <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Machine</th><th>Customer · site</th><th>Hire</th><th class="r">Days on hire</th><th>Until</th></tr></thead><tbody>
+        ${rented.map(([u,s])=>{ const left = daysBetween(TODAY, s.l.to); return `<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(mOf(u).type)}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${kindLabel(s.l.k)} · ${basisLabel[s.l.basis].toLowerCase()}${s.l.op?`<br><small class="muted">${esc(staff[s.l.op].name)}</small>`:''}</td><td class="r num">${daysBetween(s.l.on,TODAY)+1}</td>
+          <td>${s.k==='Off-hire called'?`<span class="pill warn">Off-hire ${fmtD(s.l.off)}</span>`:`${fmtD(s.l.to)} ${left<=7?`<span class="pill warn">${left} d left</span>`:''}`}</td></tr>`; }).join('')}
+        </tbody></table></div></div>
+      <div class="panel"><div class="panel-head"><h3>Utilisation by type</h3><span class="muted">Oct to date</span></div><div class="rbars">
+        ${byGrp.map(x=>`<div class="rbar"><span>${esc(GROUPS[x.g])} <small class="muted">${x.on}/${x.n} out</small></span><div class="track"><div class="fill" style="width:${x.util}%" data-tip="${esc(GROUPS[x.g])}: ${x.util}% (${x.on} of ${x.n} on hire today)"></div></div><span class="v">${x.util}%</span></div>`).join('')}
+      </div></div>
+      <div class="panel cost"><div class="panel-head"><h3>Hire revenue by month</h3><span class="muted">invoiced, before SST</span></div><div class="in" style="padding:6px 10px 10px">${barChart(ms)}
+        <small class="muted">October is to date (hatched). ${overdue?`<b>${RM0(overdue)}</b> is overdue.`:''}</small></div></div>
+      <div class="panel"><div class="panel-head"><h3>Needs attention</h3><button class="btn small" data-view="today">Today</button></div><div class="panel-body">
+        ${alerts.map(a=>`<div class="attn ${a.cost?'cost':''}" ${a.a} role="button" tabindex="0" style="--sev:var(--${a.sev==='crit'?'crit':a.sev==='warn'?'warn':'info'})"><i></i><div><b>${esc(a.t)}</b><br><small class="muted">${esc(a.s)}</small></div></div>`).join('')}
+        <div class="attn" data-view="calendar" role="button" tabindex="0" style="--sev:var(--warn)"><i></i><div><b>${exp} licences and machine documents expire within 60 days</b><br><small class="muted">DOSH CF, road tax, Puspakom, CIDB, GDL</small></div></div>
+      </div></div>
+      <div class="panel"><div class="panel-head"><h3>Next 7 days</h3><button class="btn small" data-view="transport">Transport</button></div><div class="panel-body">
+        ${week.map(t=>`<div class="attn" data-hire="${t.hire}" role="button" tabindex="0" style="--sev:var(--${t.dir==='Delivery'?'s1':'s2'})"><i></i><div><b>${fmtDW(t.d)} · ${t.dir==='Delivery'?'Out':'Back'}: ${t.u} ${esc(mOf(t.u).model)}</b><br><small class="muted">${esc(custName(t.c))} · ${t.veh?esc(t.veh):'self-drive'} · ${esc(staff[t.drv].name)}</small></div></div>`).join('') || '<p class="muted" style="padding:8px 14px">No trips planned.</p>'}
+      </div></div>
+    </div>`;
+}
+(function tipLayer(){
+  const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; document.body.appendChild(tip);
+  const show = e => { const t = e.target.closest && e.target.closest('[data-tip]'); if(!t){ tip.hidden = true; return; }
+    tip.textContent = t.getAttribute('data-tip'); tip.hidden = false;
+    const w = tip.offsetWidth, h = tip.offsetHeight; tip.style.left = Math.min(e.clientX+14, innerWidth-w-8)+'px'; tip.style.top = Math.min(e.clientY+14, innerHeight-h-8)+'px'; };
+  document.addEventListener('pointermove', show); document.addEventListener('pointerdown', show);
+  document.addEventListener('scroll', () => tip.hidden = true, true);
+})();
 
 /* ---------- sheet plumbing ---------- */
 function openSheet(title, sub, body, ctx){
@@ -2664,7 +2831,7 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target;
-  if(t.id==='roleSel'){ state.role = t.value; document.body.dataset.role = t.value; closeSheet(); state.ts=null; return setView(t.value==='operator' ? 'timesheets' : state.view==='timesheets' ? 'today' : state.view); }
+  if(t.id==='roleSel'){ state.role = t.value; document.body.dataset.role = t.value; closeSheet(); state.ts=null; return setView(t.value==='operator' ? 'timesheets' : state.view==='timesheets' ? 'dashboard' : state.view); }
   if(t.dataset.nh){ const f = t.dataset.nh; state.nh[f] = t.type==='checkbox' ? t.checked : t.value; if(f==='type') state.nh.u=null; if(f==='to' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; if(f==='from' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; return openNewHire(); }
   if(t.dataset.tsF){ state.ts[t.dataset.tsF] = t.value; return render(); }
   if(t.dataset.rate){ rates[t.dataset.rate][t.dataset.f] = +t.value; toast('Rate updated for new hires'); return; }
