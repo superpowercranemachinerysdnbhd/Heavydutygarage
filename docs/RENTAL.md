@@ -454,6 +454,10 @@ A page where the office types in a job's **load weight**, **working radius** and
 
 **Load charts.** Each crane in the fleet (Kato NK-250-5, Tadano TL-450-3, Kobelco RK500-2, Kato SS-500SP, Tadano TL-500-3, Tadano GR-600-1, Faun ATF 60-4, Kato SL-700, Sumitomo SA-1100, Kato SL-1300) has its rated capacity table entered once: boom lengths across, radii down, tonnes in the cells. A chart belongs to a **set-up** (outriggers fully extended / mid / minimum, 360° or over the rear, counterweight, jib), so a crane can have several charts; the main one is fully extended, 360°. The chart can be typed in or **pasted from Excel**. Each chart also records the boom foot height and offset from the slew centre (for the height geometry) and the **hook block weight**. The manufacturer's chart (PDF or photo) is attached, and the Head Manager marks the chart **verified** after checking every value. Any later change sets it back to not verified, and results from unverified charts are clearly flagged.
 
+Each chart has one of three states, shown on every result: **sample** (made-up values, prototype only), **from PDF, not checked** (copied from the manufacturer's chart, waiting for the Head Manager's check) and **verified**. A chart can hold a hook block weight **per boom length**, because short booms often use the heavy hook (e.g. KA-1300SL: 70 t hook 0.9 t on 11.8 m, 50 t hook 0.6 t on longer booms).
+
+Charts loaded so far from the owner's PDFs (all *from PDF, not checked*): Kato NK-160 and NK-200E-III (truck cranes, full outriggers, over side and rear), Kobelco RK500-2 (7.4 m outriggers, 360°), Kato SL-700R (7.6 m outriggers, over side and rear) and Kato KA-1300SL (A1: 8.4 m outriggers, 360°, counterweight on; heavy-lift attachment column not loaded). The manufacturers state that these values include the hook block and slings, so the lift check adds the hook block and rigging to the load before comparing.
+
 **How a crane is checked**, for each boom length in its chart:
 
 1. **Reach:** the radius must be within the chart's range for that boom length.

@@ -2138,9 +2138,11 @@ Object.assign(models, {
   SS500:{make:'Kato',model:'SS-500SP',type:'Truck crane 50 t',grp:'crane',size:'self'},
   TL500:{make:'Tadano',model:'TL-500-3',type:'Truck crane 50 t',grp:'crane',size:'self'},
   ATF60:{make:'Faun',model:'ATF 60-4',type:'All terrain crane 60 t',grp:'crane',size:'self'},
-  SL700:{make:'Kato',model:'SL-700',type:'Mobile crane 70 t',grp:'crane',size:'self'},
+  SL700:{make:'Kato',model:'SL-700R',type:'Rough terrain crane 70 t',grp:'crane',size:'self'},
   SA1100:{make:'Sumitomo',model:'SA-1100',type:'Mobile crane 110 t',grp:'crane',size:'self'},
-  SL1300:{make:'Kato',model:'SL-1300',type:'Mobile crane 130 t',grp:'crane',size:'self'},
+  SL1300:{make:'Kato',model:'KA-1300SL',type:'All terrain crane 130 t',grp:'crane',size:'self'},
+  NK160:{make:'Kato',model:'NK-160',type:'Truck crane 16 t',grp:'crane',size:'self'},
+  NK200:{make:'Kato',model:'NK-200E-III',type:'Truck crane 20 t',grp:'crane',size:'self'},
 });
 Object.assign(fleet, {
   'RC-02':{m:'GR600',plate:'WYD 6001',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:1450000,ytd:{rev:298000,ws:24400,opx:46000,util:66}},
@@ -2149,6 +2151,8 @@ Object.assign(fleet, {
   'AT-01':{m:'ATF60',plate:'VFA 6004',year:2016,hm:11250,docs:{cf:'2027-06-07',road:'2027-04-21',ins:'2027-04-21'},cost:1600000,ytd:{rev:318000,ws:35600,opx:47000,util:68}},
   'MC-01':{m:'SL700',plate:'WMK 7005',year:2015,hm:13960,docs:{cf:'2027-01-14',road:'2027-02-09',ins:'2027-02-09'},cost:1850000,ytd:{rev:356000,ws:44100,opx:52000,util:61}},
   'MC-02':{m:'SA1100',plate:'WSA 1106',year:2013,hm:18720,docs:{cf:'2026-11-30',road:'2027-01-22',ins:'2027-01-22'},cost:2600000,ytd:{rev:462000,ws:68300,opx:61000,util:54}},
+  'TC-05':{m:'NK160',plate:'BCK 1608',year:1996,hm:31240,docs:{cf:'2027-03-04',road:'2027-02-17',ins:'2027-02-17',pusp:'2027-01-08'},cost:150000,ytd:{rev:88000,ws:21600,opx:30000,util:55}},
+  'TC-06':{m:'NK200',plate:'BDQ 2009',year:2001,hm:27650,docs:{cf:'2027-05-26',road:'2027-04-02',ins:'2027-04-02',pusp:'2027-03-21'},cost:210000,ytd:{rev:104000,ws:19800,opx:32000,util:59}},
   'MC-03':{m:'SL1300',plate:'WKL 1307',year:2017,hm:9880,docs:{cf:'2027-07-19',road:'2027-03-11',ins:'2027-03-11'},cost:3400000,ytd:{rev:588000,ws:57900,opx:72000,util:52}},
 });
 Object.assign(rates, {
@@ -2161,6 +2165,8 @@ Object.assign(rates, {
   'ATF60/wet':{hr:520,minH:4,day:3800,month:68000,mHrs:200,ex:350,ot:520},
   'SL700/wet':{hr:620,minH:4,day:4500,month:80000,mHrs:200,ex:410,ot:620},
   'SA1100/wet':{hr:1050,minH:4,day:7500,month:135000,mHrs:200,ex:690,ot:1050},
+  'NK160/wet':{hr:220,minH:4,day:1500,month:26000,mHrs:200,ex:150,ot:220},
+  'NK200/wet':{hr:250,minH:4,day:1750,month:30000,mHrs:200,ex:170,ot:250},
   'SL1300/wet':{hr:1250,minH:4,day:9000,month:160000,mHrs:200,ex:830,ot:1250},
 });
 
@@ -2178,20 +2184,22 @@ function sampleChart(booms, maxT, K, h0, a, hook){
   return {booms, rows, h0, a, hook, maxT, cfg:'Outriggers fully extended, 360°, full counterweight, on firm level ground', verified:false, source:'Sample values for the prototype — not from the manufacturer', pdf:''};
 }
 let charts = {
+  'TC-05':{booms:[9.5, 16.5, 23.5], rows:[{"r": 3.0, "caps": [16.0, 10.0, null]}, {"r": 3.5, "caps": [13.55, 10.0, null]}, {"r": 4.0, "caps": [12.0, 10.0, null]}, {"r": 4.5, "caps": [10.75, 10.0, null]}, {"r": 5.0, "caps": [9.6, 9.6, 5.5]}, {"r": 5.5, "caps": [8.25, 8.25, 5.5]}, {"r": 6.0, "caps": [7.2, 7.2, 5.5]}, {"r": 6.5, "caps": [6.4, 6.4, 5.5]}, {"r": 7.0, "caps": [5.75, 5.75, 5.5]}, {"r": 7.4, "caps": [5.25, 5.25, 5.25]}, {"r": 8.0, "caps": [4.6, 4.6, 4.6]}, {"r": 8.5, "caps": [null, 4.2, 4.2]}, {"r": 9.0, "caps": [null, 3.8, 3.8]}, {"r": 10.0, "caps": [null, 3.25, 3.25]}, {"r": 11.0, "caps": [null, 2.75, 2.75]}, {"r": 12.0, "caps": [null, 2.4, 2.4]}, {"r": 13.0, "caps": [null, 2.0, 2.0]}, {"r": 14.0, "caps": [null, 1.8, 1.8]}, {"r": 16.0, "caps": [null, null, 1.3]}, {"r": 18.0, "caps": [null, null, 1.05]}, {"r": 20.0, "caps": [null, null, 0.75]}, {"r": 22.0, "caps": [null, null, 0.55]}], h0:1.9, a:0.5, hook:0.25, maxT:16, cfg:"Outriggers fully extended, over side and over rear", verified:false, transcribed:true, source:"Kato NK-160 rated lifting capacities (scan). Values include hook block. Hook 16 t: 250 kg. Main hook radius limit 22 m.", pdf:"KATO_NK160-B2.pdf"},
+  'TC-06':{booms:[10.2, 18.2, 26.2], rows:[{"r": 2.5, "caps": [20.0, null, null]}, {"r": 3.0, "caps": [20.0, null, null]}, {"r": 3.5, "caps": [17.5, 12.0, null]}, {"r": 4.0, "caps": [15.5, 12.0, null]}, {"r": 4.5, "caps": [13.9, 12.0, null]}, {"r": 5.0, "caps": [12.5, 12.0, 7.0]}, {"r": 5.5, "caps": [10.7, 10.5, 7.0]}, {"r": 6.0, "caps": [9.5, 9.5, 7.0]}, {"r": 6.5, "caps": [8.5, 8.6, 7.0]}, {"r": 7.0, "caps": [7.7, 7.9, 7.0]}, {"r": 7.5, "caps": [6.95, 7.25, 6.5]}, {"r": 8.0, "caps": [6.25, 6.75, 6.05]}, {"r": 8.5, "caps": [5.6, 6.25, 5.6]}, {"r": 9.0, "caps": [null, 5.75, 5.3]}, {"r": 9.5, "caps": [null, 5.35, 5.0]}, {"r": 10.0, "caps": [null, 4.9, 4.75]}, {"r": 11.0, "caps": [null, 4.15, 4.1]}, {"r": 12.0, "caps": [null, 3.55, 3.5]}, {"r": 13.0, "caps": [null, 3.1, 3.0]}, {"r": 14.0, "caps": [null, 2.7, 2.6]}, {"r": 15.0, "caps": [null, 2.3, 2.25]}, {"r": 16.0, "caps": [null, 2.0, 2.0]}, {"r": 16.5, "caps": [null, 1.85, 1.8]}, {"r": 17.0, "caps": [null, null, 1.75]}, {"r": 18.0, "caps": [null, null, 1.55]}, {"r": 19.0, "caps": [null, null, 1.35]}, {"r": 20.0, "caps": [null, null, 1.2]}, {"r": 21.0, "caps": [null, null, 1.05]}, {"r": 22.0, "caps": [null, null, 0.9]}, {"r": 23.0, "caps": [null, null, 0.8]}, {"r": 24.0, "caps": [null, null, 0.7]}, {"r": 24.5, "caps": [null, null, 0.65]}], h0:1.9, a:0.5, hook:0.23, maxT:20, cfg:"Fully extended outriggers, over side and over rear (360\u00b0 needs optional front jack)", verified:false, transcribed:true, source:"Kato NK-200E-III rated lifting capacity (1) (scan). Values include hook block. Hook 20 t: 230 kg.", pdf:"KATO_NK200E-3_LOAD_CHART.pdf"},
   'TC-01':sampleChart([10.0,15.5,21.0,26.5,32.0], 25, 98, 2.4, 0.9, 0.30),
   'TC-02':sampleChart([11.0,17.0,23.0,29.0,35.0,40.0], 45, 190, 2.5, 1.0, 0.45),
-  'RC-01':sampleChart([10.5,16.6,22.7,28.8,34.9,41.0], 50, 220, 2.2, 0.6, 0.50),
+  'RC-01':{booms:[10.2, 17.4, 23.6, 24.6, 31.8, 39.0], rows:[{"r": 2.9, "caps": [51.0, null, null, null, null, null]}, {"r": 3.0, "caps": [50.0, 28.0, 22.0, 20.0, null, null]}, {"r": 3.2, "caps": [45.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 3.5, "caps": [41.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 3.75, "caps": [38.9, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 4.0, "caps": [37.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 4.5, "caps": [33.5, 28.0, 22.0, 20.0, 14.0, 7.6]}, {"r": 5.0, "caps": [30.2, 28.0, 22.0, 20.0, 14.0, 7.6]}, {"r": 5.5, "caps": [27.5, 26.1, 22.0, 20.0, 14.0, 7.6]}, {"r": 6.0, "caps": [25.0, 24.4, 20.5, 20.0, 14.0, 7.6]}, {"r": 6.5, "caps": [22.7, 22.4, 19.2, 18.8, 14.0, 7.6]}, {"r": 7.0, "caps": [20.7, 20.6, 18.1, 17.7, 13.6, 7.6]}, {"r": 7.2, "caps": [11.5, 20.0, 17.7, 17.3, 13.45, 7.6]}, {"r": 7.5, "caps": [null, 18.9, 17.0, 16.6, 13.1, 7.6]}, {"r": 8.0, "caps": [null, 17.5, 16.1, 15.7, 12.6, 7.6]}, {"r": 8.5, "caps": [null, 16.2, 15.2, 14.8, 12.05, 7.6]}, {"r": 9.0, "caps": [null, 15.0, 14.4, 14.0, 11.5, 7.6]}, {"r": 9.5, "caps": [null, 14.0, 13.5, 13.2, 11.0, 7.6]}, {"r": 10.0, "caps": [null, 13.1, 12.7, 12.4, 10.5, 7.6]}, {"r": 11.0, "caps": [null, 11.1, 11.1, 11.0, 9.6, 7.1]}, {"r": 12.0, "caps": [null, 9.35, 9.3, 9.25, 8.8, 6.6]}, {"r": 13.0, "caps": [null, 7.9, 7.8, 7.75, 8.1, 6.15]}, {"r": 14.0, "caps": [null, 6.8, 6.7, 6.65, 7.5, 5.75]}, {"r": 14.4, "caps": [null, 4.0, 6.3, 6.25, 7.1, 5.6]}, {"r": 15.0, "caps": [null, null, 5.75, 5.7, 6.55, 5.35]}, {"r": 16.0, "caps": [null, null, 5.0, 4.95, 5.75, 5.0]}, {"r": 17.0, "caps": [null, null, 4.35, 4.3, 5.05, 4.7]}, {"r": 18.0, "caps": [null, null, 3.8, 3.75, 4.45, 4.4]}, {"r": 19.0, "caps": [null, null, 3.25, 3.2, 3.9, 4.2]}, {"r": 20.0, "caps": [null, null, 2.75, 2.7, 3.45, 4.0]}, {"r": 20.6, "caps": [null, null, 2.5, 2.45, 3.2, 3.8]}, {"r": 21.0, "caps": [null, null, null, 2.3, 3.05, 3.6]}, {"r": 21.6, "caps": [null, null, null, 2.1, 2.9, 3.4]}, {"r": 22.0, "caps": [null, null, null, null, 2.75, 3.25]}, {"r": 23.0, "caps": [null, null, null, null, 2.4, 2.9]}, {"r": 24.0, "caps": [null, null, null, null, 2.05, 2.6]}, {"r": 25.0, "caps": [null, null, null, null, 1.75, 2.3]}, {"r": 26.0, "caps": [null, null, null, null, 1.5, 2.05]}, {"r": 27.0, "caps": [null, null, null, null, 1.25, 1.8]}, {"r": 28.0, "caps": [null, null, null, null, 1.05, 1.55]}, {"r": 28.8, "caps": [null, null, null, null, 0.9, 1.4]}, {"r": 29.0, "caps": [null, null, null, null, null, 1.35]}, {"r": 30.0, "caps": [null, null, null, null, null, 1.15]}, {"r": 31.0, "caps": [null, null, null, null, null, 1.0]}, {"r": 32.0, "caps": [null, null, null, null, null, 0.85]}, {"r": 33.0, "caps": [null, null, null, null, null, 0.7]}, {"r": 34.0, "caps": [null, null, null, null, null, 0.55]}], h0:2.0, a:0.3, hook:0.43, maxT:51, cfg:"Outriggers in 7.4 m position, whole around (360\u00b0)", verified:false, hooks:[0.43,0.43,0.30,0.30,0.30,0.30], transcribed:true, source:"Kobelco RK500-2 p.380 (scan). Ratings include hook block. Hook 51 t: 430 kg (25 t hook 300 kg on 23.6 m+ boom).", pdf:"KOBELCO_RK500-2.pdf"},
   'TC-03':sampleChart([11.0,17.5,24.0,30.5,37.0,43.0], 50, 215, 2.5, 1.0, 0.50),
   'TC-04':sampleChart([11.0,17.4,23.8,30.2,36.6,43.0], 50, 212, 2.5, 1.0, 0.50),
   'RC-02':sampleChart([10.6,17.0,23.4,29.8,36.2,42.6], 60, 260, 2.3, 0.6, 0.60),
   'AT-01':sampleChart([10.7,17.0,23.4,29.8,36.2,42.6,48.0], 60, 270, 2.4, 0.9, 0.60),
-  'MC-01':sampleChart([11.3,18.5,25.7,32.9,40.1,47.3], 70, 320, 2.5, 0.8, 0.70),
+  'MC-01':{booms:[10.0, 16.9, 23.8, 30.7, 37.6, 41.5, 44.5], rows:[{"r": 2.5, "caps": [70.0, 32.0, 25.0, 12.5, null, null, null]}, {"r": 3.0, "caps": [61.0, 32.0, 25.0, 12.5, null, null, null]}, {"r": 3.5, "caps": [55.0, 32.0, 25.0, 12.5, 12.0, null, null]}, {"r": 4.0, "caps": [49.2, 32.0, 25.0, 12.5, 12.0, 10.0, null]}, {"r": 4.5, "caps": [44.1, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 5.0, "caps": [39.5, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 5.5, "caps": [35.7, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 6.0, "caps": [32.5, 32.0, 23.4, 12.5, 12.0, 10.0, 8.0]}, {"r": 6.5, "caps": [29.5, 29.0, 22.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 7.0, "caps": [26.8, 26.4, 20.7, 12.5, 12.0, 10.0, 8.0]}, {"r": 7.5, "caps": [null, 24.0, 19.5, 12.5, 12.0, 10.0, 8.0]}, {"r": 8.0, "caps": [null, 22.0, 18.5, 12.5, 12.0, 10.0, 8.0]}, {"r": 9.0, "caps": [null, 17.45, 16.6, 12.5, 12.0, 10.0, 8.0]}, {"r": 10.0, "caps": [null, 14.0, 13.85, 12.5, 12.0, 10.0, 8.0]}, {"r": 11.0, "caps": [null, 11.45, 11.3, 12.0, 11.1, 10.0, 8.0]}, {"r": 12.0, "caps": [null, 9.55, 9.4, 10.45, 10.2, 9.4, 8.0]}, {"r": 13.0, "caps": [null, 8.05, 7.9, 8.9, 9.4, 8.7, 8.0]}, {"r": 14.0, "caps": [null, null, 6.65, 7.65, 8.2, 8.0, 7.5]}, {"r": 15.0, "caps": [null, null, 5.6, 6.65, 7.2, 7.4, 7.0]}, {"r": 16.0, "caps": [null, null, 4.75, 5.75, 6.3, 6.55, 6.6]}, {"r": 17.0, "caps": [null, null, 4.0, 5.0, 5.55, 5.8, 5.95]}, {"r": 18.0, "caps": [null, null, 3.35, 4.3, 4.9, 5.15, 5.3]}, {"r": 19.0, "caps": [null, null, 2.8, 3.75, 4.3, 4.55, 4.75]}, {"r": 20.0, "caps": [null, null, 2.3, 3.25, 3.8, 4.0, 4.2]}, {"r": 21.0, "caps": [null, null, null, 2.8, 3.35, 3.55, 3.75]}, {"r": 22.0, "caps": [null, null, null, 2.4, 2.95, 3.15, 3.35]}, {"r": 24.0, "caps": [null, null, null, 1.75, 2.25, 2.5, 2.65]}, {"r": 26.0, "caps": [null, null, null, 1.2, 1.7, 1.9, 2.05]}, {"r": 28.0, "caps": [null, null, null, null, 1.25, 1.45, 1.6]}, {"r": 30.0, "caps": [null, null, null, null, 0.85, 1.05, 1.2]}, {"r": 32.0, "caps": [null, null, null, null, null, 0.7, 0.85]}, {"r": 33.0, "caps": [null, null, null, null, null, 0.55, 0.7]}, {"r": 34.0, "caps": [null, null, null, null, null, null, 0.55]}], h0:1.3, a:0.0, hook:0.53, maxT:70, cfg:"Outriggers fully extended (7.6 m), over side and over rear", verified:false, hooks:[0.53,0.47,0.33,0.33,0.33,0.33,0.33], transcribed:true, source:"Kato SL-700R chart p.2 (text). Values include main hook and slings. Hook 70 t: 530 kg (34 t hook 330 kg on 23.8 m+ boom).", pdf:"KATO_SL700R_LOAD_CHART.pdf"},
   'MC-02':sampleChart([12.5,20.5,28.5,36.5,44.5,52.5,60.0], 110, 520, 2.8, 1.0, 1.10),
-  'MC-03':sampleChart([13.0,21.5,30.0,38.5,47.0,55.5,64.0], 130, 620, 2.9, 1.0, 1.30),
+  'MC-03':{booms:[11.8, 19.8, 27.88, 35.9, 44.0, 48.0, 52.0], rows:[{"r": 2.5, "caps": [70.0, null, null, null, null, null, null]}, {"r": 3.0, "caps": [70.0, 50.0, null, null, null, null, null]}, {"r": 3.5, "caps": [70.0, 50.0, null, null, null, null, null]}, {"r": 4.0, "caps": [70.0, 50.0, 35.0, null, null, null, null]}, {"r": 4.5, "caps": [70.0, 50.0, 35.0, null, null, null, null]}, {"r": 5.0, "caps": [70.0, 50.0, 35.0, 24.0, null, null, null]}, {"r": 6.0, "caps": [64.5, 50.0, 35.0, 24.0, null, null, null]}, {"r": 7.0, "caps": [54.0, 50.0, 35.0, 24.0, 17.0, 14.0, null]}, {"r": 8.0, "caps": [46.0, 46.0, 35.0, 24.0, 17.0, 14.0, 12.0]}, {"r": 9.0, "caps": [40.0, 40.0, 35.0, 24.0, 17.0, 14.0, 12.0]}, {"r": 10.0, "caps": [null, 35.5, 33.7, 24.0, 17.0, 14.0, 12.0]}, {"r": 12.0, "caps": [null, 28.5, 27.8, 23.2, 17.0, 14.0, 12.0]}, {"r": 14.0, "caps": [null, 22.0, 21.8, 20.7, 15.8, 14.0, 12.0]}, {"r": 16.0, "caps": [null, 17.2, 17.1, 18.4, 14.0, 14.0, 12.0]}, {"r": 18.0, "caps": [null, null, 13.6, 15.3, 12.6, 13.1, 12.0]}, {"r": 20.0, "caps": [null, null, 10.9, 12.5, 11.5, 11.7, 11.0]}, {"r": 22.0, "caps": [null, null, 8.8, 10.4, 10.5, 10.4, 9.8]}, {"r": 24.0, "caps": [null, null, 7.1, 8.7, 9.6, 9.3, 8.8]}, {"r": 26.0, "caps": [null, null, null, 7.3, 8.2, 8.4, 7.9]}, {"r": 28.0, "caps": [null, null, null, 6.0, 7.0, 7.3, 7.1]}, {"r": 30.0, "caps": [null, null, null, 4.8, 6.0, 6.3, 6.5]}, {"r": 32.0, "caps": [null, null, null, 3.8, 5.0, 5.4, 5.6]}, {"r": 34.0, "caps": [null, null, null, null, 4.0, 4.5, 4.8]}, {"r": 36.0, "caps": [null, null, null, null, 3.2, 3.7, 4.0]}, {"r": 38.0, "caps": [null, null, null, null, 2.5, 2.9, 3.3]}, {"r": 40.0, "caps": [null, null, null, null, 1.9, 2.3, 2.7]}, {"r": 42.0, "caps": [null, null, null, null, 1.4, 1.8, 2.1]}, {"r": 44.0, "caps": [null, null, null, null, null, 1.3, 1.6]}, {"r": 46.0, "caps": [null, null, null, null, null, null, 1.1]}], h0:2.6, a:0.5, hook:0.9, maxT:130, cfg:"A1: outriggers max (8.4 m), 360\u00b0, counterweight on. Heavy-lift attachment column (to 130 t) not included", verified:false, hooks:[0.9,0.6,0.6,0.6,0.6,0.6,0.6], transcribed:true, source:"Kato KA-1300SL p.364 A1 table (scan, Japanese). \u5b9a\u683c\u7dcf\u8377\u91cd = rated total load, includes hook. Hook 70 t: 0.9 t (50 t hook 0.6 t on 19.8 m+ boom).", pdf:"KATO_KA1300SL_LOAD_CHART.pdf"},
 };
 const LIFT_OK = 0.75, LIFT_MAX = 0.90;
 function liftCheck(u, j){
-  const c = charts[u], gross = j.w + j.rig + c.hook, reqTip = j.h + j.head, tried = [];
+  const c = charts[u], hookOf = bi => (c.hooks && c.hooks[bi] != null) ? c.hooks[bi] : c.hook, reqTip = j.h + j.head, tried = [];
   let best = null;
   c.booms.forEach((L, bi) => {
     const dR = j.r - c.a;
@@ -2202,6 +2210,7 @@ function liftCheck(u, j){
     if(tip < reqTip){ tried.push({L, why:'height', tip}); return; }
     if(j.r < rows[0].r){ tried.push({L, why:'close', minR:rows[0].r}); return; }
     const row = rows.find(x => x.r >= j.r - 1e-9), cap = row.caps[bi];
+    const gross = j.w + j.rig + hookOf(bi);
     const opt = {L, bi, r:row.r, cap, tip, gross, util:gross/cap, angle:Math.acos(dR/L)*180/Math.PI};
     if(!best || opt.util < best.util) best = opt;
   });
@@ -2215,7 +2224,7 @@ function liftCheck(u, j){
     why = h.length ? `Boom too short: highest tip at ${j.r} m radius is ${num(+Math.max(...h.map(t=>t.tip)).toFixed(1))} m, needs ${num(reqTip)} m`
         : reach.length ? `Out of reach: chart goes to ${Math.max(...reach.map(t=>t.maxR))} m radius at most` : 'Radius too close for this crane';
   }
-  return {u, c, best, verdict, why, gross, reqTip};
+  return {u, c, best, verdict, why, gross: best ? best.gross : j.w + j.rig + Math.max(c.hook, ...(c.hooks||[])), reqTip};
 }
 function liftResults(j){
   const res = Object.keys(charts).map(u => { const x = liftCheck(u, j); x.avail = j.from && j.to ? availability(u, j.from, j.to) : null; return x; });
@@ -2252,8 +2261,8 @@ function chartTable(u, hl, gross){
 function renderLift(){
   const tab = state.liftTab;
   const head = `<div class="view-head"><h2>Crane selector</h2><div class="seg"><button data-lifttab="find" aria-pressed="${tab==='find'}">Find a crane</button><button data-lifttab="charts" aria-pressed="${tab==='charts'}">Load charts</button></div></div>`;
-  const unverified = Object.keys(charts).filter(u=>!charts[u].verified);
-  const warn = unverified.length ? `<div class="banner crit"><b>${unverified.length} of ${Object.keys(charts).length} load charts are not verified${unverified.length===Object.keys(charts).length?' (sample values in this prototype)':''}. Do not quote or lift from them until each is checked against the manufacturer's chart.</b></div>` : '';
+  const samples = Object.keys(charts).filter(u=>!charts[u].verified && !charts[u].transcribed), pdfs = Object.keys(charts).filter(u=>!charts[u].verified && charts[u].transcribed);
+  const warn = (samples.length ? `<div class="banner crit"><b>${samples.length} cranes still have sample charts (${samples.join(', ')}): made-up numbers. Send their manufacturer charts.</b></div>` : '') + (pdfs.length ? `<div class="banner"><b>${pdfs.length} charts were copied from your manufacturer PDFs (${pdfs.join(', ')}). Check them against the PDFs and mark verified before quoting.</b></div>` : '');
   if(tab==='charts') return $('#v-lift').innerHTML = head + warn + chartsEditor();
   const j = state.lift, res = j.done ? liftResults(j) : [];
   const sel = res.find(x=>x.u===state.liftSel) || res.find(x=>x.verdict!=='no') || res[0];
@@ -2277,7 +2286,7 @@ function renderLift(){
       <div class="panel"><div class="panel-head"><h3>${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high</h3><span class="muted">${res.filter(x=>x.verdict!=='no').length} of ${res.length} cranes can lift it</span></div>
         <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Crane</th><th>Result</th><th class="r">Boom</th><th class="r">Rated</th><th class="r">Gross</th><th>Use of chart</th>${j.from?'<th>Dates</th>':''}<th class="r cost">Day rate</th></tr></thead><tbody>
         ${res.map(x=>{ const b = x.best, r = rate(fleet[x.u].m,'wet'), pct = b ? Math.ceil(b.util*100) : null;
-          return `<tr class="click" data-liftsel="${x.u}" ${sel&&sel.u===x.u?'style="background:var(--accent-soft)"':''}><td><b>${x.u}</b> ${esc(uName(x.u))}<br><small class="muted">${esc(mOf(x.u).type)}${charts[x.u].verified?'':' · chart not verified'}</small></td>
+          return `<tr class="click" data-liftsel="${x.u}" ${sel&&sel.u===x.u?'style="background:var(--accent-soft)"':''}><td><b>${x.u}</b> ${esc(uName(x.u))}<br><small class="muted">${esc(mOf(x.u).type)}${chartTag(charts[x.u])}</small></td>
           <td><span class="pill ${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'}">${x.verdict==='ok'?'Can lift':x.verdict==='crit'?'Critical lift':'Cannot'}</span><br><small class="muted">${esc(x.verdict==='no'?x.why:b?`tip ${num(+b.tip.toFixed(1))} m (needs ${num(x.reqTip)} m), boom angle ${Math.round(b.angle)}°`:'')}</small></td>
           <td class="r num">${b?b.L+' m':'—'}</td><td class="r num">${b?num(b.cap)+' t':'—'}<br>${b?`<small class="muted">at ${b.r} m</small>`:''}</td><td class="r num">${num(+x.gross.toFixed(2))} t</td>
           <td>${b?`<div class="rbar" style="grid-template-columns:minmax(70px,1fr) auto"><div class="track"><div class="fill" style="width:${Math.min(pct,100)}%;background:var(--${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'})"></div></div><span class="v">${pct}%</span></div>`:''}</td>
@@ -2286,7 +2295,7 @@ function renderLift(){
         </tbody></table></div></div>
       ${sel ? `<div class="rail"><div class="panel"><div class="panel-head"><h3>${sel.u} · ${esc(mOf(sel.u).model)}</h3>${sel.best?`<span class="pill ${sel.verdict==='ok'?'ok':sel.verdict==='crit'?'warn':'crit'}">${Math.ceil(sel.best.util*100)}%</span>`:''}</div>
         <div class="in" style="padding:10px 14px">${sel.best ? liftSvg(sel, j) : `<p class="muted" style="margin:0">${esc(sel.why)}</p>`}
-          <small class="muted">${esc(sel.c.cfg)}. Hook block ${num(sel.c.hook)} t.</small>
+          <small class="muted">${esc(sel.c.cfg)}. Hook block ${num(sel.best ? (sel.c.hooks?.[sel.best.bi] ?? sel.c.hook) : sel.c.hook)} t.</small>
           ${sel.verdict!=='no'?`<div class="btnrow" style="margin-top:8px"><button class="btn small" data-action="lift-enq" data-u="${sel.u}">New enquiry with ${sel.u}</button></div>`:''}</div></div>
         </div>` : ''}
     </div>
@@ -2295,20 +2304,20 @@ function renderLift(){
 function chartsEditor(){
   const u = state.chartU, c = charts[u];
   return `<div class="split">
-    <div class="panel"><div class="list">${Object.keys(charts).map(k=>`<button class="li" data-chartu="${k}" aria-current="${k===u}"><div class="li-main"><b>${k} ${esc(uName(k))}</b><small>${esc(mOf(k).type)} · ${charts[k].booms.length} boom lengths</small></div><span class="pill ${charts[k].verified?'ok':'crit'}">${charts[k].verified?'Verified':'Not verified'}</span></button>`).join('')}</div>
+    <div class="panel"><div class="list">${Object.keys(charts).map(k=>`<button class="li" data-chartu="${k}" aria-current="${k===u}"><div class="li-main"><b>${k} ${esc(uName(k))}</b><small>${esc(mOf(k).type)} · ${charts[k].booms.length} boom lengths</small></div>${chartPill(charts[k])}</button>`).join('')}</div>
       <div class="in" style="padding:10px 14px"><small class="muted">Each crane needs a chart for every set-up it is used in (outrigger width, counterweight, jib). Add the main one first: outriggers fully extended, 360°.</small></div></div>
     <div class="detail">
-      <div class="sect"><h3>${u} ${esc(uName(u))} <span class="pill ${c.verified?'ok':'crit'}">${c.verified?'Verified '+esc(c.verifiedBy||''):'Not verified'}</span></h3><div class="in form">
+      <div class="sect"><h3>${u} ${esc(uName(u))} ${chartPill(c)}${c.verified?' <small class="muted">'+esc(c.verifiedBy||'')+'</small>':''}</h3><div class="in form">
         <label class="full">Set-up this chart is for<input type="text" data-geo="${u}|cfg" value="${esc(c.cfg)}"></label>
         <label>Boom foot height (m)<input type="number" step="0.1" data-geo="${u}|h0" value="${c.h0}"></label>
         <label>Boom foot offset from slew centre (m)<input type="number" step="0.1" data-geo="${u}|a" value="${c.a}"></label>
-        <label>Hook block weight (t)<input type="number" step="0.05" data-geo="${u}|hook" value="${c.hook}"></label>
-        <label>Source<input type="text" value="${esc(c.pdf || c.source)}" readonly></label>
+        <label>Hook block weight (t)<input type="number" step="0.05" data-geo="${u}|hook" value="${c.hook}">${c.hooks?`<small class="muted">By boom: ${c.booms.map((L,i)=>L+' m '+num(c.hooks[i])+' t').join(' · ')}. Typing one value here uses it for every boom.</small>`:''}</label>
+        <div class="full" style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1"><span class="label">Source</span><span style="font-size:.86rem">${esc((c.pdf?c.pdf+' — ':'')+c.source)}</span></div>
       </div></div>
       <div class="sect"><h3>Rated capacity (t) <span class="btnrow"><button class="btn small" data-action="lc-addrow">+ Radius</button><button class="btn small" data-action="lc-addcol">+ Boom length</button></span></h3><div class="in" style="padding:8px">
         <div class="tbl-wrap"><table class="lc"><thead><tr><th>Radius \\ Boom</th>${c.booms.map((L,bi)=>`<th><input class="ratein" type="number" step="0.01" data-boom="${u}|${bi}" value="${L}" aria-label="Boom length ${bi+1}"></th>`).join('')}</tr></thead><tbody>
           ${c.rows.map((row,ri)=>`<tr><th><input class="ratein" type="number" step="0.5" data-rad="${u}|${ri}" value="${row.r}" aria-label="Radius"></th>${row.caps.map((v,bi)=>`<td><input class="ratein" type="number" step="0.05" data-cell="${u}|${ri}|${bi}" value="${v??''}" aria-label="Capacity at ${row.r} m, boom ${c.booms[bi]} m"></td>`).join('')}</tr>`).join('')}
-        </tbody></table></div><small class="muted">Leave a cell empty where the chart has no value (boom angle out of range). Values exclude the hook block and rigging, as on most manufacturer charts.</small></div></div>
+        </tbody></table></div><small class="muted">Leave a cell empty where the chart has no value (boom angle out of range). On Kato and Kobelco charts the values include the hook block, so Lift check adds the hook block and rigging to the load before comparing.</small></div></div>
       <form class="docbar" data-form="lc-paste"><label class="label" for="lcPaste">Paste from Excel: first row boom lengths, first column radius</label>
         <textarea id="lcPaste" rows="4" placeholder="Radius&#9;9.35&#9;15.15&#9;20.95&#10;3.0&#9;25.00&#9;&#9;&#10;3.5&#9;23.50&#9;18.00&#9;"></textarea>
         <div class="btnrow"><button class="btn">Replace chart with pasted table</button></div></form>
@@ -2318,6 +2327,8 @@ function chartsEditor(){
     </div></div>`;
 }
 const chartChanged = u => { const c = charts[u]; if(c.verified){ c.verified = false; toast('Chart changed: it needs verifying again'); } };
+const chartPill = c => c.verified ? '<span class="pill ok">Verified</span>' : c.transcribed ? '<span class="pill warn">From PDF, not checked</span>' : '<span class="pill crit">Sample, not real</span>';
+const chartTag = c => c.verified ? '' : c.transcribed ? ' · chart from PDF, not checked' : ' · sample chart';
 
 document.addEventListener('click', e => {
   if(e.target.closest('input,select,textarea,canvas')) return;
@@ -2332,7 +2343,7 @@ document.addEventListener('click', e => {
   if(act==='lift-edit'){ state.chartU = d.u; state.liftTab = 'charts'; return render(); }
   if(act==='lift-enq'){ const j = state.lift, x = liftCheck(d.u, j);
     state.ne = neDefaults({need:mOf(d.u).type, k:'wet', from:j.from||addDays(TODAY,7), to:j.to||addDays(TODAY,11),
-      notes:`Lift: ${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high. Crane selector: ${d.u} ${uName(d.u)}, boom ${x.best.L} m, ${Math.ceil(x.best.util*100)}% of chart${charts[d.u].verified?'':' (chart not verified)'}.`});
+      notes:`Lift: ${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high. Crane selector: ${d.u} ${uName(d.u)}, boom ${x.best.L} m, ${Math.ceil(x.best.util*100)}% of chart${charts[d.u].verified?'':charts[d.u].transcribed?' (chart from PDF, not checked)':' (sample chart)'}.`});
     return openNewEnquiry(); }
   if(act==='lc-addrow'){ const last = c.rows[c.rows.length-1]; c.rows.push({r:(last?last.r:0)+2, caps:c.booms.map(()=>null)}); chartChanged(state.chartU); return render(); }
   if(act==='lc-addcol'){ c.booms.push(+(c.booms[c.booms.length-1]+4).toFixed(2)); c.rows.forEach(row=>row.caps.push(null)); chartChanged(state.chartU); return render(); }
@@ -2342,7 +2353,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target, d = t.dataset;
-  if(d.geo){ const [u,f] = d.geo.split('|'); charts[u][f] = f==='cfg' ? t.value : +t.value; chartChanged(u); return; }
+  if(d.geo){ const [u,f] = d.geo.split('|'); charts[u][f] = f==='cfg' ? t.value : +t.value; if(f==='hook') delete charts[u].hooks; chartChanged(u); return render(); }
   if(d.boom){ const [u,bi] = d.boom.split('|'); charts[u].booms[+bi] = +t.value; chartChanged(u); return; }
   if(d.rad){ const [u,ri] = d.rad.split('|'); charts[u].rows[+ri].r = +t.value; charts[u].rows.sort((x,y)=>x.r-y.r); chartChanged(u); return render(); }
   if(d.cell){ const [u,ri,bi] = d.cell.split('|'); charts[u].rows[+ri].caps[+bi] = t.value==='' ? null : +t.value; chartChanged(u); return; }
