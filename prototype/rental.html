@@ -372,6 +372,7 @@ svg.line .end{fill:var(--ink);font-weight:600}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bar-ink:#10141a}}
 :root[data-theme="dark"]{--bar-ink:#10141a}
 body[data-role="operator"] .cost, body[data-role="operator"] .boss, body[data-role="operator"] .office{display:none!important}
+body[data-role="sales"] .boss{display:none!important}
 .gantt-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
 .gantt{min-width:calc(190px + var(--cw) * 42)}
 .g-row{display:grid;grid-template-columns:190px minmax(0,1fr);border-bottom:1px solid var(--line);min-height:38px}
@@ -460,6 +461,26 @@ body[data-role="operator"] .cost, body[data-role="operator"] .boss, body[data-ro
 .daygrp.today{color:var(--warn)}
 .bar.trip{padding:0;justify-content:center;font-size:.6rem}
 input[type=time]{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:7px 10px;min-width:0}
+.task-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 10px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line)}
+.task-row:last-child{border-bottom:0}
+.tr-main{cursor:pointer;min-width:0}
+.tr-main b{display:block;font-weight:600;font-size:.87rem}
+.tr-main small{display:block}
+@media (max-width:640px){.task-row{grid-template-columns:minmax(0,1fr) auto}.task-row .btnrow{grid-column:1/-1}}
+.card-foot{flex-wrap:wrap}
+.grp-h{padding:7px 14px;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
+button.step{background:none;border-left:0;border-right:0;border-bottom:0;cursor:pointer;font-family:inherit}
+button.step:disabled{cursor:default}
+.rcell{display:block;font-size:.74rem;font-weight:600;padding:3px 6px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;border:0;text-align:left;width:100%;background:none;font-family:inherit;font-style:normal;margin-bottom:2px}
+.rcell.job{background:color-mix(in srgb,var(--k-wet) 16%,transparent);color:var(--k-wet);cursor:pointer}
+.rcell.trip{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn);cursor:pointer}
+.rcell.leave{background:color-mix(in srgb,var(--c-paint) 16%,transparent);color:var(--c-paint)}
+.rcell.pend{outline:1px dashed var(--c-paint);outline-offset:-1px;color:var(--c-paint)}
+.rcell.clash{background:var(--crit);color:var(--surface);cursor:pointer}
+.rcell.idle,.rcell.off{color:var(--muted);font-weight:500}
+.rcell.office{color:var(--ink);font-weight:500}
+.agenda-list{display:flex;flex-direction:column;gap:6px}
+.agenda-list .ev{white-space:normal;font-size:.82rem;padding:6px 8px}
 .ratein{width:84px;text-align:right;padding:4px 6px!important}
 .minihead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 </style>
@@ -474,28 +495,37 @@ input[type=time]{border:1px solid var(--line);background:var(--surface);border-r
         <select id="roleSel">
           <option value="boss">Head Manager</option>
           <option value="supervisor">Supervisor · Rental desk</option>
+          <option value="sales">Sales · Aisyah binti Karim</option>
           <option value="operator">Operator · Azman bin Yusof</option>
         </select>
       </div>
     </div>
     <nav class="tabs" aria-label="Sections">
-      <button data-view="today" class="office">Today</button>
-      <button data-view="planner" class="office">Planner</button>
-      <button data-view="hires" class="office">Hires</button>
-      <button data-view="fleet" class="office">Fleet</button>
-      <button data-view="transport" class="office">Transport</button>
+      <button data-view="today">Today</button>
+      <button data-view="enquiries">Enquiries</button>
+      <button data-view="customers">Customers</button>
+      <button data-view="hires">Hires</button>
+      <button data-view="planner">Planner</button>
+      <button data-view="calendar">Calendar</button>
+      <button data-view="fleet">Fleet</button>
+      <button data-view="transport">Transport</button>
       <button data-view="timesheets">Timesheets</button>
-      <button data-view="billing" class="office">Billing</button>
-      <button data-view="rates" class="office">Rates</button>
-      <button data-view="reports" class="boss">Reports</button>
+      <button data-view="staff">Staff</button>
+      <button data-view="billing">Billing</button>
+      <button data-view="rates">Rates</button>
+      <button data-view="reports">Reports</button>
     </nav>
   </div>
 </header>
 
-<div class="wrap"><p class="sample-note">Rental module prototype with example data (today is set to Fri 16 Oct 2026). Changes stay until the page reloads. Switch "Viewing as" to see each role: the Supervisor sees rates and invoices but not machine cost or profit; operators see only their own timesheet, with no prices. The workshop prototype is in <a href="index.html">index.html</a>; the design is in docs/RENTAL.md.</p></div>
+<div class="wrap"><p class="sample-note">Rental module prototype with example data (today is set to Fri 16 Oct 2026). Changes stay until the page reloads. Switch "Viewing as" to see each role: the Supervisor sees rates and invoices but not machine cost or profit; Sales works enquiries, customers and follow-ups; operators see only their own timesheet and leave, with no prices. The workshop prototype is in <a href="index.html">index.html</a>; the design is in docs/RENTAL.md.</p></div>
 
 <main class="wrap">
   <section class="view" id="v-today"></section>
+  <section class="view" id="v-enquiries" hidden></section>
+  <section class="view" id="v-customers" hidden></section>
+  <section class="view" id="v-calendar" hidden></section>
+  <section class="view" id="v-staff" hidden></section>
   <section class="view" id="v-planner" hidden></section>
   <section class="view" id="v-hires" hidden></section>
   <section class="view" id="v-fleet" hidden></section>
@@ -862,20 +892,21 @@ const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Pai
 const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
 
 /* ---------- state ---------- */
-const state = {view:'today', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, sheet:null, lastSheet:null};
+const state = {view:'today', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', week:'2026-10-12', sheet:null, lastSheet:null};
 try{ const v = localStorage.getItem('hdg-rental-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
 function setView(v){
-  if(role()==='operator') v = 'timesheets';
-  if(v==='reports' && !boss()) v = 'today';
+  const allowed = ROLE_VIEWS[role()];
+  if(!allowed.includes(v)) v = allowed[0];
+  document.querySelectorAll('nav.tabs button').forEach(b => b.hidden = !allowed.includes(b.dataset.view));
   state.view = v;
   document.querySelectorAll('section.view').forEach(s => s.hidden = s.id !== 'v-'+v);
   document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.view===v ? 'page' : 'false'));
   try{ localStorage.setItem('hdg-rental-view', v); }catch(e){}
   render();
 }
-function render(){ ({today:renderToday,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
+function render(){ ({today:renderToday,enquiries:renderEnquiries,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
 function rerender(){ render(); refreshSheet(); }
 
 /* ---------- Today ---------- */
@@ -917,7 +948,7 @@ function renderToday(){
   const idle = st.filter(([,s])=>s.k==='Available').map(([u,s])=>({u,idle:s.idle})).sort((a,b)=>(b.idle||0)-(a.idle||0));
   const order = ['On hire','Off-hire called','Going out','Booked','In workshop','Available'];
   $('#v-today').innerHTML = `
-    <div class="view-head"><h2>Today · ${fmtDW(TODAY)} 2026</h2><button class="btn primary" data-action="new-hire">New hire / quotation</button></div>
+    <div class="view-head"><h2>Today · ${fmtDW(TODAY)} 2026</h2><button class="btn" data-action="new-enq">New enquiry</button><button class="btn primary" data-action="new-hire">New hire / quotation</button></div>
     <div class="kpis">
       <div class="kpi"><b>${onHire}<small class="muted" style="font-size:1rem"> / ${units.length}</small></b><span>Machines on hire</span></div>
       <div class="kpi"><b>${cnt('Available')}</b><span>Available now</span></div>
@@ -929,6 +960,7 @@ function renderToday(){
     </div>
     <div class="dash">
       <div class="stack">
+        ${followupsTodayHtml()}
         <div class="panel"><div class="panel-head"><h3>Act now</h3><span class="muted num">${att.length}</span></div><div class="panel-body">
           ${att.map(a=>`<div class="attn ${a.cost?'cost':''}" ${a.a} role="button" tabindex="0" style="--sev:var(--${a.sev==='crit'?'crit':a.sev==='warn'?'warn':'info'})"><i></i><div><b>${esc(a.t)}</b><br><small class="muted">${esc(a.s)}</small></div></div>`).join('') || '<p class="muted" style="padding:8px 14px">Nothing waiting.</p>'}
         </div></div>
@@ -1004,6 +1036,7 @@ function renderPlanner(){
       <div class="g-row g-head"><div class="g-lab">Machine</div><div class="g-track">${days.map((d,i)=>`<div class="g-day ${dow(d)===0?'sun':''} ${d===TODAY?'today':''}"><i>${+d.slice(8)===1||i===0?MON[+d.slice(5,7)-1]:''}</i><b>${+d.slice(8)}</b></div>`).join('')}</div></div>
       ${groups.map(g => { const us = Object.keys(fleet).filter(u=>mOf(u).grp===g); return us.length ? `<div class="g-group"><span>${esc(GROUPS[g])}</span></div>${us.map(rowFor).join('')}` : ''; }).join('')}
     </div></div>`;
+  $('#v-planner').insertAdjacentHTML('beforeend', demandHtml());
 }
 
 /* ---------- Hires ---------- */
@@ -1162,7 +1195,8 @@ function saveNewHire(as){
   hires.push({id,c:n.c,site:n.site,state:n.state,siteContact:n.siteContact||customers[n.c].contact,po:n.po,status:as,created:TODAY,cycle:n.basis==='month'?'Monthly in arrears':'End of hire',
     quoteValid: as==='Quotation'?addDays(TODAY,7):undefined, deposit:n._deposit||undefined, depositPaid:false,
     lines:[{u:n.u,m:n._mk,k:n.k,basis:n.basis,from:n.from,to:n.to,op:n.k==='wet'?n.op:undefined}], trips: n.u ? trips : [],
-    log:[{d:TODAY+' '+nowT(),t:`${as==='Booked'?'Booked':'Quotation created'} by ${staff[role()==='boss'?'HM':'S1'].name}.`}]});
+    log:[{d:TODAY+' '+nowT(),t:`${as==='Booked'?'Booked':'Quotation created'} by ${staff[meStaff()].name}.`}]});
+  linkEnquiry(n, id, as);
   toast(as==='Booked' ? `${id} booked. ${n.u} reserved on the planner.` : `${id} saved as quotation.`);
   state.nh = null; render(); openHire(id);
 }
@@ -1361,6 +1395,7 @@ function renderOperator(){
     ${hist.length?`<div class="panel"><div class="panel-head"><h3>My last days</h3></div><div class="tbl-wrap" style="border:0"><table><tbody>
       ${hist.map(s=>`<tr class="click" data-ts="${s.id}"><td class="num">${fmtDW(s.d)}</td><td class="r num">${num(s.work)} h${s.standby?` <small class="muted">+${s.standby} standby</small>`:''}</td><td>${s.status==='signed'?'<span class="pill ok">Signed</span>':'<span class="pill warn">Waiting</span>'}</td></tr>`).join('')}
     </tbody></table></div></div>`:''}
+    ${leaveApplyHtml()}
     <div class="panel"><div class="panel-head"><h3>My certificates</h3></div><div class="panel-body">${Object.entries(op.certs).map(([k,e])=>`<div class="attn" style="--sev:var(--${docState(e)==='ok'?'ok':docState(e)})"><i></i><div><b>${esc(k)}</b><br><small class="muted">Expires ${fmtDY(e)}</small></div></div>`).join('')}</div></div>
   </div>`;
   initSig();
@@ -1471,6 +1506,7 @@ function renderReports(){
   $('#v-reports').innerHTML = `
     <div class="view-head"><h2>Reports · Jan–Sep 2026</h2></div>
     <div class="rgrid">
+      ${salesReportHtml()}
       <div class="panel"><div class="panel-head"><h3>Time utilisation</h3><span class="muted">target 70%</span></div><div class="rbars">
         ${us.map(u=>`<div class="rbar"><span>${u} ${esc(mOf(u).model)}</span><div class="track" style="position:relative"><div class="fill" style="width:${fleet[u].ytd.util}%;${fleet[u].ytd.util<50?'background:var(--warn)':''}"></div><i style="position:absolute;left:70%;top:-3px;bottom:-3px;width:1px;background:var(--ink);opacity:.5"></i></div><span class="v">${fleet[u].ytd.util}%</span></div>`).join('')}
       </div></div>
@@ -1483,6 +1519,509 @@ function renderReports(){
         ${prof.map(p=>`<tr class="click" data-unit="${p.u}"><td><b>${p.u}</b> ${esc(uName(p.u))}</td><td class="r num">${RM0(p.rev)}</td><td class="r num ${p.ws/p.rev>0.25?'stock-low':''}">${RM0(p.ws)}</td><td class="r num">${RM0(p.opx)}</td><td class="r num"><b>${RM0(p.contrib)}</b></td><td class="r num">${p.util}%</td><td class="r num">${p.roc}%</td></tr>`).join('')}
       </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">RC-03 (2009) spent ${Math.round(fleet['RC-03'].ytd.ws/fleet['RC-03'].ytd.rev*100)}% of its revenue in the workshop, and its CF is due on 30 Oct. A candidate to replace.</small></div></div>`;
 }
+
+/* ---------- people ---------- */
+Object.assign(staff, {
+  S2:{name:'Aisyah binti Karim',role:'Sales & customer service'},
+  S3:{name:'Lee Mei Fong',role:'Accounts'},
+});
+Object.entries({HM:'012-300 1001',S1:'012-388 2201',S2:'012-660 3317',S3:'016-224 9081',O1:'013-447 2190',O2:'016-301 8824',O3:'019-662 0475',O4:'012-905 3316',O5:'017-338 4021',D1:'012-771 0932',D2:'013-280 5517'}).forEach(([k,v])=>staff[k].phone=v);
+const OFFICE = ['HM','S1','S2','S3'], FIELD = ['O1','O2','O3','O4','O5','D1','D2'];
+const meStaff = () => ({boss:'HM',supervisor:'S1',sales:'S2'})[role()] || state.me;
+const ROLE_VIEWS = {
+  boss:['today','enquiries','customers','hires','planner','calendar','fleet','transport','timesheets','staff','billing','rates','reports'],
+  supervisor:['today','enquiries','customers','hires','planner','calendar','fleet','transport','timesheets','staff','billing','rates'],
+  sales:['today','enquiries','customers','hires','planner','calendar','fleet','rates'],
+  operator:['timesheets'],
+};
+let leave = [
+  {id:1,s:'O2',type:'Annual leave',from:'2026-10-22',to:'2026-10-23',status:'Pending',note:'Family wedding in Ipoh'},
+  {id:2,s:'D2',type:'Medical leave (MC)',from:'2026-10-15',to:'2026-10-16',status:'Approved',note:'MC from Klinik Kesihatan Klang'},
+  {id:3,s:'O4',type:'Annual leave',from:'2026-10-29',to:'2026-10-30',status:'Pending',note:''},
+  {id:4,s:'S2',type:'Annual leave',from:'2026-11-09',to:'2026-11-09',status:'Approved',note:''},
+];
+const LTYPES = ['Annual leave','Medical leave (MC)','Emergency leave','Unpaid leave','Replacement leave'];
+const leaveBal = {HM:14,S1:10,S2:12,S3:9,O1:8,O2:3,O3:11,O4:6,O5:9,D1:7,D2:4};
+const CLOCK = {O1:'07:46 · Seksyen 13 site',O2:'07:58 · Jalan Kapar site',O3:'07:30 · yard',O4:'07:55 · yard',O5:'08:05 · Pulau Indah',D1:'07:40 · yard',S1:'08:30 · office',S2:'08:41 · office',S3:'08:52 · office',HM:'08:15 · office'};
+
+/* ---------- customers, enquiries, follow-ups ---------- */
+customers.C8 = {name:'Sinar Timur Engineering Sdn Bhd',brn:'201101034455',tin:'C22334455070',sst:'',terms:30,limit:50000,contact:'Mr. Yap Kok Leong',phone:'012-338 7766'};
+Object.entries({C1:['Building construction','S2',2019,'2026-10-15'],C2:['Quarry','S2',2016,'2026-10-01'],C3:['Piling & foundations','S2',2018,'2026-10-14'],C4:['Steel structures','S2',2021,'2026-10-13'],
+  C5:['Civil & drainage','S2',2017,'2026-10-15'],C6:['Building construction','S2',2026,'2026-10-14'],C7:['Port & logistics','HM',2015,'2026-10-13'],C8:['M&E contractor','S2',2020,'2026-06-24']})
+  .forEach(([k,[ind,sales,since,last]]) => Object.assign(customers[k], {ind, sales, since, last, notes:[]}));
+customers.C8.lastHire = '2026-06-20';
+customers.C3.notes.push({d:'2026-10-14',t:'Mr. Gan says payment for August is with their finance, promised by 20 Oct.'});
+
+const STAGES = ['New','Contacted','Site visit','Quoted','Negotiating','Won','Lost'];
+const PROB = {New:.1,Contacted:.2,'Site visit':.4,Quoted:.5,Negotiating:.7,Won:1,Lost:0};
+const TEMP = {Hot:'var(--crit)',Warm:'var(--warn)',Cold:'var(--info)'};
+const SOURCES = ['Phone','WhatsApp','Email','Website form','Walk-in','Referral','Tender'];
+const LOST_WHY = ['No machine free','Price','Went elsewhere','Project postponed','No reply'];
+const HIST = {won:31, lost:19};
+let enquiries = [
+  {id:'E-2026-0231',at:'2026-10-16 08:20',src:'WhatsApp',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Rough terrain crane 25 t',qty:1,k:'wet',from:'2026-10-26',to:'2026-10-30',site:'Bandar Rimbayu, Kota Kemuning',state:'Selangor',stage:'New',owner:'S2',temp:'Hot',
+   notes:'Lifting precast beams, max 6 t at 18 m radius. Site needs the crane CF copy and operator DOSH card.',log:[{d:'2026-10-16 08:20',t:'WhatsApp from Mr. Ong: 25 t crane 26–30 Oct.'}]},
+  {id:'E-2026-0230',at:'2026-10-15 15:30',src:'Phone',c:'C1',need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-11-02',to:'2026-11-13',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0160',
+   notes:'Second crane for roof steel. Our only 50 t (RC-01) is already on their site.',log:[{d:'2026-10-15 15:40',t:'Quotation H-2026-0160 started; no 50 t free.'},{d:'2026-10-15 15:30',t:'Call from Mr. Lim.'}]},
+  {id:'E-2026-0229',at:'2026-10-15 11:05',src:'Phone',c:'C5',need:'Generator 150 kVA',qty:1,k:'dry',from:'2026-11-02',to:'2026-12-31',site:'Taman Desa drainage works, Rawang',state:'Selangor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0161',
+   notes:'Site office and pumps.',log:[{d:'2026-10-16 08:50',t:'Quotation H-2026-0161 sent by WhatsApp.'}]},
+  {id:'E-2026-0228',at:'2026-10-14 10:10',src:'Website form',prospect:{name:'Ikhlas Plantation Sdn Bhd',contact:'En. Hairul Nizam',phone:'013-920 1188'},need:'Excavator 20 t',qty:2,k:'dry',from:'2026-11-09',to:'2027-02-08',site:'Ladang Sungai Tinggi, Kuala Selangor',state:'Selangor',stage:'Site visit',owner:'S2',temp:'Hot',
+   notes:'Drainage and estate road works. 2 units for 3 months. Soft ground: ask about mats and swamp shoes.',log:[{d:'2026-10-15 09:00',t:'Called En. Hairul. Site visit fixed for Mon 19 Oct.'},{d:'2026-10-14 10:10',t:'Website form received.'}]},
+  {id:'E-2026-0227',at:'2026-10-13 09:40',src:'Email',c:'C7',need:'Forklift 5 t',qty:1,k:'dry',from:'2026-10-26',to:'2026-11-08',site:'Westport warehouse 4, Pulau Indah',state:'Selangor',stage:'Negotiating',owner:'S2',temp:'Warm',
+   notes:'Peak season at the port. Asked for 10% off the weekly rate.',log:[{d:'2026-10-14 15:00',t:'Sent price: RM 1,300 a week. Customer asked for 10% off.'},{d:'2026-10-13 09:40',t:'E-mail from Mr. Ravi.'}]},
+  {id:'E-2026-0226',at:'2026-10-12 14:00',src:'Tender',prospect:{name:'Lebuh Raya Utama Contractors Sdn Bhd',contact:'Ir. Kumaran',phone:'03-7880 2210'},need:'Boom lift 20 m',qty:1,k:'dry',from:'2026-12-01',to:'2027-05-31',site:'Overhead sign gantries, Seremban',state:'Negeri Sembilan',stage:'Contacted',owner:'HM',temp:'Cold',
+   notes:'Tender closes 30 Oct. Needs company profile, CF and insurance copies.',log:[{d:'2026-10-13 10:00',t:'Tender documents downloaded.'}]},
+  {id:'E-2026-0225',at:'2026-10-13 16:20',src:'Referral',c:'C6',need:'Boom lift 20 m',qty:1,k:'dry',from:'2026-10-19',to:'2026-10-30',site:'Jalan Ampang condominium, Kuala Lumpur',stage:'Won',owner:'S2',temp:'Hot',hire:'H-2026-0157',notes:'Referred by Bina Jaya.',log:[{d:'2026-10-14 10:30',t:'Booked as H-2026-0157.'}]},
+  {id:'E-2026-0224',at:'2026-10-13 11:00',src:'Phone',c:'C4',need:'Lorry crane 10 t',qty:1,k:'wet',from:'2026-10-16',to:'2026-10-16',site:'Lot 88 Jalan Haji Sirat, Klang',stage:'Won',owner:'S2',temp:'Warm',hire:'H-2026-0155',notes:'',log:[{d:'2026-10-13 14:00',t:'Booked as H-2026-0155.'}]},
+  {id:'E-2026-0221',at:'2026-10-02 10:00',src:'Phone',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-10-05',to:'2026-10-16',site:'Bandar Rimbayu',stage:'Lost',lostWhy:'No machine free',owner:'S2',temp:'Hot',notes:'',log:[{d:'2026-10-02 11:00',t:'Lost: no 50 t free.'}]},
+  {id:'E-2026-0219',at:'2026-09-28 09:15',src:'Phone',c:'C3',need:'Excavator 20 t',qty:1,k:'dry',from:'2026-10-05',to:'2026-11-04',site:'Jalan Kapar, Klang',stage:'Lost',lostWhy:'Price',owner:'S2',temp:'Warm',notes:'',log:[{d:'2026-09-30 16:00',t:'Lost on price (competitor RM 12,800 a month).'}]},
+];
+const modelOfType = type => Object.keys(models).find(k=>models[k].type===type);
+const guessBasis = (mk,k,from,to) => { const n = daysBetween(from,to)+1, r = rate(mk,k)||{}; const order = n>=28?['month','week','day','hour']:n>=7?['week','day','month','hour']:['day','hour','week','month']; return order.find(b=>r[{hour:'hr',day:'day',week:'week',month:'month'}[b]]) || 'day'; };
+const kindFor = (mk,k) => rate(mk,k) ? k : rate(mk,'wet') ? 'wet' : 'dry';
+function enqValue(e){ if(e.value) return e.value; const mk = modelOfType(e.need), k = kindFor(mk,e.k), est = estimate(mk,k,guessBasis(mk,k,e.from,e.to),e.from,e.to); return Math.round((est?est.amt:0)*(e.qty||1)); }
+enquiries.forEach(e => e.value = enqValue(e));
+const enq = id => enquiries.find(e=>e.id===id);
+const enqName = e => e.c ? custName(e.c) : e.prospect.name;
+const openStage = e => !['Won','Lost'].includes(e.stage);
+
+let tasks = [
+  {id:1,d:'2026-10-16',time:'10:00',type:'Call',who:'S2',enq:'E-2026-0231',t:'Call Mr. Ong back: load weights, radius and site access for the 25 t crane'},
+  {id:2,d:'2026-10-16',time:'11:30',type:'WhatsApp',who:'S2',enq:'E-2026-0227',cust:'C7',t:'Reply Mr. Ravi on the 10% discount (up to 5% without the Head Manager)'},
+  {id:3,d:'2026-10-15',time:'16:00',type:'Call',who:'S2',enq:'E-2026-0230',cust:'C1',t:'Bina Jaya 50 t: offer the 25 t RC-02 option or a cross-hire'},
+  {id:4,d:'2026-10-19',time:'09:30',type:'Site visit',who:'S1',enq:'E-2026-0228',t:'Site visit Ladang Sungai Tinggi with En. Hairul: ground and lowloader access'},
+  {id:5,d:'2026-10-20',time:'10:00',type:'Send documents',who:'HM',enq:'E-2026-0226',t:'Send company profile, BL-01 CF and insurance for the tender'},
+  {id:6,d:'2026-10-14',type:'Chase PO',who:'S2',enq:'E-2026-0225',cust:'C6',t:'Get the LOU from Lian Hup before booking',done:true,doneAt:'2026-10-14',note:'LOU received by e-mail.'},
+].map(t => ({done:false, ...t}));
+let taskSeq = 100;
+function lastHireOf(c){ const ends = hires.filter(h=>h.c===c && !['Quotation','Lost'].includes(h.status)).flatMap(h=>h.lines.map(l=>minD(lineEnd(l),TODAY))); return ends.sort().pop() || customers[c].lastHire || null; }
+(function autoTasks(){
+  const add = o => tasks.push({id:++taskSeq, done:false, ...o, d:dow(o.d)===0?addDays(o.d,1):o.d});
+  hires.filter(h=>h.status==='On hire' && !h.contract).forEach(h => { const end = h.lines[0].to, n = daysBetween(TODAY,end);
+    if(n>=0 && n<=10) add({d:addDays(end,-7)<'2026-10-15'?'2026-10-15':addDays(end,-7), type:'Extension check', who:'S2', hire:h.id, cust:h.c, t:`Ask ${customers[h.c].contact} whether to extend ${h.lines.map(l=>l.u).join(' and ')} past ${fmtD(end)}`, rule:'Hire ends within 7 days'}); });
+  hires.filter(h=>h.status==='Quotation' && h.lines.every(l=>l.u)).forEach(h => add({d:addDays(h.created,2), type:'Call', who:'S2', hire:h.id, cust:h.c, enq:enquiries.find(e=>e.hire===h.id)?.id, t:`Follow up quotation ${h.id} with ${customers[h.c].contact}`, rule:'Quotation sent 2 days ago'}));
+  invoices.filter(i=>invStatus(i)==='Overdue').forEach(i => add({d:TODAY, type:'Payment chase', who:'S3', inv:i.no, cust:i.c, t:`Remind ${customers[i.c].contact}: ${i.no}, ${RM(i.total)}, ${daysBetween(i.due,TODAY)} days overdue`, rule:'Invoice overdue 7 / 14 / 30 days'}));
+  Object.keys(customers).forEach(c => { const lh = lastHireOf(c); if(lh && daysBetween(lh,TODAY)>90) add({d:TODAY, type:'Call', who:customers[c].sales||'S2', cust:c, t:`Reactivation call to ${customers[c].contact}: no hire since ${fmtDY(lh)}`, rule:'No hire for 90 days'}); });
+})();
+const RULES_FU = [
+  ['New enquiry','Call back within 2 working hours (owner)'],
+  ['Quotation sent','Follow-up call after 2 days; again 1 day before it expires'],
+  ['Booking without PO / LOU','Chase PO 2 days before delivery'],
+  ['Hire ends within 7 days','Ask the customer about extension or off-hire'],
+  ['Invoice overdue','Reminders at 7, 14 and 30 days (Accounts); Head Manager at 60 days'],
+  ['No hire for 90 days','Reactivation call by the salesperson'],
+  ['Enquiry lost: no machine free','Added to the fleet report; call back if a machine frees up'],
+];
+const custOfTask = t => t.cust || (t.enq && enq(t.enq)?.c) || (t.hire && hire(t.hire)?.c) || (t.inv && invoices.find(i=>i.no===t.inv)?.c) || null;
+const taskAttr = t => t.enq ? `data-enq="${t.enq}"` : t.hire ? `data-hire="${t.hire}"` : t.inv ? `data-inv="${t.inv}"` : t.cust ? `data-cust="${t.cust}"` : '';
+function taskRow(t, showWho=true){
+  const over = t.d < TODAY, due = t.d === TODAY;
+  return `<div class="task-row"><div class="tr-main" ${taskAttr(t)} role="button" tabindex="0"><b>${esc(t.t)}</b><small class="muted">${esc(t.type)} · ${due?'Today':fmtDW(t.d)}${t.time?' '+t.time:''}${showWho?' · '+esc(staff[t.who].name):''}${t.rule?' · auto: '+esc(t.rule):''}${t.note?' · '+esc(t.note):''}</small></div>
+    ${t.done ? `<span class="pill ok">Done ${fmtD(t.doneAt)}</span>` : `<span class="pill ${over?'crit':due?'warn':'mute'}">${over?daysBetween(t.d,TODAY)+' d late':due?'Today':fmtD(t.d)}</span><div class="btnrow"><button class="btn small" data-action="task-done" data-id="${t.id}">Done</button><button class="btn small" data-action="task-snooze" data-id="${t.id}">+1 day</button></div>`}</div>`;
+}
+function followupsTodayHtml(){
+  const me = meStaff(), mine = role()==='sales';
+  const list = tasks.filter(t=>!t.done && t.d<=TODAY && (!mine || t.who===me)).sort((a,b)=>a.d<b.d?-1:1);
+  const upcoming = tasks.filter(t=>!t.done && t.d>TODAY && t.d<=addDays(TODAY,7) && (!mine || t.who===me)).length;
+  return `<div class="panel"><div class="panel-head"><h3>Follow-ups due${mine?' (mine)':''}</h3><span class="btnrow"><span class="muted num">${list.length}</span><button class="btn small" data-action="goto-fu">All follow-ups</button></span></div><div>
+    ${list.slice(0,7).map(t=>taskRow(t,!mine)).join('') || `<p class="muted" style="padding:8px 14px">Nothing due. ${upcoming} coming up this week.</p>`}
+    ${list.length>7?`<p class="muted" style="padding:8px 14px;margin:0">${list.length-7} more in Enquiries → Follow-ups.</p>`:''}</div></div>`;
+}
+
+/* ---------- Enquiries ---------- */
+function renderEnquiries(){
+  const open = enquiries.filter(openStage), me = meStaff();
+  const pipe = sum(open.map(e=>e.value*PROB[e.stage]));
+  const won = HIST.won + enquiries.filter(e=>e.stage==='Won').length, lostN = HIST.lost + enquiries.filter(e=>e.stage==='Lost').length;
+  const overdue = tasks.filter(t=>!t.done && t.d<TODAY).length;
+  const noFu = open.filter(e=>!tasks.some(t=>!t.done && t.enq===e.id)).length;
+  const tab = state.enqTab;
+  const nextFu = e => tasks.filter(t=>!t.done && t.enq===e.id).sort((a,b)=>a.d<b.d?-1:1)[0];
+  const card = e => { const f = nextFu(e); return `<button class="card" data-enq="${e.id}" style="--cat:${TEMP[e.temp]}">
+      <div class="card-top"><span class="mono">${e.id}</span><span class="pri ${e.temp==='Hot'?'High':'Normal'}">${e.temp}</span></div>
+      <span class="mach">${esc(e.need)}${e.qty>1?' × '+e.qty:''}</span>
+      <span class="cust">${esc(enqName(e))}${e.c?'':' · new'}</span>
+      <span class="cust">${fmtD(e.from)}–${fmtD(e.to)} · ${kindLabel(e.k)}</span>
+      <div class="card-foot"><b class="num">${RM0(e.value)}</b>${openStage(e) ? (f ? `<span class="due ${f.d<TODAY?'over':f.d===TODAY?'soon':''}">${f.d<TODAY?'Late: ':f.d===TODAY?'Today: ':fmtD(f.d)+': '}${esc(f.type)}</span>` : '<span class="due over">No follow-up</span>') : e.stage==='Lost' ? `<span class="muted">${esc(e.lostWhy||'')}</span>` : `<span class="mono muted">${e.hire||''}</span>`}<span class="avatar" title="${esc(staff[e.owner].name)}">${initials(staff[e.owner].name)}</span></div></button>`; };
+  let body = '';
+  if(tab==='board') body = `<div class="board">${STAGES.map(s=>{ const es = enquiries.filter(e=>e.stage===s); return `<div class="col"><div class="col-head"><h3>${s}</h3><span class="num">${es.length}${openStage({stage:s})&&es.length?' · '+RM0(sum(es.map(e=>e.value))):''}</span></div>${es.map(card).join('') || '<div class="empty-col">None</div>'}</div>`; }).join('')}</div>`;
+  else {
+    const mine = state.fuMine, list = tasks.filter(t => !mine || t.who===me);
+    const groups = [['Overdue', list.filter(t=>!t.done && t.d<TODAY)], ['Today', list.filter(t=>!t.done && t.d===TODAY)], ['Next 7 days', list.filter(t=>!t.done && t.d>TODAY && t.d<=addDays(TODAY,7))], ['Later', list.filter(t=>!t.done && t.d>addDays(TODAY,7))], ['Done recently', list.filter(t=>t.done)]];
+    body = `<div class="dash"><div class="panel"><div class="panel-head"><h3>Follow-ups</h3><label class="filters"><input type="checkbox" data-action="fu-mine" ${mine?'checked':''}> Mine only (${esc(staff[me].name)})</label></div>
+      ${groups.map(([g,ts])=>ts.length?`<div class="grp-h">${g} · ${ts.length}</div>${ts.sort((a,b)=>a.d<b.d?-1:1).map(t=>taskRow(t)).join('')}`:'').join('')}</div>
+      <div class="rail"><div class="panel"><div class="panel-head"><h3>Automatic follow-ups</h3></div><div class="tbl-wrap" style="border:0"><table><tbody>${RULES_FU.map(([a,b])=>`<tr><td><b>${esc(a)}</b><br><small class="muted">${esc(b)}</small></td></tr>`).join('')}</tbody></table></div></div></div></div>`;
+  }
+  $('#v-enquiries').innerHTML = `
+    <div class="view-head"><h2>Enquiries</h2>
+      <div class="seg"><button data-enqtab="board" aria-pressed="${tab==='board'}">Pipeline</button><button data-enqtab="fu" aria-pressed="${tab==='fu'}">Follow-ups <span class="muted num">${tasks.filter(t=>!t.done && t.d<=TODAY).length}</span></button></div>
+      <button class="btn primary" data-action="new-enq">New enquiry</button></div>
+    <div class="kpis">
+      <div class="kpi"><b>${open.length}</b><span>Open enquiries</span></div>
+      <div class="kpi"><b style="font-size:1.45rem">${RM0(pipe)}</b><span>Pipeline, weighted by stage</span></div>
+      <div class="kpi"><b>${enquiries.filter(e=>e.at.startsWith(TODAY)).length}</b><span>New today</span></div>
+      <div class="kpi"><b>${Math.round(won/(won+lostN)*100)}%</b><span>Win rate, last 90 days</span></div>
+      <div class="kpi"><b>41 min</b><span>Average first reply (Oct)</span></div>
+      <div class="kpi alert"><b>${overdue}</b><span>Follow-ups overdue</span></div>
+      <div class="kpi warn"><b>${noFu}</b><span>Open, no follow-up set</span></div>
+    </div>${body}`;
+}
+function neDefaults(pre={}){ return {src:'Phone', c:'', pname:'', pcontact:'', pphone:'', need:'Excavator 20 t', qty:1, k:'dry', from:addDays(TODAY,7), to:addDays(TODAY,20), site:'', state:'Selangor', notes:'', owner:OFFICE.includes(meStaff())?meStaff():'S2', fu:TODAY, fuT:'Call back with price and availability', temp:'Warm', ...pre}; }
+function openNewEnquiry(){
+  const n = state.ne, types = [...new Set(hireUnits().map(u=>mOf(u).type))], mk = modelOfType(n.need);
+  const kinds = ['dry','wet'].filter(k=>rate(mk,k)); if(!kinds.includes(n.k)) n.k = kinds[0];
+  const free = hireUnits().filter(u=>mOf(u).type===n.need && availability(u,n.from,n.to).ok).length;
+  const val = enqValue({...n, value:0});
+  const body = `<form class="stack" data-form="ne">
+    <div class="sect"><h3>Who is asking</h3><div class="in form">
+      <label>Source<select class="field" data-ne="src">${SOURCES.map(s=>`<option ${s===n.src?'selected':''}>${s}</option>`).join('')}</select></label>
+      <label>Customer<select class="field" data-ne="c"><option value="">New prospect (not a customer yet)</option>${Object.entries(customers).map(([k,c])=>`<option value="${k}" ${k===n.c?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
+      ${n.c ? `<label>Contact<input type="text" value="${esc(customers[n.c].contact)} · ${esc(customers[n.c].phone)}" readonly></label>` : `
+      <label>Company<input type="text" data-ne="pname" value="${esc(n.pname)}" placeholder="e.g. Sri Kenari Builders Sdn Bhd"></label>
+      <label>Contact person<input type="text" data-ne="pcontact" value="${esc(n.pcontact)}"></label>
+      <label>Phone / WhatsApp<input type="text" data-ne="pphone" value="${esc(n.pphone)}" placeholder="012-345 6789"></label>`}
+    </div></div>
+    <div class="sect"><h3>What they need</h3><div class="in form">
+      <label>Machine type<select class="field" data-ne="need">${types.map(t=>`<option ${t===n.need?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+      <label>Quantity<input type="number" min="1" max="10" data-ne="qty" value="${n.qty}"></label>
+      <label>Kind<select class="field" data-ne="k">${kinds.map(k=>`<option value="${k}" ${k===n.k?'selected':''}>${kindLabel(k)}</option>`).join('')}</select></label>
+      <label>From<input type="date" data-ne="from" value="${n.from}"></label>
+      <label>To<input type="date" data-ne="to" value="${n.to}"></label>
+      <label>Site<input type="text" data-ne="site" value="${esc(n.site)}" placeholder="Town / project"></label>
+      <label class="full">Details<textarea rows="2" data-ne="notes" placeholder="Loads, radius, ground, access, working hours…">${esc(n.notes)}</textarea></label>
+      <label class="full" style="color:var(--${free>=n.qty?'ok':'crit'})">${free} of ${hireUnits().filter(u=>mOf(u).type===n.need).length} ${esc(n.need)} free for these dates${free<n.qty?': offer other dates, another size, or cross-hire':''}. <span class="cost">Estimated value ${RM0(val)}.</span></label>
+    </div></div>
+    <div class="sect"><h3>Next step</h3><div class="in form">
+      <label>Owner<select class="field" data-ne="owner">${OFFICE.map(s=>`<option value="${s}" ${s===n.owner?'selected':''}>${esc(staff[s].name)}</option>`).join('')}</select></label>
+      <label>How hot<select class="field" data-ne="temp">${Object.keys(TEMP).map(t=>`<option ${t===n.temp?'selected':''}>${t}</option>`).join('')}</select></label>
+      <label>Follow up on<input type="date" data-ne="fu" value="${n.fu}"></label>
+      <label class="full">Follow-up action<input type="text" data-ne="fuT" value="${esc(n.fuT)}"></label>
+    </div></div>
+    <div class="btnrow"><button class="btn primary" type="button" data-action="ne-save">Save enquiry</button></div></form>`;
+  openSheet('New enquiry', `<span class="mono">E-2026-0${Math.max(...enquiries.map(e=>+e.id.slice(-4)))+1}</span>`, body, {type:'ne'});
+}
+function saveEnquiry(){
+  const n = state.ne;
+  if(!n.c && !n.pname.trim()){ toast('Enter the company name'); return; }
+  const id = 'E-2026-0' + (Math.max(...enquiries.map(e=>+e.id.slice(-4)))+1);
+  const e = {id, at:`${TODAY} ${nowT()}`, src:n.src, c:n.c||undefined, prospect:n.c?undefined:{name:n.pname.trim(),contact:n.pcontact,phone:n.pphone}, need:n.need, qty:+n.qty||1, k:n.k, from:n.from, to:n.to, site:n.site, state:n.state, stage:'New', owner:n.owner, temp:n.temp, notes:n.notes, log:[{d:`${TODAY} ${nowT()}`,t:`${n.src} enquiry logged by ${staff[meStaff()].name}.`}]};
+  e.value = enqValue(e);
+  enquiries.unshift(e);
+  tasks.push({id:++taskSeq, d:n.fu, type:'Call', who:n.owner, enq:id, cust:n.c||undefined, t:n.fuT || 'Call back', done:false});
+  state.ne = null; toast(`${id} saved. Follow-up set for ${fmtDW(n.fu)}.`); render(); openEnquiry(id);
+}
+function openEnquiry(id){
+  const e = enq(id), si = STAGES.indexOf(e.stage), cu = e.c ? customers[e.c] : null;
+  const us = hireUnits().filter(u=>mOf(u).type===e.need).map(u=>({u,...availability(u,e.from,e.to, e.hire)}));
+  const ts = tasks.filter(t=>t.enq===id).sort((a,b)=>a.done-b.done || (a.d<b.d?-1:1));
+  const body = `
+    <div class="steps">${STAGES.filter(s=>s!=='Lost').map((s,i)=>`<button class="step ${e.stage==='Lost'?'':i<si?'done':i===si?'cur':''}" data-action="enq-stage" data-id="${id}" data-s="${s}" ${openStage(e)?'':'disabled'}>${s}</button>`).join('')}</div>
+    ${e.stage==='Lost'?`<div class="banner crit"><b>Lost: ${esc(e.lostWhy||'')}</b></div>`:''}
+    <div class="btnrow">
+      ${e.hire?`<button class="btn" data-hire="${e.hire}">Open ${e.hire}</button>`:openStage(e)?`<button class="btn primary" data-action="enq-quote" data-id="${id}">Make quotation</button>`:''}
+      ${!e.c && openStage(e)?`<button class="btn" data-action="enq-cust" data-id="${id}">Add as customer</button>`:''}
+    </div>
+    <div class="sect"><h3>Enquiry</h3><div class="facts">
+      <div><span class="label">${e.c?'Customer':'Prospect'}</span><b>${e.c?`<a href="#" data-cust="${e.c}">${esc(cu.name)}</a>`:esc(e.prospect.name)}</b></div>
+      <div><span class="label">Contact</span><b>${esc(cu?cu.contact:e.prospect.contact)} · ${esc(cu?cu.phone:e.prospect.phone)}</b></div>
+      <div><span class="label">Source</span><b>${esc(e.src)}</b><small class="muted">${esc(e.at)}</small></div>
+      <div><span class="label">Needs</span><b>${esc(e.need)}${e.qty>1?' × '+e.qty:''}</b><small class="muted">${kindLabel(e.k)}</small></div>
+      <div><span class="label">Dates</span><b>${fmtD(e.from)} – ${fmtDY(e.to)}</b><small class="muted">${daysBetween(e.from,e.to)+1} days</small></div>
+      <div><span class="label">Site</span><b>${esc(e.site||'—')}</b></div>
+      <div class="cost"><span class="label">Value</span><b>${RM0(e.value)}</b><small class="muted">${Math.round(PROB[e.stage]*100)}% likely at this stage</small></div>
+      <div><span class="label">Owner</span><select class="field" data-enqf="owner" data-id="${id}">${OFFICE.map(s=>`<option value="${s}" ${s===e.owner?'selected':''}>${esc(staff[s].name)}</option>`).join('')}</select></div>
+      <div><span class="label">How hot</span><select class="field" data-enqf="temp" data-id="${id}">${Object.keys(TEMP).map(t=>`<option ${t===e.temp?'selected':''}>${t}</option>`).join('')}</select></div>
+    </div>${e.notes?`<div class="in" style="border-top:1px solid var(--line)">${esc(e.notes)}</div>`:''}</div>
+    ${openStage(e)?`<div class="sect"><h3>Availability</h3><div class="findres">${us.map(r=>`<div class="fr"><div><b>${r.u} ${esc(uName(r.u))}</b> <span class="pill ${r.ok?'ok':'crit'}">${r.ok?'Free':'Not free'}</span><small>${r.ok?'Free for these dates.':r.why.map(esc).join(' · ')}</small></div></div>`).join('')}
+      ${us.filter(r=>r.ok).length<(e.qty||1)?`<div class="fr"><div><b>Short by ${(e.qty||1)-us.filter(r=>r.ok).length}.</b><small>Offer other dates or another size, or cross-hire from a partner.</small></div></div>`:''}</div></div>`:''}
+    <div class="sect"><h3>Follow-ups</h3><div>${ts.map(t=>taskRow(t)).join('') || '<p class="muted" style="padding:8px 14px;margin:0">No follow-up set.</p>'}</div>
+      ${openStage(e)?`<form class="in form" data-form="task" data-enq="${id}" style="border-top:1px solid var(--line)">
+        <label>Date<input type="date" name="d" value="${addDays(TODAY,1)}"></label>
+        <label>Type<select class="field" name="type">${['Call','WhatsApp','Site visit','Send quotation','Send documents','Chase PO','Meeting'].map(x=>`<option>${x}</option>`).join('')}</select></label>
+        <label>Who<select class="field" name="who">${OFFICE.map(s=>`<option value="${s}" ${s===e.owner?'selected':''}>${esc(staff[s].name)}</option>`).join('')}</select></label>
+        <label class="full">What<input type="text" name="t" placeholder="e.g. Call Mr. Ong to confirm the lift plan"></label>
+        <div class="btnrow"><button class="btn">Add follow-up</button></div></form>`:''}</div>
+    <div class="sect"><h3>Activity</h3><div class="in">
+      <form data-form="note" data-enq="${id}" class="btnrow"><input type="text" name="t" placeholder="Log a call, WhatsApp or visit…" style="flex:1"><button class="btn">Log</button></form>
+      <ul class="log">${e.log.map(x=>`<li><time>${esc(x.d)}</time><span>${esc(x.t)}</span></li>`).join('')}</ul></div></div>
+    ${openStage(e)?`<form class="docbar" data-form="lost" data-enq="${id}"><span class="label">Mark lost</span><div class="btnrow"><select class="field" name="why">${LOST_WHY.map(w=>`<option>${w}</option>`).join('')}</select><button class="btn">Mark lost</button></div></form>`:''}`;
+  openSheet(esc(enqName(e)), `<span class="mono">${id}</span> <span class="pill ${e.stage==='Won'?'ok':e.stage==='Lost'?'mute':'info'}">${e.stage}</span>`, body, {type:'enq',id});
+}
+function enqToCustomer(e){
+  if(e.c) return e.c;
+  const k = 'C' + (Math.max(...Object.keys(customers).map(x=>+x.slice(1)))+1);
+  customers[k] = {name:e.prospect.name, contact:e.prospect.contact, phone:e.prospect.phone, brn:'', tin:'', sst:'', terms:0, limit:0, isNew:true, ind:'', sales:e.owner, since:2026, last:TODAY, notes:[]};
+  enquiries.filter(x=>!x.c && x.prospect && x.prospect.name===e.prospect.name).forEach(x=>x.c=k);
+  tasks.filter(t=>t.enq===e.id).forEach(t=>t.cust=k);
+  e.log.unshift({d:`${TODAY} ${nowT()}`,t:'Added as a customer. SSM no. and TIN still needed.'});
+  return k;
+}
+function linkEnquiry(n, id, as){
+  if(!n.enq) return;
+  const e = enq(n.enq); e.hire = id; e.stage = as==='Booked' ? 'Won' : 'Quoted';
+  e.log.unshift({d:`${TODAY} ${nowT()}`,t:as==='Booked'?`Booked as ${id}.`:`Quotation ${id} made.`});
+  if(as!=='Booked') tasks.push({id:++taskSeq, d:addDays(TODAY,2), type:'Call', who:e.owner, enq:e.id, cust:e.c, hire:id, t:`Follow up quotation ${id}`, rule:'Quotation sent 2 days ago', done:false});
+}
+
+/* ---------- Customers ---------- */
+function lastContact(k){
+  const c = customers[k], ds = [c.last];
+  enquiries.filter(e=>e.c===k).forEach(e=>e.log.forEach(x=>ds.push(x.d.slice(0,10))));
+  tasks.filter(t=>t.done && custOfTask(t)===k).forEach(t=>ds.push(t.doneAt));
+  c.notes.forEach(n=>ds.push(n.d));
+  return ds.filter(Boolean).sort().pop();
+}
+const balanceOf = k => sum(invoices.filter(i=>i.c===k && i.status!=='Paid').map(i=>i.total));
+function renderCustomers(){
+  const q = (state.custQ||'').toLowerCase();
+  const rows = Object.entries(customers).filter(([k,c])=>!q || (c.name+' '+c.contact+' '+(c.ind||'')).toLowerCase().includes(q)).map(([k,c]) => ({k, c,
+    active: hires.filter(h=>h.c===k && LIVE.includes(h.status)).length, open: enquiries.filter(e=>e.c===k && openStage(e)).length,
+    bal: balanceOf(k), over: invoices.some(i=>i.c===k && invStatus(i)==='Overdue'), last: lastContact(k),
+    next: tasks.filter(t=>!t.done && custOfTask(t)===k).sort((a,b)=>a.d<b.d?-1:1)[0]}));
+  const prospects = [...new Map(enquiries.filter(e=>!e.c).map(e=>[e.prospect.name, e])).values()];
+  $('#v-customers').innerHTML = `
+    <div class="view-head"><h2>Customers</h2><input type="search" id="custQ" placeholder="Search name, contact, industry" value="${esc(state.custQ||'')}"><button class="btn primary" data-action="new-enq">New enquiry</button></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Customer</th><th>Contact</th><th>Salesperson</th><th class="r">On hire</th><th class="r">Open enquiries</th><th class="r cost">Balance</th><th>Last contact</th><th>Next follow-up</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr class="click" data-cust="${r.k}"><td><b>${esc(r.c.name)}</b>${r.c.isNew?' <span class="pill appr">New</span>':''}<br><small class="muted">${esc(r.c.ind||'')}${!r.c.tin?' · <span style="color:var(--crit)">TIN missing</span>':''}</small></td>
+        <td>${esc(r.c.contact)}<br><small class="muted">${esc(r.c.phone)}</small></td><td>${esc(staff[r.c.sales||'S2'].name)}</td>
+        <td class="r num">${r.active||'—'}</td><td class="r num">${r.open||'—'}</td>
+        <td class="r num cost">${r.bal?`<span class="${r.over?'stock-out':''}">${RM0(r.bal)}</span>`:'—'}</td>
+        <td class="num">${r.last?fmtD(r.last):'—'}${r.last&&daysBetween(r.last,TODAY)>60?' <span class="pill warn">'+daysBetween(r.last,TODAY)+' d</span>':''}</td>
+        <td>${r.next?`<span class="due ${r.next.d<TODAY?'over':r.next.d===TODAY?'soon':''}">${r.next.d===TODAY?'Today':fmtD(r.next.d)} · ${esc(r.next.type)}</span>`:'<span class="muted">—</span>'}</td></tr>`).join('')}
+    </tbody></table></div>
+    ${prospects.length?`<div class="panel"><div class="panel-head"><h3>Prospects</h3><span class="muted">asked for a machine, not customers yet</span></div><div class="tbl-wrap" style="border:0"><table><tbody>
+      ${prospects.map(e=>`<tr class="click" data-enq="${e.id}"><td><b>${esc(e.prospect.name)}</b><br><small class="muted">${esc(e.prospect.contact)} · ${esc(e.prospect.phone)}</small></td><td>${esc(e.need)}</td><td>${e.stage}</td></tr>`).join('')}
+    </tbody></table></div></div>`:''}`;
+}
+function openCustomer(k){
+  const c = customers[k], bal = balanceOf(k);
+  const tl = [
+    ...enquiries.filter(e=>e.c===k).map(e=>({d:e.at.slice(0,10),t:`Enquiry ${e.id}: ${e.need} (${e.stage})`,a:`data-enq="${e.id}"`})),
+    ...hires.filter(h=>h.c===k).map(h=>({d:h.created,t:`Hire ${h.id}: ${h.lines.map(l=>l.u||models[l.m].type).join(', ')} · ${h.status}`,a:`data-hire="${h.id}"`})),
+    ...invoices.filter(i=>i.c===k).map(i=>({d:i.issued,t:`Invoice ${i.no}: ${RM(i.total)} · ${invStatus(i)}`,a:`data-inv="${i.no}"`,cost:true})),
+    ...tasks.filter(t=>t.done && custOfTask(t)===k).map(t=>({d:t.doneAt,t:`${t.type} done: ${t.t}${t.note?' ('+t.note+')':''}`,a:''})),
+    ...c.notes.map(n=>({d:n.d,t:`Note: ${n.t}`,a:''})),
+  ].sort((a,b)=>a.d<b.d?1:-1);
+  const sites = [...new Set(hires.filter(h=>h.c===k).map(h=>h.site))];
+  const contacts = [...new Set(hires.filter(h=>h.c===k).map(h=>h.siteContact))];
+  const ts = tasks.filter(t=>!t.done && custOfTask(t)===k).sort((a,b)=>a.d<b.d?-1:1);
+  const body = `
+    <div class="btnrow"><button class="btn primary" data-action="new-enq" data-c="${k}">New enquiry</button><button class="btn" data-action="cust-hire" data-c="${k}">New hire / quotation</button></div>
+    <div class="sect"><div class="facts">
+      <div><span class="label">Industry</span><b>${esc(c.ind||'—')}</b></div>
+      <div><span class="label">Customer since</span><b>${c.since||'—'}</b></div>
+      <div><span class="label">Salesperson</span><b>${esc(staff[c.sales||'S2'].name)}</b></div>
+      <div><span class="label">SSM no.</span><b>${esc(c.brn||'Missing')}</b></div>
+      <div><span class="label">TIN</span><b>${c.tin?esc(c.tin):'<span style="color:var(--crit)">Missing: needed for e-invoice</span>'}</b></div>
+      <div><span class="label">SST no.</span><b>${esc(c.sst||'—')}</b></div>
+      <div class="cost"><span class="label">Credit</span><b>${c.terms?c.terms+' days, limit '+RM0(c.limit):'Cash / deposit'}</b></div>
+      <div class="cost"><span class="label">Balance owing</span><b>${RM0(bal)}</b>${c.limit?`<small class="muted">${Math.round(bal/c.limit*100)}% of limit</small>`:''}</div>
+    </div></div>
+    <div class="sect"><h3>Contacts and sites</h3><div class="in">
+      <div><b>${esc(c.contact)}</b> · ${esc(c.phone)} <span class="muted">(main)</span></div>
+      ${contacts.map(x=>`<div>${esc(x)} <span class="muted">(site)</span></div>`).join('')}
+      ${sites.length?`<small class="muted">Sites: ${sites.map(esc).join(' · ')}</small>`:''}
+    </div></div>
+    <div class="sect"><h3>Open follow-ups</h3><div>${ts.map(t=>taskRow(t)).join('') || '<p class="muted" style="padding:8px 14px;margin:0">None.</p>'}</div>
+      <form class="in form" data-form="task" data-cust="${k}" style="border-top:1px solid var(--line)">
+        <label>Date<input type="date" name="d" value="${addDays(TODAY,1)}"></label>
+        <label>Type<select class="field" name="type">${['Call','WhatsApp','Meeting','Site visit','Payment chase','Send documents'].map(x=>`<option>${x}</option>`).join('')}</select></label>
+        <label>Who<select class="field" name="who">${OFFICE.map(s=>`<option value="${s}" ${s===(c.sales||'S2')?'selected':''}>${esc(staff[s].name)}</option>`).join('')}</select></label>
+        <label class="full">What<input type="text" name="t" placeholder="e.g. Visit Mr. Lim about next year's projects"></label>
+        <div class="btnrow"><button class="btn">Add follow-up</button></div></form></div>
+    <div class="sect"><h3>History</h3><div class="in">
+      <form data-form="cnote" data-c="${k}" class="btnrow"><input type="text" name="t" placeholder="Add a note (call, visit, complaint…)" style="flex:1"><button class="btn">Add</button></form>
+      <ul class="log">${tl.map(x=>`<li class="${x.cost?'cost':''}"><time>${fmtDY(x.d)}</time><span ${x.a} ${x.a?'role="button" tabindex="0" style="cursor:pointer;text-decoration:underline dotted"':''}>${esc(x.t)}</span></li>`).join('')}</ul></div></div>`;
+  openSheet(esc(c.name), `<span class="mono">${k}</span>${c.isNew?' <span class="pill appr">New customer</span>':''}`, body, {type:'cust',id:k});
+}
+
+/* ---------- Calendar ---------- */
+const ETYPES = {Transport:'var(--warn)','Follow-up':'var(--info)','Site visit':'var(--c-pm)',Meeting:'var(--c-major)',Inspection:'var(--crit)',Workshop:'var(--muted)',Leave:'var(--c-paint)',Company:'var(--c-fab)',Training:'var(--c-minor)',Expiry:'var(--c-hyd)'};
+let events = [
+  {d:'2026-10-09',time:'08:00',type:'Company',t:'Toolbox talk: lifting near power lines'},
+  {d:'2026-10-17',time:'08:00',type:'Company',t:'Monthly safety briefing, all operators and drivers (yard)'},
+  {d:'2026-10-20',time:'10:30',type:'Meeting',t:'Bina Jaya site progress meeting, Shah Alam',cust:'C1'},
+  {d:'2026-10-22',time:'10:00',type:'Inspection',t:'DOSH CF inspection: RC-03 at the yard',unit:'RC-03'},
+  {d:'2026-10-24',time:'08:30',type:'Training',t:'CIDB green card renewal course: Azman bin Yusof'},
+  {d:'2026-10-27',time:'09:00',type:'Inspection',t:'Puspakom inspection: TR-01',unit:'TR-01'},
+  {d:'2026-10-30',time:'15:00',type:'Company',t:'Month-end planning meeting: fleet, staff and billing'},
+  {d:'2026-11-05',time:'14:00',type:'Meeting',t:'Kuari Semenyih contract renewal (EX-02 from Dec)',cust:'C2'},
+];
+function calEvents(from, to){
+  const out = [], inR = d => d>=from && d<=to;
+  allTrips().forEach(t => { if(inR(t.d)) out.push({d:t.d,type:'Transport',t:`${t.dir==='Delivery'?'Deliver':'Collect'} ${t.u} · ${custName(t.c).replace(/ Sdn Bhd$/,'')}`,a:`data-hire="${t.hire}"`}); });
+  tasks.forEach(t => { if(!t.done && inR(t.d)) out.push({d:t.d,time:t.time,type:t.type==='Site visit'?'Site visit':t.type==='Meeting'?'Meeting':'Follow-up',t:`${t.type}: ${t.t}`,a:taskAttr(t),who:t.who}); });
+  events.forEach(ev => { if(inR(ev.d)) out.push({d:ev.d,time:ev.time,type:ev.type,t:ev.t,a:ev.cust?`data-cust="${ev.cust}"`:ev.unit?`data-unit="${ev.unit}"`:''}); });
+  workshop.forEach(w => { if(inR(w.from)) out.push({d:w.from,type:'Workshop',t:`${w.u} into workshop: ${w.note}`,a:`data-unit="${w.u}"`}); });
+  Object.entries(fleet).forEach(([u,f]) => Object.entries(f.docs).forEach(([k,e]) => { if(inR(e)) out.push({d:e,type:'Expiry',t:`${u}: ${DOCS[k]} expires`,a:`data-unit="${u}"`}); }));
+  Object.values(staff).forEach(p => Object.entries(p.certs||{}).forEach(([k,e]) => { if(inR(e)) out.push({d:e,type:'Expiry',t:`${p.name}: ${k} expires`,a:''}); }));
+  leave.filter(l=>l.status!=='Rejected').forEach(l => { for(let d=l.from; d<=l.to; d=addDays(d,1)) if(inR(d) && dow(d)!==0) out.push({d,type:'Leave',t:`${staff[l.s].name.split(' ')[0]}: ${l.type}${l.status==='Pending'?' (pending)':''}`,a:'data-stafftab="leave"'}); });
+  return out.filter(x=>!state.calHide.includes(x.type)).sort((a,b)=>(a.d+(a.time||'99:99')) < (b.d+(b.time||'99:99')) ? -1 : 1);
+}
+const shiftMonth = (m, n) => { const [y,mo] = m.split('-').map(Number); return iso(new Date(Date.UTC(y, mo-1+n, 1))).slice(0,7); };
+function renderCalendar(){
+  const m = state.calM, first = m+'-01', start = addDays(first, -((dow(first)+6)%7));
+  const last = addDays(first, dim(first)-1), end = addDays(last, (7-dow(last))%7);
+  const evs = calEvents(start, end), sel = state.calDay, days = [];
+  for(let d=start; d<=end; d=addDays(d,1)) days.push(d);
+  const ev = x => `<button class="ev" style="--cat:${ETYPES[x.type]}" ${x.a} title="${esc(x.type+': '+x.t)}">${x.time?x.time+' ':''}${esc(x.t)}</button>`;
+  const dayEv = evs.filter(x=>x.d===sel);
+  $('#v-calendar').innerHTML = `
+    <div class="view-head"><h2>Calendar · ${MON[+m.slice(5)-1]} ${m.slice(0,4)}</h2>
+      <div class="btnrow"><button class="btn" data-action="cal-prev">‹</button><button class="btn" data-action="cal-today">Today</button><button class="btn" data-action="cal-next">›</button></div></div>
+    <div class="chipbar">${Object.entries(ETYPES).map(([t,c])=>`<button class="chip" style="--cat:${c}" data-caltype="${t}" aria-pressed="${!state.calHide.includes(t)}"><span class="dot"></span>${t}</button>`).join('')}</div>
+    <div class="dash">
+      <div class="cal">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="dow">${d}</div>`).join('')}
+        ${days.map(d=>{ const de = evs.filter(x=>x.d===d); return `<div class="day ${d.slice(0,7)!==m?'out':''} ${d===TODAY?'today':''}" ${d===sel?'style="box-shadow:inset 0 0 0 2px var(--info)"':''}>
+          <button class="dnum" data-calday="${d}" style="background:none;border:0;padding:0;cursor:pointer;text-align:left">${+d.slice(8)}${de.length?` · ${de.length}`:''}</button>
+          ${de.slice(0,4).map(ev).join('')}${de.length>4?`<button class="ev" style="--cat:var(--muted)" data-calday="${d}">+${de.length-4} more</button>`:''}</div>`; }).join('')}
+      </div>
+      <div class="rail"><div class="panel"><div class="panel-head"><h3>${fmtDW(sel)}</h3><span class="muted num">${dayEv.length}</span></div>
+        <div class="in agenda-list" style="padding:10px 14px">${dayEv.map(ev).join('') || '<p class="muted" style="margin:0">Nothing on this day.</p>'}</div>
+        <form class="in form" data-form="event" style="padding:10px 14px;border-top:1px solid var(--line)">
+          <label>Add to ${fmtD(sel)}<input type="text" name="t" placeholder="e.g. Meeting with Teguh Piling"></label>
+          <label>Time<input type="time" name="time" value="09:00"></label>
+          <label>Type<select class="field" name="type">${['Meeting','Site visit','Inspection','Training','Company'].map(t=>`<option>${t}</option>`).join('')}</select></label>
+          <div class="btnrow"><button class="btn">Add event</button></div></form></div>
+        <div class="panel"><div class="panel-head"><h3>This month</h3></div><div class="slegend" style="padding-top:12px">${Object.entries(ETYPES).map(([t,c])=>{ const n = evs.filter(x=>x.type===t && x.d.startsWith(m)).length; return n?`<div><i style="background:${c}"></i>${t}<b>${n}</b></div>`:''; }).join('')}</div></div>
+      </div>
+    </div>`;
+}
+
+/* ---------- Staff ---------- */
+function assignment(s, d){
+  const lv = leave.find(l=>l.s===s && l.status!=='Rejected' && l.from<=d && l.to>=d);
+  const jobs = [];
+  hires.forEach(h => { if(['Quotation','Lost'].includes(h.status)) return; h.lines.forEach(l => { if(l.op===s && (l.on||l.from)<=d && lineEnd(l)>=d) jobs.push({cls:'job',t:`${l.u} · ${h.site.split(',')[0]}`,a:`data-hire="${h.id}"`}); }); });
+  allTrips().forEach(t => { if(t.drv===s && t.d===d && (!t.self || !jobs.length)) jobs.push({cls:'trip',t:`${t.dir==='Delivery'?'Deliver':'Collect'} ${t.u}`,a:`data-hire="${t.hire}"`}); });
+  if(dow(d)===0 && !jobs.some(j=>j.cls==='trip') && !sheets.some(x=>x.op===s && x.d===d)) return [lv?{cls:'leave',t:'Leave'}:{cls:'off',t:'Off (Sunday)'}];
+  if(lv && jobs.length) return [{cls:'clash',t:`Clash: ${lv.status==='Pending'?'leave asked':'on leave'} + ${jobs[0].t}`,a:jobs[0].a}];
+  if(lv) return [{cls:lv.status==='Pending'?'pend':'leave',t:(lv.type.startsWith('Medical')?'MC':lv.type)+(lv.status==='Pending'?' (asked)':'')}];
+  if(jobs.length) return jobs;
+  return [OFFICE.includes(s) ? {cls:'office',t:'Office'} : {cls:'idle',t:'Yard / standby'}];
+}
+function reliefFor(l){
+  const h = hires.find(x=>LIVE.includes(x.status) && x.lines.some(y=>y.op===l.s && overlaps(l.from,l.to,y.on||y.from,lineEnd(y))));
+  if(!h) return null;
+  const line = h.lines.find(y=>y.op===l.s), need = mOf(line.u).grp==='crane'?'crane':'earth';
+  const free = Object.keys(staff).filter(o=>o!==l.s && staff[o].skills?.includes(need) && operatorFree(o,l.from,l.to) && !leave.some(x=>x.s===o && x.status!=='Rejected' && overlaps(x.from,x.to,l.from,l.to)));
+  return {h, line, free};
+}
+function renderStaff(){
+  const tab = state.staffTab, wk = state.week, days = [...Array(7)].map((_,i)=>addDays(wk,i));
+  const pend = leave.filter(l=>l.status==='Pending').length;
+  let body = '';
+  if(tab==='roster') body = `
+    <div class="btnrow"><button class="btn" data-action="wk-prev">‹ Week</button><button class="btn" data-action="wk-now">This week</button><button class="btn" data-action="wk-next">Week ›</button><span class="muted" style="align-self:center">Built from hires, trips and leave. Click a job to open the hire.</span></div>
+    <div class="tbl-wrap"><table class="sched"><thead><tr><th>Person</th>${days.map(d=>`<th class="${d===TODAY?'today':''}">${fmtDW(d)}</th>`).join('')}</tr></thead><tbody>
+      ${[...FIELD, ...OFFICE].map(s=>`<tr><td><b>${esc(staff[s].name)}</b><br><small class="muted">${esc(staff[s].role)}</small></td>${days.map(d=>`<td class="${d===TODAY?'today':''}">${assignment(s,d).map(a=>`<button class="rcell ${a.cls}" ${a.a||''} title="${esc(a.t)}">${esc(a.t)}</button>`).join('')}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div>
+    <div class="g-legend"><span><i class="rcell job" style="width:auto">On hire</i></span><span><i class="rcell trip" style="width:auto">Trip</i></span><span><i class="rcell leave" style="width:auto">Leave / MC</i></span><span><i class="rcell pend" style="width:auto">Leave asked</i></span><span><i class="rcell clash" style="width:auto">Clash</i></span><span><i class="rcell idle" style="width:auto">Free</i></span></div>`;
+  else if(tab==='people') body = `<div class="team">${[...OFFICE, ...FIELD].map(s=>{ const p = staff[s], a = assignment(s,TODAY)[0];
+    return `<div class="member" style="cursor:default"><div class="member-top"><span class="avatar lg">${initials(p.name)}</span><div><b>${esc(p.name)}</b><small class="muted">${esc(p.role)} · ${esc(p.phone)}</small></div></div>
+      <div class="tags">${Object.entries(p.certs||{}).map(([k,e])=>`<span class="tag ${docState(e)==='crit'?'expd':docState(e)==='warn'?'exp':''}" title="Expires ${fmtDY(e)}">${esc(k)} · ${fmtD(e)} ${e.slice(2,4)}</span>`).join('') || '<span class="tag">No licences needed</span>'}</div>
+      <div><small class="muted">Today</small><br><span class="rcell ${a.cls}" style="display:inline-block;width:auto">${esc(a.t)}</span> <small class="muted">${CLOCK[s]&&a.cls!=='leave'?'clocked in '+esc(CLOCK[s]):a.cls==='leave'?'':'not clocked in'}</small></div>
+      <div class="mstats"><div><b>${leaveBal[s]??'—'}</b><span>Leave days left</span></div><div><b>${num(sum(sheets.filter(x=>x.op===s && x.d>='2026-10-01').map(x=>x.work)))}</b><span>Hours on hire, Oct</span></div><div><b>${allTrips().filter(t=>t.drv===s && t.d>='2026-10-01' && t.d<=TODAY).length}</b><span>Trips, Oct</span></div></div></div>`; }).join('')}</div>`;
+  else body = `<div class="tbl-wrap"><table><thead><tr><th>Person</th><th>Leave</th><th>Dates</th><th class="r">Days</th><th class="r">Balance</th><th>Roster check</th><th>Status</th></tr></thead><tbody>
+      ${leave.slice().sort((a,b)=>a.from<b.from?1:-1).map(l=>{ let n = 0; for(let d=l.from; d<=l.to; d=addDays(d,1)) if(dow(d)!==0) n++; const r = reliefFor(l);
+        return `<tr><td><b>${esc(staff[l.s].name)}</b><br><small class="muted">${esc(staff[l.s].role)}</small></td><td>${esc(l.type)}${l.note?`<br><small class="muted">${esc(l.note)}</small>`:''}</td><td class="num">${fmtD(l.from)}${l.to!==l.from?' – '+fmtD(l.to):''}</td><td class="r num">${n}</td><td class="r num">${leaveBal[l.s]??'—'}</td>
+        <td>${r?`<span class="pill crit">On ${r.line.u} (${r.h.id})</span><br><small class="muted">${r.free.length?'Relief: '+r.free.map(o=>esc(staff[o].name)).join(', '):'No relief operator free'}</small>`:'<span class="pill ok">No clash</span>'}</td>
+        <td>${l.status==='Pending'?`<div class="btnrow"><button class="btn small primary" data-action="leave-ok" data-id="${l.id}">Approve</button><button class="btn small" data-action="leave-no" data-id="${l.id}">Reject</button></div>`:`<span class="pill ${l.status==='Approved'?'ok':'mute'}">${l.status}</span>`}</td></tr>`; }).join('')}
+    </tbody></table></div><p class="muted" style="margin:0">Staff apply for leave on their phone. Approving checks the roster: an operator on a wet hire needs a relief operator with the right DOSH competency. Payroll (EPF, SOCSO, EIS, PCB) stays in the payroll software; this app exports hours, overtime, allowances and leave.</p>`;
+  $('#v-staff').innerHTML = `<div class="view-head"><h2>Staff</h2><div class="seg"><button data-stafftab="roster" aria-pressed="${tab==='roster'}">Roster</button><button data-stafftab="people" aria-pressed="${tab==='people'}">People</button><button data-stafftab="leave" aria-pressed="${tab==='leave'}">Leave${pend?` <span class="pill warn">${pend}</span>`:''}</button></div></div>${body}`;
+}
+function leaveApplyHtml(){
+  const mine = leave.filter(l=>l.s===state.me);
+  return `<form class="sect" data-form="leave"><h3>Apply for leave</h3><div class="in"><div class="form">
+    <label>Type<select class="field" name="type">${LTYPES.map(t=>`<option>${t}</option>`).join('')}</select></label>
+    <label>From<input type="date" name="from" value="${addDays(TODAY,7)}"></label><label>To<input type="date" name="to" value="${addDays(TODAY,7)}"></label>
+    <label class="full">Note<input type="text" name="note" placeholder="Reason (optional)"></label></div>
+    <small class="muted">${leaveBal[state.me]} days of annual leave left. For MC, upload the slip photo when you are back.</small>
+    <div class="btnrow"><button class="btn primary">Send request</button></div>
+    ${mine.map(l=>`<div>${esc(l.type)} ${fmtD(l.from)}${l.to!==l.from?'–'+fmtD(l.to):''} <span class="pill ${l.status==='Approved'?'ok':l.status==='Pending'?'warn':'mute'}">${l.status}</span></div>`).join('')}</div></form>`;
+}
+
+/* ---------- planning & sales reports ---------- */
+function demandHtml(){
+  const from = addDays(TODAY,1), to = addDays(TODAY,28);
+  const types = [...new Set(hireUnits().map(u=>mOf(u).type))];
+  const rows = types.map(type => { const us = hireUnits().filter(u=>mOf(u).type===type); let busy = 0;
+    us.forEach(u => { for(let d=from; d<=to; d=addDays(d,1)) if(!availability(u,d,d).ok) busy++; });
+    const want = enquiries.filter(e=>openStage(e) && e.need===type && overlaps(e.from,e.to,from,to));
+    return {type, n:us.length, pct:Math.round(busy/(us.length*28)*100), free:us.length*28-busy, want}; });
+  return `<div class="panel"><div class="panel-head"><h3>Demand vs fleet, next 4 weeks</h3><span class="muted">${fmtD(from)}–${fmtD(to)}</span></div><div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Machine type</th><th class="r">Units</th><th>Booked</th><th class="r">Free unit-days</th><th>Open enquiries</th><th>Signal</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td><b>${esc(r.type)}</b></td><td class="r num">${r.n}</td><td><div class="rbar" style="grid-template-columns:minmax(80px,1fr) auto"><div class="track"><div class="fill" style="width:${r.pct}%"></div></div><span class="v">${r.pct}%</span></div></td><td class="r num">${r.free}</td>
+      <td>${r.want.map(e=>`<a href="#" data-enq="${e.id}">${e.id}</a> ×${e.qty}`).join(', ') || '<span class="muted">—</span>'}</td>
+      <td>${r.want.length && r.pct>=70 ? '<span class="pill crit">Tight: line up a cross-hire</span>' : r.want.length ? '<span class="pill ok">Can take it</span>' : r.pct<40 ? '<span class="pill warn">Idle: promote to customers</span>' : '<span class="pill mute">OK</span>'}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+const SRC_YTD = [['Phone',41,46],['WhatsApp',33,52],['Referral',12,67],['Website form',9,33],['Email',7,43],['Tender',4,25],['Walk-in',2,50]];
+function salesReportHtml(){
+  const max = Math.max(...SRC_YTD.map(x=>x[1]));
+  return `<div class="panel"><div class="panel-head"><h3>Enquiries by source</h3><span class="muted">count · won</span></div><div class="rbars">
+    ${SRC_YTD.map(([s,n,w])=>`<div class="rbar"><span>${s}</span><div class="track"><div class="fill" style="width:${n/max*100}%"></div></div><span class="v">${n} · ${w}% won</span></div>`).join('')}
+  </div><div class="in" style="padding:0 14px 12px"><small class="muted">Referrals win most often: ask happy customers for introductions.</small></div></div>`;
+}
+
+/* ---------- events for the new screens ---------- */
+document.addEventListener('click', e => {
+  if(e.target.closest('input,select,textarea,canvas')) return;
+  const a = e.target.closest('[data-action],[data-enq],[data-cust],[data-enqtab],[data-stafftab],[data-calday],[data-caltype]');
+  if(!a) return;
+  const d = a.dataset;
+  if(a.tagName==='A') e.preventDefault();
+  if(d.action){
+    const act = d.action;
+    if(act==='new-enq'){ state.ne = neDefaults(d.c ? {c:d.c} : {}); return openNewEnquiry(); }
+    if(act==='ne-save') return saveEnquiry();
+    if(act==='cust-hire'){ state.nh = newHireDefaults({c:d.c}); return openNewHire(); }
+    if(act==='goto-fu'){ state.enqTab='fu'; return setView('enquiries'); }
+    if(act==='task-done'){ const t = tasks.find(x=>x.id===+d.id); t.done = true; t.doneAt = TODAY; if(t.enq) enq(t.enq).log.unshift({d:`${TODAY} ${nowT()}`,t:`${t.type} done by ${staff[meStaff()].name}: ${t.t}`}); toast('Follow-up done'); return rerender(); }
+    if(act==='task-snooze'){ const t = tasks.find(x=>x.id===+d.id); t.d = addDays(maxD(t.d,TODAY),1); toast(`Moved to ${fmtDW(t.d)}`); return rerender(); }
+    if(act==='enq-stage'){ const x = enq(d.id); if(d.s==='Won' && !x.hire){ toast('Make the quotation and confirm the booking first'); return; } if(d.s==='Quoted' && !x.hire){ toast('Use "Make quotation": the quotation is built from the rate card'); return; } x.stage = d.s; x.log.unshift({d:`${TODAY} ${nowT()}`,t:`Moved to ${d.s}.`}); return rerender(); }
+    if(act==='enq-cust'){ enqToCustomer(enq(d.id)); toast('Added as a customer'); return rerender(); }
+    if(act==='enq-quote'){ const x = enq(d.id), c = enqToCustomer(x), mk = modelOfType(x.need), k = kindFor(mk,x.k);
+      state.nh = newHireDefaults({c, type:x.need, from:x.from, to:x.to, k, basis:guessBasis(mk,k,x.from,x.to), site:x.site||'', state:x.state||'Selangor', u:null, enq:x.id}); return openNewHire(); }
+    if(act==='confirm' || act==='lose'){ const x = enquiries.find(y=>y.hire===d.id); if(x){ x.stage = act==='confirm' ? 'Won' : 'Lost'; if(act==='lose') x.lostWhy = hire(d.id).lines.some(l=>!l.u)?'No machine free':'Price'; rerender(); } return; }
+    if(act==='leave-ok' || act==='leave-no'){ const l = leave.find(x=>x.id===+d.id), r = reliefFor(l); l.status = act==='leave-ok'?'Approved':'Rejected';
+      toast(act==='leave-ok' ? (r ? `Approved. ${r.line.u} needs a relief operator: ${r.free[0]?staff[r.free[0]].name+' is free':'none free, ask the customer'}` : 'Leave approved') : 'Leave rejected'); return rerender(); }
+    if(act==='wk-prev'){ state.week = addDays(state.week,-7); return render(); }
+    if(act==='wk-next'){ state.week = addDays(state.week,7); return render(); }
+    if(act==='wk-now'){ state.week = '2026-10-12'; return render(); }
+    if(act==='cal-prev'){ state.calM = shiftMonth(state.calM,-1); state.calDay = state.calM+'-01'; return render(); }
+    if(act==='cal-next'){ state.calM = shiftMonth(state.calM,1); state.calDay = state.calM+'-01'; return render(); }
+    if(act==='cal-today'){ state.calM = TODAY.slice(0,7); state.calDay = TODAY; return render(); }
+    return;
+  }
+  if(d.enqtab){ state.enqTab = d.enqtab; return render(); }
+  if(d.stafftab){ state.staffTab = d.stafftab; return state.view==='staff' ? render() : setView('staff'); }
+  if(d.calday){ state.calDay = d.calday; return render(); }
+  if(d.caltype){ const t = d.caltype; state.calHide = state.calHide.includes(t) ? state.calHide.filter(x=>x!==t) : [...state.calHide, t]; return render(); }
+  if(d.enq) return openEnquiry(d.enq);
+  if(d.cust) return openCustomer(d.cust);
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.dataset.ne){ state.ne[t.dataset.ne] = t.value; if(t.dataset.ne==='from' && state.ne.to < state.ne.from) state.ne.to = state.ne.from; if(t.tagName==='SELECT' || t.type==='date' || t.type==='number') openNewEnquiry(); return; }
+  if(t.dataset.enqf){ const x = enq(t.dataset.id); x[t.dataset.enqf] = t.value; x.log.unshift({d:`${TODAY} ${nowT()}`,t:`${t.dataset.enqf==='owner'?'Owner changed to '+staff[t.value].name:'Marked '+t.value}.`}); return rerender(); }
+  if(t.id==='roleSel'){ state.fuMine = t.value==='sales'; return render(); }
+  if(t.dataset.action==='fu-mine'){ state.fuMine = t.checked; return render(); }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if(t.dataset.ne && (t.type==='text' || t.tagName==='TEXTAREA')) state.ne[t.dataset.ne] = t.value;
+  if(t.id==='custQ'){ state.custQ = t.value; renderCustomers(); const q = $('#custQ'); q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+});
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target, fd = new FormData(f), v = k => (fd.get(k)||'').toString().trim();
+  if(f.dataset.form==='task'){ if(!v('t')){ toast('Say what to do'); return; } tasks.push({id:++taskSeq, d:v('d')||TODAY, type:v('type'), who:v('who'), enq:f.dataset.enq, cust:f.dataset.cust || (f.dataset.enq && enq(f.dataset.enq).c) || undefined, t:v('t'), done:false}); toast(`Follow-up set for ${fmtDW(v('d')||TODAY)}`); return rerender(); }
+  if(f.dataset.form==='note'){ if(!v('t')) return; enq(f.dataset.enq).log.unshift({d:`${TODAY} ${nowT()}`,t:`${v('t')} (${staff[meStaff()].name})`}); const x = enq(f.dataset.enq); if(x.stage==='New') x.stage = 'Contacted'; return rerender(); }
+  if(f.dataset.form==='cnote'){ if(!v('t')) return; customers[f.dataset.c].notes.push({d:TODAY,t:`${v('t')} (${staff[meStaff()].name})`}); return rerender(); }
+  if(f.dataset.form==='lost'){ const x = enq(f.dataset.enq); x.stage = 'Lost'; x.lostWhy = v('why'); x.log.unshift({d:`${TODAY} ${nowT()}`,t:`Lost: ${v('why')}.`}); tasks.filter(t=>t.enq===x.id && !t.done).forEach(t=>{ t.done = true; t.doneAt = TODAY; t.note = 'closed: enquiry lost'; }); lost.unshift({d:TODAY,c:enqName(x).replace(/ Sdn Bhd$/,''),type:x.need,why:x.lostWhy}); toast(`${x.id} marked lost`); return rerender(); }
+  if(f.dataset.form==='event'){ if(!v('t')){ toast('Enter what the event is'); return; } events.push({d:state.calDay, time:v('time'), type:v('type'), t:v('t')}); toast('Event added'); return render(); }
+  if(f.dataset.form==='leave'){ if(v('to') < v('from')){ toast('The end date is before the start date'); return; } leave.push({id:leave.length+1, s:state.me, type:v('type'), from:v('from'), to:v('to'), status:'Pending', note:v('note')}); toast('Leave request sent to the Supervisor'); return render(); }
+});
 
 /* ---------- sheet plumbing ---------- */
 function openSheet(title, sub, body, ctx){
@@ -1497,7 +2036,7 @@ function openSheet(title, sub, body, ctx){
 function closeSheet(){ $('#sheetRoot').innerHTML=''; document.body.style.overflow=''; state.sheet=null; state.lastSheet=null; }
 function refreshSheet(){
   const s = state.sheet; if(!s) return;
-  if(s.type==='hire') openHire(s.id); else if(s.type==='unit') openUnit(s.id); else if(s.type==='ts') openTimesheet(s.id); else if(s.type==='inv') openInvoice(s.id); else if(s.type==='nh') openNewHire(); else if(s.type==='insp') openInspection(s.id, s.kind);
+  if(s.type==='hire') openHire(s.id); else if(s.type==='unit') openUnit(s.id); else if(s.type==='ts') openTimesheet(s.id); else if(s.type==='inv') openInvoice(s.id); else if(s.type==='nh') openNewHire(); else if(s.type==='insp') openInspection(s.id, s.kind); else if(s.type==='enq') openEnquiry(s.id); else if(s.type==='cust') openCustomer(s.id); else if(s.type==='ne') openNewEnquiry();
 }
 function toast(t){ $('#toastRoot').innerHTML=`<div class="toast" role="status">${esc(t)}</div>`; clearTimeout(toast.h); toast.h=setTimeout(()=>$('#toastRoot').innerHTML='',3200); }
 

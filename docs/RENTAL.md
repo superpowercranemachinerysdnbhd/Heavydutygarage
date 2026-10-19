@@ -1,6 +1,6 @@
 # Heavyworks Rental: Machinery Hire Module Design
 
-Software for hiring out our own fleet of cranes, excavators, loaders, forklifts, lifts and generators to customers in Malaysia. It covers four kinds of hire: **dry hire** (machine only), **wet hire** (machine with our operator), **transport** (lowloader delivery and collection) and **long-term contracts** (monthly hire with an hour allowance).
+Software for running a heavy machinery rental business in Malaysia: customer enquiries and follow-ups, quotations and orders (hires), the fleet and its bookings, delivery and return, operators and drivers, staff rosters and leave, a shared calendar of everything that is happening, billing and reports. The fleet is cranes, excavators, loaders, forklifts, lifts and generators. It covers four kinds of hire: **dry hire** (machine only), **wet hire** (machine with our operator), **transport** (lowloader delivery and collection) and **long-term contracts** (monthly hire with an hour allowance).
 
 It is a **module of Heavyworks Garage**, not a separate system. It shares the same login, roles, languages (English, Bahasa Melayu, Chinese), companies, machines and staff. The workshop and the rental desk see the same machine, so:
 
@@ -9,6 +9,18 @@ It is a **module of Heavyworks Garage**, not a separate system. It shares the sa
 - a machine that is due for service cannot be booked out until it is done
 
 A clickable prototype lives in [`prototype/rental.html`](../prototype/rental.html).
+
+**The whole process, end to end:**
+
+```
+Enquiry ─► Follow-ups ─► Quotation ─► Order (booking, PO / LOU, deposit) ─► Delivery + inspection
+   │                                                                            │
+   └─ Lost (reason) ──► fleet report                     On hire: timesheets, meter readings, breakdowns
+                                                                                │
+       Statement, payment chase ◄─ Invoice + e-invoice ◄─ Return + inspection ◄─ Off-hire notice
+```
+
+Every step creates the next follow-up automatically, puts itself on the calendar, and books the people and vehicles it needs on the staff roster.
 
 ---
 
@@ -60,21 +72,24 @@ All of these are settings the Head Manager can change (Rates → Charging rules)
 
 ## 3. Roles and permissions
 
-The same chain of command as the workshop, with three people added: **operators**, **lowloader drivers** and the **rental desk**. The rental desk is a responsibility, not a separate role: it is given to the Supervisor, or to an office administrator who gets the Supervisor role without workshop rights.
+The same chain of command as the workshop, with these people added: **sales / customer service**, **accounts**, **operators** and **lowloader drivers**. The rental desk (bookings, transport, timesheets) is given to the Supervisor, or to an office administrator who gets the Supervisor role without workshop rights.
 
-| Capability | Head Manager | Supervisor / Rental desk | Operator | Driver | Mechanic |
-|---|:-:|:-:|:-:|:-:|:-:|
-| See planner and fleet availability | ✓ | ✓ | – | – | View |
-| Create quotations and bookings | ✓ | ✓ | – | – | – |
-| Give a discount below the rate card | ✓ | Up to 10% | – | – | – |
-| Override a block (expired document, credit limit) | ✓ | – | – | – | – |
-| Assign operators and transport | ✓ | ✓ | – | – | – |
-| Delivery / return inspection with photos | ✓ | ✓ | ✓ (own hire) | ✓ (own trip) | ✓ |
-| Fill in daily timesheet, get customer signature | ✓ | ✓ | ✓ (own) | – | – |
-| See rates, hire value, invoices | ✓ | ✓ | – | – | – |
-| See machine cost, workshop cost per machine, profit | ✓ | – | – | – | – |
-| Billing run, issue invoices, credit notes | ✓ | Prepare | – | – | – |
-| Edit rate card and charging rules | ✓ | – | – | – | – |
+| Capability | Head Manager | Supervisor / Rental desk | Sales | Operator | Driver | Mechanic |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|
+| Log enquiries, follow-ups, customer notes | ✓ | ✓ | ✓ | – | – | – |
+| Staff roster, approve leave | ✓ | ✓ | – | – | – | – |
+| Apply for leave, clock in | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| See planner and fleet availability | ✓ | ✓ | ✓ | – | – | View |
+| Create quotations and bookings | ✓ | ✓ | ✓ | – | – | – |
+| Give a discount below the rate card | ✓ | Up to 10% | Up to 5% | – | – | – |
+| Override a block (expired document, credit limit) | ✓ | – | – | – | – | – |
+| Assign operators and transport | ✓ | ✓ | – | – | – | – |
+| Delivery / return inspection with photos | ✓ | ✓ | – | ✓ (own hire) | ✓ (own trip) | ✓ |
+| Fill in daily timesheet, get customer signature | ✓ | ✓ | – | ✓ (own) | – | – |
+| See rates, hire value, invoices | ✓ | ✓ | ✓ (own customers' balances) | – | – | – |
+| See machine cost, workshop cost per machine, profit | ✓ | – | – | – | – | – |
+| Billing run, issue invoices, credit notes | ✓ | Prepare | – | – | – | – |
+| Edit rate card and charging rules | ✓ | – | – | – | – | – |
 
 Operators and drivers use a phone and see only their own hires and trips, with **no prices**, the same as mechanics in the workshop.
 
@@ -253,6 +268,10 @@ These go in the same certificate list as the workshop staff's (Team → Certific
 
 | Screen | For | What it shows |
 |---|---|---|
+| **Enquiries** | Sales, desk, Head Manager | Pipeline board (New → Contacted → Site visit → Quoted → Negotiating → Won / Lost) with value, owner and next follow-up on each card; Follow-ups list (overdue, today, this week) |
+| **Customers** | Sales, desk, Head Manager | Customer list with balance, last contact and next follow-up; customer page with contacts, sites, credit, open follow-ups and full history; prospects |
+| **Calendar** | All office | Month view of trips, follow-ups, site visits, meetings, inspections, workshop, leave, company events and expiry dates; filter by type; add events |
+| **Staff** | Head Manager, Supervisor | Week roster built from hires, trips and leave (with clashes); people with licences and today's attendance; leave requests to approve |
 | **Today** | Head Manager, desk | Going out today, coming back today, off-hire notices, missing / unsigned timesheets, breakdowns on hire, bookings waiting for deposit, documents expiring, invoices overdue, machines idle 14+ days. Counts: on hire, available, utilisation this month |
 | **Planner** | Head Manager, desk, workshop (view) | Gantt of every fleet machine over 6 weeks, grouped by type. Bars for hires, bookings, workshop and transport. "Find a machine" for a type and dates highlights the free ones |
 | **Hires** | Head Manager, desk | List by status. Hire page: customer, site, machines, rates, operator, inspections, timesheets, trips, charges to date, documents, activity log |
@@ -342,16 +361,94 @@ Fleet machines keep their `machine_units` row (customer = our own company) so th
 
 | Phase | Scope | Outcome |
 |---|---|---|
-| R1 — Fleet and planner (3–4 weeks) | Fleet machines, hire status, documents and expiry, planner, hires and quotations, rate card | Whiteboard / Excel booking sheet retired; no double bookings |
+| R1 — Customers, enquiries and fleet (4–5 weeks) | Customers and prospects, enquiries pipeline, follow-ups (manual and automatic), fleet machines, documents and expiry, planner, quotations and bookings, rate card, calendar | No enquiry forgotten; whiteboard / Excel booking sheet retired; no double bookings |
 | R2 — On site (3–4 weeks) | Delivery and return inspections, operator timesheets with signature, breakdowns → workshop jobs, damages → workshop jobs, transport trips | Every billable hour and every damage captured with evidence |
 | R3 — Billing (3–4 weeks) | Billing run, invoices, SST, credit notes, deposits, statements, ageing, accounting export, MyInvois e-invoice | Invoices out on the 1st, no retyping |
+| R3b — Staff (2–3 weeks) | Roster, leave on the phone with approval, attendance, payroll export | Leave and assignments planned together; no clashes on the day |
 | R4 — Extras | Off-hire link and customer portal, telematics hour meters, profit per machine, payroll export, lost-enquiry reports | Fewer calls; fleet decisions based on numbers |
 
 Before R1, load: the fleet list with fleet numbers, every machine's documents and expiry dates, the current rate card, and all hires currently running (with their start dates and last billed date).
 
 ---
 
-## 16. Open questions for the owner
+## 16. Customers, enquiries and follow-ups
+
+**Customers.** Company name, SSM no., TIN, SST no., industry, salesperson, credit terms and limit, deposit rule, several contacts (office, site, accounts), sites with address and state, documents (SSM form, LOU templates), and notes. A **prospect** (asked but never hired) is kept on the enquiry until the first quotation, then becomes a customer.
+
+**Enquiries** (`E-YYYY-NNNN`) come in by phone, WhatsApp, e-mail, website form, walk-in, referral or tender. Each records: who, what machine and how many, dry/wet, dates, site, details (loads, radius, ground, access), estimated value (from the rate card), owner, how hot (hot / warm / cold) and source. The availability of the requested type for those dates is shown on the enquiry, so the salesperson knows straight away whether to sell, offer other dates or another size, or cross-hire.
+
+| Stage | Meaning | Likelihood used for the weighted pipeline |
+|---|---|---|
+| New | Just logged | 10% |
+| Contacted | Called back, needs clarified | 20% |
+| Site visit | Visit or lift plan needed | 40% |
+| Quoted | Quotation sent (made from the enquiry, so nothing is retyped) | 50% |
+| Negotiating | Price / terms being discussed | 70% |
+| Won | Booking confirmed: the enquiry links to the hire (order) | 100% |
+| Lost | With a reason: no machine free, price, went elsewhere, postponed, no reply | 0% |
+
+**Follow-ups** are tasks with a date, type (call, WhatsApp, site visit, send quotation, send documents, chase PO, payment chase, meeting), owner and the enquiry, hire, invoice or customer they belong to. Every open enquiry must have a next follow-up; the pipeline flags those that don't. Follow-ups show on **Today**, on the **calendar**, on the customer page and in the owner's phone notifications. **Automatic follow-ups:**
+
+| When | Follow-up created |
+|---|---|
+| New enquiry | Call back within 2 working hours (owner) |
+| Quotation sent | Call after 2 days; again 1 day before it expires |
+| Booking without PO / LOU | Chase PO 2 days before delivery |
+| Hire ends within 7 days | Ask about extension or off-hire |
+| Invoice overdue | Reminders at 7, 14 and 30 days (Accounts); Head Manager at 60 days |
+| No hire for 90 days | Reactivation call by the salesperson |
+| Enquiry lost for "no machine free" | Counted in the fleet report; call back if a machine frees up |
+
+Follow-ups never fall on a Sunday or public holiday; they move to the next working day.
+
+**Customer history** shows on one page: enquiries, quotations, hires, invoices and payments, follow-ups done, notes, complaints.
+
+## 17. Staff: roster, leave and attendance
+
+- **People:** profile, role, phone, IC / passport and work permit, licences and certificates with expiry (DOSH competency, CIDB green card, GDL, site inductions), skills (crane, earthmoving, lowloader), emergency contact.
+- **Roster:** a week grid of every person. It is **built automatically** from hire assignments (operator on a wet hire), transport trips (driver) and leave; office staff show as office; anyone free shows as yard / standby, ready for a call-out. Clashes (leave on a day the person is on a hire) are shown in red.
+- **Leave:** staff apply on the phone (annual, MC, emergency, unpaid, replacement). The Supervisor or Head Manager approves; the approval screen shows clashes and suggests a **relief operator** who is free and has the right competency. Balances are kept per person. Approved leave blocks the person from being assigned.
+- **Attendance:** clock in / out on the phone with location (site or yard). For operators on wet hire, the signed timesheet is the attendance record.
+- **Payroll export:** hours, overtime, Sunday / public holiday hours, outstation allowance, leave and MC per person per month, for the payroll software (EPF, SOCSO, EIS and PCB stay there).
+- **Training and safety:** courses and toolbox talks recorded per person; certificates that expire block assignment (see section 10).
+
+## 18. Calendar and events
+
+One calendar for the whole company, month / week / day and a phone agenda, filterable by type and by person:
+
+| Type | Comes from |
+|---|---|
+| Transport | Delivery and collection trips |
+| Follow-up, site visit, meeting | Follow-ups and customer events |
+| Inspection | DOSH CF inspections, Puspakom, load tests (booked before expiry) |
+| Workshop | Machines going into the workshop (services, repairs) |
+| Leave | Approved and requested leave |
+| Company, training | Safety briefings, toolbox talks, courses, month-end planning |
+| Expiry | Machine documents and staff certificates |
+
+Anyone in the office can add an event; it can be linked to a customer or a machine. Reminders go by phone notification or WhatsApp the day before and an hour before.
+
+## 19. Planning
+
+- **Fleet planner** (section 11): every machine against the next six weeks.
+- **Demand vs fleet:** for each machine type, how booked the next four weeks are, how many unit-days are free, and which open enquiries want it. It flags *tight* types (line up a cross-hire or decline) and *idle* types (promote to customers).
+- **Staff planning:** the roster shows next week's operators and drivers against bookings and leave, so gaps are seen before the day.
+- **Month-end planning meeting:** a printable summary of the coming month (bookings, hires ending, inspections due, leave, open quotations by value).
+
+## 20. Data model (CRM and staff additions)
+
+| Table | Key fields |
+|---|---|
+| `enquiries` | enquiry_no, customer_id or prospect (name, contact, phone), source, machine_type, qty, hire_kind, from, to, site, state, details, value_estimate, stage, temperature, owner_id, lost_reason, hire_id, received_at |
+| `follow_ups` | due_date, due_time, type, owner_id, enquiry_id / hire_id / invoice_id / customer_id, text, rule (if automatic), done_at, done_note |
+| `customer_contacts` | customer_id, name, role (office / site / accounts), phone, e-mail, WhatsApp opt-in |
+| `customer_notes` | customer_id, at, by, text, kind (note / call / visit / complaint) |
+| `events` | date, time, type, title, customer_id, unit_id, attendees, reminder |
+| `leave_requests` | staff_id, type, from, to, days, note, status, decided_by, decided_at, mc_photo |
+| `leave_balances` | staff_id, year, type, entitled, taken |
+| `attendance` | staff_id, date, clock_in, clock_out, location (lat/lng, site or yard) |
+
+## 21. Open questions for the owner
 
 1. How many machines are in the hire fleet, and do we cross-hire machines in from other companies when we run short?
 2. Which machines are only wet hire (cranes?) and which are only dry hire?
@@ -361,3 +458,7 @@ Before R1, load: the fleet list with fleet numbers, every machine's documents an
 6. Are operators paid overtime and site allowances from the hire timesheets?
 7. Does the company run its own lowloaders, or use a transport subcontractor (whose cost we pass on)?
 8. Is a customer deposit always taken, or only for new customers?
+9. Who handles enquiries today (one salesperson, the Supervisor, the owner)? Should each customer have a fixed salesperson?
+10. How are enquiries tracked now (WhatsApp, notebook, Excel), and is there history worth importing?
+11. How is leave applied for and approved today, and how many days of annual leave does each grade get?
+12. Do operators clock in at the yard every day, or go straight to site?
