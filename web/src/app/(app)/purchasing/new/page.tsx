@@ -9,6 +9,7 @@ import { latestPricesByPart, listParts } from "@/lib/inventory";
 import { isLowStock, poApprovalLimit, PRICE_WARN_PCT, suggestOrderQty } from "@/lib/stock";
 import { getI18n } from "@/i18n/server";
 import PurchasingTabs from "@/components/PurchasingTabs";
+import { categoriesAndModels } from "@/lib/catalog";
 import PoBuilder from "./PoBuilder";
 
 export async function generateMetadata() {
@@ -24,7 +25,7 @@ export default async function NewPoPage({ searchParams }: { searchParams: Promis
     listParts(), activeSuppliers(),
     db.select({ id: schema.jobs.id, jobNo: schema.jobs.jobNo, complaint: schema.jobs.complaint }).from(schema.jobs).where(ne(schema.jobs.status, "closed")),
   ]);
-  const prices = await latestPricesByPart(parts.map((p) => p.id));
+  const [prices, { categories }] = await Promise.all([latestPricesByPart(parts.map((p) => p.id)), categoriesAndModels()]);
   const supplierId = Number(sp.supplier) || undefined;
   let initial: { partId: number; supplierId?: number; qty: number }[] = [];
   let initialJobId: number | undefined;
@@ -48,6 +49,7 @@ export default async function NewPoPage({ searchParams }: { searchParams: Promis
         suppliers={sups.filter((s) => s.active).map((s) => ({ id: s.id, name: s.name }))}
         initial={initial} initialJobId={initialJobId}
         jobs={jobs.map((j) => ({ id: j.id, label: `${j.jobNo} · ${j.complaint.slice(0, 50)}` }))}
+        categories={categories}
         approvalLimit={poApprovalLimit()} canApprove={can(user.role, "po.approve")} warnPct={PRICE_WARN_PCT} />
     </div>
   );

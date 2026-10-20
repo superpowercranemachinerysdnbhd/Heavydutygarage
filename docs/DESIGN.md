@@ -749,3 +749,8 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Work order → Parts → "Add parts bought (supplier invoice)" (`components/BoughtLines.tsx`): supplier, invoice no. and date once, then lines of part no., description, qty, unit and unit price. Each line total and the invoice total are worked out as you type; "+ Add line" adds rows and empty rows are skipped. `addJobPurchases` saves all the lines with the same supplier, invoice no. and date.
 - The bought list shows Part no. | Description | Qty | Unit price | Total. Prices are shown to whoever sees costs.
 - New purchase order: "Add a part" is the same search box as on work orders (`PartPicker` with `onPick`). It adds the part as a line and clears itself for the next one.
+
+### 46. Add a new item while making a purchase order (Oct 2026)
+- In the PO part search, the last option is "+ Add new item: '<what you typed>'". It opens a small form: part no. (optional), description, unit, category, Bulk. Saving creates the part (`quickPart`; fits all machines) and adds it as a line on the order.
+- Typed text that looks like a part number goes into Part no., anything else into Description. With no part no., the part gets a workshop number ITEM-0001, ITEM-0002…
+- A duplicate part no. (any case) is refused, with the message inside the form. Bin, minimum level and machines can be filled in on the part page later. The full form is still on Parts → + Add part.

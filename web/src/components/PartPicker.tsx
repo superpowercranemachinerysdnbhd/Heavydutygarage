@@ -13,7 +13,8 @@ const MAX = 40;
 /** Type to find a stock part: part no., OEM no., description, category, bin or machine model (any order, any case).
  *  Parts that fit this machine and parts in stock come first. Tap a result to choose it. */
 /** With `onPick` it is an "add a part" box: the chosen part is handed over and the box clears for the next one. */
-export default function PartPicker({ parts, name = "partId", placeholder, onPick }: { parts: PickPart[]; name?: string; placeholder: string; onPick?: (p: PickPart) => void }) {
+/** `onCreate`: offer "+ Add new item" with what was typed (for parts not in the list yet). */
+export default function PartPicker({ parts, name = "partId", placeholder, onPick, onCreate }: { parts: PickPart[]; name?: string; placeholder: string; onPick?: (p: PickPart) => void; onCreate?: (text: string) => void }) {
   const t = useT();
   const id = useId();
   const [q, setQ] = useState("");
@@ -70,8 +71,12 @@ export default function PartPicker({ parts, name = "partId", placeholder, onPick
               </button>
             </li>
           ))}
-          {shown.length === 0 && <li className="pp-none muted">{t("pp.none")}</li>}
+          {shown.length === 0 && !onCreate && <li className="pp-none muted">{t("pp.none")}</li>}
           {found.length > MAX && <li className="pp-none muted">{t("pp.more", { n: found.length - MAX })}</li>}
+          {onCreate && (
+            <li><button type="button" className="pp-new" onClick={() => { const text = q.trim(); setQ(""); setOpen(false); onCreate(text); }}>
+              {q.trim() ? t("qp.addTyped", { text: q.trim() }) : t("qp.add")}</button></li>
+          )}
         </ul>
       )}
     </div>

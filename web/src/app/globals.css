@@ -776,3 +776,4 @@ table.bl td:nth-child(2) input{min-width:180px}
 table.bl td:nth-child(3) input,table.bl td:nth-child(4) input{max-width:80px}
 table.bl td:nth-child(5) input{max-width:110px}
 table.bl .num{white-space:nowrap}
+.pp-new{color:var(--accent-ink,inherit);font-weight:600;border-top:1px dashed var(--line)!important}

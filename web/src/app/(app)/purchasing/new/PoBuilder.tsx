@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useLocale, useT } from "@/i18n/client";
 import { INTL_LOCALE } from "@/i18n";
 import { createPurchaseOrders } from "../actions";
-import { quickSupplier } from "../supplier-actions";
+import { quickPart, quickSupplier } from "../supplier-actions";
 import PartPicker from "@/components/PartPicker";
 
 export type BuilderPart = {
@@ -18,12 +18,15 @@ type Line = { key: number; partId: number; supplierId: number; qty: number; pric
 const NEW = -1;
 const rm = (n: number) => "RM " + n.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export default function PoBuilder({ parts, suppliers: initialSuppliers, initial, jobs, approvalLimit, canApprove, warnPct, initialJobId }: {
-  parts: BuilderPart[]; suppliers: Supplier[]; initial: { partId: number; supplierId?: number; qty: number }[];
+export default function PoBuilder({ parts: initialParts, suppliers: initialSuppliers, initial, jobs, approvalLimit, canApprove, warnPct, initialJobId, categories }: {
+  parts: BuilderPart[]; suppliers: Supplier[]; categories: { id: number; name: string }[]; initial: { partId: number; supplierId?: number; qty: number }[];
   jobs: { id: number; label: string }[]; approvalLimit: number; canApprove: boolean; warnPct: number; initialJobId?: number;
 }) {
   const t = useT(), locale = useLocale(), router = useRouter();
   const [suppliers, setSuppliers] = useState(initialSuppliers);
+  const [parts, setParts] = useState(initialParts);
+  // "+ Add new item": a part that is not in the list yet, created without leaving the order.
+  const [np, setNp] = useState<{ sku: string; description: string; uom: string; categoryId: string; bulk: boolean } | null>(null);
   const partById = useMemo(() => new Map(parts.map((p) => [p.id, p])), [parts]);
   const latestFrom = (partId: number, supplierId: number) => partById.get(partId)?.prices.find((x) => x.supplierId === supplierId);
   const defaultSupplier = (partId: number) => partById.get(partId)?.prices[0]?.supplierId ?? suppliers[0]?.id ?? 0;
@@ -52,6 +55,21 @@ export default function PoBuilder({ parts, suppliers: initialSuppliers, initial,
     setSuppliers((s) => (s.some((x) => x.id === r.id) ? s : [...s, r].sort((a, b) => a.name.localeCompare(b.name))));
     update(key, { supplierId: r.id });
     setAdding(null); setError("");
+  });
+
+  const startNewPart = (text: string) => {
+    // Something that looks like a part number goes in Part no.; anything else is the description.
+    const isNo = /^[A-Z0-9][A-Z0-9\-/.]{2,}$/i.test(text) && /\d/.test(text) && !/\s/.test(text);
+    setNp({ sku: isNo ? text : "", description: isNo ? "" : text, uom: "pc", categoryId: "", bulk: false });
+  };
+  const saveNewPart = () => start(async () => {
+    if (!np) return;
+    const r = await quickPart({ ...np, categoryId: Number(np.categoryId) });
+    if ("error" in r) { setError(r.error); return; }
+    const bp: BuilderPart = { ...r, onHand: 0, onOrder: 0, minLevel: 0, oem: null, bin: null, models: [], prices: [] };
+    setParts((ps) => [...ps, bp]);
+    setLines((ls) => [...ls, { key: seq.current++, partId: r.id, supplierId: suppliers[0]?.id ?? 0, qty: 1, price: 0 }]);
+    setNp(null); setError("");
   });
 
   const groups = useMemo(() => {
@@ -122,8 +140,26 @@ export default function PoBuilder({ parts, suppliers: initialSuppliers, initial,
           );
         })}
         <div className="filters" style={{ padding: "10px 14px", borderTop: "1px solid var(--line)" }}>
-          <PartPicker placeholder={t("pp.addPh")} onPick={(p) => setLines((ls) => [...ls, mk(p.id)])}
-            parts={unused.map((p) => ({ id: p.id, sku: p.sku, oem: p.oem, description: p.description, category: p.category, bin: p.bin, onHand: p.onHand, uom: p.uom, fits: false, models: p.models, bulk: p.bulk }))} />
+          {np ? (
+            <div className="panel qp" style={{ flex: "1 1 100%", padding: 12 }}>
+              <b>{t("qp.title")}</b>
+              <div className="form" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", marginTop: 8 }}>
+                <label>{t("jp.partNo")}<input value={np.sku} onChange={(e) => setNp({ ...np, sku: e.target.value })} placeholder={t("qp.skuPh")} maxLength={60} /></label>
+                <label style={{ gridColumn: "span 2" }}>{t("bl.desc")}<input value={np.description} onChange={(e) => setNp({ ...np, description: e.target.value })} required maxLength={200} autoFocus /></label>
+                <label>{t("parts.uom")}<input value={np.uom} onChange={(e) => setNp({ ...np, uom: e.target.value })} list="uoms-po" /></label>
+                <datalist id="uoms-po"><option>pc</option><option>set</option><option>kit</option><option>m</option><option>L</option><option>pail</option><option>drum</option><option>kg</option><option>box</option><option>roll</option></datalist>
+                <label>{t("parts.category")}<select className="field" value={np.categoryId} onChange={(e) => setNp({ ...np, categoryId: e.target.value })}><option value="">{t("common.choose")}</option>{categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+                <label className="set-check" style={{ alignSelf: "end" }}><input type="checkbox" checked={np.bulk} onChange={(e) => setNp({ ...np, bulk: e.target.checked })} /> {t("bulk.badge")}</label>
+              </div>
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <button type="button" className="btn small primary" disabled={pending || !np.description.trim() || !np.categoryId} onClick={saveNewPart}>{t("qp.save")}</button>
+                <button type="button" className="btn small" onClick={() => { setNp(null); setError(""); }}>{t("common.cancel")}</button>
+              </div>
+              {error && <div className="notice err" style={{ marginTop: 8 }}>{error}</div>}
+              <small className="muted">{t("qp.help")}</small>
+            </div>
+          ) : <PartPicker placeholder={t("pp.addPh")} onPick={(p) => setLines((ls) => [...ls, mk(p.id)])} onCreate={startNewPart}
+            parts={unused.map((p) => ({ id: p.id, sku: p.sku, oem: p.oem, description: p.description, category: p.category, bin: p.bin, onHand: p.onHand, uom: p.uom, fits: false, models: p.models, bulk: p.bulk }))} />}
         </div>
       </div>
 
@@ -139,7 +175,7 @@ export default function PoBuilder({ parts, suppliers: initialSuppliers, initial,
             <span className="num">{rm(g.total)} {!canApprove && g.total > approvalLimit && <span className="pill appr">{t("po.needsBoss")}</span>}</span>
           </div>))}
         {groups.length === 0 && <span className="muted">{t("po.noLines")}</span>}
-        {error && <div className="notice err" role="alert">{error}</div>}
+        {error && !np && <div className="notice err" role="alert">{error}</div>}
         <div><button type="button" className="btn primary" disabled={pending || !groups.length} onClick={submit}>{pending ? t("common.saving") : t("po.raise")}</button></div>
       </div></div>
     </div>
