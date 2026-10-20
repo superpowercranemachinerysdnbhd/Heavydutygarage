@@ -590,7 +590,32 @@ GPS51: left site ──► back in yard ──► ready to invoice
 | `work_orders` | hire_id, start, finish, break_mins, standby_hours, work_done, customer_name, signature, cash_collected |
 | `whatsapp_messages` | direction, number, contact, text, at, enquiry_id / hire_id, template, status |
 
-## 27. Open questions for the owner
+## 27. Sales: availability and quick quotations
+
+**Availability page** (Sell → Availability; Sales, Supervisor, Head Manager). Pick the dates and the machine type and see, in one screen:
+
+- every machine of that type: **free**, **not free** (booked, on hire or in the workshop, with whom and until when) or **free with a document issue** (red);
+- **tentative interest on the same dates**: quotations and unconfirmed orders for that type (with customer, machine and validity), and open enquiries asking for that type. A free machine that is already quoted to someone else is marked *Quoted to someone else*, so the salesperson knows to confirm quickly or offer another size;
+- a **14-day grid by machine type**: each box shows machines free out of the fleet (green all free, light green some free, amber free but others are asking, red none free) and a +n badge for quotations and enquiries that day. Tapping a box opens that type and day.
+
+Every free machine has **Quote this machine**.
+
+**Quick quotation** (one screen; from Availability, the Dashboard or an enquiry's *Make quotation*):
+
+1. Customer: pick an existing one, or type the company, contact and phone (the customer record is created when the quotation is issued).
+2. Site, machine type, dates. The free machine is picked automatically (one without a document issue first), and its availability is shown.
+3. Rate: taken from the rate card for the basis (hour / day / week / month, guessed from the dates); discount % within the salesperson's limit (Sales 5%, Supervisor 10%; above that the quotation waits for the Head Manager); transport / mobilisation by zone; optional rigger / signalman.
+4. Remarks: the standard remarks are ticked by default (rates exclude 8% SST, what wet hire includes, 4-hour minimum, overtime rate, mobilisation and permits, customer's ground and site duties, standby, cancellation, payment terms, validity) and can be unticked, plus a free-text remark and the validity in days.
+5. **Issue quotation**: quotation number `Q-YYYY-NNNN`, the formatted quotation (company header, customer, site, numbered items with quantity, rate and amount, subtotal, SST, total, terms and remarks, signature and customer acceptance block), **Send by WhatsApp** (summary text plus the PDF) and a follow-up call in 2 days.
+
+When the customer accepts, **Customer accepted: make order** turns the quotation into an order and opens the job details and checklist (section 26).
+
+| Table | Key fields |
+|---|---|
+| `quotations` | quote_no, hire_id, customer_id, issued, valid_until, items (jsonb), subtotal, sst, total, discount_pct, remarks, prepared_by, approved_by, sent_at, accepted_at |
+| `quote_remarks` | text, default_on, sort (edited by the Head Manager in Settings) |
+
+## 28. Open questions for the owner
 
 1. How many machines are in the hire fleet, and do we cross-hire machines in from other companies when we run short?
 2. Which machines are only wet hire (cranes?) and which are only dry hire?
@@ -612,3 +637,4 @@ GPS51: left site ──► back in yard ──► ready to invoice
 18. WhatsApp: which number will be the company WhatsApp Business number? Do operators all use WhatsApp on their own phones?
 19. GPS51: who is the GPS51 provider / dealer, and can they give API access? Are yards and regular sites set up as geofences?
 20. Are the 9 checklist items and the pre-dispatch items right, and who is allowed to tick the checklist?
+21. Are the standard quotation remarks right? What discount can Sales and the Supervisor give without approval?

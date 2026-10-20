@@ -525,6 +525,23 @@ ol.track li.next b{color:var(--accent)}
 .wamsg:last-child{border-bottom:0}
 .wamsg .wa{max-width:none;padding:8px 12px;font-size:.86rem}
 @media (max-width:640px){.wamsg{grid-template-columns:minmax(0,1fr)}}
+.avgrid th{text-align:center;font-size:.62rem;padding:6px 2px;line-height:1.3}
+.avgrid th:first-child{text-align:left;padding-left:12px}
+.avgrid th.sun{color:var(--crit)} .avgrid th.today{color:var(--accent)}
+.avgrid td{padding:4px 2px;text-align:center;border-bottom:1px solid var(--line)}
+.avgrid td:first-child{text-align:left;padding-left:12px;white-space:nowrap;font-size:.84rem}
+.avc{width:40px;height:32px;border-radius:7px;border:0;cursor:pointer;font:600 .86rem var(--f-mono);display:inline-flex;align-items:center;justify-content:center;gap:1px;position:relative;color:var(--ink);vertical-align:middle}
+.avc small{font-size:.62rem;color:var(--muted);font-weight:500}
+.avc i{position:absolute;top:-6px;right:-6px;font:700 .58rem var(--f-body);background:var(--warn);color:var(--surface);border-radius:999px;padding:1px 4px;font-style:normal}
+.avc.all{background:color-mix(in srgb,var(--ok) 24%,var(--surface))}
+.avc.some{background:color-mix(in srgb,var(--ok) 10%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ok) 45%,transparent)}
+.avc.tight{background:color-mix(in srgb,var(--warn) 22%,var(--surface))}
+.avc.none{background:color-mix(in srgb,var(--crit) 18%,var(--surface));color:var(--crit)}
+.avc.sel{box-shadow:0 0 0 2px var(--accent)}
+.tchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.tchip{border:1px dashed var(--warn);background:color-mix(in srgb,var(--warn) 8%,var(--surface));color:var(--ink);border-radius:999px;font-size:.74rem;padding:2px 9px;cursor:pointer;font-family:inherit}
+.tchip.order{border-style:solid}
+.doc ol.qrem{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
 .grp-h{padding:7px 14px;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
 button.step{background:none;border-left:0;border-right:0;border-bottom:0;cursor:pointer;font-family:inherit}
 button.step:disabled{cursor:default}
@@ -648,6 +665,7 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
     <div class="navg"><span class="navh">Sell</span>
       <button data-view="enquiries">Enquiries</button>
       <button data-view="customers">Customers</button>
+      <button data-view="avail">Availability</button>
     </div>
     <div class="navg"><span class="navh">Plan</span>
       <button data-view="hires">Hires</button>
@@ -683,6 +701,7 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
   <section class="view" id="v-calendar" hidden></section>
   <section class="view" id="v-staff" hidden></section>
   <section class="view" id="v-planner" hidden></section>
+  <section class="view" id="v-avail" hidden></section>
   <section class="view" id="v-dispatch" hidden></section>
   <section class="view" id="v-fuel" hidden></section>
   <section class="view" id="v-connect" hidden></section>
@@ -1151,7 +1170,7 @@ const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Pai
 const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
 
 /* ---------- state ---------- */
-const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
+const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Truck crane 25 t', grp:'', start:'2026-10-16'}, qq:null, qSeq:240, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
 try{ const v = localStorage.getItem('spc-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
@@ -1165,7 +1184,7 @@ function setView(v){
   try{ localStorage.setItem('spc-view', v); }catch(e){}
   render();
 }
-function render(){ ({dashboard:renderDashboard,dispatch:renderDispatch,today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
+function render(){ ({dashboard:renderDashboard,avail:renderAvail,dispatch:renderDispatch,today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
 function rerender(){ render(); refreshSheet(); }
 
 /* ---------- Today ---------- */
@@ -1326,7 +1345,7 @@ function openHire(id){
   const lines = charges(h, '2026-10-01', TODAY), t = totals(lines);
   const tsRows = sheets.filter(s=>s.hire===h.id).sort((a,b)=>a.d<b.d?1:-1).slice(0,8);
   const actions = [];
-  if(h.status==='Quotation'){ actions.push(`<button class="btn" data-action="send-quote" data-id="${id}">Send quotation by WhatsApp</button>`); if(h.lines.every(l=>l.u)) actions.push(`<button class="btn primary" data-action="confirm" data-id="${id}" ${checkOk(h)?'':'title="Complete the checklist first"'}>${h.order?'Confirm order':'Confirm booking'}${checkOk(h)?'':` (${checkDone(h)}/${PRECONFIRM.length})`}</button>`); actions.push(`<button class="btn" data-action="lose" data-id="${id}">Mark lost</button>`); }
+  if(h.status==='Quotation'){ actions.push(`<button class="btn" data-action="qd-open" data-id="${id}">Quotation document</button>`); actions.push(`<button class="btn" data-action="send-quote" data-id="${id}">Send quotation by WhatsApp</button>`); if(h.lines.every(l=>l.u)) actions.push(`<button class="btn primary" data-action="confirm" data-id="${id}" ${checkOk(h)?'':'title="Complete the checklist first"'}>${h.order?'Confirm order':'Confirm booking'}${checkOk(h)?'':` (${checkDone(h)}/${PRECONFIRM.length})`}</button>`); actions.push(`<button class="btn" data-action="lose" data-id="${id}">Mark lost</button>`); }
   if(h.status==='Booked' && h.job){ actions.push(h.track?.sent ? `<button class="btn" data-action="wa-open" data-id="${id}">Job order (sent)</button>` : `<button class="btn primary" data-action="wa-open" data-id="${id}">Send job order to operator</button>`); if(h.track?.sent && !h.track?.precheck) actions.push(`<button class="btn" data-action="pre-open" data-id="${id}">Pre-dispatch check</button>`); actions.push(`<button class="btn" data-view="dispatch">Dispatch</button>`); }
   if(h.status==='Booked'){ if(h.deposit && !h.depositPaid) actions.push(`<button class="btn" data-action="deposit" data-id="${id}">Deposit received</button>`); actions.push(`<button class="btn primary" data-action="insp" data-id="${id}" data-kind="delivery">Delivery inspection</button>`); actions.push(`<button class="btn" data-action="cancel" data-id="${id}">Cancel booking</button>`); }
   if(h.status==='On hire'){ actions.push(`<button class="btn primary" data-action="offhire" data-id="${id}">Customer called off-hire</button>`); actions.push(`<button class="btn" data-action="breakdown" data-id="${id}">Report breakdown</button>`); actions.push(`<button class="btn" data-action="extend" data-id="${id}">Extend 7 days</button>`); }
@@ -1813,9 +1832,9 @@ Object.entries({HM:'012-300 1001',S1:'012-388 2201',S2:'012-660 3317',S3:'016-22
 const OFFICE = ['HM','S1','S2','S3'], FIELD = ['O1','O2','O3','O4','O5','O6','O7','O8','O9','D1','D2'];
 const meStaff = () => ({boss:'HM',supervisor:'S1',sales:'S2'})[role()] || state.me;
 const ROLE_VIEWS = {
-  boss:['dashboard','today','enquiries','customers','hires','dispatch','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates','reports','connect'],
-  supervisor:['dashboard','today','enquiries','customers','hires','dispatch','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates'],
-  sales:['dashboard','today','enquiries','customers','hires','dispatch','planner','lift','calendar','fleet','rates'],
+  boss:['dashboard','today','enquiries','customers','avail','hires','dispatch','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates','reports','connect'],
+  supervisor:['dashboard','today','enquiries','customers','avail','hires','dispatch','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates'],
+  sales:['dashboard','today','enquiries','customers','avail','hires','dispatch','planner','lift','calendar','fleet','rates'],
   operator:['timesheets'],
 };
 let leave = [
@@ -2266,7 +2285,7 @@ document.addEventListener('click', e => {
     if(act==='enq-stage'){ const x = enq(d.id); if(d.s==='Won' && !x.hire){ toast('Make the quotation and confirm the booking first'); return; } if(d.s==='Quoted' && !x.hire){ toast('Use "Make quotation": the quotation is built from the rate card'); return; } x.stage = d.s; x.log.unshift({d:`${TODAY} ${nowT()}`,t:`Moved to ${d.s}.`}); return rerender(); }
     if(act==='enq-cust'){ enqToCustomer(enq(d.id)); toast('Added as a customer'); return rerender(); }
     if(act==='enq-quote'){ const x = enq(d.id), c = enqToCustomer(x), mk = modelOfType(x.need), k = kindFor(mk,x.k);
-      state.nh = newHireDefaults({c, type:x.need, from:x.from, to:x.to, k, basis:guessBasis(mk,k,x.from,x.to), site:x.site||'', state:x.state||'Selangor', u:null, enq:x.id}); return openNewHire(); }
+      state.qq = qqDefaults({c, type:x.need, from:x.from, to:x.to, k, site:x.site||'', enq:x.id}); return openQuickQuote(); }
     if(act==='confirm' && hire(d.id).status!=='Booked') return;
     if(act==='confirm' || act==='lose'){ const x = enquiries.find(y=>y.hire===d.id); if(x){ x.stage = act==='confirm' ? 'Won' : 'Lost'; if(act==='lose') x.lostWhy = hire(d.id).lines.some(l=>!l.u)?'No machine free':'Price'; rerender(); } return; }
     if(act==='leave-ok' || act==='leave-no'){ const l = leave.find(x=>x.id===+d.id), r = reliefFor(l); l.status = act==='leave-ok'?'Approved':'Rejected';
@@ -2750,7 +2769,7 @@ function renderDashboard(){
   const delta = (a,b) => { const d = a-b; return `<small class="${d>=0?'up':'down'}">${d>=0?'▲':'▼'} ${Math.abs(d)} pts vs Sep</small>`; };
   $('#v-dashboard').innerHTML = `
     <div class="view-head"><div><h2>Dashboard</h2><span class="muted">${esc(CO.name)} · ${fmtDW(TODAY)} 2026, 9:15 am</span></div>
-      <div class="btnrow"><button class="btn" data-action="new-enq">New enquiry</button><button class="btn primary" data-action="new-hire">New hire / quotation</button></div></div>
+      <div class="btnrow"><button class="btn" data-action="new-enq">New enquiry</button><button class="btn" data-view="avail">Availability</button><button class="btn" data-action="qq-new">Quick quotation</button><button class="btn primary" data-action="new-hire">New order</button></div></div>
     <div class="kpis dk">
       <button class="kpi" data-view="fleet"><span class="label">Machinery on rental</span><b>${rented.length}<small class="muted"> / ${units.length}</small></b><span>${units.length-rented.length} in yard, booked or in workshop</span></button>
       <button class="kpi" data-view="reports"><span class="label">Utilisation rate</span><b>${uNow}%</b><span>Oct to date ${delta(uNow,uPrev)}</span></button>
@@ -3029,6 +3048,206 @@ document.addEventListener('submit', e => {
     toast(`Work order signed: ${num(work)} h`); closeSheet(); return render(); }
 });
 
+/* ---------- Availability (sales) ---------- */
+/* Firm: bookings, hires, workshop. Tentative: quotations and unconfirmed orders on a machine, and open enquiries for the type. */
+function tentativeFor(type, from, to){
+  const quotes = hires.filter(h=>h.status==='Quotation' && h.lines.some(l=>models[lineModel(l)]?.type===type && overlaps(from,to,l.from,lineEnd(l))))
+    .map(h=>({kind:h.order?'order':'quote', id:h.id, u:h.lines[0].u||'no machine yet', who:custName(h.c).replace(/ Sdn Bhd$/,''), from:h.lines[0].from, to:lineEnd(h.lines[0]), valid:h.quoteValid}));
+  const enqs = enquiries.filter(e=>openStage(e) && !e.hire && e.need===type && overlaps(from,to,e.from,e.to))
+    .map(e=>({kind:'enq', id:e.id, who:enqName(e).replace(/ Sdn Bhd$/,''), qty:e.qty||1, from:e.from, to:e.to, stage:e.stage, temp:e.temp}));
+  return [...quotes, ...enqs];
+}
+const tentChip = t => t.kind==='enq'
+  ? `<button class="tchip enq" data-enq="${t.id}" title="${esc(t.stage)} · ${esc(t.temp)}">Enquiry ${esc(t.who)}${t.qty>1?' ×'+t.qty:''} · ${fmtD(t.from)}–${fmtD(t.to)}</button>`
+  : `<button class="tchip ${t.kind}" data-hire="${t.id}">${t.kind==='order'?'Order (checklist)':'Quoted'} ${esc(t.who)} · ${t.u} · ${fmtD(t.from)}–${fmtD(t.to)}${t.valid?' · valid to '+fmtD(t.valid):''}</button>`;
+function renderAvail(){
+  const a = state.av, days = [...Array(14)].map((_,i)=>addDays(a.start,i));
+  const types = [...new Set(hireUnits().map(u=>mOf(u).type))].filter(t => !a.grp || hireUnits().some(u=>mOf(u).type===t && mOf(u).grp===a.grp));
+  const cell = (type, d) => { const us = hireUnits().filter(u=>mOf(u).type===type), free = us.filter(u=>availability(u,d,d).ok).length, tent = tentativeFor(type,d,d), tq = sum(tent.map(t=>t.qty||1));
+    const cls = free===0 ? 'none' : free - tq <= 0 && tq ? 'tight' : free===us.length ? 'all' : 'some';
+    return `<button class="avc ${cls} ${d>=a.from&&d<=a.to&&type===a.type?'sel':''}" data-avpick="${type}|${d}" title="${esc(type)} ${fmtDW(d)}: ${free} of ${us.length} free${tq?`, ${tq} tentative`:''}">${free}<small>/${us.length}</small>${tq?`<i>+${tq}</i>`:''}</button>`; };
+  const selType = a.type, list = selType ? hireUnits().filter(u=>mOf(u).type===selType) : [];
+  const tent = selType ? tentativeFor(selType, a.from, a.to) : [];
+  $('#v-avail').innerHTML = `
+    <div class="view-head"><h2>Availability</h2><button class="btn primary" data-action="qq-new">Quick quotation</button></div>
+    <form class="findbar" data-form="av">
+      <label>From<input type="date" name="from" value="${a.from}"></label><label>To<input type="date" name="to" value="${a.to}"></label>
+      <label>Machine type<select class="field" name="type"><option value="">Pick a type…</option>${[...new Set(hireUnits().map(u=>mOf(u).type))].map(t=>`<option ${t===selType?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+      <button class="btn">Check</button>
+    </form>
+    ${selType ? `<div class="panel"><div class="panel-head"><h3>${esc(selType)} · ${fmtDW(a.from)}${a.to!==a.from?' – '+fmtDW(a.to):''}</h3><span class="muted">${list.filter(u=>availability(u,a.from,a.to).ok).length} of ${list.length} free</span></div><div class="findres">
+      ${list.map(u=>{ const av = availability(u,a.from,a.to), mine = tent.filter(t=>t.u===u);
+        return `<div class="fr"><div><b>${u} ${esc(uName(u))}</b> <span class="pill ${av.ok?'ok':'crit'}">${av.ok?'Free':'Not free'}</span>${av.ok&&av.warn.length?' <span class="pill crit">Document issue</span>':''}${mine.length?' <span class="pill warn">Quoted to someone else</span>':''}
+          <small>${av.ok?(av.warn.length?'':'Nothing booked on these dates.'):av.why.map(esc).join(' · ')}</small>${av.ok?warnHtml(av.warn):''}${mine.length?`<div class="tchips">${mine.map(tentChip).join('')}</div>`:''}</div>
+          ${av.ok?`<button class="btn small primary" data-action="qq-new" data-u="${u}">Quote this machine</button>`:''}</div>`; }).join('')}
+      ${tent.filter(t=>t.kind==='enq').length?`<div class="fr"><div><b>Other customers asking for a ${esc(selType)} on these dates</b><div class="tchips">${tent.filter(t=>t.kind==='enq').map(tentChip).join('')}</div><small>Not booked yet, but they want the same type: confirm quickly or offer another size.</small></div></div>`:''}
+    </div></div>` : ''}
+    <div class="panel"><div class="panel-head"><h3>Next 14 days by machine type</h3><div class="chipbar">${['',...Object.keys(GROUPS).filter(g=>g!=='transport')].map(g=>`<button class="chip" data-avgrp="${g}" aria-pressed="${a.grp===g}">${g?esc(GROUPS[g]):'All'}</button>`).join('')}</div></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table class="avgrid"><thead><tr><th>Machine type</th>${days.map(d=>`<th class="${dow(d)===0?'sun':''} ${d===TODAY?'today':''}">${DOW[dow(d)].slice(0,2)}<br>${+d.slice(8)}</th>`).join('')}</tr></thead><tbody>
+        ${types.map(t=>`<tr><td><b>${esc(t)}</b></td>${days.map(d=>`<td>${cell(t,d)}</td>`).join('')}</tr>`).join('')}
+      </tbody></table></div>
+      <div class="in" style="padding:10px 14px"><div class="g-legend"><span><i class="avc all" style="width:22px;height:18px"></i>All free</span><span><i class="avc some" style="width:22px;height:18px"></i>Some free</span><span><i class="avc tight" style="width:22px;height:18px"></i>Free but others are asking</span><span><i class="avc none" style="width:22px;height:18px"></i>None free</span><span class="muted">Number = machines free · +n = quotations or enquiries for that day · tap a box for details</span></div></div></div>`;
+}
+
+/* ---------- Quick quotation ---------- */
+const QUOTE_REMARKS = [
+  'All rates are in Ringgit Malaysia and exclude 8% SST.',
+  'Wet hire includes the operator. Daily hire covers 8 working hours, Monday to Saturday.',
+  'Hourly hire: minimum 4 hours per call, counted from arrival at site to release.',
+  'Overtime, Sundays and public holidays are charged at the overtime / holiday rates shown.',
+  'Mobilisation and demobilisation as stated. Lowloader permits and police escort, if needed, at cost.',
+  'Customer to provide firm level ground, safe access, site permits and a competent rigger / signalman unless requested from us.',
+  'Standby due to rain or site not ready is chargeable.',
+  'Cancellation less than 24 hours before mobilisation is charged at 4 hours.',
+  'Payment: 30 days for approved credit customers; otherwise cash on completion. PO / LOU required to confirm.',
+  'This quotation is valid for 7 days and is subject to machine availability when confirmed.',
+];
+const DISC_LIMIT = {sales:5, supervisor:10, boss:100};
+const RIGGER_DAY = 250;
+function qqDefaults(pre={}){
+  const from = state.av?.from || addDays(TODAY,1), to = state.av?.to || from, type = state.av?.type || 'Truck crane 25 t';
+  return {c:'', name:'', contact:'', phone:'', site:'', type, u:null, from, to, k:'wet', basis:'', hrs:8, disc:0, zone:'Klang Valley', mob:true, rigger:false, valid:7,
+    remarks:QUOTE_REMARKS.map(()=>true), extra:'', enq:null, ...pre};
+}
+function qqCalc(q){
+  const types = [...new Set(hireUnits().map(u=>mOf(u).type))];
+  const units = hireUnits().filter(u=>mOf(u).type===q.type).map(u=>({u,...availability(u,q.from,q.to)}));
+  if(q.u && !units.some(x=>x.u===q.u)) q.u = null;
+  if(!q.u){ const f = units.find(x=>x.ok && !x.warn.length) || units.find(x=>x.ok) || units[0]; q.u = f ? f.u : null; }
+  const mk = q.u ? fleet[q.u].m : modelOfType(q.type), k = kindFor(mk, q.k); q.k = k;
+  const r = rate(mk, k) || {}, bases = ['hour','day','week','month'].filter(b=>r[{hour:'hr',day:'day',week:'week',month:'month'}[b]]);
+  if(!bases.includes(q.basis)) q.basis = guessBasis(mk, k, q.from, q.to);
+  const base = r[{hour:'hr',day:'day',week:'week',month:'month'}[q.basis]] || 0, unitRate = Math.round(base*(1-q.disc/100)*100)/100;
+  const est = estimate(mk, k, q.basis, q.from, q.to, +q.hrs), qty = base ? +((est?.amt||0)/base).toFixed(2) : 0;
+  const uLabel = {hour:'hour',day:'day',week:'week',month:'month'}[q.basis];
+  let work = 0; for(let d=q.from; d<=q.to; d=addDays(d,1)) if(dow(d)!==0) work++;
+  const items = [{desc:`${q.type} (${models[mk].make} ${models[mk].model}${q.u?', '+uRef(q.u):''}), ${kindLabel(k).toLowerCase()}${k==='wet'?' with operator':''}, ${basisLabel[q.basis].toLowerCase()} · ${fmtD(q.from)}${q.to!==q.from?' – '+fmtD(q.to):''} ${q.from.slice(0,4)}`, qty, unit:uLabel+(qty===1?'':'s'), rate:unitRate, amt:qty*unitRate}];
+  const tc = transportCharge(mk, q.zone);
+  if(q.mob && tc) items.push({desc:`${models[mk].size==='self'?'Mobilisation and demobilisation (self-drive)':'Lowloader delivery and collection'}, ${q.zone}`, qty:2, unit:'trips', rate:tc, amt:2*tc});
+  if(q.rigger) items.push({desc:'Rigger / signalman', qty:Math.max(1,work), unit:'days', rate:RIGGER_DAY, amt:Math.max(1,work)*RIGGER_DAY});
+  const sub = sum(items.map(i=>i.amt)), sst = sub*RULES.sst/100;
+  const limit = DISC_LIMIT[role()] ?? 0;
+  return {types, units, mk, k, r, bases, base, unitRate, items, sub, sst, total:sub+sst, overLimit:q.disc>limit, limit};
+}
+function openQuickQuote(){
+  const q = state.qq, x = qqCalc(q), cu = q.c ? customers[q.c] : null;
+  const body = `<form class="stack" data-form="qq">
+    <div class="sect"><h3>Customer</h3><div class="in form">
+      <label>Customer<select class="field" data-qq="c"><option value="">New customer</option>${Object.entries(customers).map(([k,c])=>`<option value="${k}" ${k===q.c?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
+      ${cu ? `<label>Attention<input type="text" value="${esc(cu.contact)} · ${esc(cu.phone)}" readonly></label>` : `
+      <label>Company name<input type="text" data-qq="name" value="${esc(q.name)}" placeholder="e.g. Kenanga Hartanah Sdn Bhd"></label>
+      <label>Contact person<input type="text" data-qq="contact" value="${esc(q.contact)}"></label>
+      <label>Phone / WhatsApp<input type="text" data-qq="phone" value="${esc(q.phone)}" placeholder="012-345 6789"></label>`}
+      <label class="full">Site<input type="text" data-qq="site" value="${esc(q.site)}" placeholder="Site address or project"></label>
+    </div></div>
+    <div class="sect"><h3>Machine and rate</h3><div class="in form">
+      <label>Machine type<select class="field" data-qq="type">${x.types.map(t=>`<option ${t===q.type?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+      <label>From<input type="date" data-qq="from" value="${q.from}"></label><label>To<input type="date" data-qq="to" value="${q.to}"></label>
+      <label>Machine offered<select class="field" data-qq="u">${x.units.map(o=>`<option value="${o.u}" ${o.u===q.u?'selected':''}>${o.u} ${esc(mOf(o.u).model)} · ${o.ok?(o.warn.length?'free, document issue':'free'):'NOT free'}</option>`).join('')}</select></label>
+      <label>Charged by<select class="field" data-qq="basis">${x.bases.map(b=>`<option value="${b}" ${b===q.basis?'selected':''}>${basisLabel[b]} · ${RM0(x.r[{hour:'hr',day:'day',week:'week',month:'month'}[b]])}</option>`).join('')}</select></label>
+      ${q.basis==='hour'?`<label>Expected hours a day<input type="number" min="1" step="0.5" data-qq="hrs" value="${q.hrs}"></label>`:''}
+      <label>Discount %<input type="number" min="0" max="50" step="1" data-qq="disc" value="${q.disc}"></label>
+      <label>Transport zone<select class="field" data-qq="zone">${zones.map(z=>`<option ${z.z===q.zone?'selected':''}>${z.z}</option>`).join('')}</select></label>
+      <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="mob" ${q.mob?'checked':''}> Include mobilisation / transport</label>
+      <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="rigger" ${q.rigger?'checked':''}> Add rigger / signalman (${RM0(RIGGER_DAY)} a day)</label>
+      ${!x.units.find(o=>o.u===q.u)?.ok?`<label class="full" style="color:var(--crit);font-weight:600">${q.u} is not free on these dates. You can still quote, but check Availability first.</label>`:''}
+      ${x.units.find(o=>o.u===q.u)?.warn.length?`<label class="full">${warnHtml(x.units.find(o=>o.u===q.u).warn)}</label>`:''}
+      ${x.overLimit?`<label class="full" style="color:var(--crit);font-weight:600">Discount above your ${x.limit}% limit: the Head Manager must approve before it is issued.</label>`:''}
+    </div></div>
+    <div class="sect cost"><h3>Price</h3><div class="in est">${x.items.map(i=>`<span>${esc(i.desc)}<br><small class="muted">${num(i.qty)} ${i.unit} × ${RM(i.rate)}</small></span><b>${RM(i.amt)}</b>`).join('')}
+      <hr><span>Subtotal</span><b>${RM(x.sub)}</b><span>SST ${RULES.sst}%</span><b>${RM(x.sst)}</b><span class="tot">Total</span><b class="tot">${RM(x.total)}</b></div></div>
+    <div class="sect"><h3>Remarks on the quotation</h3><div class="in checks" style="grid-template-columns:1fr">
+      ${QUOTE_REMARKS.map((t,i)=>`<label><input type="checkbox" data-qqrem="${i}" ${q.remarks[i]?'checked':''}> ${esc(i===9?t.replace('7 days', q.valid+' days'):t)}</label>`).join('')}
+      <label style="flex-direction:column;align-items:stretch">Extra remark<input type="text" data-qq="extra" value="${esc(q.extra)}" placeholder="e.g. Rate includes 2 tag lines; site works 8 am – 6 pm"></label>
+      <label style="flex-direction:column;align-items:stretch">Valid for (days)<input type="number" min="1" max="60" data-qq="valid" value="${q.valid}" style="max-width:120px"></label>
+    </div></div>
+    <div class="btnrow"><button class="btn primary" type="button" data-action="qq-issue" ${x.overLimit&&!boss()?'disabled':''}>Issue quotation</button>${x.overLimit&&!boss()?'<button class="btn" type="button" data-action="qq-approval">Ask Head Manager to approve</button>':''}</div>
+  </form>`;
+  openSheet('Quick quotation', `<span class="mono">Q-2026-0${state.qSeq+1}</span>`, body, {type:'qq'});
+}
+function issueQuote(){
+  const q = state.qq;
+  if(!q.c && !q.name.trim()){ toast('Enter the customer name'); return; }
+  if(!q.site.trim()){ toast('Enter the site'); return; }
+  const x = qqCalc(q);
+  let c = q.c;
+  if(!c){ c = 'C' + (Math.max(...Object.keys(customers).map(k=>+k.slice(1)))+1); customers[c] = {name:q.name.trim(), contact:q.contact, phone:q.phone, brn:'', tin:'', sst:'', terms:0, limit:0, isNew:true, ind:'', sales:meStaff(), since:2026, last:TODAY, notes:[]}; }
+  const id = 'H-2026-0' + (Math.max(...hires.map(h=>+h.id.slice(-4)))+1), no = 'Q-2026-0' + (++state.qSeq);
+  const remarks = QUOTE_REMARKS.map((t,i)=>q.remarks[i] ? (i===9 ? t.replace('7 days', q.valid+' days') : t) : null).filter(Boolean).concat(q.extra.trim() ? [q.extra.trim()] : []);
+  if(x.r.ot && x.k==='wet'){ const gi = remarks.indexOf(QUOTE_REMARKS[3]); const ot = `Overtime ${RM(x.r.ot*(1-q.disc/100))} per hour after 8 hours; Sundays and public holidays ×${RULES.sunX}.`; if(gi>=0) remarks[gi] = ot; else remarks.splice(Math.min(3, remarks.length), 0, ot); }
+  hires.push({id, c, site:q.site, state:'Selangor', siteContact:customers[c].contact+' '+customers[c].phone, po:'', status:'Quotation', created:TODAY, cycle:q.basis==='month'?'Monthly in arrears':'End of hire', quoteValid:addDays(TODAY, +q.valid),
+    lines:[{u:q.u, m:x.mk, k:x.k, basis:q.basis, from:q.from, to:q.to, op:undefined, disc:q.disc}], trips:[], check:{}, checkNote:{}, track:{},
+    quote:{no, issued:TODAY, valid:addDays(TODAY,+q.valid), items:x.items, sub:x.sub, sst:x.sst, total:x.total, remarks, by:meStaff(), disc:q.disc},
+    log:[{d:TODAY+' '+nowT(), t:`Quotation ${no} issued by ${staff[meStaff()].name}: ${RM(x.total)}.`}]});
+  if(q.enq){ const e = enq(q.enq); e.hire = id; e.c = e.c || c; e.stage = 'Quoted'; e.log.unshift({d:TODAY+' '+nowT(), t:`Quotation ${no} issued (${RM(x.total)}).`}); }
+  tasks.push({id:++taskSeq, d:addDays(TODAY,2), type:'Call', who:meStaff(), hire:id, enq:q.enq||undefined, cust:c, t:`Follow up quotation ${no} with ${customers[c].contact||customers[c].name}`, rule:'Quotation sent 2 days ago', done:false});
+  state.qq = null; render(); openQuoteDoc(id);
+}
+function quoteOf(h){
+  if(h.quote) return h.quote;
+  const l = h.lines[0], mk = lineModel(l), est = estimate(mk, l.k, l.basis, l.from, minD(lineEnd(l), addDays(l.from,29)), 8), r = rate(mk,l.k)||{}, base = r[{hour:'hr',day:'day',week:'week',month:'month'}[l.basis]]||0;
+  const items = [{desc:`${models[mk].type} (${models[mk].make} ${models[mk].model}${l.u?', '+uRef(l.u):''}), ${kindLabel(l.k).toLowerCase()}, ${basisLabel[l.basis].toLowerCase()} · ${fmtD(l.from)} – ${fmtD(lineEnd(l))}`, qty:base?+((est?.amt||0)/base).toFixed(2):0, unit:l.basis+'s', rate:base, amt:est?.amt||0}, ...h.trips.map(t=>({desc:`${t.self?'Mobilisation':'Transport'}: ${t.dir.toLowerCase()}, ${t.zone}`, qty:1, unit:'trip', rate:t.charge, amt:t.charge}))];
+  const sub = sum(items.map(i=>i.amt));
+  return h.quote = {no:'Q-2026-0'+(++state.qSeq), issued:h.created, valid:h.quoteValid||addDays(h.created,7), items, sub, sst:sub*RULES.sst/100, total:sub*(1+RULES.sst/100), remarks:QUOTE_REMARKS.slice(), by:'S2', disc:0};
+}
+function quoteWaText(h){
+  const qt = quoteOf(h), cu = customers[h.c];
+  return `Super Power Crane Machinery Sdn Bhd\nQuotation ${qt.no} for ${cu.name}\n${qt.items.map(i=>`• ${i.desc}: ${RM(i.amt)}`).join('\n')}\nTotal ${RM(qt.total)} incl. SST. Valid until ${fmtDY(qt.valid)}.\nThe PDF is attached. Reply "OK" or send your PO / LOU to confirm.`;
+}
+function openQuoteDoc(id){
+  const h = hire(id), qt = quoteOf(h), cu = customers[h.c], by = staff[qt.by] || staff.S2;
+  const body = `
+    <div class="doc">
+      <div class="doc-head"><div><div class="doc-brand">${esc(CO.name)}</div><small>${esc(CO.addr)}<br>${esc(CO.phone)} · SSM ${esc(CO.ssm)}<br>SST ${esc(CO.sst)}</small></div>
+        <div class="doc-meta"><b>Quotation</b><span>${qt.no}</span><span>Date ${fmtDY(qt.issued)}</span><span>Valid until ${fmtDY(qt.valid)}</span></div></div>
+      <div class="doc-grid">
+        <div><h4>To</h4><dl><dt>Customer</dt><dd>${esc(cu.name)}</dd><dt>Attn</dt><dd>${esc(cu.contact||'—')}</dd><dt>Phone</dt><dd>${esc(cu.phone||'—')}</dd></dl></div>
+        <div><h4>Job</h4><dl><dt>Site</dt><dd>${esc(h.site)}</dd><dt>Our ref.</dt><dd>${h.id}</dd><dt>Prepared by</dt><dd>${esc(by.name)} · ${esc(by.phone||'')}</dd></dl></div>
+      </div>
+      <div class="dt"><table><thead><tr><th>No.</th><th>Description</th><th class="r">Qty</th><th class="r">Rate (RM)</th><th class="r">Amount (RM)</th></tr></thead><tbody>
+        ${qt.items.map((i,k)=>`<tr><td>${k+1}</td><td>${esc(i.desc)}</td><td class="r">${num(i.qty)} ${esc(i.unit)}</td><td class="r">${(+i.rate).toLocaleString('en-MY',{minimumFractionDigits:2})}</td><td class="r">${(+i.amt).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="tot"><span>Subtotal</span><b>${RM(qt.sub)}</b><span>SST ${RULES.sst}%</span><b>${RM(qt.sst)}</b><span><b>Total</b></span><b>${RM(qt.total)}</b></div>
+      <div><h4>Terms and remarks</h4><ol class="qrem">${qt.remarks.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>
+      <div class="sign"><div><div class="sline"></div><small>For ${esc(CO.name)}<br>${esc(by.name)}</small></div><div><div class="sline"></div><small>Accepted by customer: name, signature, company chop and date</small></div></div>
+      <div class="doc-foot">Quantities are estimates; the invoice follows signed work orders and timesheets.</div>
+    </div>
+    <div class="btnrow"><button class="btn primary" data-action="qd-wa" data-id="${id}">Send by WhatsApp</button><button class="btn" data-action="qd-copy" data-id="${id}">Copy WhatsApp text</button>${h.status==='Quotation'&&!h.order?`<button class="btn" data-action="qd-accept" data-id="${id}">Customer accepted: make order</button>`:''}<button class="btn" data-hire="${id}">Open ${id}</button></div>`;
+  openSheet(`Quotation ${qt.no}`, `<span class="mono">${id}</span> ${hireStatusPill(h)}`, body, {type:'qdoc', id});
+}
+
+document.addEventListener('click', e => {
+  if(e.target.closest('input,select,textarea,canvas')) return;
+  const a = e.target.closest('[data-action^="qq-"],[data-action^="qd-"],[data-avpick],[data-avgrp]');
+  if(!a) return;
+  const d = a.dataset;
+  if(d.avpick){ const [type, day] = d.avpick.split('|'); Object.assign(state.av, {type, from:day, to:day}); return render(); }
+  if(d.avgrp!=null){ state.av.grp = d.avgrp; return render(); }
+  if(d.action==='qq-new'){ state.qq = qqDefaults(d.u ? {u:d.u, type:mOf(d.u).type} : {}); return openQuickQuote(); }
+  if(d.action==='qq-issue') return issueQuote();
+  if(d.action==='qd-open') return openQuoteDoc(d.id);
+  if(d.action==='qq-approval'){ toast('Sent to the Head Manager to approve the discount'); return; }
+  const h = d.id ? hire(d.id) : null;
+  if(d.action==='qd-wa'){ h.log.unshift({d:TODAY+' '+nowT(), t:`Quotation ${quoteOf(h).no} sent by WhatsApp to ${customers[h.c].contact||customers[h.c].name}.`}); toast(`Quotation ${quoteOf(h).no} sent by WhatsApp with the PDF`); return; }
+  if(d.action==='qd-copy'){ try{ navigator.clipboard.writeText(quoteWaText(h)).then(()=>toast('Copied'), ()=>toast('Select the text and copy it')); }catch(err){ toast('Select the text and copy it'); } return; }
+  if(d.action==='qd-accept'){ h.order = true; h.job = h.job || {type:'Lifting', scope:'', arrive:'08:30', requests:'', pay:customers[h.c].terms?'credit':'cash', collect:false}; h.log.unshift({d:TODAY+' '+nowT(), t:`Customer accepted ${quoteOf(h).no}. Order created; checklist next.`});
+    const x = enquiries.find(y=>y.hire===h.id); if(x){ x.stage = 'Won'; x.log.unshift({d:TODAY+' '+nowT(), t:`Customer accepted ${quoteOf(h).no}.`}); }
+    toast('Order created. Fill in the job details and the checklist.'); return openHire(h.id); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.dataset.qq){ const f = t.dataset.qq; state.qq[f] = t.type==='checkbox' ? t.checked : (t.type==='number' ? +t.value : t.value);
+    if(f==='type'){ state.qq.u = null; state.qq.basis = ''; } if((f==='from'||f==='to') && state.qq.to < state.qq.from) state.qq.to = state.qq.from; if(f==='from'||f==='to') state.qq.basis = '';
+    if(t.type==='text') return; return openQuickQuote(); }
+  if(t.dataset.qqrem){ state.qq.remarks[+t.dataset.qqrem] = t.checked; return; }
+});
+document.addEventListener('input', e => { const t = e.target; if(t.dataset.qq && t.type==='text') state.qq[t.dataset.qq] = t.value; });
+document.addEventListener('submit', e => {
+  const f = e.target;
+  if(f.dataset.form==='av'){ e.preventDefault(); const fd = new FormData(f); Object.assign(state.av, {from:fd.get('from'), to:fd.get('to')<fd.get('from')?fd.get('from'):fd.get('to'), type:fd.get('type')}); return render(); }
+  if(f.dataset.form==='qq'){ e.preventDefault(); }
+});
+
 /* ---------- sheet plumbing ---------- */
 function openSheet(title, sub, body, ctx){
   state.sheet = ctx || null;
@@ -3042,7 +3261,7 @@ function openSheet(title, sub, body, ctx){
 function closeSheet(){ $('#sheetRoot').innerHTML=''; document.body.style.overflow=''; state.sheet=null; state.lastSheet=null; }
 function refreshSheet(){
   const s = state.sheet; if(!s) return;
-  if(s.type==='hire') openHire(s.id); else if(s.type==='unit') openUnit(s.id); else if(s.type==='ts') openTimesheet(s.id); else if(s.type==='inv') openInvoice(s.id); else if(s.type==='nh') openNewHire(); else if(s.type==='insp') openInspection(s.id, s.kind); else if(s.type==='enq') openEnquiry(s.id); else if(s.type==='cust') openCustomer(s.id); else if(s.type==='ne') openNewEnquiry(); else if(s.type==='fuel') openFuelAdd(); else if(s.type==='wa') openWa(s.id, s.kind); else if(s.type==='pre') openPrecheck(s.id); else if(s.type==='wo') openWorkOrder(s.id);
+  if(s.type==='hire') openHire(s.id); else if(s.type==='unit') openUnit(s.id); else if(s.type==='ts') openTimesheet(s.id); else if(s.type==='inv') openInvoice(s.id); else if(s.type==='nh') openNewHire(); else if(s.type==='insp') openInspection(s.id, s.kind); else if(s.type==='enq') openEnquiry(s.id); else if(s.type==='cust') openCustomer(s.id); else if(s.type==='ne') openNewEnquiry(); else if(s.type==='fuel') openFuelAdd(); else if(s.type==='qq') openQuickQuote(); else if(s.type==='qdoc') openQuoteDoc(s.id); else if(s.type==='wa') openWa(s.id, s.kind); else if(s.type==='pre') openPrecheck(s.id); else if(s.type==='wo') openWorkOrder(s.id);
 }
 function toast(t){ $('#toastRoot').innerHTML=`<div class="toast" role="status">${esc(t)}</div>`; clearTimeout(toast.h); toast.h=setTimeout(()=>$('#toastRoot').innerHTML='',3200); }
 
