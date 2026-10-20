@@ -110,12 +110,3 @@ export async function addActivity(jobId: number, staffId: number | null, key: Me
 
 export { isRole } from "./queries.shared";
 
-/** For each job, the photo to show on its card: the first "before" photo, else its first photo. */
-export async function coverPhotos(jobIds: number[]): Promise<Map<number, number>> {
-  if (!jobIds.length) return new Map();
-  const rows = await db.execute<{ job_id: number; id: number }>(sql`
-    select distinct on (job_id) job_id, id from job_photos
-    where job_id in (${sql.join(jobIds.map((i) => sql`${i}`), sql`, `)})
-    order by job_id, (stage = 'before') desc, id`);
-  return new Map(rows.rows.map((r) => [Number(r.job_id), Number(r.id)]));
-}

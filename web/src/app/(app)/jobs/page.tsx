@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { ON_HAND, STATUSES, ageLevel, invoicePending, type Category, type Status } from "@/lib/jobs";
-import { coverPhotos, listJobs } from "@/lib/queries";
+import { listJobs } from "@/lib/queries";
 import { addDays, fmtDate, today } from "@/lib/format";
 import { getI18n } from "@/i18n/server";
 import { catLabel, statusLabel } from "@/i18n/labels";
@@ -42,7 +42,6 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const hrefWith = (o: { status?: string; view?: string }) =>
     `/jobs?${new URLSearchParams({ ...(sp.q ? { q: sp.q } : {}), ...(sp.cat ? { cat: sp.cat } : {}), status: o.status ?? status, view: o.view ?? view })}`;
   const viewHref = (v: string) => hrefWith({ view: v });
-  const covers = view === "cards" ? await coverPhotos(list.map((j) => j.id)) : new Map<number, number>();
   // Box view: newest first; each box shows the day the job was opened.
   const sorted = [...list].sort((a, b) => b.openedAt.localeCompare(a.openedAt) || b.id - a.id);
   const d0 = today();
@@ -78,7 +77,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         <div className="jgrid">
           {sorted.map((j) => {
             return (
-              <JobBox key={j.id} j={j} cover={covers.get(j.id)} t={t} locale={locale} />
+              <JobBox key={j.id} j={j} t={t} locale={locale} />
             );
           })}
           {list.length === 0 && <div className="empty">{t("jobs.none")}</div>}

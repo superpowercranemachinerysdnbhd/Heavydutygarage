@@ -754,3 +754,6 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - In the PO part search, the last option is "+ Add new item: '<what you typed>'". It opens a small form: part no. (optional), description, unit, category, Bulk. Saving creates the part (`quickPart`; fits all machines) and adds it as a line on the order.
 - Typed text that looks like a part number goes into Part no., anything else into Description. With no part no., the part gets a workshop number ITEM-0001, ITEM-0002…
 - A duplicate part no. (any case) is refused, with the message inside the form. Bin, minimum level and machines can be filled in on the part page later. The full form is still on Parts → + Add part.
+
+### 47. Work order cards use the machine's profile photo (Oct 2026)
+- The picture on each work order card is the machine's profile photo (Machinery → machine → photo). Before / during / after photos uploaded on the work order stay on the work order and the service report only. A machine with no profile photo shows "No photo". `coverPhotos` was removed.
