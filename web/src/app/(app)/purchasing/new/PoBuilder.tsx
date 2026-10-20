@@ -5,9 +5,11 @@ import { useLocale, useT } from "@/i18n/client";
 import { INTL_LOCALE } from "@/i18n";
 import { createPurchaseOrders } from "../actions";
 import { quickSupplier } from "../supplier-actions";
+import PartPicker from "@/components/PartPicker";
 
 export type BuilderPart = {
   id: number; sku: string; description: string; uom: string; onHand: number; onOrder: number; minLevel: number;
+  oem: string | null; category: string; bin: string | null; bulk: boolean; models: string[];
   prices: { supplierId: number; supplierName: string; price: number; priceDate: string }[];
 };
 type Supplier = { id: number; name: string };
@@ -120,10 +122,8 @@ export default function PoBuilder({ parts, suppliers: initialSuppliers, initial,
           );
         })}
         <div className="filters" style={{ padding: "10px 14px", borderTop: "1px solid var(--line)" }}>
-          <select className="field" value="" onChange={(e) => { const id = Number(e.target.value); if (id) setLines((ls) => [...ls, mk(id)]); }} aria-label={t("po.addPart")} style={{ flex: "1 1 280px" }}>
-            <option value="">{t("po.addPart")}</option>
-            {unused.map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.description} ({p.onHand} {p.uom})</option>)}
-          </select>
+          <PartPicker placeholder={t("pp.addPh")} onPick={(p) => setLines((ls) => [...ls, mk(p.id)])}
+            parts={unused.map((p) => ({ id: p.id, sku: p.sku, oem: p.oem, description: p.description, category: p.category, bin: p.bin, onHand: p.onHand, uom: p.uom, fits: false, models: p.models, bulk: p.bulk }))} />
         </div>
       </div>
 

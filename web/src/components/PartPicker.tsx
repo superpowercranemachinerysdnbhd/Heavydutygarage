@@ -12,7 +12,8 @@ const MAX = 40;
 
 /** Type to find a stock part: part no., OEM no., description, category, bin or machine model (any order, any case).
  *  Parts that fit this machine and parts in stock come first. Tap a result to choose it. */
-export default function PartPicker({ parts, name = "partId", placeholder }: { parts: PickPart[]; name?: string; placeholder: string }) {
+/** With `onPick` it is an "add a part" box: the chosen part is handed over and the box clears for the next one. */
+export default function PartPicker({ parts, name = "partId", placeholder, onPick }: { parts: PickPart[]; name?: string; placeholder: string; onPick?: (p: PickPart) => void }) {
   const t = useT();
   const id = useId();
   const [q, setQ] = useState("");
@@ -31,7 +32,11 @@ export default function PartPicker({ parts, name = "partId", placeholder }: { pa
   }, [q, parts, hay]);
   const shown = found.slice(0, MAX);
 
-  const choose = (p: PickPart) => { setSel(p); setOpen(false); setQ(""); };
+  const choose = (p: PickPart) => {
+    setQ("");
+    if (onPick) { onPick(p); setHi(0); input.current?.focus(); return; }
+    setSel(p); setOpen(false);
+  };
   const clear = () => { setSel(null); setTimeout(() => input.current?.focus(), 0); };
 
   if (sel) return (
@@ -43,7 +48,7 @@ export default function PartPicker({ parts, name = "partId", placeholder }: { pa
   );
   return (
     <div className="pp" style={{ flex: "1 1 260px" }} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false); }}>
-      <input ref={input} type="search" required value={q} placeholder={placeholder} aria-label={placeholder} autoComplete="off"
+      <input ref={input} type="search" required={!onPick} value={q} placeholder={placeholder} aria-label={placeholder} autoComplete="off"
         role="combobox" aria-expanded={open} aria-controls={`${id}-list`} aria-autocomplete="list"
         onFocus={() => setOpen(true)} onChange={(e) => { setQ(e.target.value); setOpen(true); setHi(0); }}
         onKeyDown={(e) => {

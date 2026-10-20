@@ -770,3 +770,9 @@ details.panel[open]>summary h3::before{content:"▾ "}
 .pp-none{padding:8px 10px;font-size:.85rem}
 .suggest{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .chip-btn{background:var(--surface-2);border:1px dashed var(--line);border-radius:14px;padding:4px 10px;font:inherit;font-size:.78rem;color:inherit;cursor:pointer;text-align:left}
+/* Parts bought on one invoice */
+table.bl input{width:100%;min-width:70px}
+table.bl td:nth-child(2) input{min-width:180px}
+table.bl td:nth-child(3) input,table.bl td:nth-child(4) input{max-width:80px}
+table.bl td:nth-child(5) input{max-width:110px}
+table.bl .num{white-space:nowrap}

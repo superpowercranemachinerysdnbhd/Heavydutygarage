@@ -18,6 +18,7 @@ import ChatRoom from "@/components/ChatRoom";
 import PhotoInput from "@/components/PhotoInput";
 import StatusPicker from "@/components/StatusPicker";
 import PartPicker from "@/components/PartPicker";
+import BoughtLines from "@/components/BoughtLines";
 import Suggest from "@/components/Suggest";
 import { recommendationIdeas } from "@/lib/recommendations";
 import { ServiceDue } from "@/components/ServicePanel";
@@ -298,29 +299,16 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               <span className="label">{t("jp.bought")}</span>
               {bought.length > 0 ? (
                 <div className="tbl-wrap"><table>
-                  <thead><tr><th>{t("jp.desc")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.selling") && <th className="r">{t("parts.sell")}</th>}{can(user.role, "money.cost") && <th className="r">{t("parts.costCol")}</th>}{canLines && <th />}</tr></thead>
-                  <tbody>{bought.map((x) => <tr key={x.id}><td>{x.kind === "service" && <span className="pill out">{t("out.line")}</span>} {x.partNo && <span className="mono">{x.partNo} </span>}{x.description}<br /><small className="muted">{fmtDate(x.purchasedAt, false, locale)}{x.supplier ? ` · ${t("jp.from", { s: x.supplier })}` : ""}{x.ref ? ` · ${x.ref}` : ""}</small></td>
+                  <thead><tr><th>{t("jp.partNo")}</th><th>{t("bl.desc")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.cost") && <><th className="r">{t("bl.unitPrice")}</th><th className="r">{t("bl.total")}</th></>}{canLines && <th />}</tr></thead>
+                  <tbody>{bought.map((x) => <tr key={x.id}><td className="mono">{x.partNo ?? "—"}</td><td>{x.kind === "service" && <><span className="pill out">{t("out.line")}</span> </>}{x.description}<br /><small className="muted">{fmtDate(x.purchasedAt, false, locale)}{x.supplier ? ` · ${t("jp.from", { s: x.supplier })}` : ""}{x.ref ? ` · ${x.ref}` : ""}</small></td>
                     <td className="r num">{q2(x.qty)} {x.uom}</td>
-                    {can(user.role, "money.selling") && <td className="r num">{rm(x.qty * x.unitPrice)}</td>}{can(user.role, "money.cost") && <td className="r num">{rm(x.qty * x.unitCost)}</td>}
+                    {can(user.role, "money.cost") && <><td className="r num">{rm(x.unitCost)}</td><td className="r num">{rm(x.qty * x.unitCost)}</td></>}
                     {canLines && <td className="r">{(open || x.kind === "service") && <form action={A.removeJobPurchase}>{hidden("jobId", job.id)}{hidden("purchaseId", x.id)}<button className="linkbtn muted">{t("jp.remove")}</button></form>}</td>}</tr>)}</tbody>
                 </table></div>
               ) : <small className="muted">{t("jp.noBought")}</small>}
               {open && can(user.role, "stock.manage") && (
                 <details className="add-bought"><summary className="btn small">{t("jp.addBought")}</summary>
-                  <form action={A.addJobPurchase} className="form" style={{ marginTop: 10 }}>
-                    {hidden("jobId", job.id)}
-                    <label className="full">{t("jp.desc")}<input name="description" required placeholder="Hydraulic hose 1/2&quot; x 1.5 m" /></label>
-                    <label>{t("jp.partNo")}<input name="partNo" /></label>
-                    <label>{t("jp.supplier")}<input name="supplierName" list="sups-job" placeholder={t("jp.supplierPh")} autoComplete="off" /><small className="muted">{t("jp.supplierHelp")}</small></label>
-                    <datalist id="sups-job">{sups.map((x) => <option key={x.id} value={x.name} />)}</datalist>
-                    <label>{t("po.qty")}<input type="number" name="qty" min="0.01" step="any" defaultValue={1} required /></label>
-                    <label>{t("parts.uom")}<input name="uom" defaultValue="pc" list="uoms-job" /></label>
-                    <datalist id="uoms-job"><option>pc</option><option>set</option><option>m</option><option>L</option><option>kg</option></datalist>
-                    <label>{t("jp.unitCost")}<input type="number" name="unitCost" min={0} step="0.01" required /></label>
-                    <label>{t("jp.ref")}<input name="ref" /></label>
-                    <label>{t("jp.date")}<input type="date" name="purchasedAt" defaultValue={today()} /></label>
-                    <div className="full"><SubmitButton className="btn small primary">{t("common.add")}</SubmitButton></div>
-                  </form>
+                  <BoughtLines action={A.addJobPurchases} jobId={job.id} suppliers={sups.map((x) => x.name)} today={today()} />
                 </details>
               )}
               {canOutside && (

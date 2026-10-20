@@ -43,6 +43,7 @@ export default async function NewPoPage({ searchParams }: { searchParams: Promis
       {!sups.length && <div className="notice">{t("po.noSuppliers")}</div>}
       <PoBuilder
         parts={parts.map((p) => ({ id: p.id, sku: p.sku, description: p.description, uom: p.uom, onHand: p.onHand, onOrder: p.onOrder, minLevel: p.minLevel,
+          oem: p.oemPartNo, category: p.category, bin: p.bin, bulk: p.bulk, models: p.models,
           prices: (prices.get(p.id) ?? []).map((x) => ({ supplierId: x.supplierId, supplierName: x.supplierName, price: x.price, priceDate: x.priceDate })) }))}
         suppliers={sups.filter((s) => s.active).map((s) => ({ id: s.id, name: s.name }))}
         initial={initial} initialJobId={initialJobId}

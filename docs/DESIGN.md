@@ -744,3 +744,8 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Where it shows: an "Invoice pending" chip on the Work orders page (only when there are any), a tag on its card, and a reminder "Invoice pending: <machine> from <vendor> (N days)" in Other reminders, moving to Act now after 30 days. The Parts → "Add outside work cost" form opens by itself on such a work order.
 - Adding the outside work cost clears it. "No invoice for this job" (warranty, free check; `jobs.invoice_status = 'none'`) also clears it and can be undone.
 - Migration 0020: old AppSheet outsourced work orders with no vendor bill are marked "no invoice", so they don't raise reminders.
+
+### 45. Parts bought on one invoice; part search on purchase orders (Oct 2026)
+- Work order → Parts → "Add parts bought (supplier invoice)" (`components/BoughtLines.tsx`): supplier, invoice no. and date once, then lines of part no., description, qty, unit and unit price. Each line total and the invoice total are worked out as you type; "+ Add line" adds rows and empty rows are skipped. `addJobPurchases` saves all the lines with the same supplier, invoice no. and date.
+- The bought list shows Part no. | Description | Qty | Unit price | Total. Prices are shown to whoever sees costs.
+- New purchase order: "Add a part" is the same search box as on work orders (`PartPicker` with `onPick`). It adds the part as a line and clears itself for the next one.

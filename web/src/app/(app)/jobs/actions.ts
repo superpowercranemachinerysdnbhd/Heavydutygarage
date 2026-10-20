@@ -608,6 +608,30 @@ export async function addJobPurchase(form: FormData) {
   back(user, jobId, { ok: kind === "service" ? "out.added" : "jp.added", hash: "parts" });
 }
 
+/** Parts bought on one supplier invoice: the supplier, invoice no. and date once, then one line per item.
+ *  Empty lines are skipped; a line needs a part no. or a description, a quantity and a unit price. */
+export async function addJobPurchases(form: FormData) {
+  const user = await requirePermission("stock.manage");
+  const jobId = num(form, "jobId");
+  const { job } = await access(jobId, user);
+  if (job.status === "closed") back(user, jobId, { error: "tr.closed", hash: "parts" });
+  const col = (k: string) => form.getAll(k).map((v) => String(v).trim());
+  const [partNos, descs, qtys, uoms, costs] = [col("partNo"), col("description"), col("qty"), col("uom"), col("unitCost")];
+  const real = descs.map((d, i) => ({ partNo: (partNos[i] ?? "").slice(0, 60), description: (d || partNos[i] || "").slice(0, 200), qty: Number(qtys[i]), uom: uoms[i] || "pc", cost: costs[i] === "" ? NaN : Number(costs[i]) }))
+    .filter((l, i) => l.description || costs[i]); // a line with nothing typed is skipped
+  if (!real.length || real.some((l) => !l.description || !(l.qty > 0) || !(l.cost >= 0))) back(user, jobId, { error: "bl.err", hash: "parts" });
+  const supplierId = (await supplierByName(str(form, "supplierName")))?.id ?? null;
+  const date = str(form, "purchasedAt"), ref = str(form, "ref").slice(0, 60) || null;
+  const purchasedAt = isDate(date) && date <= today() ? date : today();
+  await db.insert(schema.jobPurchases).values(real.map((l) => ({
+    jobId, kind: "part" as const, description: l.description, partNo: l.partNo || null, supplierId, supplierName: null, qty: String(l.qty), uom: l.uom.slice(0, 20),
+    unitCost: l.cost.toFixed(2), unitPrice: l.cost.toFixed(2), ref, purchasedAt, addedBy: user.id,
+  })));
+  const total = real.reduce((a, l) => a + l.qty * l.cost, 0);
+  await addActivity(jobId, user.id, "act.boughtInvoice", { n: real.length, ref: ref ?? "—", total: total.toFixed(2), name: user.name });
+  back(user, jobId, { ok: "bl.saved", vars: { n: real.length }, hash: "parts" });
+}
+
 export async function removeJobPurchase(form: FormData) {
   const user = await requirePermission("stock.manage");
   const jobId = num(form, "jobId"), id = num(form, "purchaseId");
