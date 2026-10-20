@@ -755,3 +755,18 @@ details.panel[open]>summary h3::before{content:"▾ "}
 .pill.out{background:color-mix(in srgb,#8a5cd0 18%,transparent);color:#8a5cd0}
 .out-note{border-color:#8a5cd0;display:flex;flex-direction:column;gap:2px}
 .out-note.late{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 8%,var(--surface))}
+/* Part picker (search stock parts on a work order) */
+.pp{position:relative;min-width:0}
+.pp input[type=search]{width:100%}
+.pp-sel{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--surface)}
+.pp-chosen{flex:1;min-width:0;font-size:.88rem}
+.pp-list{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);margin:0;padding:4px;list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);max-height:min(60vh,420px);overflow:auto}
+.pp-list button{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;background:none;border:0;border-radius:6px;padding:8px 10px;color:inherit;font:inherit;cursor:pointer}
+.pp-list button.hi,.pp-list button:hover{background:var(--surface-2)}
+.pp-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pp-stock{margin-left:auto;font-size:.78rem;color:var(--ok);font-weight:600}
+.pp-stock.none{color:var(--crit)}
+.pp-desc{font-size:.88rem}
+.pp-none{padding:8px 10px;font-size:.85rem}
+.suggest{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip-btn{background:var(--surface-2);border:1px dashed var(--line);border-radius:14px;padding:4px 10px;font:inherit;font-size:.78rem;color:inherit;cursor:pointer;text-align:left}

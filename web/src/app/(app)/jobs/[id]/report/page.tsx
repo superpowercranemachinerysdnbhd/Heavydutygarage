@@ -4,10 +4,10 @@ import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { qcMessageKey } from "@/lib/jobs";
 import { labourRate, fmtDate, fmtDateTime, rm, today } from "@/lib/format";
-import { getJob, type JobDetail } from "@/lib/queries";
+import { getJob } from "@/lib/queries";
 import { jobPartsFor, jobPurchasesFor } from "@/lib/inventory";
 import { getI18n } from "@/i18n/server";
-import { LOCALES, isLocale, placeLabel, translator, type Locale, type T } from "@/i18n";
+import { LOCALES, isLocale, placeLabel, translator, type Locale } from "@/i18n";
 import { catLabel, langLabel, stageLabel } from "@/i18n/labels";
 import { Notice } from "@/components/ui";
 import PrintButton from "@/components/PrintButton";
@@ -15,19 +15,11 @@ import SubmitButton from "@/components/SubmitButton";
 import { saveRecommendations } from "../../actions";
 import { machineTypeLabel } from "@/lib/machine-types";
 import DocBrand from "@/components/DocBrand";
+import Suggest from "@/components/Suggest";
+import { recommendationIdeas } from "@/lib/recommendations";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("rep.title") };
-}
-
-function defaultRecommendations(d: JobDetail, t: T, locale: Locale): string {
-  const out: string[] = [];
-  if (d.job.category === "WARR") out.push(t("rec.warranty"));
-  if (["HYD", "EMG"].includes(d.job.category)) out.push(t("rec.hoses"));
-  if (d.unit.nextServiceType && d.unit.nextServiceDate) out.push(t("rec.nextService", { type: d.unit.nextServiceType, date: fmtDate(d.unit.nextServiceDate, true, locale) }));
-  const left = d.tasks.filter((x) => !x.doneAt);
-  if (left.length) out.push(t("rec.outstanding", { tasks: left.map((x) => x.description).join("; ") }));
-  return out.join("\n");
 }
 
 export default async function ReportPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
@@ -58,7 +50,9 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   ];
   const partsTotal = warr ? 0 : issued.reduce((a, x) => a + x.qty * x.unitPrice, 0);
   const labourTotal = warr ? 0 : hours * labourRate();
-  const rec = job.recommendations ?? defaultRecommendations(d, t, lang);
+  // Only what someone wrote; suggestions are offered beside the box, never filled in automatically.
+  const rec = job.recommendations ?? "";
+  const recIdeas = recommendationIdeas(d, t, lang);
   const stages = (["before", "during", "after", "qc"] as const).map((s) => [s, photos.filter((p) => p.stage === s)] as const).filter(([, l]) => l.length);
   const techs = [lead, ...team].filter(Boolean).map((p) => p!.name);
   const href = (change: Partial<{ prices: boolean; photos: boolean; qc: boolean; lang: Locale }>) => {
@@ -86,6 +80,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
             <input type="hidden" name="prices" value={o.prices ? "1" : "0"} /><input type="hidden" name="photos" value={o.photos ? "1" : "0"} /><input type="hidden" name="qc" value={o.qc ? "1" : "0"} />
             <label className="label" htmlFor="recommendations">{ui("rep.recTo")}</label>
             <textarea id="recommendations" name="recommendations" rows={3} defaultValue={rec} />
+            {recIdeas.length > 0 && <Suggest target="recommendations" label={ui("rec.ideas")} items={recIdeas} />}
             <div className="btnrow"><SubmitButton>{ui("rep.saveRec")}</SubmitButton><PrintButton /></div>
           </form>
           <small className="muted">{ui("rep.note")}</small>
@@ -127,7 +122,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           const pending = !q.passedAt && job.status !== "closed";
           return <tr key={q.id}><td>{q.itemKey ? t(qcMessageKey(q.itemKey)) : q.item}</td><td className={`r ${q.passedAt ? "ok" : pending ? "" : "no"}`}>{q.passedAt ? t("rep.pass") : pending ? t("rep.pending") : t("rep.notDone")}</td></tr>;
         })}</tbody></table></div></div>}
-        <div><h4>{t("rep.recommendations")}</h4><p className="rec">{rec || "—"}</p></div>
+        {rec.trim() && <div><h4>{t("rep.recommendations")}</h4><p className="rec">{rec}</p></div>}
         <div className="sign">
           <div><div className="sline" /><small>{t("rep.servicedBy", { name: user.name })}</small></div>
           <div><div className="sline">{job.signaturePath && <img src={`/api/jobs/${job.id}/signature`} alt={t("job.signature")} />}</div>

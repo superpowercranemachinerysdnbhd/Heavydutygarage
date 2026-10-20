@@ -723,3 +723,7 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Lists show the vendor instead of "Unassigned".
 - Reports: an Outside work column, **In-house vs outsourced**, and **By outside workshop** (vendor invoice totals).
 - AppSheet: work orders whose technician was an outside workshop are imported as outsourced. Migration 0018 updates work orders imported earlier. The workshop is matched to a supplier ignoring case and punctuation, and a longer supplier name also matches ("LST Supply" → "LST SUPPLY & TRADING"). That workshop's bills on those work orders become outside work.
+
+### 41. Recommendations are never auto-filled; searchable part picker (Oct 2026)
+- The service report used to fill an empty "Recommendations" with generated lines (hose check, next service, open tasks). Pressing "Save" on the report then stored them in the work order. Now nothing is filled in. The same lines appear as tap-to-add suggestions under the box (job page and report). An empty recommendation is left off the printed report.
+- Request / issue a stock part: a search box (`components/PartPicker.tsx`) replaces the long drop-down. It matches every typed word against part no., OEM no., description, category, bin and machine models. Parts that fit the machine, are in stock and start with the typed part no. come first. Each result shows stock (red when none), "Fits this machine", category and bin. Arrow keys + Enter or tap to choose; "Change" to pick again.

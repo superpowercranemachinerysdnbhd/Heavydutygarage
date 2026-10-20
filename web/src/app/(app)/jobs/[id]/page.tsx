@@ -17,6 +17,9 @@ import SubmitButton from "@/components/SubmitButton";
 import ChatRoom from "@/components/ChatRoom";
 import PhotoInput from "@/components/PhotoInput";
 import StatusPicker from "@/components/StatusPicker";
+import PartPicker from "@/components/PartPicker";
+import Suggest from "@/components/Suggest";
+import { recommendationIdeas } from "@/lib/recommendations";
 import { ServiceDue } from "@/components/ServicePanel";
 import { servicesFor } from "@/lib/services";
 import { isServiceCategory, itemLabel, listItems } from "@/lib/lists";
@@ -56,6 +59,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const stockCost = issued.reduce((a, x) => a + x.qty * x.unitCost, 0);
   const boughtCost = bought.filter((x) => x.kind !== "service").reduce((a, x) => a + x.qty * x.unitCost, 0);
   const outsideCost = bought.filter((x) => x.kind === "service").reduce((a, x) => a + x.qty * x.unitCost, 0);
+  const pickParts = stockParts.map((p) => ({ id: p.id, sku: p.sku, oem: p.oemPartNo, description: p.description, category: p.category, bin: p.bin, onHand: p.onHand, uom: p.uom, fits: p.fits, models: p.models }));
+  const recIdeas = recommendationIdeas(d, t, locale);
   const canLines = can(user.role, "stock.manage") && (open || can(user.role, "job.editDetails"));
   const canOutside = canLines;
   const vendorLate = job.outsourced && !job.backAt && job.expectedBackAt && job.expectedBackAt < today() ? daysBetween(job.expectedBackAt, today()) : 0;
@@ -136,7 +141,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               {hidden("jobId", job.id)}
               <label>{t("job.diagnosis")}<textarea name="diagnosis" rows={3} defaultValue={job.diagnosis} disabled={!canWrite} placeholder={t("job.diagnosisPh")} /></label>
               <label>{t("job.workDone")}<textarea name="workDone" rows={4} defaultValue={job.workDone} disabled={!canWrite} placeholder={t("job.workDonePh")} /></label>
-              <label>{t("job.recommendations")}<textarea name="recommendations" rows={2} defaultValue={job.recommendations ?? ""} disabled={!canWrite} placeholder={t("job.recommendationsPh")} /></label>
+              <label>{t("job.recommendations")}<textarea id="rec-text" name="recommendations" rows={2} defaultValue={job.recommendations ?? ""} disabled={!canWrite} placeholder={t("job.recommendationsPh")} /></label>
+              {canWrite && recIdeas.length > 0 && <Suggest target="rec-text" label={t("rec.ideas")} items={recIdeas} />}
               <div className="form" style={{ gridTemplateColumns: "minmax(0,1fr) 170px", gap: 10 }}>
                 <label>{t("job.followUp")}<textarea name="followUp" rows={2} defaultValue={job.followUp ?? ""} disabled={!canWrite} placeholder={t("job.followUpPh")} /></label>
                 <label>{t("job.followUpDate")}<input type="date" name="followUpDate" defaultValue={job.followUpDate ?? ""} disabled={!canWrite} /></label>
@@ -246,9 +252,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               {open && stockParts.length > 0 && (<>
                 <form action={A.requestPart} className="filters" style={{ marginTop: 6 }}>
                   {hidden("jobId", job.id)}
-                  <select className="field" name="partId" required aria-label={t("jp.part")} style={{ flex: "1 1 240px" }} defaultValue=""><option value="" disabled>{t("jp.chooseAny")}</option>
-                    <optgroup label={t("jp.fits")}>{stockParts.filter((p) => p.fits).map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.description} ({t("jp.inStock", { n: q2(p.onHand), uom: p.uom })})</option>)}</optgroup>
-                    <optgroup label={t("jp.otherParts")}>{stockParts.filter((p) => !p.fits).map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.description} ({t("jp.inStock", { n: q2(p.onHand), uom: p.uom })})</option>)}</optgroup></select>
+                  <PartPicker parts={pickParts} placeholder={t("pp.requestPh")} />
                   <input type="number" name="qty" min="0.01" step="any" defaultValue={1} style={{ width: 80 }} aria-label={t("po.qty")} />
                   <input type="text" name="note" placeholder={t("jp.notePh")} style={{ flex: "1 1 140px" }} aria-label={t("col.note")} />
                   <SubmitButton>{t("jp.request")}</SubmitButton>
@@ -256,9 +260,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                 {can(user.role, "stock.manage") && (
                   <form action={A.issueDirect} className="filters">
                     {hidden("jobId", job.id)}
-                    <select className="field" name="partId" required aria-label={t("jp.part")} style={{ flex: "1 1 240px" }} defaultValue=""><option value="" disabled>{t("jp.issueDirect")}</option>
-                      <optgroup label={t("jp.fits")}>{stockParts.filter((p) => p.fits).map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.description} ({t("jp.inStock", { n: q2(p.onHand), uom: p.uom })})</option>)}</optgroup>
-                      <optgroup label={t("jp.otherParts")}>{stockParts.filter((p) => !p.fits).map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.description} ({t("jp.inStock", { n: q2(p.onHand), uom: p.uom })})</option>)}</optgroup></select>
+                    <PartPicker parts={pickParts} placeholder={t("pp.issuePh")} />
                     <input type="number" name="qty" min="0.01" step="any" defaultValue={1} style={{ width: 80 }} aria-label={t("po.qty")} />
                     <SubmitButton className="btn small primary">{t("jp.issue")}</SubmitButton>
                   </form>
