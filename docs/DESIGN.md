@@ -734,3 +734,7 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Normal parts: when the count is lower than the quantity issued, the work order page asks "The count shows only N… Issue anyway?" (Supervisor / Head Manager; also for mechanics' requests). Issuing anyway takes the count below zero. Act now then shows "Count needed: <part> shows -N", linking to the part's Stock count.
 - Migration 0019 marks parts in Oils, grease & lubricants; Coolant & fluids; Electrical, sensors & switches; Workshop consumables; and Paint as bulk.
 - Pure rules in `lib/stock.ts` (`stockAfterIssue`, `isLowStock`, `suggestOrderQty`), unit-tested.
+
+### 43. Machine cost totals: Head Manager only (Oct 2026)
+- New permission `money.machineTotals` (Head Manager). The Maintenance cost panel on a machine page (this year / last 12 months / all time) and the Reports page are the Head Manager's only.
+- The Supervisor still sees the cost of each work order (parts from stock, bought, outside work) on the work order page, but no combined spend per machine.

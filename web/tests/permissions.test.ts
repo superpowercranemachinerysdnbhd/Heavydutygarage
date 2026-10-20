@@ -34,3 +34,10 @@ test("crew work only on jobs they lead or are on", () => {
   assert.equal(canWorkOnJob({ id: 4, role: "mechanic" }, job), false);
   assert.equal(canWorkOnJob({ id: 2, role: "supervisor" }, job), true);
 });
+
+test("combined spend per machine is for the Head Manager only", () => {
+  assert.equal(can("boss", "money.machineTotals"), true);
+  assert.equal(can("supervisor", "money.machineTotals"), false);
+  assert.equal(can("mechanic", "money.machineTotals"), false);
+  assert.equal(can("supervisor", "money.cost"), true); // still sees the cost on each work order
+});

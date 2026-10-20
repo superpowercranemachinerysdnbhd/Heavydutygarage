@@ -40,8 +40,8 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
   const shown = sp.cat ? history.filter((j) => j.category === sp.cat) : history;
   const stay = unit.arrivedAt ? daysBetween(unit.arrivedAt, today()) : null;
   const manage = can(user.role, "machine.manage");
-  // Maintenance cost (Supervisor: parts only; Head Manager: parts and labour at pay rates).
-  const seeCost = can(user.role, "money.cost"), seeLabour = can(user.role, "money.labourCost");
+  // Maintenance cost totals for the machine: Head Manager only. The Supervisor sees costs on each work order, not combined here.
+  const seeCost = can(user.role, "money.machineTotals"), seeLabour = can(user.role, "money.labourCost");
   const costs = seeCost ? await costRows({ unitId: id }) : [];
   const yr = today().slice(0, 4), last12 = addDays(today(), -365);
   const costCols = [[t("mc.thisYear"), sum(costs.filter((c) => c.opened.startsWith(yr)))], [t("mc.last12"), sum(costs.filter((c) => c.opened >= last12))], [t("mc.allTime"), sum(costs)]] as const;
