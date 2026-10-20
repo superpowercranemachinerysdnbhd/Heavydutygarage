@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Locale, T } from "@/i18n";
 import { statusLabel } from "@/i18n/labels";
 import { addDays, fmtDate, today } from "@/lib/format";
+import { invoicePending } from "@/lib/jobs";
 import { catColor } from "@/lib/lists";
 import { machinePhotoUrl } from "@/lib/machine-types";
 import type { JobRow } from "@/lib/queries";
@@ -22,7 +23,7 @@ export default function JobBox({ j, cover, t, locale }: { j: JobRow; cover?: num
                   {j.plateNo && <small>{j.make} {j.model}</small>}
                   <small className="muted">{j.customerName} · <span className="mono">{j.jobNo}</span></small>
                   <div className="jcard-tags"><CatChip cat={j.category} t={t} /><span className="pill mute">{statusLabel(t, j.status)}</span></div>
-                  <div className="jcard-foot"><span className={`due ${due.cls}`}>{due.text}</span><span>{j.outsourced ? <span className="pill out">🔧 {j.vendorName ?? t("out.badge")}</span> : j.leadName ?? <span className="due over">{t("dash.unassigned")}</span>}</span></div>
+                  <div className="jcard-foot"><span className={`due ${due.cls}`}>{due.text}</span><span>{invoicePending(j) && <><span className="pill warn">{t("inv.pending")}</span> </>}{j.outsourced ? <span className="pill out">🔧 {j.vendorName ?? t("out.badge")}</span> : j.leadName ?? <span className="due over">{t("dash.unassigned")}</span>}</span></div>
                 </div>
               </Link>
   );

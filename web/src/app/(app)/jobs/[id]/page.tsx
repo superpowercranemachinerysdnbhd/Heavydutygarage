@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can, canWorkOnJob, CREW_ROLES, LEAD_ROLES } from "@/lib/permissions";
-import { CREW_STATUSES, PRIORITIES, STAGES as STEPS, STATUSES, qcMessageKey } from "@/lib/jobs";
+import { CREW_STATUSES, PRIORITIES, STAGES as STEPS, STATUSES, qcMessageKey, invoicePending } from "@/lib/jobs";
 import { daysBetween, fmtDate, fmtDateTime, rm, today, hmText } from "@/lib/format";
 import { activeStaff, getJob } from "@/lib/queries";
 import { jobPartsFor, jobPurchasesFor, partsForJob, requestsFor } from "@/lib/inventory";
@@ -67,6 +67,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const recIdeas = recommendationIdeas(d, t, locale);
   const canLines = can(user.role, "stock.manage") && (open || can(user.role, "job.editDetails"));
   const canOutside = canLines;
+  const pendingInvoice = invoicePending({ ...job, outsideLines: bought.filter((x) => x.kind === "service").length });
   const vendorLate = job.outsourced && !job.backAt && job.expectedBackAt && job.expectedBackAt < today() ? daysBetween(job.expectedBackAt, today()) : 0;
   const q2 = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
   const crew = staffList.filter((s) => CREW_ROLES.includes(s.role));
@@ -119,6 +120,13 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {job.backAt ? ` · ${t("out.isBack", { date: fmtDate(job.backAt, false, locale) })}` : job.expectedBackAt ? ` · ${t("out.expectedOn", { date: fmtDate(job.expectedBackAt, false, locale) })}` : ""}
             {vendorLate > 0 && <b className="due over"> · {t("out.late", { n: vendorLate })}</b>}
           </div>
+          {pendingInvoice && <div style={{ marginTop: 6 }}><span className="pill warn">{t("inv.pending")}</span> <small>{t("inv.pendingHelp")}</small></div>}
+          {open && !job.backAt && bought.every((x) => x.kind !== "service") && job.invoiceStatus !== "none" && <small className="muted" style={{ marginTop: 4 }}>{t("inv.completeHint")}</small>}
+          {can(user.role, "job.assign") && bought.every((x) => x.kind !== "service") && (
+            <form action={A.setNoInvoice} style={{ marginTop: 4 }}>{hidden("jobId", job.id)}{hidden("none", job.invoiceStatus === "none" ? "0" : "1")}
+              {job.invoiceStatus === "none" && <small className="muted">{t("inv.noneSet")} </small>}
+              <SubmitButton className="linkbtn muted">{job.invoiceStatus === "none" ? t("inv.expectBtn") : t("inv.noneBtn")}</SubmitButton></form>
+          )}
           {!job.backAt && open && can(user.role, "job.assign") && (
             <form action={A.markBackFromVendor} className="filters" style={{ marginTop: 6 }}>{hidden("jobId", job.id)}
               <input type="date" name="backAt" defaultValue={today()} min={job.sentOutAt ?? undefined} max={today()} aria-label={t("out.backOn")} style={{ width: 160 }} />

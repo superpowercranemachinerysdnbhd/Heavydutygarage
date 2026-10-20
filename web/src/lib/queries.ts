@@ -15,6 +15,7 @@ export type JobRow = {
   closedAt: string | null; complaint: string; leadId: number | null; leadName: string | null; unitId: number;
   make: string; model: string; serialNo: string | null; plateNo: string | null; unitPhotoPath: string | null; customerName: string; teamIds: number[]; labourHours: number; partsValue: number; source: string; reportedBy: string | null;
   outsourced: boolean; vendorName: string | null; sentOutAt: string | null; expectedBackAt: string | null; backAt: string | null;
+  invoiceStatus: string | null; outsideLines: number;
 };
 
 /** Jobs the user may see. Boss and supervisor see all; crew see jobs they lead or are on. */
@@ -32,6 +33,7 @@ export async function listJobs(user: CurrentUser, opts: { open?: boolean; unitId
       siteType: jobs.siteType, siteLocation: jobs.siteLocation, openedAt: jobs.openedAt, dueDate: jobs.dueDate, closedAt: jobs.closedAt,
       complaint: jobs.complaint, leadId: jobs.leadId, leadName: staff.name, unitId: jobs.unitId, source: jobs.source, reportedBy: jobs.reportedBy,
       outsourced: jobs.outsourced, vendorName: schema.suppliers.name, sentOutAt: jobs.sentOutAt, expectedBackAt: jobs.expectedBackAt, backAt: jobs.backAt,
+      invoiceStatus: jobs.invoiceStatus, outsideLines: sql<number>`(select count(*) from ${schema.jobPurchases} where ${schema.jobPurchases.jobId} = ${jobs.id} and ${schema.jobPurchases.kind} = 'service')`.mapWith(Number),
       make: machineModels.make, model: machineModels.model, serialNo: machineUnits.serialNo, plateNo: machineUnits.plateNo, unitPhotoPath: machineUnits.photoPath, customerName: customers.name,
       teamIds: sql<number[]>`coalesce((select array_agg(${jobTeam.staffId}) from ${jobTeam} where ${jobTeam.jobId} = ${jobs.id}), '{}')`,
       labourHours: sql<string>`coalesce((select sum(${schema.labourEntries.hours}) from ${schema.labourEntries} where ${schema.labourEntries.jobId} = ${jobs.id}), 0)`,

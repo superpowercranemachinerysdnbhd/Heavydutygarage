@@ -257,6 +257,9 @@ export async function applyImport(d: AppSheetData, userId: number, ownerId?: num
         supplierName: sup?.name ?? (b["SUPPLIER NAME"] || null), qty: "1", unitCost: String(amount), unitPrice: String(amount), purchasedAt: j.day, addedBy: userId, ref: "AppSheet bill" });
       n.bills++;
     }
+    // Outsourced history with no vendor bill: nothing to chase.
+    await tx.execute(sql`update jobs j set invoice_status = 'none' where j.source = 'appsheet' and j.outsourced and j.invoice_status is null
+      and not exists (select 1 from job_purchases p where p.job_id = j.id and p.kind = 'service')`);
     for (const u of d.usedParts) {
       const j = jobByWo.get(u["WORK ORDER ID"]); const p = partByAs.get(u["PART ID"]);
       if (!j || !p) continue;

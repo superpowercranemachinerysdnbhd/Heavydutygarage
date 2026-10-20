@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { ON_HAND, STATUSES, ageLevel, type Category, type Status } from "@/lib/jobs";
+import { ON_HAND, STATUSES, ageLevel, invoicePending, type Category, type Status } from "@/lib/jobs";
 import { coverPhotos, listJobs } from "@/lib/queries";
 import { addDays, fmtDate, today } from "@/lib/format";
 import { getI18n } from "@/i18n/server";
@@ -26,15 +26,17 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const status = crew ? "onhand" : sp.status ?? "in_progress";
   const everything = await listJobs(user);
   const openJobs = everything.filter((j) => j.status !== "closed");
-  const alerts = crew ? null : await workshopAlerts(user, locale, t, openJobs);
+  const alerts = crew ? null : await workshopAlerts(user, locale, t, openJobs, everything.filter(invoicePending));
   // Counts for the status buttons (after the search and job type filters, before the status filter).
   const q = (sp.q ?? "").trim().toLowerCase();
   const matching = everything.filter((j) => (!sp.cat || j.category === sp.cat) && (!q || [j.jobNo, j.make, j.model, j.serialNo, j.plateNo, j.customerName, j.complaint].join(" ").toLowerCase().includes(q)));
   const counts: Record<string, number> = { open: matching.filter((j) => j.status !== "closed").length, all: matching.length };
   for (const s of STATUSES) counts[s] = matching.filter((j) => j.status === s).length;
+  counts.invoice = matching.filter(invoicePending).length;
   let list = matching;
   if (status === "onhand") list = list.filter((j) => ON_HAND.includes(j.status));
   else if (status === "open") list = list.filter((j) => j.status !== "closed");
+  else if (status === "invoice") list = list.filter(invoicePending);
   else if (STATUSES.includes(status as Status)) list = list.filter((j) => j.status === status);
   const view = sp.view === "table" ? "table" : "cards";
   const hrefWith = (o: { status?: string; view?: string }) =>
@@ -53,9 +55,9 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       <Notice ok={sp.ok} error={sp.error} />
       {!crew && (
         <nav className="chipbar status-chips" aria-label={t("col.status")}>
-          {([...STATUSES, "open", "all"] as const).map((k) => (
+          {([...STATUSES, ...(counts.invoice || status === "invoice" ? ["invoice"] as const : []), "open", "all"] as const).map((k) => (
             <Link key={k} href={hrefWith({ status: k })} className={`chip plain filt ${status === k ? "on" : ""}`} aria-current={status === k ? "true" : undefined}>
-              {k === "open" ? t("jobs.allOpen") : k === "all" ? t("jobs.all") : statusLabel(t, k)} <b>{counts[k]}</b>
+              {k === "open" ? t("jobs.allOpen") : k === "all" ? t("jobs.all") : k === "invoice" ? t("inv.pending") : statusLabel(t, k)} <b>{counts[k]}</b>
             </Link>
           ))}
         </nav>

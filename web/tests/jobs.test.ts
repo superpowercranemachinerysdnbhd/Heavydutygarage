@@ -52,3 +52,14 @@ test("QC list has a category check plus the standard checks", () => {
   assert.equal(q.length, 6);
   assert.equal(q[0].itemKey, "HYD");
 });
+
+test("invoicePending: outsourced, done, no outside work cost, not marked as no invoice", async () => {
+  const { invoicePending } = await import("../src/lib/jobs");
+  const base = { outsourced: true, status: "closed" as const, backAt: null, outsideLines: 0, invoiceStatus: null };
+  assert.equal(invoicePending(base), true);
+  assert.equal(invoicePending({ ...base, outsideLines: 1 }), false);
+  assert.equal(invoicePending({ ...base, invoiceStatus: "none" }), false);
+  assert.equal(invoicePending({ ...base, outsourced: false }), false);
+  assert.equal(invoicePending({ ...base, status: "in_progress" }), false);
+  assert.equal(invoicePending({ ...base, status: "in_progress", backAt: "2026-10-01" }), true);
+});

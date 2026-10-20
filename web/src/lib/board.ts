@@ -23,7 +23,7 @@ const place = (j: JobRow, t: T) => j.siteType === "field" ? t("dash.field", { pl
 
 /** What needs the Head Manager's or Supervisor's attention, shown at the top of the Work orders page.
  *  `now`: act today. `later`: background reminders (follow-ups, long-stay machines, certificates, stock, prices). */
-export async function workshopAlerts(user: CurrentUser, locale: Locale, t: T, open: JobRow[]): Promise<{ now: Alert[]; later: Alert[] }> {
+export async function workshopAlerts(user: CurrentUser, locale: Locale, t: T, open: JobRow[], invoicesDue: JobRow[] = []): Promise<{ now: Alert[]; later: Alert[] }> {
   const d = today();
   const [units, certs, staff, fu, purchasing, events, services, attToday, holToday] = await Promise.all([
     db.select({ id: schema.machineUnits.id, arrivedAt: schema.machineUnits.arrivedAt, serialNo: schema.machineUnits.serialNo, plateNo: schema.machineUnits.plateNo }).from(schema.machineUnits),
@@ -49,6 +49,11 @@ export async function workshopAlerts(user: CurrentUser, locale: Locale, t: T, op
     text: t("att.vendorLate", { machine: plate(j), vendor: j.vendorName ?? "?", n: daysBetween(j.expectedBackAt!, d) }) }));
   atVendor.filter((j) => !(j.expectedBackAt && j.expectedBackAt < d)).forEach((j) => later.push({ sev: "var(--info)", href: `/jobs/${j.id}`,
     text: t("att.atVendor", { machine: plate(j), vendor: j.vendorName ?? "?", n: daysBetween(j.sentOutAt ?? j.openedAt, d) }) }));
+  // Vendor invoices still to come: a reminder; after 30 days, act now.
+  for (const j of invoicesDue) {
+    const since = j.closedAt ?? j.backAt ?? j.openedAt, n = daysBetween(since, d);
+    (n > 30 ? now : later).push({ sev: n > 30 ? "var(--warn)" : "var(--info)", href: `/jobs/${j.id}#parts`, text: t("att.invoicePending", { machine: plate(j), vendor: j.vendorName ?? "?", n }) });
+  }
   open.filter((j) => j.status !== "received" && !(j.outsourced && !j.backAt) && ageLevel(j.status, daysInStatus(j.statusSince)) === "crit")
     .forEach((j) => now.push({ sev: "var(--warn)", text: t("att.stuck", { no: plate(j), n: daysInStatus(j.statusSince), status: statusLabel(t, j.status) }), href: `/jobs/${j.id}` }));
   // Attendance not taken yet on a working day.

@@ -738,3 +738,9 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 ### 43. Machine cost totals: Head Manager only (Oct 2026)
 - New permission `money.machineTotals` (Head Manager). The Maintenance cost panel on a machine page (this year / last 12 months / all time) and the Reports page are the Head Manager's only.
 - The Supervisor still sees the cost of each work order (parts from stock, bought, outside work) on the work order page, but no combined spend per machine.
+
+### 44. Vendor invoice pending (Oct 2026)
+- An outsourced work order that is completed (or back from the vendor) with no outside work cost yet is **Invoice pending** (`invoicePending` in `lib/jobs.ts`, unit-tested). You can complete it and print the service report without the invoice.
+- Where it shows: an "Invoice pending" chip on the Work orders page (only when there are any), a tag on its card, and a reminder "Invoice pending: <machine> from <vendor> (N days)" in Other reminders, moving to Act now after 30 days. The Parts → "Add outside work cost" form opens by itself on such a work order.
+- Adding the outside work cost clears it. "No invoice for this job" (warranty, free check; `jobs.invoice_status = 'none'`) also clears it and can be undone.
+- Migration 0020: old AppSheet outsourced work orders with no vendor bill are marked "no invoice", so they don't raise reminders.

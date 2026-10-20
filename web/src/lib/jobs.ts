@@ -52,6 +52,11 @@ export function ageLevel(status: Status, days: number): "" | "warn" | "crit" {
   return days >= hi ? "crit" : days >= lo ? "warn" : "";
 }
 
+/** Outsourced work that is done (completed or back from the vendor) but has no vendor invoice (outside work cost) yet. */
+export function invoicePending(j: { outsourced: boolean; status: Status; backAt: string | null; outsideLines: number; invoiceStatus: string | null }): boolean {
+  return j.outsourced && (j.status === "closed" || !!j.backAt) && j.outsideLines === 0 && j.invoiceStatus !== "none";
+}
+
 /** Next job number for the year, e.g. J-2026-0042. */
 export function nextJobNo(year: number, existing: string[]): string {
   const prefix = `J-${year}-`;

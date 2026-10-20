@@ -674,3 +674,15 @@ export async function markBackFromVendor(form: FormData) {
   await addActivity(jobId, user.id, "act.backFromVendor", { name: user.name });
   back(user, jobId, { ok: "out.backSaved" });
 }
+
+/** "No invoice for this job" (warranty, free check…), or undo it: stops / restarts the invoice-pending reminder. */
+export async function setNoInvoice(form: FormData) {
+  const user = await requirePermission("job.assign");
+  const jobId = num(form, "jobId");
+  const { job } = await access(jobId, user);
+  if (!job.outsourced) back(user, jobId);
+  const none = str(form, "none") === "1";
+  await db.update(jobs).set({ invoiceStatus: none ? "none" : null }).where(eq(jobs.id, jobId));
+  await addActivity(jobId, user.id, none ? "act.noInvoice" : "act.invoiceExpected", { name: user.name });
+  back(user, jobId, { ok: none ? "inv.noneSaved" : "inv.expectedSaved" });
+}

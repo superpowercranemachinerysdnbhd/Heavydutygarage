@@ -154,6 +154,8 @@ export const jobs = pgTable("jobs", {
   sentOutAt: date("sent_out_at"),
   expectedBackAt: date("expected_back_at"),
   backAt: date("back_at"),
+  /** "none": no vendor invoice is expected (e.g. warranty). Otherwise an outsourced job with no outside work cost yet is "invoice pending". */
+  invoiceStatus: varchar("invoice_status", { length: 10 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("jobs_no_idx").on(t.jobNo), index("jobs_status_idx").on(t.status), index("jobs_unit_idx").on(t.unitId)]);
 
