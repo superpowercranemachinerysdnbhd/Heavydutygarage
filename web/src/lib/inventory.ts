@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { today } from "./format";
-import { latestPrices, sellFromMarkup, weightedAverage } from "./stock";
+import { latestPrices, sellFromMarkup, stockAfterIssue, weightedAverage } from "./stock";
 
 const { parts, partCategories, supplierPrices, suppliers, poLines, purchaseOrders, stockMovements, jobParts } = schema;
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -91,20 +91,23 @@ async function repriceIfMarkup(tx: Tx, partId: number) {
 export async function receiveStock(tx: Tx, v: { partId: number; qty: number; unitCost: number; poId: number; staffId: number; note?: string }) {
   const [p] = await tx.select().from(parts).where(eq(parts.id, v.partId)).for("update");
   const onHand = n(p.onHand), avg = weightedAverage(onHand, n(p.avgCost), v.qty, v.unitCost), after = onHand + v.qty;
-  await tx.update(parts).set({ onHand: after.toFixed(2), avgCost: avg.toFixed(4), lastCost: v.unitCost.toFixed(2) }).where(eq(parts.id, v.partId));
+  await tx.update(parts).set({ onHand: after.toFixed(2), avgCost: avg.toFixed(4), lastCost: v.unitCost.toFixed(2), lowFlaggedAt: null, lowFlaggedBy: null }).where(eq(parts.id, v.partId));
   await tx.insert(stockMovements).values({ partId: v.partId, type: "receive", qty: v.qty.toFixed(2), unitCost: v.unitCost.toFixed(4), balanceAfter: after.toFixed(2), poId: v.poId, staffId: v.staffId, note: v.note ?? null });
   await repriceIfMarkup(tx, v.partId);
 }
 
-/** Parts out to a job at today's average cost and selling price. Returns false if not enough on the shelf. */
-export async function issueToJob(tx: Tx, v: { partId: number; qty: number; jobId: number; staffId: number }): Promise<boolean> {
+/** Parts out to a job at today's average cost (the last price paid if there is no average yet). Returns false if not
+ *  enough on the shelf; bulk parts are always issued, and `force` issues a normal part beyond the count. */
+export async function issueToJob(tx: Tx, v: { partId: number; qty: number; jobId: number; staffId: number; force?: boolean }): Promise<boolean> {
   const [p] = await tx.select().from(parts).where(eq(parts.id, v.partId)).for("update");
   const onHand = n(p.onHand);
-  if (onHand < v.qty) return false;
-  const after = onHand - v.qty;
+  const after = stockAfterIssue(onHand, v.qty, p.bulk, v.force);
+  if (after === null) return false;
+  const cost = n(p.avgCost) > 0 ? p.avgCost : p.lastCost ?? p.avgCost;
+  const note = onHand >= v.qty ? null : p.bulk ? `Bulk: ${v.qty} used, count showed ${onHand}` : `Issued beyond the count (showed ${onHand})`;
   await tx.update(parts).set({ onHand: after.toFixed(2) }).where(eq(parts.id, v.partId));
-  await tx.insert(stockMovements).values({ partId: v.partId, type: "issue", qty: (-v.qty).toFixed(2), unitCost: p.avgCost, balanceAfter: after.toFixed(2), jobId: v.jobId, staffId: v.staffId });
-  await tx.insert(jobParts).values({ jobId: v.jobId, partId: v.partId, qty: v.qty.toFixed(2), unitCost: p.avgCost, unitPrice: p.sellPrice, issuedBy: v.staffId });
+  await tx.insert(stockMovements).values({ partId: v.partId, type: "issue", qty: (after - onHand).toFixed(2), unitCost: cost, balanceAfter: after.toFixed(2), jobId: v.jobId, staffId: v.staffId, note });
+  await tx.insert(jobParts).values({ jobId: v.jobId, partId: v.partId, qty: v.qty.toFixed(2), unitCost: cost, unitPrice: p.sellPrice, issuedBy: v.staffId });
   return true;
 }
 
@@ -113,7 +116,7 @@ export async function adjustStock(tx: Tx, v: { partId: number; counted: number; 
   const [p] = await tx.select().from(parts).where(eq(parts.id, v.partId)).for("update");
   const diff = v.counted - n(p.onHand);
   if (diff === 0) return 0;
-  await tx.update(parts).set({ onHand: v.counted.toFixed(2) }).where(eq(parts.id, v.partId));
+  await tx.update(parts).set({ onHand: v.counted.toFixed(2), ...(diff > 0 ? { lowFlaggedAt: null, lowFlaggedBy: null } : {}) }).where(eq(parts.id, v.partId));
   await tx.insert(stockMovements).values({ partId: v.partId, type: "adjust", qty: diff.toFixed(2), unitCost: p.avgCost, balanceAfter: v.counted.toFixed(2), staffId: v.staffId, note: v.note });
   return diff;
 }

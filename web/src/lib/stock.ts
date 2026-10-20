@@ -43,12 +43,24 @@ export function needsApproval(role: Role, total: number): boolean {
 }
 
 /** How many to order: enough to get back above minimum, at least the reorder quantity. */
-export function suggestOrderQty(p: { onHand: number; onOrder: number; minLevel: number; reorderQty: number }): number {
+export function suggestOrderQty(p: { onHand: number; onOrder: number; minLevel: number; reorderQty: number; bulk?: boolean }): number {
+  if (p.bulk) return Math.max(Math.ceil(p.reorderQty), 1);
   const short = p.minLevel * 2 - p.onHand - p.onOrder;
   return Math.max(Math.ceil(short), Math.ceil(p.reorderQty), 1);
 }
-export function isLowStock(p: { onHand: number; onOrder: number; minLevel: number }): boolean {
+/** Low: below the minimum level counting what is on order. Bulk parts (approximate count) only when someone flagged
+ *  "Running low" and nothing is on order yet. */
+export function isLowStock(p: { onHand: number; onOrder: number; minLevel: number; bulk?: boolean; lowFlaggedAt?: Date | string | null }): boolean {
+  if (p.bulk) return !!p.lowFlaggedAt && p.onOrder <= 0;
   return p.minLevel > 0 && p.onHand + p.onOrder < p.minLevel;
+}
+
+/** Stock after issuing `qty`. Normal parts need enough on the shelf unless `force` (the count is wrong: it goes negative
+ *  and needs a stock count). Bulk parts are always issued and the count stops at 0. null = not enough. */
+export function stockAfterIssue(onHand: number, qty: number, bulk: boolean, force = false): number | null {
+  if (onHand >= qty) return round(onHand - qty, 2);
+  if (bulk) return 0;
+  return force ? round(onHand - qty, 2) : null;
 }
 
 export type PoLineState = { qty: number; receivedQty: number };

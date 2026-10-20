@@ -67,7 +67,7 @@ export default async function PartsPage({ searchParams }: { searchParams: Promis
                 {cost && <td>{best ? <>{rm(best.price)}<br /><small className="muted">{best.supplierName}</small></> : <span className="muted">—</span>}</td>}
                 {sell && <td className="r num">{p.sellPrice ? rm(p.sellPrice) : "—"}</td>}
                 {margin && <td className={`r num ${m !== null && m < p.targetMarginPct ? "stock-low" : ""}`}>{m === null ? "—" : `${m}%`}</td>}
-                <td className={`r num ${p.onHand <= 0 && p.minLevel > 0 ? "stock-out" : low ? "stock-low" : ""}`}>{q2(p.onHand)} {p.uom}{p.onOrder > 0 && <><br /><small className="muted">{t("parts.onOrderN", { n: q2(p.onOrder) })}</small></>}</td>
+                <td className={`r num ${p.bulk ? (low ? "stock-low" : "") : p.onHand < 0 || (p.onHand <= 0 && p.minLevel > 0) ? "stock-out" : low ? "stock-low" : ""}`}>{p.bulk ? <>{t("bulk.about", { n: q2(p.onHand), uom: p.uom })}<br /><span className="pill info">{t("bulk.badge")}</span>{p.lowFlaggedAt && <> <span className="pill warn">{t("bulk.flag")}</span></>}</> : <>{q2(p.onHand)} {p.uom}</>}{p.onOrder > 0 && <><br /><small className="muted">{t("parts.onOrderN", { n: q2(p.onOrder) })}</small></>}</td>
                 <td className="r num">{q2(p.minLevel)}</td>
                 <td className="mono">{p.bin ?? "—"}</td>
               </tr>

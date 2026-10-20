@@ -13,7 +13,7 @@ import type { MessageKey } from "@/i18n";
 import { Notice } from "@/components/ui";
 import PartForm from "@/components/PartForm";
 import SubmitButton from "@/components/SubmitButton";
-import { addQuote, savePart, setPricing, stockTake } from "../actions";
+import { addQuote, flagLow, savePart, setPricing, stockTake } from "../actions";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("parts.title") };
@@ -53,7 +53,10 @@ export default async function PartPage({ params, searchParams }: { params: Promi
         {can(user.role, "po.create") && <Link className="btn primary" href={`/purchasing/new?part=${p.id}`}>{t("parts.order")}</Link>}</div>
       <Notice error={sp.error} ok={sp.ok} />
       <div className="panel"><div className="facts">
-        <div><span className="label">{t("parts.onHand")}</span><b className={`hm ${p.onHand <= 0 && p.minLevel > 0 ? "stock-out" : p.onHand + p.onOrder < p.minLevel ? "stock-low" : ""}`}>{q2(p.onHand)} {p.uom}</b></div>
+        <div><span className="label">{t("parts.onHand")}{p.bulk && <> <span className="pill info">{t("bulk.badge")}</span></>}</span>
+          {p.bulk ? <b className="hm">{t("bulk.about", { n: q2(p.onHand), uom: p.uom })}</b>
+            : <b className={`hm ${p.onHand < 0 ? "stock-out" : p.onHand <= 0 && p.minLevel > 0 ? "stock-out" : p.onHand + p.onOrder < p.minLevel ? "stock-low" : ""}`}>{q2(p.onHand)} {p.uom}</b>}
+          {p.onHand < 0 && <small className="due over">{t("bulk.countNeeded")}</small>}</div>
         <div><span className="label">{t("parts.onOrder")}</span><b>{q2(p.onOrder)} {p.uom}</b></div>
         <div><span className="label">{t("parts.min")} / {t("parts.reorderQty")}</span><b>{q2(p.minLevel)} / {q2(p.reorderQty)}</b></div>
         <div><span className="label">{t("parts.bin")}</span><b className="mono">{p.bin ?? "—"}</b></div>
@@ -65,6 +68,13 @@ export default async function PartPage({ params, searchParams }: { params: Promi
         {boss && <div><span className="label">{t("parts.margin")}</span><b className={m !== null && m < p.targetMarginPct ? "stock-low" : ""}>{m === null ? "—" : `${m}%`} <small className="muted">{t("parts.target", { pct: p.targetMarginPct })}</small></b></div>}
       </div>{p.notes && <div style={{ padding: "0 14px 14px" }} className="muted">{p.notes}</div>}</div>
 
+      {p.bulk && (
+        <div className={`notice ${p.lowFlaggedAt ? "err" : ""}`} style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ flex: "1 1 260px" }}>{p.lowFlaggedAt ? t("bulk.isLow", { date: fmtDateTime(p.lowFlaggedAt, locale) }) : t("bulk.explain")}</span>
+          {!p.lowFlaggedAt && <form action={flagLow}><input type="hidden" name="partId" value={p.id} /><input type="hidden" name="on" value="1" /><SubmitButton className="btn small primary">{t("bulk.flag")}</SubmitButton></form>}
+          {p.lowFlaggedAt && can(user.role, "stock.manage") && <form action={flagLow}><input type="hidden" name="partId" value={p.id} /><input type="hidden" name="on" value="0" /><SubmitButton className="btn small">{t("bulk.unflag")}</SubmitButton></form>}
+        </div>
+      )}
       {reqs.length > 0 && <div className="notice">{t("parts.waitingIssue", { n: reqs.length })} {reqs.map((r) => <Link key={r.id} href={`/jobs/${r.jobId}`} className="mono" style={{ marginLeft: 6 }}>{r.jobNo}</Link>)}</div>}
 
       {cost && (
@@ -123,7 +133,7 @@ export default async function PartPage({ params, searchParams }: { params: Promi
             {moves.length === 0 && <tr><td className="muted">{t("parts.noMovements")}</td></tr>}
           </tbody></table></div></div>
         {can(user.role, "stock.manage") && (
-          <form action={stockTake} className="panel"><div className="panel-head"><h3>{t("parts.stockTake")}</h3></div>
+          <form action={stockTake} className="panel" id="count"><div className="panel-head"><h3>{t("parts.stockTake")}</h3></div>
             <div className="form" style={{ padding: 14, gridTemplateColumns: "1fr" }}>
               <input type="hidden" name="partId" value={p.id} />
               <label>{t("parts.counted", { uom: p.uom })}<input name="counted" type="number" step="any" min="0" defaultValue={p.onHand} required /></label>

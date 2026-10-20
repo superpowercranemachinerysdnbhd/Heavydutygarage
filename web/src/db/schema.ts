@@ -264,6 +264,11 @@ export const parts = pgTable("parts", {
   pricingMode: pricingModeEnum("pricing_mode").notNull().default("markup"),
   sellPrice: numeric("sell_price", { precision: 12, scale: 2 }).notNull().default("0"),
   notes: text("notes"),
+  /** Bulk / consumable (oil from a drum, cable from a roll): the count is approximate. Issuing is never blocked and
+   *  the count stops at 0; reordering is triggered by "Running low" instead of the minimum level. */
+  bulk: boolean("bulk").notNull().default(false),
+  lowFlaggedAt: timestamp("low_flagged_at", { withTimezone: true }),
+  lowFlaggedBy: integer("low_flagged_by").references((): AnyPgColumn => staff.id),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("parts_sku_idx").on(t.sku), index("parts_oem_idx").on(t.oemPartNo)]);

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { requirePermission } from "@/lib/auth";
+import { requirePermission, requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { adjustStock, recordPrice } from "@/lib/inventory";
 import { isBigPriceChange, priceChangePct, sellFromMarkup } from "@/lib/stock";
@@ -49,7 +49,7 @@ export async function savePart(form: FormData) {
   const values = {
     sku, description, categoryId, oemPartNo: str(form, "oemPartNo") || null, uom: str(form, "uom") || "pc", bin: str(form, "bin") || null,
     minLevel: String(Math.max(0, num(form, "minLevel") || 0)), reorderQty: String(Math.max(0, num(form, "reorderQty") || 0)),
-    fitsAll: form.get("fitsAll") === "on", notes: str(form, "notes") || null,
+    fitsAll: form.get("fitsAll") === "on", notes: str(form, "notes") || null, bulk: form.get("bulk") === "on",
   };
   const modelIds = form.getAll("modelIds").map(Number).filter(Boolean);
   const partId = await db.transaction(async (tx) => {
@@ -143,4 +143,14 @@ export async function addCategory(form: FormData) {
   if (!name) goto("/parts/categories", user.locale, "error", "err.partCategory");
   await db.insert(partCategories).values({ name, ...(can(user.role, "price.set") ? { markupPct: String(num(form, "markupPct") || 40) } : {}) }).onConflictDoNothing();
   goto("/parts/categories", user.locale, "ok", "ok.saved");
+}
+
+/** "Running low" on a bulk part (anyone): it shows up for reordering until stock arrives, it is counted up, or it is cleared. */
+export async function flagLow(form: FormData) {
+  const user = await requireUser();
+  const partId = num(form, "partId"), on = str(form, "on") === "1";
+  if (!on && !can(user.role, "stock.manage")) goto(`/parts/${partId}`, user.locale, "error", "err.noPermission");
+  await db.update(parts).set(on ? { lowFlaggedAt: new Date(), lowFlaggedBy: user.id } : { lowFlaggedAt: null, lowFlaggedBy: null }).where(eq(parts.id, partId));
+  revalidatePath("/jobs");
+  goto(`/parts/${partId}`, user.locale, "ok", on ? "bulk.flagged" : "bulk.unflagged");
 }

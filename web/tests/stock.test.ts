@@ -64,3 +64,20 @@ test("price list CSV import", () => {
   assert.deepEqual(r.problems, [{ line: 4, reason: "noPartNo" }, { line: 5, reason: "noPrice" }]);
   assert.equal(parsePriceCsv("a,b\n1,2").ok, false);
 });
+
+test("stockAfterIssue: normal parts need stock unless forced; bulk parts stop at 0", async () => {
+  const { stockAfterIssue } = await import("../src/lib/stock");
+  assert.equal(stockAfterIssue(5, 2, false), 3);
+  assert.equal(stockAfterIssue(1, 2, false), null);
+  assert.equal(stockAfterIssue(1, 2, false, true), -1);
+  assert.equal(stockAfterIssue(0, 3.5, true), 0);
+  assert.equal(stockAfterIssue(10, 3.5, true), 6.5);
+});
+
+test("isLowStock: bulk parts only when flagged and nothing on order", () => {
+  assert.equal(isLowStock({ onHand: 0, onOrder: 0, minLevel: 5, bulk: true }), false);
+  assert.equal(isLowStock({ onHand: 0, onOrder: 0, minLevel: 5, bulk: true, lowFlaggedAt: new Date() }), true);
+  assert.equal(isLowStock({ onHand: 0, onOrder: 2, minLevel: 5, bulk: true, lowFlaggedAt: new Date() }), false);
+  assert.equal(isLowStock({ onHand: 0, onOrder: 0, minLevel: 5 }), true);
+  assert.equal(suggestOrderQty({ onHand: 0, onOrder: 0, minLevel: 5, reorderQty: 2, bulk: true }), 2);
+});

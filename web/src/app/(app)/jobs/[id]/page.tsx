@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 const STAGES = ["before", "during", "after", "qc"] as const;
 const subtle = { fontFamily: "var(--f-body)", fontSize: ".8rem", textTransform: "none", letterSpacing: 0 } as const;
 
-export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string; labour?: string }> }) {
+export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string; labour?: string; short?: string }> }) {
   const user = await requireUser();
   const { t, locale } = await getI18n();
   const id = Number((await params).id);
@@ -59,7 +59,11 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const stockCost = issued.reduce((a, x) => a + x.qty * x.unitCost, 0);
   const boughtCost = bought.filter((x) => x.kind !== "service").reduce((a, x) => a + x.qty * x.unitCost, 0);
   const outsideCost = bought.filter((x) => x.kind === "service").reduce((a, x) => a + x.qty * x.unitCost, 0);
-  const pickParts = stockParts.map((p) => ({ id: p.id, sku: p.sku, oem: p.oemPartNo, description: p.description, category: p.category, bin: p.bin, onHand: p.onHand, uom: p.uom, fits: p.fits, models: p.models }));
+  // "Not enough by the count": part~qty~request from the issue action, offered as "Issue anyway".
+  const shortBits = (sp.short ?? "").split("~");
+  const shortPart = can(user.role, "stock.manage") ? stockParts.find((p) => p.id === Number(shortBits[0])) : undefined;
+  const short = shortPart && Number(shortBits[1]) > 0 ? { part: shortPart, qty: Number(shortBits[1]), requestId: Number(shortBits[2]) || 0 } : null;
+  const pickParts = stockParts.map((p) => ({ id: p.id, sku: p.sku, oem: p.oemPartNo, description: p.description, category: p.category, bin: p.bin, onHand: p.onHand, uom: p.uom, fits: p.fits, models: p.models, bulk: p.bulk }));
   const recIdeas = recommendationIdeas(d, t, locale);
   const canLines = can(user.role, "stock.manage") && (open || can(user.role, "job.editDetails"));
   const canOutside = canLines;
@@ -227,6 +231,19 @@ export default async function JobPage({ params, searchParams }: { params: Promis
 
           <section className="sect" id="parts"><h3>{t("job.parts")} <span className="muted" style={subtle}>{issued.length + bought.length}</span></h3>
             <div className="in">
+              {short && (
+                <div className="notice err stack" style={{ gap: 8 }} role="alert">
+                  <span>{t("jp.shortAsk", { qty: q2(short.qty), uom: short.part.uom, part: short.part.description, n: q2(short.part.onHand) })}</span>
+                  <small>{t("jp.shortHelp")}</small>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <form action={short.requestId ? A.issueRequest : A.issueDirect}>
+                      {hidden("jobId", job.id)}{hidden("force", "1")}{short.requestId ? hidden("requestId", short.requestId) : <>{hidden("partId", short.part.id)}{hidden("qty", short.qty)}</>}
+                      <SubmitButton className="btn small primary">{t("jp.issueAnyway")}</SubmitButton>
+                    </form>
+                    <Link className="btn small" href={`/jobs/${job.id}#parts`}>{t("common.cancel")}</Link>
+                  </div>
+                </div>
+              )}
               <span className="label">{t("jp.internal")}</span>
               {issued.length > 0 ? (
                 <div className="tbl-wrap"><table>

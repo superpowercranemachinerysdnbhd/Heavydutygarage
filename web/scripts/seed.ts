@@ -2,7 +2,7 @@
  *  Refuses to run when staff already exist, so it never mixes with real data.
  *  Every demo login uses the password "demo-pass-1".
  */
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { loadEnv } from "./env";
 
 loadEnv();
@@ -247,6 +247,11 @@ for (const [threadId, staffId] of [[teamT.id, sup.id], [teamT.id, boss.id], [pum
   }
   await db.insert(schema.attendance).values(rows);
 }
+
+// Bulk / consumable parts (same rule as migration 0019), with one drum marked as running low.
+await db.execute(sql`update parts set bulk = true where category_id in (select id from part_categories where name in
+  ('Oils, grease & lubricants', 'Coolant & fluids', 'Electrical, sensors & switches', 'Workshop consumables', 'Paint'))`);
+await db.execute(sql`update parts set low_flagged_at = now(), low_flagged_by = ${sup.id} where id = (select id from parts where bulk order by id limit 1)`);
 
 console.log(`Demo data loaded. Sign in with any demo phone (Boss 0120000000, Supervisor 0120000001, Mechanic 0120000003) and password demo-pass-1.`);
 await pool.end();

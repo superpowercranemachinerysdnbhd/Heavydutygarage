@@ -503,15 +503,19 @@ export async function requestPart(form: FormData) {
   back(user, jobId, { ok: "ok.partRequested" });
 }
 
-async function issue(user: CurrentUser, jobId: number, partId: number, qty: number, requestId?: number, requestedBy?: number | null) {
+async function issue(user: CurrentUser, jobId: number, partId: number, qty: number, requestId?: number, requestedBy?: number | null, force = false) {
   const [p] = await db.select({ description: schema.parts.description, uom: schema.parts.uom, onHand: schema.parts.onHand, bin: schema.parts.bin }).from(schema.parts).where(eq(schema.parts.id, partId));
   if (!p) back(user, jobId, { error: "err.choosePart" });
   const ok = await db.transaction(async (tx) => {
-    const done = await issueToJob(tx, { partId, qty, jobId, staffId: user.id });
+    const done = await issueToJob(tx, { partId, qty, jobId, staffId: user.id, force });
     if (done && requestId) await tx.update(schema.partRequests).set({ status: "issued", handledBy: user.id, handledAt: new Date() }).where(eq(schema.partRequests.id, requestId));
     return done;
   });
-  if (!ok) back(user, jobId, { error: "err.notEnoughStock", vars: { n: Number(p.onHand), uom: p.uom } });
+  // Not enough by the count: ask whether the count is wrong and it should be issued anyway (the job page shows the question).
+  if (!ok) {
+    revalidatePath(`/jobs/${jobId}`);
+    redirect(`/jobs/${jobId}?short=${partId}~${qty}~${requestId ?? ""}#parts`);
+  }
   await addActivity(jobId, user.id, "act.partIssued", { qty, uom: p.uom, part: p.description, bin: p.bin ?? "—", name: user.name });
   if (requestedBy) await notifyStaff([requestedBy], { key: "nt.partIssued", vars: { qty, uom: p.uom, part: p.description, bin: p.bin ?? "—" }, url: `/jobs/${jobId}#parts` }, user.id);
   revalidatePath("/parts");
@@ -524,7 +528,7 @@ export async function issueRequest(form: FormData) {
   await access(jobId, user);
   const [r] = await db.select().from(schema.partRequests).where(and(eq(schema.partRequests.id, requestId), eq(schema.partRequests.jobId, jobId)));
   if (!r || r.status !== "requested") back(user, jobId, { error: "err.requestHandled" });
-  await issue(user, jobId, r.partId, Number(r.qty), r.id, r.requestedBy);
+  await issue(user, jobId, r.partId, Number(r.qty), r.id, r.requestedBy, form.get("force") === "1");
 }
 
 export async function issueDirect(form: FormData) {
@@ -533,7 +537,7 @@ export async function issueDirect(form: FormData) {
   const { job } = await access(jobId, user);
   if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
   if (!(qty > 0)) back(user, jobId, { error: "err.qty" });
-  await issue(user, jobId, partId, qty);
+  await issue(user, jobId, partId, qty, undefined, undefined, form.get("force") === "1");
 }
 
 export async function rejectRequest(form: FormData) {

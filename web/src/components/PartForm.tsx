@@ -1,7 +1,7 @@
 import type { T } from "@/i18n";
 import SubmitButton from "./SubmitButton";
 
-type P = { id?: number; sku?: string; oemPartNo?: string | null; description?: string; categoryId?: number; uom?: string; bin?: string | null; minLevel?: number; reorderQty?: number; fitsAll?: boolean; notes?: string | null; modelIds?: number[] };
+type P = { id?: number; sku?: string; oemPartNo?: string | null; description?: string; categoryId?: number; uom?: string; bin?: string | null; minLevel?: number; reorderQty?: number; fitsAll?: boolean; notes?: string | null; modelIds?: number[]; bulk?: boolean };
 export default function PartForm({ action, t, part, categories, models, submit }: {
   action: (f: FormData) => Promise<void>; t: T; part?: P; categories: { id: number; name: string }[]; models: { id: number; label: string }[]; submit: string;
 }) {
@@ -19,6 +19,7 @@ export default function PartForm({ action, t, part, categories, models, submit }
       <label>{t("parts.bin")}<input name="bin" defaultValue={p.bin ?? ""} placeholder="A1-04" /></label>
       <label>{t("parts.min")}<input type="number" name="minLevel" min={0} step="any" defaultValue={p.minLevel ?? 0} /></label>
       <label>{t("parts.reorderQty")}<input type="number" name="reorderQty" min={0} step="any" defaultValue={p.reorderQty ?? 0} /></label>
+      <label className="full set-check" style={{ alignItems: "flex-start" }}><input type="checkbox" name="bulk" defaultChecked={p.bulk} /> <span><b>{t("bulk.label")}</b><br /><small className="muted">{t("bulk.help")}</small></span></label>
       <fieldset className="full" style={{ border: "1px solid var(--line)", borderRadius: 5, padding: "8px 12px" }}>
         <legend className="label">{t("parts.fits")}</legend>
         <label style={{ flexDirection: "row", gap: 6, alignItems: "center", color: "var(--ink)" }}><input type="checkbox" name="fitsAll" defaultChecked={p.fitsAll} style={{ width: "auto" }} /> {t("parts.fitsAllHelp")}</label>

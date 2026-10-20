@@ -30,6 +30,8 @@ export async function purchasingAlerts(user: CurrentUser, locale: Locale): Promi
   for (const r of reqs) out.push({ sev: "var(--info)", text: t("att.partRequest", { no: r.jobNo, who: r.by ?? "—", qty: r.qty, uom: r.uom, part: r.description }), href: `/jobs/${r.jobId}`, now: true });
   if (can(user.role, "po.approve")) for (const p of pos.filter((x) => x.status === "awaiting_approval")) out.push({ sev: "var(--warn)", text: t("att.poApproval", { po: p.poNo, supplier: p.supplier }), href: `/purchasing/${p.id}`, now: true });
   for (const p of pos.filter((x) => x.status !== "awaiting_approval" && x.eta && x.eta < d)) out.push({ sev: "var(--crit)", text: t("att.poLate", { po: p.poNo, supplier: p.supplier }), href: `/purchasing/${p.id}`, now: true });
+  // Issued beyond the count ("Issue anyway"): the shelf needs counting.
+  for (const p of parts.filter((x) => x.onHand < 0)) out.push({ sev: "var(--warn)", text: t("att.countNeeded", { part: p.description, n: p.onHand, uom: p.uom }), href: `/parts/${p.id}#count`, now: true });
   const low = parts.filter(isLowStock);
   if (low.length && can(user.role, "po.create")) out.push({ sev: "var(--warn)", text: t("att.lowStock", { n: low.length }), href: "/purchasing/new?suggest=1" });
   if (can(user.role, "money.labourCost")) {
