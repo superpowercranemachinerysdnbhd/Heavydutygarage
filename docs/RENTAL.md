@@ -539,7 +539,58 @@ The first page after login for the Head Manager, Supervisor and Sales (operators
 
 *Today* stays as the working to-do list behind the dashboard.
 
-## 26. Open questions for the owner
+## 26. The renting process (as Super Power Crane works)
+
+```
+WhatsApp message or phone call
+   │  (WhatsApp messages land in the inbox; one tap makes an enquiry, or a quick order
+   │   when the customer already knows the machine, date and place)
+   ▼
+Key in the job ── job type, scope, arrive-by time, customer requests, payment (credit / cash)
+   ▼
+Checklist before confirming (all 9 must be ticked)
+   ▼
+Confirm order ──► job order to the operator on WhatsApp
+   ▼
+Pre-dispatch check in the yard (operator or yard staff, on the phone)
+   ▼
+GPS51: left yard ──► arrived at site (customer told on WhatsApp) ──► working
+   ▼
+Work order: start / finish time, breaks, work done, customer signs on the phone
+   ▼
+GPS51: left site ──► back in yard ──► ready to invoice
+```
+
+**1. Enquiry.** From the company WhatsApp number (each new message appears in the WhatsApp inbox on Enquiries; *Make enquiry* fills in the phone number and message, *Quick order* goes straight to a new order) or keyed in by hand. Customers who already know the machine, date and place skip straight to the order.
+
+**2. The order.** On *New hire / quotation*: customer and site, machine and dates (with availability, document warnings and rates), and the job: **job type** (lifting, hoisting / installation, loading / unloading, piling support, standby, monthly rental), **scope** (what, how heavy, where, how long), **arrive-by time**, **customer requests**, and **payment**: credit (PO / LOU) or cash; for cash, whether the **operator collects the cash** on site. *Save order and do the checklist* reserves the machine.
+
+**3. Checklist before confirming.** Nine items, each with a note: site safety requirements (PPE, permit to work, induction, CIDB card) · lifting plan or risk assessment · crane DOSH CF copy · operator licences valid · rigging gear and its certificates · site access and ground · arrival time agreed with the site contact · customer requests noted · payment term confirmed. *Confirm order* stays locked until all nine are ticked; Today and the Dashboard list orders whose checklist is not complete.
+
+**4. Job order to the operator.** On confirming, the job order goes to the operator's WhatsApp: job number, date and arrive-by time, machine and plate, customer, site, site contact, job type, scope, customer requests, safety and rigging notes. **Cash jobs** add one line: *COLLECT CASH: RM … (incl. SST)*, or *Cash job: the office collects payment. Do not collect cash*. Credit jobs say nothing about payment. Monthly rentals say whether there is an end date. Unsent job orders are flagged.
+
+**5. Pre-dispatch check** in the yard before leaving: fluid levels, leaks, tyres and wheel nuts, lights, horn, beacon and reverse alarm, LMI / ALI test, hook, latch and wire rope, outrigger pads, rigging gear with certificates, fire extinguisher and first-aid kit, documents in the cab, fuel, hour meter. Anything not ticked needs a remark.
+
+**6. Tracking with GPS51.** Each machine's GPS51 tracker gives: *left yard* (leaves the yard area), *arrived at site* (enters the site area; the customer gets an automatic WhatsApp: machine, plate, operator, time), *left site* and *back in yard*. The operator taps *Start work* in the app. The Dispatch page shows every job's steps with times and source, and a live table of all cranes and transport (moving, at site with engine on or parked, yard, workshop). GPS51 publishes no developer API; API access must be requested from the GPS51 provider. Until then, the operator taps each step and the phone's location is recorded.
+
+**7. Work order.** At the end of the job the operator fills in start and finish time, breaks, standby and work done, and the customer signs on the phone. The work order is the timesheet for billing. Cash jobs remind the operator to collect the cash and issue the receipt.
+
+**8. Back in yard.** GPS51 marks the return; the hire becomes *Returned* and is ready to invoice (and goes to Bukku when issued).
+
+**Monthly rentals.** A monthly rental can have a **due date**, or **no end date**: it runs month by month *until the customer says stop* (then *Customer called off-hire* sets the off-hire date and books the collection). Open-ended rentals show "until stopped" everywhere; the operator fills in a timesheet every day instead of one work order.
+
+**WhatsApp.** Uses the WhatsApp Business Platform on the company number: incoming messages create inbox items; job orders and arrival messages are sent as approved utility message templates, charged per delivered message by Meta (free inside a 24-hour customer-service window). The operator's copy also works as plain text if a message must be sent by hand.
+
+| Table | Key fields |
+|---|---|
+| `jobs` (on the hire) | job_type, scope, arrive_by, customer_requests, payment (credit / cash), operator_collects_cash, cash_amount |
+| `job_checklist` | hire_id, item, ticked_by, ticked_at, note |
+| `job_events` | hire_id, step (confirmed, sent, precheck, left, arrived, working, done, left_site, yard), at, source (office, WhatsApp, operator app, GPS51), position |
+| `predispatch_checks` | hire_id, unit_id, items (jsonb), hour_meter, fuel, remarks, by, at |
+| `work_orders` | hire_id, start, finish, break_mins, standby_hours, work_done, customer_name, signature, cash_collected |
+| `whatsapp_messages` | direction, number, contact, text, at, enquiry_id / hire_id, template, status |
+
+## 27. Open questions for the owner
 
 1. How many machines are in the hire fleet, and do we cross-hire machines in from other companies when we run short?
 2. Which machines are only wet hire (cranes?) and which are only dry hire?
@@ -558,3 +609,6 @@ The first page after login for the Head Manager, Supervisor and Sales (operators
 15. Fuel: do operators fill at stations with a fleet card, from our own tank, or both? What is each machine's normal L/h?
 16. Bukku: who will switch on API Access and share the token? Does Bukku submit our e-invoices to MyInvois today?
 17. Worksy: can Worksy provide an API or its payroll import template? Is leave applied in Worksy today?
+18. WhatsApp: which number will be the company WhatsApp Business number? Do operators all use WhatsApp on their own phones?
+19. GPS51: who is the GPS51 provider / dealer, and can they give API access? Are yards and regular sites set up as geofences?
+20. Are the 9 checklist items and the pre-dispatch items right, and who is allowed to tick the checklist?
