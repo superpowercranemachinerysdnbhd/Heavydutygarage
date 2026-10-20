@@ -1,14 +1,26 @@
-# Heavyworks Rental: Machinery Hire Module Design
+# Super Power Crane Machinery Sdn Bhd: Rental System Design
 
-Software for hiring out our own fleet of cranes, excavators, loaders, forklifts, lifts and generators to customers in Malaysia. It covers four kinds of hire: **dry hire** (machine only), **wet hire** (machine with our operator), **transport** (lowloader delivery and collection) and **long-term contracts** (monthly hire with an hour allowance).
+Software for running a heavy machinery rental business in Malaysia: customer enquiries and follow-ups, quotations and orders (hires), the fleet and its bookings, delivery and return, operators and drivers, staff rosters and leave, a shared calendar of everything that is happening, billing and reports. The fleet is cranes, excavators, loaders, forklifts, lifts and generators. It covers four kinds of hire: **dry hire** (machine only), **wet hire** (machine with our operator), **transport** (lowloader delivery and collection) and **long-term contracts** (monthly hire with an hour allowance).
 
-It is a **module of Heavyworks Garage**, not a separate system. It shares the same login, roles, languages (English, Bahasa Melayu, Chinese), companies, machines and staff. The workshop and the rental desk see the same machine, so:
+The system is for **Super Power Crane Machinery Sdn Bhd**. It is built as a module of the Heavyworks Garage workshop system in this repository, not a separate system. It shares the same login, roles, languages (English, Bahasa Melayu, Chinese), companies, machines and staff. The workshop and the rental desk see the same machine, so:
 
 - a machine that breaks down on hire becomes an emergency job in the workshop
 - a machine that comes back damaged becomes a chargeable repair job
 - a machine that is due for service cannot be booked out until it is done
 
 A clickable prototype lives in [`prototype/rental.html`](../prototype/rental.html).
+
+**The whole process, end to end:**
+
+```
+Enquiry ─► Follow-ups ─► Quotation ─► Order (booking, PO / LOU, deposit) ─► Delivery + inspection
+   │                                                                            │
+   └─ Lost (reason) ──► fleet report                     On hire: timesheets, meter readings, breakdowns
+                                                                                │
+       Statement, payment chase ◄─ Invoice + e-invoice ◄─ Return + inspection ◄─ Off-hire notice
+```
+
+Every step creates the next follow-up automatically, puts itself on the calendar, and books the people and vehicles it needs on the staff roster.
 
 ---
 
@@ -60,21 +72,24 @@ All of these are settings the Head Manager can change (Rates → Charging rules)
 
 ## 3. Roles and permissions
 
-The same chain of command as the workshop, with three people added: **operators**, **lowloader drivers** and the **rental desk**. The rental desk is a responsibility, not a separate role: it is given to the Supervisor, or to an office administrator who gets the Supervisor role without workshop rights.
+The same chain of command as the workshop, with these people added: **sales / customer service**, **accounts**, **operators** and **lowloader drivers**. The rental desk (bookings, transport, timesheets) is given to the Supervisor, or to an office administrator who gets the Supervisor role without workshop rights.
 
-| Capability | Head Manager | Supervisor / Rental desk | Operator | Driver | Mechanic |
-|---|:-:|:-:|:-:|:-:|:-:|
-| See planner and fleet availability | ✓ | ✓ | – | – | View |
-| Create quotations and bookings | ✓ | ✓ | – | – | – |
-| Give a discount below the rate card | ✓ | Up to 10% | – | – | – |
-| Override a block (expired document, credit limit) | ✓ | – | – | – | – |
-| Assign operators and transport | ✓ | ✓ | – | – | – |
-| Delivery / return inspection with photos | ✓ | ✓ | ✓ (own hire) | ✓ (own trip) | ✓ |
-| Fill in daily timesheet, get customer signature | ✓ | ✓ | ✓ (own) | – | – |
-| See rates, hire value, invoices | ✓ | ✓ | – | – | – |
-| See machine cost, workshop cost per machine, profit | ✓ | – | – | – | – |
-| Billing run, issue invoices, credit notes | ✓ | Prepare | – | – | – |
-| Edit rate card and charging rules | ✓ | – | – | – | – |
+| Capability | Head Manager | Supervisor / Rental desk | Sales | Operator | Driver | Mechanic |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|
+| Log enquiries, follow-ups, customer notes | ✓ | ✓ | ✓ | – | – | – |
+| Staff roster, approve leave | ✓ | ✓ | – | – | – | – |
+| Apply for leave, clock in | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| See planner and fleet availability | ✓ | ✓ | ✓ | – | – | View |
+| Create quotations and bookings | ✓ | ✓ | ✓ | – | – | – |
+| Give a discount below the rate card | ✓ | Up to 10% | Up to 5% | – | – | – |
+| Override a block (expired document, credit limit) | ✓ | – | – | – | – | – |
+| Assign operators and transport | ✓ | ✓ | – | – | – | – |
+| Delivery / return inspection with photos | ✓ | ✓ | – | ✓ (own hire) | ✓ (own trip) | ✓ |
+| Fill in daily timesheet, get customer signature | ✓ | ✓ | – | ✓ (own) | – | – |
+| See rates, hire value, invoices | ✓ | ✓ | ✓ (own customers' balances) | – | – | – |
+| See machine cost, workshop cost per machine, profit | ✓ | – | – | – | – | – |
+| Billing run, issue invoices, credit notes | ✓ | Prepare | – | – | – | – |
+| Edit rate card and charging rules | ✓ | – | – | – | – | – |
 
 Operators and drivers use a phone and see only their own hires and trips, with **no prices**, the same as mechanics in the workshop.
 
@@ -118,11 +133,13 @@ stateDiagram-v2
 | Not for hire | Head Manager | Row greyed out |
 
 **Blocks** that stop a machine from being booked for a date range:
-- a DOSH Certificate of Fitness (lifting machinery), road tax, insurance or Puspakom inspection that expires before the hire ends
+- another booking or hire on those dates
 - a workshop job that is open on those dates
-- a service due during the hire (warning only: the booking can go ahead with the service done on site)
+- road tax or insurance that expires before the hire ends
 
-The Head Manager can override a warning with a reason. An expired DOSH Certificate of Fitness cannot be overridden.
+**Red warnings** (the machine can still be booked, as the owner decided):
+- a **DOSH Certificate of Fitness** or **Puspakom** inspection that has expired or expires during the hire. The machine is marked red with the reason on New hire / quotation, the planner search, enquiries and Lift check; the booking confirms the issue; a "Renew document" follow-up goes to the Supervisor (due 14 days before expiry, or today if already expired); and the hire page, Today and the Dashboard keep showing it in red until the document is renewed.
+- a service due during the hire (the service can be done on site).
 
 ---
 
@@ -231,9 +248,9 @@ Operators and riggers also get **site allowances** and **overtime** for payroll 
 
 | Machine documents | Who issues | Rule in the system |
 |---|---|---|
-| DOSH Certificate of Fitness (CF / PMA) | DOSH (JKKP), for cranes and other lifting machinery | Expired: cannot go on hire. Warn 60 days ahead so the inspection is booked |
+| DOSH Certificate of Fitness (CF / PMA) | DOSH (JKKP), for cranes and other lifting machinery | Expired or expiring during a hire: can still be booked, marked red everywhere with a renewal follow-up. Warn 60 days ahead so the inspection is booked |
 | Road tax and insurance | JPJ / insurer, for road-registered units | Expired: cannot travel or go on hire |
-| Puspakom inspection | For lorry cranes, prime movers and lowloaders | Expired: cannot be used for transport |
+| Puspakom inspection | For lorry cranes, prime movers and lowloaders | Expired or expiring during a hire: can still be booked, marked red with a renewal follow-up |
 | Contractor's plant & machinery insurance | Insurer | Warn; Head Manager can override |
 | Load test and wire rope certificates | Third-party inspector | Warn |
 
@@ -253,6 +270,10 @@ These go in the same certificate list as the workshop staff's (Team → Certific
 
 | Screen | For | What it shows |
 |---|---|---|
+| **Enquiries** | Sales, desk, Head Manager | Pipeline board (New → Contacted → Site visit → Quoted → Negotiating → Won / Lost) with value, owner and next follow-up on each card; Follow-ups list (overdue, today, this week) |
+| **Customers** | Sales, desk, Head Manager | Customer list with balance, last contact and next follow-up; customer page with contacts, sites, credit, open follow-ups and full history; prospects |
+| **Calendar** | All office | Month view of trips, follow-ups, site visits, meetings, inspections, workshop, leave, company events and expiry dates; filter by type; add events |
+| **Staff** | Head Manager, Supervisor | Week roster built from hires, trips and leave (with clashes); people with licences and today's attendance; leave requests to approve |
 | **Today** | Head Manager, desk | Going out today, coming back today, off-hire notices, missing / unsigned timesheets, breakdowns on hire, bookings waiting for deposit, documents expiring, invoices overdue, machines idle 14+ days. Counts: on hire, available, utilisation this month |
 | **Planner** | Head Manager, desk, workshop (view) | Gantt of every fleet machine over 6 weeks, grouped by type. Bars for hires, bookings, workshop and transport. "Find a machine" for a type and dates highlights the free ones |
 | **Hires** | Head Manager, desk | List by status. Hire page: customer, site, machines, rates, operator, inspections, timesheets, trips, charges to date, documents, activity log |
@@ -342,16 +363,183 @@ Fleet machines keep their `machine_units` row (customer = our own company) so th
 
 | Phase | Scope | Outcome |
 |---|---|---|
-| R1 — Fleet and planner (3–4 weeks) | Fleet machines, hire status, documents and expiry, planner, hires and quotations, rate card | Whiteboard / Excel booking sheet retired; no double bookings |
+| R1 — Customers, enquiries and fleet (4–5 weeks) | Customers and prospects, enquiries pipeline, follow-ups (manual and automatic), fleet machines, documents and expiry, planner, quotations and bookings, rate card, calendar | No enquiry forgotten; whiteboard / Excel booking sheet retired; no double bookings |
 | R2 — On site (3–4 weeks) | Delivery and return inspections, operator timesheets with signature, breakdowns → workshop jobs, damages → workshop jobs, transport trips | Every billable hour and every damage captured with evidence |
 | R3 — Billing (3–4 weeks) | Billing run, invoices, SST, credit notes, deposits, statements, ageing, accounting export, MyInvois e-invoice | Invoices out on the 1st, no retyping |
+| R3b — Staff (2–3 weeks) | Roster, leave on the phone with approval, attendance, payroll export | Leave and assignments planned together; no clashes on the day |
 | R4 — Extras | Off-hire link and customer portal, telematics hour meters, profit per machine, payroll export, lost-enquiry reports | Fewer calls; fleet decisions based on numbers |
 
 Before R1, load: the fleet list with fleet numbers, every machine's documents and expiry dates, the current rate card, and all hires currently running (with their start dates and last billed date).
 
 ---
 
-## 16. Open questions for the owner
+## 16. Customers, enquiries and follow-ups
+
+**Customers.** Company name, SSM no., TIN, SST no., industry, salesperson, credit terms and limit, deposit rule, several contacts (office, site, accounts), sites with address and state, documents (SSM form, LOU templates), and notes. A **prospect** (asked but never hired) is kept on the enquiry until the first quotation, then becomes a customer.
+
+**Enquiries** (`E-YYYY-NNNN`) come in by phone, WhatsApp, e-mail, website form, walk-in, referral or tender. Each records: who, what machine and how many, dry/wet, dates, site, details (loads, radius, ground, access), estimated value (from the rate card), owner, how hot (hot / warm / cold) and source. The availability of the requested type for those dates is shown on the enquiry, so the salesperson knows straight away whether to sell, offer other dates or another size, or cross-hire.
+
+| Stage | Meaning | Likelihood used for the weighted pipeline |
+|---|---|---|
+| New | Just logged | 10% |
+| Contacted | Called back, needs clarified | 20% |
+| Site visit | Visit or lift plan needed | 40% |
+| Quoted | Quotation sent (made from the enquiry, so nothing is retyped) | 50% |
+| Negotiating | Price / terms being discussed | 70% |
+| Won | Booking confirmed: the enquiry links to the hire (order) | 100% |
+| Lost | With a reason: no machine free, price, went elsewhere, postponed, no reply | 0% |
+
+**Follow-ups** are tasks with a date, type (call, WhatsApp, site visit, send quotation, send documents, chase PO, payment chase, meeting), owner and the enquiry, hire, invoice or customer they belong to. Every open enquiry must have a next follow-up; the pipeline flags those that don't. Follow-ups show on **Today**, on the **calendar**, on the customer page and in the owner's phone notifications. **Automatic follow-ups:**
+
+| When | Follow-up created |
+|---|---|
+| New enquiry | Call back within 2 working hours (owner) |
+| Quotation sent | Call after 2 days; again 1 day before it expires |
+| Booking without PO / LOU | Chase PO 2 days before delivery |
+| Hire ends within 7 days | Ask about extension or off-hire |
+| Invoice overdue | Reminders at 7, 14 and 30 days (Accounts); Head Manager at 60 days |
+| No hire for 90 days | Reactivation call by the salesperson |
+| Enquiry lost for "no machine free" | Counted in the fleet report; call back if a machine frees up |
+
+Follow-ups never fall on a Sunday or public holiday; they move to the next working day.
+
+**Customer history** shows on one page: enquiries, quotations, hires, invoices and payments, follow-ups done, notes, complaints.
+
+## 17. Staff: roster, leave and attendance
+
+- **People:** profile, role, phone, IC / passport and work permit, licences and certificates with expiry (DOSH competency, CIDB green card, GDL, site inductions), skills (crane, earthmoving, lowloader), emergency contact.
+- **Roster:** a week grid of every person. It is **built automatically** from hire assignments (operator on a wet hire), transport trips (driver) and leave; office staff show as office; anyone free shows as yard / standby, ready for a call-out. Clashes (leave on a day the person is on a hire) are shown in red.
+- **Leave:** staff apply on the phone (annual, MC, emergency, unpaid, replacement). The Supervisor or Head Manager approves; the approval screen shows clashes and suggests a **relief operator** who is free and has the right competency. Balances are kept per person. Approved leave blocks the person from being assigned.
+- **Attendance:** clock in / out on the phone with location (site or yard). For operators on wet hire, the signed timesheet is the attendance record.
+- **Payroll export:** hours, overtime, Sunday / public holiday hours, outstation allowance, leave and MC per person per month, for the payroll software (EPF, SOCSO, EIS and PCB stay there).
+- **Training and safety:** courses and toolbox talks recorded per person; certificates that expire block assignment (see section 10).
+
+## 18. Calendar and events
+
+One calendar for the whole company, month / week / day and a phone agenda, filterable by type and by person:
+
+| Type | Comes from |
+|---|---|
+| Transport | Delivery and collection trips |
+| Follow-up, site visit, meeting | Follow-ups and customer events |
+| Inspection | DOSH CF inspections, Puspakom, load tests (booked before expiry) |
+| Workshop | Machines going into the workshop (services, repairs) |
+| Leave | Approved and requested leave |
+| Company, training | Safety briefings, toolbox talks, courses, month-end planning |
+| Expiry | Machine documents and staff certificates |
+
+Anyone in the office can add an event; it can be linked to a customer or a machine. Reminders go by phone notification or WhatsApp the day before and an hour before.
+
+## 19. Planning
+
+- **Fleet planner** (section 11): every machine against the next six weeks.
+- **Demand vs fleet:** for each machine type, how booked the next four weeks are, how many unit-days are free, and which open enquiries want it. It flags *tight* types (line up a cross-hire or decline) and *idle* types (promote to customers).
+- **Staff planning:** the roster shows next week's operators and drivers against bookings and leave, so gaps are seen before the day.
+- **Month-end planning meeting:** a printable summary of the coming month (bookings, hires ending, inspections due, leave, open quotations by value).
+
+## 20. Data model (CRM and staff additions)
+
+| Table | Key fields |
+|---|---|
+| `enquiries` | enquiry_no, customer_id or prospect (name, contact, phone), source, machine_type, qty, hire_kind, from, to, site, state, details, value_estimate, stage, temperature, owner_id, lost_reason, hire_id, received_at |
+| `follow_ups` | due_date, due_time, type, owner_id, enquiry_id / hire_id / invoice_id / customer_id, text, rule (if automatic), done_at, done_note |
+| `customer_contacts` | customer_id, name, role (office / site / accounts), phone, e-mail, WhatsApp opt-in |
+| `customer_notes` | customer_id, at, by, text, kind (note / call / visit / complaint) |
+| `events` | date, time, type, title, customer_id, unit_id, attendees, reminder |
+| `leave_requests` | staff_id, type, from, to, days, note, status, decided_by, decided_at, mc_photo |
+| `leave_balances` | staff_id, year, type, entitled, taken |
+| `attendance` | staff_id, date, clock_in, clock_out, location (lat/lng, site or yard) |
+
+## 21. Crane selector (lift check) and load charts
+
+A page where the office types in a job's **load weight**, **working radius** and **lifting height** (plus rigging weight and the height of the load and slings), optionally the dates, and gets every crane in the fleet ranked, with the **closest fit** on top: the smallest crane that can do the lift and is free.
+
+**Load charts.** Each crane in the fleet (Kato NK-250-5, Tadano TL-450-3, Kobelco RK500-2, Kato SS-500SP, Tadano TL-500-3, Tadano GR-600-1, Faun ATF 60-4, Kato SL-700, Sumitomo SA-1100, Kato SL-1300) has its rated capacity table entered once: boom lengths across, radii down, tonnes in the cells. A chart belongs to a **set-up** (outriggers fully extended / mid / minimum, 360° or over the rear, counterweight, jib), so a crane can have several charts; the main one is fully extended, 360°. The chart can be typed in or **pasted from Excel**. Each chart also records the boom foot height and offset from the slew centre (for the height geometry) and the **hook block weight**. The manufacturer's chart (PDF or photo) is attached, and the Head Manager marks the chart **verified** after checking every value. Any later change sets it back to not verified, and results from unverified charts are clearly flagged.
+
+Each chart has one of three states, shown on every result: **sample** (made-up values, prototype only), **from PDF, not checked** (copied from the manufacturer's chart, waiting for the Head Manager's check) and **verified**. A chart can hold a hook block weight **per boom length**, because short booms often use the heavy hook (e.g. KA-1300SL: 70 t hook 0.9 t on 11.8 m, 50 t hook 0.6 t on longer booms).
+
+Charts loaded so far from the owner's PDFs (all *from PDF, not checked*): Kato NK-160 and NK-200E-III (truck cranes, full outriggers, over side and rear), Kobelco RK500-2 (7.4 m outriggers, 360°), Kato SL-700R (7.6 m outriggers, over side and rear) and Kato KA-1300SL (A1: 8.4 m outriggers, 360°, counterweight on; heavy-lift attachment column not loaded). The manufacturers state that these values include the hook block and slings, so the lift check adds the hook block and rigging to the load before comparing.
+
+**How a crane is checked**, for each boom length in its chart:
+
+1. **Reach:** the radius must be within the chart's range for that boom length.
+2. **Height:** boom tip height = boom foot height + √(boom length² − (radius − foot offset)²). It must be at least the lifting height + load and sling height.
+3. **Capacity:** the rated capacity is read at the **next larger radius** listed in the chart (never interpolated upwards). Gross load = load + rigging + hook block.
+4. **Use of chart** = gross load ÷ rated capacity. The boom length with the lowest figure is that crane's best set-up.
+
+| Use of chart | Result |
+|---|---|
+| Up to 75% | Can lift (normal lift) |
+| 75–90% | Critical lift: lift plan and Head Manager approval required |
+| Over 90% | Not allowed |
+
+(The 75% and 90% limits are company settings.)
+
+**Ranking:** cranes that can lift first, smallest crane class first, then free on the dates, then the highest use of chart within the limit (the tightest suitable fit). Each crane that cannot do it shows why: over capacity (and by how much), boom too short (highest tip at that radius), or out of reach. The page draws the lift (boom, angle, tip height, radius) and shows the load chart with the cell used highlighted. From the result, **New enquiry with this crane** starts an enquiry with the lift written into its notes; an enquiry that has lift details has a **Lift check** button that opens the page filled in.
+
+**Limits.** The lift check is for choosing and quoting a crane. It does not replace the lift plan by a competent person, the crane's LMI / SLI, the manufacturer's chart and notes (ground bearing, wind, deductions for jib and attachments), or the DOSH requirements for the lift. The prototype's charts are **sample values, not manufacturer data**.
+
+| Table | Key fields |
+|---|---|
+| `load_charts` | unit_id, set-up (outriggers, slew range, counterweight, jib), boom_lengths, foot_height, foot_offset, hook_block_t, source_file, verified_by, verified_at |
+| `load_chart_cells` | chart_id, radius_m, boom_length_m, capacity_t |
+| `lift_checks` | enquiry_id, load_t, radius_m, height_m, rigging_t, headroom_m, result (crane, boom, use of chart), checked_by, at |
+
+## 23. Fuel
+
+Every diesel fill is recorded: machine, date, litres, price per litre (from the receipt), hour meter, station or own tank, who filled it, how it was paid (fleet card, petty cash, own tank, supplied by the customer) and a **receipt photo**. Operators record fills on the phone from their timesheet screen; the office can add any fill.
+
+- **Use per machine:** litres ÷ working hours since the last fill (from the hour meter or signed timesheets), compared with the machine's normal L/h. A fill more than 20% above normal is flagged: a leak, a wrong hour-meter reading, or fuel going missing.
+- **Who pays:** each hire states its diesel terms: *included in the hire rate*, *charged to the customer at cost + 10%*, or *customer supplies* (dry hire). Chargeable fills go onto that hire's next invoice automatically as a diesel line.
+- **Cost per machine:** fuel cost is added to the machine's running costs (with workshop costs) in the profit-per-machine report.
+- Transport vehicles are tracked by litres per 100 km instead of per hour.
+
+| Table | Key fields |
+|---|---|
+| `fuel_fills` | unit_id, date, litres, price_per_litre, hour_meter, odometer, station, paid_by, staff_id, hire_id (detected from the date), receipt_photo, flagged, bukku_expense_id |
+| `fuel_norms` | model_id, litres_per_hour (or per 100 km), from date |
+
+## 24. Connections: Bukku and Worksy
+
+The aim: staff use only this system, and the accounting and payroll systems are filled in from it.
+
+**Bukku (accounting): two-way, through Bukku's API.** Bukku issues an access token under Control Panel → Integrations → API Access; the link also needs the company's Bukku subdomain. Third-party apps (for example HitPay and Shoppego) already push invoices and payments into Bukku this way.
+
+| Direction | What | When |
+|---|---|---|
+| → Bukku | Invoices and credit notes (customer, lines, SST, hire number) | As soon as they are issued here |
+| → Bukku | Customers (name, SSM no., TIN, SST no., address, terms) | With their first invoice; updated on change |
+| → Bukku | Fuel and parts bills as expenses, with the receipt photo, tagged by machine | When the fill or purchase is saved |
+| ← Bukku | Payments received | Every 15 minutes; the invoice is marked paid here and its payment-chase follow-ups stop |
+| ⇄ | e-Invoice (MyInvois) | Submitted from **one** place only (setting: Bukku submits, or this system submits), and the UUID / QR is kept in both |
+
+An account-mapping table sets which Bukku account each kind of line posts to (hire, transport, overtime, diesel recharge, damage recovery, fuel expense, deposits). Every sync is written to a sync log, and an item that fails (e.g. a rejected e-invoice) is held and retried after it is fixed. Bukku's exact endpoints and field names must be confirmed against Bukku's API documentation when we build this.
+
+**Worksy (HR and payroll): file exchange until Worksy offers an API.** Worksy publishes no API documentation; it supports bulk import. So:
+
+- **Staff list ←** upload Worksy's staff export (employee ID, name, IC / passport, position) once, and when staff join or leave.
+- **Monthly payroll hours →** a file in Worksy's import layout: normal hours, overtime, Sunday / public holiday hours, trips, outstation nights, leave and MC per person, built from signed timesheets, trips and approved leave.
+- **Leave:** keep it in one system only (decision for the owner): apply here, with the roster clash check, and send to Worksy; or apply in Worksy and import.
+- EPF, SOCSO, EIS and PCB stay in Worksy. Ask Worksy for API access; if they provide it, these become automatic like Bukku.
+
+## 25. Dashboard (first page)
+
+The first page after login for the Head Manager, Supervisor and Sales (operators and drivers go straight to their phone screen). Every tile and panel opens the page behind it.
+
+| Area | Shows |
+|---|---|
+| Headline tiles | Machinery on rental (out of the fleet) · utilisation rate this month, with the change against last month · hire revenue this month to date and the amount owed to us · attendance today (present out of staff) · sales pipeline (weighted) and follow-ups due · fuel this month (litres, RM, fills to check) |
+| Fleet utilisation | Line chart of the last six months against the 70% target; this month shown as "to date" |
+| Attendance today | Who is on site or on the road, in the yard or office, on leave / MC, and not clocked in; late arrivals listed by name |
+| Machinery on rental | Every machine out: customer and site, dry / wet and basis, operator, days on hire, end date, off-hire notices and hires ending within 7 days |
+| Utilisation by type | Mobile cranes, lifting and access, earthmoving, power: share of days on hire and how many are out today |
+| Hire revenue by month | Invoiced hire revenue before SST for six months (Head Manager and Supervisor; hidden from operators) |
+| Needs attention | The most urgent items from Today (missing timesheets, deposits, off-hires, quotations with no machine, rejected e-invoices, overdue invoices) and licences / documents expiring within 60 days |
+| Next 7 days | Deliveries and collections with vehicle and driver |
+
+*Today* stays as the working to-do list behind the dashboard.
+
+## 26. Open questions for the owner
 
 1. How many machines are in the hire fleet, and do we cross-hire machines in from other companies when we run short?
 2. Which machines are only wet hire (cranes?) and which are only dry hire?
@@ -361,3 +549,12 @@ Before R1, load: the fleet list with fleet numbers, every machine's documents an
 6. Are operators paid overtime and site allowances from the hire timesheets?
 7. Does the company run its own lowloaders, or use a transport subcontractor (whose cost we pass on)?
 8. Is a customer deposit always taken, or only for new customers?
+9. Who handles enquiries today (one salesperson, the Supervisor, the owner)? Should each customer have a fixed salesperson?
+10. How are enquiries tracked now (WhatsApp, notebook, Excel), and is there history worth importing?
+11. How is leave applied for and approved today, and how many days of annual leave does each grade get?
+12. Do operators clock in at the yard every day, or go straight to site?
+13. Which load-chart set-ups are used for each crane (full / mid outriggers, counterweight options, jib)? Are the manufacturer charts available as PDFs?
+14. What use-of-chart limits does the company apply (e.g. 75% normal, 85% or 90% maximum with a lift plan)?
+15. Fuel: do operators fill at stations with a fleet card, from our own tank, or both? What is each machine's normal L/h?
+16. Bukku: who will switch on API Access and share the token? Does Bukku submit our e-invoices to MyInvois today?
+17. Worksy: can Worksy provide an API or its payroll import template? Is leave applied in Worksy today?

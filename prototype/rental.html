@@ -1,39 +1,44 @@
-<title>Heavyworks Rental</title>
+<title>Super Power Crane Machinery</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
-/* Layout: steel header band + tabbed workspace; dashboard = status strip, kanban board, crew rail. Job detail opens as a side sheet. */
+/* Layout: deep-teal sidebar grouped by the job (Sell, Plan, Run, Money) + open workspace; records open as a side sheet.
+   Colour: galvanised cool neutrals, hydraulic teal for structure, signal orange only for actions and "now". Type: expanded Archivo for headings, Instrument Sans for reading, JetBrains Mono for figures. */
 :root{
-  --bg:#eceff2; --surface:#ffffff; --surface-2:#e3e7ec; --ink:#1a1f26; --muted:#5a6471; --line:#d2d8df;
-  --steel:#26303b; --steel-ink:#e9edf1; --steel-muted:#9eabb8;
-  --accent:#e3a008; --accent-ink:#1a1f26; --accent-soft:#fbefcc;
-  --crit:#c4342b; --warn:#b86e00; --ok:#2c7d3f; --info:#2d68a6;
-  --c-emg:#c4342b; --c-diag:#2d68a6; --c-pm:#2c7d3f; --c-minor:#1b8a8a; --c-major:#5146a8;
-  --c-hyd:#d06a12; --c-fab:#8a5a2b; --c-paint:#b0357c; --c-warr:#6b7480;
-  --shadow:0 1px 2px rgba(20,30,40,.08),0 4px 14px rgba(20,30,40,.06); --chart:#2d68a6;
-  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
-  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --bg:#edf1f0; --surface:#ffffff; --surface-2:#e3e9e7; --ink:#12201f; --muted:#566966; --line:#d2dcd9;
+  --steel:#0d3a39; --steel-ink:#e6f0ee; --steel-muted:#8db1ab; --steel-2:#14504e;
+  --accent:#d64b12; --accent-ink:#ffffff; --accent-soft:#fbe4d8;
+  --crit:#bf3329; --warn:#a96300; --ok:#21784a; --info:#1f5ea6;
+  --c-emg:#bf3329; --c-diag:#1f5ea6; --c-pm:#21784a; --c-minor:#0f7f7d; --c-major:#5a47b3;
+  --c-hyd:#c25a14; --c-fab:#8a5a2b; --c-paint:#a8327a; --c-warr:#66736f;
+  --shadow:0 1px 2px rgba(13,58,57,.06),0 8px 24px rgba(13,58,57,.07); --chart:#0f7f7d;
+  --f-display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r-lg:14px; --r-md:9px;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#12161b; --surface:#1b2128; --surface-2:#232a33; --ink:#e6eaee; --muted:#98a3af; --line:#313943;
-  --steel:#0c1014; --steel-ink:#e6eaee; --steel-muted:#8995a2;
-  --accent:#f2b630; --accent-ink:#161a1f; --accent-soft:#3a3018;
-  --crit:#ff6a5c; --warn:#f0a338; --ok:#5cc274; --info:#6aa7ee;
-  --c-emg:#ff6a5c; --c-diag:#6aa7ee; --c-pm:#5cc274; --c-minor:#4cc3c3; --c-major:#9a90f0;
-  --c-hyd:#f39443; --c-fab:#c99760; --c-paint:#ec6fb7; --c-warr:#9aa3ad;
-  --shadow:0 1px 2px rgba(0,0,0,.4); --chart:#6aa7ee; color-scheme:dark;
+  --bg:#0c1413; --surface:#13201f; --surface-2:#1a2b29; --ink:#e2ece9; --muted:#91a8a3; --line:#28403d;
+  --steel:#0a2928; --steel-ink:#e2ece9; --steel-muted:#7fa59f; --steel-2:#123c3a;
+  --accent:#ff7a3d; --accent-ink:#1b0c04; --accent-soft:#3b2216;
+  --crit:#ff6b5e; --warn:#f2a33a; --ok:#5fcb8a; --info:#6ea8f0;
+  --c-emg:#ff6b5e; --c-diag:#6ea8f0; --c-pm:#5fcb8a; --c-minor:#4cc8c4; --c-major:#a597f2;
+  --c-hyd:#f5964a; --c-fab:#c99760; --c-paint:#ec6fb7; --c-warr:#9aa7a3;
+  --shadow:0 1px 2px rgba(0,0,0,.5); --chart:#4fc3bf; color-scheme:dark;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
 }}
 :root[data-theme="dark"]{
-  --bg:#12161b; --surface:#1b2128; --surface-2:#232a33; --ink:#e6eaee; --muted:#98a3af; --line:#313943;
-  --steel:#0c1014; --steel-ink:#e6eaee; --steel-muted:#8995a2;
-  --accent:#f2b630; --accent-ink:#161a1f; --accent-soft:#3a3018;
-  --crit:#ff6a5c; --warn:#f0a338; --ok:#5cc274; --info:#6aa7ee;
-  --c-emg:#ff6a5c; --c-diag:#6aa7ee; --c-pm:#5cc274; --c-minor:#4cc3c3; --c-major:#9a90f0;
-  --c-hyd:#f39443; --c-fab:#c99760; --c-paint:#ec6fb7; --c-warr:#9aa3ad;
-  --shadow:0 1px 2px rgba(0,0,0,.4); --chart:#6aa7ee; color-scheme:dark;
+  --bg:#0c1413; --surface:#13201f; --surface-2:#1a2b29; --ink:#e2ece9; --muted:#91a8a3; --line:#28403d;
+  --steel:#0a2928; --steel-ink:#e2ece9; --steel-muted:#7fa59f; --steel-2:#123c3a;
+  --accent:#ff7a3d; --accent-ink:#1b0c04; --accent-soft:#3b2216;
+  --crit:#ff6b5e; --warn:#f2a33a; --ok:#5fcb8a; --info:#6ea8f0;
+  --c-emg:#ff6b5e; --c-diag:#6ea8f0; --c-pm:#5fcb8a; --c-minor:#4cc8c4; --c-major:#a597f2;
+  --c-hyd:#f5964a; --c-fab:#c99760; --c-paint:#ec6fb7; --c-warr:#9aa7a3;
+  --shadow:0 1px 2px rgba(0,0,0,.5); --chart:#4fc3bf; color-scheme:dark;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
 }
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -372,6 +377,7 @@ svg.line .end{fill:var(--ink);font-weight:600}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bar-ink:#10141a}}
 :root[data-theme="dark"]{--bar-ink:#10141a}
 body[data-role="operator"] .cost, body[data-role="operator"] .boss, body[data-role="operator"] .office{display:none!important}
+body[data-role="sales"] .boss{display:none!important}
 .gantt-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
 .gantt{min-width:calc(190px + var(--cw) * 42)}
 .g-row{display:grid;grid-template-columns:190px minmax(0,1fr);border-bottom:1px solid var(--line);min-height:38px}
@@ -460,43 +466,213 @@ body[data-role="operator"] .cost, body[data-role="operator"] .boss, body[data-ro
 .daygrp.today{color:var(--warn)}
 .bar.trip{padding:0;justify-content:center;font-size:.6rem}
 input[type=time]{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:7px 10px;min-width:0}
+.task-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 10px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line)}
+.task-row:last-child{border-bottom:0}
+.tr-main{cursor:pointer;min-width:0}
+.tr-main b{display:block;font-weight:600;font-size:.87rem}
+.tr-main small{display:block}
+@media (max-width:640px){.task-row{grid-template-columns:minmax(0,1fr) auto}.task-row .btnrow{grid-column:1/-1}}
+.card-foot{flex-wrap:wrap}
+.lc{width:auto;font-size:.78rem}
+.lc th,.lc td{padding:4px 8px;text-align:right}
+.lc thead th{position:sticky;top:0}
+.lc th:first-child{text-align:left;white-space:nowrap}
+.lc td.na{background:var(--surface-2)}
+.lc td.can{background:color-mix(in srgb,var(--ok) 24%,var(--surface))}
+.lc td.pick{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.lc th.hl{color:var(--accent);background:var(--accent-soft);font-weight:700}
+td.r.num{white-space:nowrap}
+.lc .ratein{width:64px}
+.liftsvg{width:100%;height:auto;display:block;margin-bottom:6px}
+.dk{grid-template-columns:repeat(6,minmax(0,1fr))}
+@media (max-width:1300px){.dk{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.dk{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.dk .kpi{cursor:pointer;text-align:left;font:inherit;color:inherit;background:var(--surface);gap:4px}
+.dk .kpi:hover{border-color:var(--muted)}
+.dk .kpi .label{font-size:.62rem}
+.kpi small.up{color:var(--ok);font-weight:600}.kpi small.down{color:var(--crit);font-weight:600}
+.dgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.dgrid .span2{grid-column:1/-1}
+@media (max-width:900px){.dgrid{grid-template-columns:minmax(0,1fr)}}
+.dchart{width:100%;height:auto;display:block}
+.dchart .gl{stroke:var(--line);stroke-width:1}
+.dchart .ax{fill:var(--muted);font:500 11px var(--f-mono)}
+.dchart .target{stroke:var(--muted);stroke-width:1;stroke-dasharray:4 4}
+.dchart .area{fill:color-mix(in srgb,var(--chart) 12%,transparent)}
+.dchart .ln{fill:none;stroke:var(--chart);stroke-width:2;stroke-linejoin:round}
+.dchart .pt{fill:var(--chart);stroke:var(--surface);stroke-width:2}
+.dchart .pt.open{fill:var(--surface);stroke:var(--chart)}
+.dchart .endv{fill:var(--ink);font:700 12px var(--f-body)}
+.dchart .bar-m{fill:var(--chart)}
+.dchart .bar-m.partial{fill:color-mix(in srgb,var(--chart) 35%,var(--surface));stroke:var(--chart);stroke-width:1.5}
+.segbar{display:flex;gap:2px;height:16px;border-radius:5px;overflow:hidden}
+.segbar i{display:block;height:100%}
+.segbar i.none,.none-sw{background:repeating-linear-gradient(135deg,var(--warn) 0 3px,transparent 3px 6px);box-shadow:inset 0 0 0 1.5px var(--warn)}
+.none-sw{width:10px;height:10px;border-radius:2px;flex:none;display:inline-block}
+.mini{display:flex;flex-direction:column;gap:6px;font-size:.84rem;border-top:1px solid var(--line);padding-top:10px}
+.docwarn{display:block;color:var(--crit);font-weight:600;font-size:.8rem;margin-top:3px}
+.pick label.docbad{border-color:var(--crit);background:color-mix(in srgb,var(--crit) 6%,var(--surface))}
+.pick label.docbad:has(input:checked){border-color:var(--crit);background:color-mix(in srgb,var(--crit) 12%,var(--surface))}
+.grp-h{padding:7px 14px;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
+button.step{background:none;border-left:0;border-right:0;border-bottom:0;cursor:pointer;font-family:inherit}
+button.step:disabled{cursor:default}
+.rcell{display:block;font-size:.74rem;font-weight:600;padding:3px 6px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;border:0;text-align:left;width:100%;background:none;font-family:inherit;font-style:normal;margin-bottom:2px}
+.rcell.job{background:color-mix(in srgb,var(--k-wet) 16%,transparent);color:var(--k-wet);cursor:pointer}
+.rcell.trip{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn);cursor:pointer}
+.rcell.leave{background:color-mix(in srgb,var(--c-paint) 16%,transparent);color:var(--c-paint)}
+.rcell.pend{outline:1px dashed var(--c-paint);outline-offset:-1px;color:var(--c-paint)}
+.rcell.clash{background:var(--crit);color:var(--surface);cursor:pointer}
+.rcell.idle,.rcell.off{color:var(--muted);font-weight:500}
+.rcell.office{color:var(--ink);font-weight:500}
+.agenda-list{display:flex;flex-direction:column;gap:6px}
+.agenda-list .ev{white-space:normal;font-size:.82rem;padding:6px 8px}
 .ratein{width:84px;text-align:right;padding:4px 6px!important}
 .minihead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+
+/* ---------- rental identity (overrides the shared base) ---------- */
+body{display:grid;grid-template-columns:236px minmax(0,1fr);align-items:start;font-size:14.5px}
+body::before{background:var(--steel)}
+.shell{min-width:0}
+.side{position:sticky;top:env(safe-area-inset-top,0px);height:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;background:var(--steel);color:var(--steel-ink);display:flex;flex-direction:column;gap:20px;padding-block:20px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:14px;z-index:20}
+.side-brand{display:flex;gap:10px;align-items:center;padding:0 6px}
+.side-brand svg{flex:none}
+.side-brand b{display:block;font-family:var(--f-display);font-stretch:118%;font-weight:800;font-size:1.12rem;letter-spacing:-.01em;line-height:1.1}
+.side-brand small{display:block;color:var(--steel-muted);font-size:.74rem}
+.side nav.tabs{display:flex;flex-direction:column;gap:14px;overflow:visible}
+.navg{display:flex;flex-direction:column;gap:1px}
+.navg:not(:has(button:not([hidden]))){display:none}
+.navh{font:600 .64rem/1 var(--f-mono);text-transform:uppercase;letter-spacing:.14em;color:var(--steel-muted);padding:0 10px 6px}
+.side nav.tabs button{font-family:var(--f-body);font-size:.92rem;font-weight:500;text-transform:none;letter-spacing:0;text-align:left;padding:7px 10px;border:0;border-radius:var(--r-md);color:var(--steel-ink);opacity:.82;display:flex;align-items:center;gap:9px}
+.side nav.tabs button::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.35;flex:none}
+.side nav.tabs button:hover{opacity:1;background:var(--steel-2)}
+.side nav.tabs button[aria-current="page"]{opacity:1;background:var(--steel-2);font-weight:600;border-bottom:0}
+.side nav.tabs button[aria-current="page"]::before{background:var(--accent);opacity:1;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:6px;padding:12px 10px;border-radius:var(--r-md);background:var(--steel-2)}
+.side-foot label{font:600 .64rem/1 var(--f-mono);text-transform:uppercase;letter-spacing:.14em;color:var(--steel-muted)}
+.side-foot select{background:var(--steel);color:var(--steel-ink);border:1px solid color-mix(in srgb,var(--steel-muted) 50%,transparent);border-radius:7px;padding:6px 8px;font-size:.84rem;width:100%}
+.side-foot select option{color:#12201f;background:#fff}
+.side-foot small{color:var(--steel-muted);font-size:.72rem}
+.sample-note{font-size:.76rem;padding-block:14px 4px;max-width:120ch}
+main{padding-block:10px 56px}
+h1,h2,h3{font-stretch:112%;font-weight:700;letter-spacing:-.01em}
+.view-head h2{font-size:1.75rem;font-weight:800;font-stretch:120%}
+.sect>h3,.col-head h3{font-family:var(--f-mono);font-stretch:100%;font-size:.72rem;font-weight:600;letter-spacing:.12em}
+.panel-head h3{font-size:1.02rem}
+.label,th{font-family:var(--f-mono);font-weight:500;letter-spacing:.1em}
+.panel,.sect,.tbl-wrap,.findbar,.docbar,.gantt-wrap,.member,.banner{border-radius:var(--r-lg)}
+.panel,.sect,.findbar{box-shadow:var(--shadow);border-color:color-mix(in srgb,var(--line) 70%,transparent)}
+.kpis{background:none;border:0;gap:10px;border-radius:0;overflow:visible}
+.kpi{border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:var(--r-lg);padding:14px 16px;gap:6px}
+.kpi b{font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:1.9rem;letter-spacing:-.02em}
+.kpi span{font-size:.78rem}
+.btn{border-radius:var(--r-md);padding:8px 14px;font-weight:600}
+.btn.small{border-radius:7px}
+.btn.primary{box-shadow:0 1px 0 color-mix(in srgb,var(--accent) 60%,#000 40%)}
+.btn.primary:hover{filter:brightness(1.06)}
+.seg{border-radius:999px;padding:3px;background:var(--surface-2);border:0;gap:2px}
+.seg button{border-radius:999px;background:transparent;padding:6px 14px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-weight:600}
+.chip,.chipbar button{border-radius:999px;padding:3px 10px}
+.chipbar button[aria-pressed="true"]{background:var(--cat,var(--ink));color:var(--bg);border-color:var(--cat,var(--ink))}
+.pill{border-radius:6px;font-family:var(--f-body);letter-spacing:.01em}
+.pri{border-radius:999px}
+input[type=search],input[type=text],input[type=date],input[type=number],input[type=time],select.field,textarea{border-radius:var(--r-md);border-color:var(--line)}
+th{font-size:.66rem;background:transparent}
+.tbl-wrap{background:var(--surface)}
+tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.col{border-radius:var(--r-lg);background:color-mix(in srgb,var(--surface-2) 80%,var(--bg))}
+.card{border-radius:11px;padding:11px 12px 11px 26px}
+.card::before{left:12px;top:17px;bottom:auto;width:7px;height:7px;border-radius:50%}
+.card .mach{font-size:.95rem}
+.sheet{border-radius:var(--r-lg) 0 0 var(--r-lg);overflow:hidden}
+.sheet-head{background:linear-gradient(160deg,var(--steel-2),var(--steel))}
+.sheet-head h2{font-size:1.5rem;font-stretch:115%}
+.sheet-head .x{border-radius:999px}
+.step{border-top-width:3px;font-family:var(--f-mono);letter-spacing:.06em}
+.toast{border-radius:999px;padding:10px 18px}
+.bar{border-radius:7px}
+.g-lab b{font-family:var(--f-body)}
+.cal{border-radius:var(--r-lg)}
+.steps{gap:4px}
+.mono{font-family:var(--f-mono)}
+@media (max-width:900px){
+  body{display:block}
+  .side{position:sticky;height:auto;flex-direction:column;gap:10px;padding-block:10px;padding-right:max(16px,env(safe-area-inset-right,0px));padding-left:max(16px,env(safe-area-inset-left,0px))}
+  .side-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .side nav.tabs{flex-direction:row;overflow-x:auto;gap:2px;scrollbar-width:none;margin-inline:-6px}
+  .navg{flex-direction:row;display:contents}
+  .navh{display:none}
+  .side nav.tabs button{white-space:nowrap;padding:6px 10px}
+  .side nav.tabs button::before{display:none}
+  .side-foot{margin:0;padding:0;background:none;flex-direction:row;align-items:center;max-width:58%}
+  .side-foot label,.side-foot small{display:none}
+}
+@media (min-width:901px){.side-top{display:contents}.side nav.tabs{order:2}.side-foot{order:3}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<header class="top">
-  <div class="wrap">
-    <div class="top-row">
-      <div class="brand"><div class="brand-mark" aria-hidden="true"></div><div><h1>Heavyworks Garage</h1><small>Machinery rental</small></div></div>
-      <div class="role">
-        <label for="roleSel">Viewing as</label>
-        <select id="roleSel">
-          <option value="boss">Head Manager</option>
-          <option value="supervisor">Supervisor · Rental desk</option>
-          <option value="operator">Operator · Azman bin Yusof</option>
-        </select>
-      </div>
+<aside class="side">
+  <div class="side-top">
+    <div class="side-brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="8" style="fill:var(--accent)"/><path d="M8 24V8h2v16M10 9l13 3M10 13l13-1M21 12v5" style="fill:none;stroke:var(--accent-ink);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"/><path d="M21 17c0 2 2.6 2 2.6 0" style="fill:none;stroke:var(--accent-ink);stroke-width:1.8;stroke-linecap:round"/><path d="M6 24h7" style="stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round"/></svg>
+      <div><b>Super Power Crane</b><small>Machinery Sdn Bhd</small></div>
     </div>
-    <nav class="tabs" aria-label="Sections">
-      <button data-view="today" class="office">Today</button>
-      <button data-view="planner" class="office">Planner</button>
-      <button data-view="hires" class="office">Hires</button>
-      <button data-view="fleet" class="office">Fleet</button>
-      <button data-view="transport" class="office">Transport</button>
-      <button data-view="timesheets">Timesheets</button>
-      <button data-view="billing" class="office">Billing</button>
-      <button data-view="rates" class="office">Rates</button>
-      <button data-view="reports" class="boss">Reports</button>
-    </nav>
+    <div class="side-foot">
+      <label for="roleSel">Viewing as</label>
+      <select id="roleSel">
+        <option value="boss">Head Manager</option>
+        <option value="supervisor">Supervisor · Rental desk</option>
+        <option value="sales">Sales · Aisyah binti Karim</option>
+        <option value="operator">Operator · Azman bin Yusof</option>
+      </select>
+      <small>Each role sees a different set of pages and prices.</small>
+    </div>
   </div>
-</header>
+  <nav class="tabs" aria-label="Sections">
+    <div class="navg"><span class="navh">Overview</span>
+      <button data-view="dashboard">Dashboard</button>
+      <button data-view="today">Today</button>
+    </div>
+    <div class="navg"><span class="navh">Sell</span>
+      <button data-view="enquiries">Enquiries</button>
+      <button data-view="customers">Customers</button>
+    </div>
+    <div class="navg"><span class="navh">Plan</span>
+      <button data-view="hires">Hires</button>
+      <button data-view="planner">Planner</button>
+      <button data-view="lift">Lift check</button>
+      <button data-view="calendar">Calendar</button>
+    </div>
+    <div class="navg"><span class="navh">Run</span>
+      <button data-view="fleet">Fleet</button>
+      <button data-view="transport">Transport</button>
+      <button data-view="fuel">Fuel</button>
+      <button data-view="timesheets">Timesheets</button>
+      <button data-view="staff">Staff</button>
+    </div>
+    <div class="navg"><span class="navh">Money</span>
+      <button data-view="billing">Billing</button>
+      <button data-view="rates">Rates</button>
+      <button data-view="reports">Reports</button>
+      <button data-view="connect">Connections</button>
+    </div>
+  </nav>
+</aside>
+<div class="shell">
 
-<div class="wrap"><p class="sample-note">Rental module prototype with example data (today is set to Fri 16 Oct 2026). Changes stay until the page reloads. Switch "Viewing as" to see each role: the Supervisor sees rates and invoices but not machine cost or profit; operators see only their own timesheet, with no prices. The workshop prototype is in <a href="index.html">index.html</a>; the design is in docs/RENTAL.md.</p></div>
+<div class="wrap"><p class="sample-note">Prototype of the Super Power Crane Machinery system with example data (today is set to Fri 16 Oct 2026). Changes stay until the page reloads. Switch "Viewing as" to see each role: the Supervisor sees rates and invoices but not machine cost or profit; Sales works enquiries, customers and follow-ups; operators see only their own timesheet and leave, with no prices. The full design (docs/RENTAL.md) is in the project repository.</p></div>
 
 <main class="wrap">
-  <section class="view" id="v-today"></section>
+  <section class="view" id="v-dashboard"></section>
+  <section class="view" id="v-today" hidden></section>
+  <section class="view" id="v-enquiries" hidden></section>
+  <section class="view" id="v-customers" hidden></section>
+  <section class="view" id="v-calendar" hidden></section>
+  <section class="view" id="v-staff" hidden></section>
   <section class="view" id="v-planner" hidden></section>
+  <section class="view" id="v-fuel" hidden></section>
+  <section class="view" id="v-connect" hidden></section>
+  <section class="view" id="v-lift" hidden></section>
   <section class="view" id="v-hires" hidden></section>
   <section class="view" id="v-fleet" hidden></section>
   <section class="view" id="v-transport" hidden></section>
@@ -505,6 +681,7 @@ input[type=time]{border:1px solid var(--line);background:var(--surface);border-r
   <section class="view" id="v-rates" hidden></section>
   <section class="view" id="v-reports" hidden></section>
 </main>
+</div>
 <div id="sheetRoot"></div>
 <div id="toastRoot"></div>
 
@@ -537,14 +714,14 @@ function ph(label, hue){
 
 /* ---------- settings ---------- */
 const TODAY = '2026-10-16', G0 = '2026-09-28', GN = 42;
-const CO = {name:'Heavyworks Garage Sdn Bhd', ssm:'202001023456 (1371234-K)', tin:'C25841230090', sst:'W10-2507-32000417', msic:'77300 Renting of other machinery and equipment',
-  addr:'Lot 12, Jalan Perusahaan 3, Kawasan Perindustrian Bukit Raja, 41050 Klang, Selangor', phone:'03-3341 2288'};
+const CO = {name:'Super Power Crane Machinery Sdn Bhd', ssm:'(sample) 2020XXXXXXXX', tin:'(sample) C2XXXXXXXXX', sst:'(sample) W10-XXXX-XXXXXXXX', msic:'77300 Renting of other machinery and equipment',
+  addr:'Company address (set in Settings)', phone:'Office phone (set in Settings)'};
 const RULES = {dayHrs:8, minH:4, mHrs:200, sunX:1.5, standbyPct:50, bdGrace:2, sst:8, allowance:80};
 const GROUPS = {crane:'Mobile cranes', lift:'Lifting & access', earth:'Earthmoving', power:'Power', transport:'Our transport'};
 const models = {
-  GR500:{make:'Tadano',model:'GR-500EX',type:'Rough terrain crane 50 t',grp:'crane',size:'self'},
-  KR25:{make:'Kato',model:'KR-25H-V',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
-  TR250:{make:'Tadano',model:'TR-250M',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
+  RK500:{make:'Kobelco',model:'RK500-2',type:'Rough terrain crane 50 t',grp:'crane',size:'self'},
+  NK250:{make:'Kato',model:'NK-250-5',type:'Truck crane 25 t',grp:'crane',size:'self'},
+  TL450:{make:'Tadano',model:'TL-450-3',type:'Truck crane 45 t',grp:'crane',size:'self'},
   UNIC:{make:'Hino / Unic',model:'URV550 lorry crane',type:'Lorry crane 10 t',grp:'crane',size:'self'},
   FD30:{make:'Toyota',model:'8FD30',type:'Forklift 3 t',grp:'lift',size:'small'},
   FD50:{make:'TCM',model:'FD50',type:'Forklift 5 t',grp:'lift',size:'small'},
@@ -559,9 +736,9 @@ const models = {
 };
 const DOCS = {cf:'DOSH Certificate of Fitness', road:'Road tax', ins:'Insurance', pusp:'Puspakom', cpm:'Plant insurance', apad:'APAD licence'};
 const fleet = {
-  'RC-01':{m:'GR500',plate:'WVX 5501',year:2016,hm0:11580,docs:{cf:'2027-03-02',road:'2027-01-15',ins:'2027-01-15'},cost:1650000,ytd:{rev:486000,ws:38500,opx:52000,util:86}},
-  'RC-02':{m:'KR25',plate:'BMK 2250',year:2012,hm0:18320,docs:{cf:'2026-11-28',road:'2027-04-10',ins:'2027-04-10'},cost:720000,ytd:{rev:268000,ws:61200,opx:47000,util:71}},
-  'RC-03':{m:'TR250',plate:'WTB 7121',year:2009,hm0:9790,docs:{cf:'2026-10-30',road:'2027-02-01',ins:'2027-02-01'},cost:540000,ytd:{rev:214000,ws:72400,opx:41000,util:64}},
+  'RC-01':{m:'RK500',plate:'WVX 5501',year:2016,hm0:11580,docs:{cf:'2027-03-02',road:'2027-01-15',ins:'2027-01-15'},cost:1650000,ytd:{rev:486000,ws:38500,opx:52000,util:86}},
+  'TC-01':{m:'NK250',plate:'BMK 2250',year:2012,hm0:18320,docs:{cf:'2026-11-28',road:'2027-04-10',ins:'2027-04-10'},cost:720000,ytd:{rev:268000,ws:61200,opx:47000,util:71}},
+  'TC-02':{m:'TL450',plate:'WTB 7121',year:2009,hm0:9790,docs:{cf:'2026-10-30',road:'2027-02-01',ins:'2027-02-01'},cost:540000,ytd:{rev:214000,ws:72400,opx:41000,util:64}},
   'LC-01':{m:'UNIC',plate:'BPQ 6610',year:2018,hm:6120,docs:{cf:'2027-05-11',road:'2027-03-01',ins:'2027-03-01',pusp:'2026-12-04'},cost:380000,ytd:{rev:96000,ws:12800,opx:28000,util:48}},
   'FL-01':{m:'FD30',serial:'8FD30-61822',year:2019,hm:4502,docs:{ins:'2027-02-20'},cost:85000,ytd:{rev:21800,ws:3100,opx:900,util:62}},
   'FL-02':{m:'FD50',serial:'FD50T9-30417',year:2017,hm:6305,docs:{ins:'2027-02-20'},cost:120000,ytd:{rev:30200,ws:4200,opx:900,util:70}},
@@ -582,6 +759,10 @@ const staff = {
   O3:{name:'Zulkifli bin Hassan',role:'Lorry crane operator',certs:{'DOSH lorry crane operator':'2027-02-01','CIDB green card':'2027-03-01','GDL licence':'2027-06-30'},skills:['crane']},
   O4:{name:'Tan Kok Wai',role:'Excavator operator',certs:{'CIDB green card':'2027-01-10'},skills:['earth']},
   O5:{name:'Rajan a/l Muniandy',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-04-02','CIDB green card':'2027-09-09'},skills:['crane']},
+  O6:{name:'Lim Boon Keat',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-08-19','CIDB green card':'2027-02-03'},skills:['crane']},
+  O7:{name:'Mohd Faizal bin Ismail',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-01-25','CIDB green card':'2026-12-07'},skills:['crane']},
+  O8:{name:'Kumar a/l Selvam',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-06-11','CIDB green card':'2027-04-30'},skills:['crane']},
+  O9:{name:'Ng Wei Liang',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-03-16','CIDB green card':'2027-05-22'},skills:['crane']},
   D1:{name:'Suresh a/l Kumar',role:'Lowloader driver',certs:{'GDL licence':'2027-01-20'}},
   D2:{name:'Hafiz bin Rahman',role:'Lowloader driver',certs:{'GDL licence':'2026-10-28'}},
 };
@@ -595,9 +776,9 @@ const customers = {
   C7:{name:'Port Klang Logistics Sdn Bhd',brn:'199601012233',tin:'C11223344060',sst:'B16-1702-31000233',terms:30,limit:60000,contact:'Mr. Ravi Shankar',phone:'012-388 7701'},
 };
 let rates = {
-  'GR500/wet':{hr:450,minH:4,day:3200,month:58000,mHrs:200,ex:300,ot:450},
-  'KR25/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300},
-  'TR250/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300},
+  'RK500/wet':{hr:450,minH:4,day:3200,month:58000,mHrs:200,ex:300,ot:450},
+  'NK250/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300},
+  'TL450/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300},
   'UNIC/wet':{hr:180,minH:4,day:1300,ot:180},
   'FD30/dry':{day:180,week:900,month:2800,mHrs:200,ex:15},
   'FD50/dry':{day:260,week:1300,month:4200,mHrs:200,ex:22},
@@ -618,6 +799,44 @@ let zones = [
 ];
 const STATES = ['Selangor','Kuala Lumpur','Putrajaya','Negeri Sembilan','Melaka','Johor','Perak','Pahang','Penang','Kedah','Terengganu','Kelantan','Perlis'];
 
+/* The company's crane fleet. Types and capacity classes come from the model names; confirm each with the owner. */
+Object.assign(models, {
+  GR600:{make:'Tadano',model:'GR-600-1',type:'Rough terrain crane 60 t',grp:'crane',size:'self'},
+  SS500:{make:'Kato',model:'SS-500SP',type:'Truck crane 50 t',grp:'crane',size:'self'},
+  TL500:{make:'Tadano',model:'TL-500-3',type:'Truck crane 50 t',grp:'crane',size:'self'},
+  ATF60:{make:'Faun',model:'ATF 60-4',type:'All terrain crane 60 t',grp:'crane',size:'self'},
+  SL700:{make:'Kato',model:'SL-700R',type:'Rough terrain crane 70 t',grp:'crane',size:'self'},
+  SA1100:{make:'Sumitomo',model:'SA-1100',type:'Mobile crane 110 t',grp:'crane',size:'self'},
+  SL1300:{make:'Kato',model:'KA-1300SL',type:'All terrain crane 130 t',grp:'crane',size:'self'},
+  NK160:{make:'Kato',model:'NK-160',type:'Truck crane 16 t',grp:'crane',size:'self'},
+  NK200:{make:'Kato',model:'NK-200E-III',type:'Truck crane 20 t',grp:'crane',size:'self'},
+});
+Object.assign(fleet, {
+  'RC-02':{m:'GR600',plate:'WYD 6001',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:1450000,ytd:{rev:298000,ws:24400,opx:46000,util:66}},
+  'TC-03':{m:'SS500',plate:'BJH 5002',year:2010,hm:24310,docs:{cf:'2026-12-20',road:'2027-01-05',ins:'2027-01-05',pusp:'2027-02-11'},cost:620000,ytd:{rev:205000,ws:41800,opx:39000,util:58}},
+  'TC-04':{m:'TL500',plate:'WRK 5003',year:2014,hm:16880,docs:{cf:'2027-02-26',road:'2027-05-02',ins:'2027-05-02',pusp:'2027-03-15'},cost:780000,ytd:{rev:232000,ws:30500,opx:41000,util:62}},
+  'AT-01':{m:'ATF60',plate:'VFA 6004',year:2016,hm:11250,docs:{cf:'2027-06-07',road:'2027-04-21',ins:'2027-04-21'},cost:1600000,ytd:{rev:318000,ws:35600,opx:47000,util:68}},
+  'MC-01':{m:'SL700',plate:'WMK 7005',year:2015,hm:13960,docs:{cf:'2027-01-14',road:'2027-02-09',ins:'2027-02-09'},cost:1850000,ytd:{rev:356000,ws:44100,opx:52000,util:61}},
+  'MC-02':{m:'SA1100',plate:'WSA 1106',year:2013,hm:18720,docs:{cf:'2026-11-30',road:'2027-01-22',ins:'2027-01-22'},cost:2600000,ytd:{rev:462000,ws:68300,opx:61000,util:54}},
+  'TC-05':{m:'NK160',plate:'BCK 1608',year:1996,hm:31240,docs:{cf:'2027-03-04',road:'2027-02-17',ins:'2027-02-17',pusp:'2027-01-08'},cost:150000,ytd:{rev:88000,ws:21600,opx:30000,util:55}},
+  'TC-06':{m:'NK200',plate:'BDQ 2009',year:2001,hm:27650,docs:{cf:'2027-05-26',road:'2027-04-02',ins:'2027-04-02',pusp:'2027-03-21'},cost:210000,ytd:{rev:104000,ws:19800,opx:32000,util:59}},
+  'MC-03':{m:'SL1300',plate:'WKL 1307',year:2017,hm:9880,docs:{cf:'2027-07-19',road:'2027-03-11',ins:'2027-03-11'},cost:3400000,ytd:{rev:588000,ws:57900,opx:72000,util:52}},
+});
+Object.assign(rates, {
+  'NK250/wet':{hr:280,minH:4,day:2000,month:34000,mHrs:200,ex:190,ot:280},
+  'TL450/wet':{hr:400,minH:4,day:2900,month:50000,mHrs:200,ex:260,ot:400},
+  'RK500/wet':{hr:450,minH:4,day:3200,month:58000,mHrs:200,ex:300,ot:450},
+  'SS500/wet':{hr:440,minH:4,day:3100,month:56000,mHrs:200,ex:290,ot:440},
+  'TL500/wet':{hr:440,minH:4,day:3100,month:56000,mHrs:200,ex:290,ot:440},
+  'GR600/wet':{hr:500,minH:4,day:3600,month:65000,mHrs:200,ex:330,ot:500},
+  'ATF60/wet':{hr:520,minH:4,day:3800,month:68000,mHrs:200,ex:350,ot:520},
+  'SL700/wet':{hr:620,minH:4,day:4500,month:80000,mHrs:200,ex:410,ot:620},
+  'SA1100/wet':{hr:1050,minH:4,day:7500,month:135000,mHrs:200,ex:690,ot:1050},
+  'NK160/wet':{hr:220,minH:4,day:1500,month:26000,mHrs:200,ex:150,ot:220},
+  'NK200/wet':{hr:250,minH:4,day:1750,month:30000,mHrs:200,ex:170,ot:250},
+  'SL1300/wet':{hr:1250,minH:4,day:9000,month:160000,mHrs:200,ex:830,ot:1250},
+});
+
 /* ---------- hires ---------- */
 let hires = [
   {id:'H-2026-0109',c:'C7',site:'Westport warehouse 2, Pulau Indah',state:'Selangor',siteContact:'Mr. Ravi Shankar 012-388 7701',po:'PKL-PO-26-0418',status:'Closed',created:'2026-08-01',cycle:'Monthly in arrears',
@@ -637,6 +856,22 @@ let hires = [
    lines:[{u:'FL-02',k:'dry',basis:'month',from:'2026-09-01',to:'2026-09-30',on:'2026-09-01',off:'2026-09-30',hm:[{d:'2026-09-01',v:6120},{d:'2026-09-30',v:6305}]}],
    trips:[{dir:'Delivery',d:'2026-09-01',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-30',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'}],
    log:[{d:'2026-09-30 16:00',t:'Returned, no damage.'}]},
+  {id:'H-2026-0124',c:'C1',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',siteContact:'En. Rosli (site supervisor) 013-202 4471',po:'BJ/PO/26/0744',status:'On hire',created:'2026-08-10',cycle:'Monthly in arrears',
+   lines:[{u:'MC-02',k:'wet',basis:'month',from:'2026-08-17',to:'2026-12-15',on:'2026-08-17',op:'O6'}],
+   trips:[{dir:'Delivery',d:'2026-08-17',u:'MC-02',veh:null,drv:'O6',zone:'Klang Valley',charge:500,status:'Done',self:true}],
+   log:[{d:'2026-08-17 10:00',t:'On hire for the roof truss lifts. Delivery inspection signed by En. Rosli.'}]},
+  {id:'H-2026-0144',c:'C3',site:'Port Klang Free Zone, pier 3',state:'Selangor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-277',status:'On hire',created:'2026-09-02',cycle:'Monthly in arrears',
+   lines:[{u:'AT-01',k:'wet',basis:'month',from:'2026-09-07',to:'2026-11-30',on:'2026-09-07',op:'O7'}],
+   trips:[{dir:'Delivery',d:'2026-09-07',u:'AT-01',veh:null,drv:'O7',zone:'Klang Valley',charge:500,status:'Done',self:true}],
+   log:[{d:'2026-09-07 09:40',t:'On hire.'}]},
+  {id:'H-2026-0147',c:'C4',site:'Bukit Raja steel warehouse, Klang',state:'Selangor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2241',status:'On hire',created:'2026-09-22',cycle:'Monthly in arrears',
+   lines:[{u:'MC-01',k:'wet',basis:'month',from:'2026-09-28',to:'2026-12-27',on:'2026-09-28',op:'O9'}],
+   trips:[{dir:'Delivery',d:'2026-09-28',u:'MC-01',veh:null,drv:'O9',zone:'Klang Valley',charge:500,status:'Done',self:true}],
+   log:[{d:'2026-09-28 10:20',t:'On hire.'}]},
+  {id:'H-2026-0150',c:'C5',site:'Rawang interchange bridge works',state:'Selangor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0802',status:'On hire',created:'2026-09-25',cycle:'End of hire',
+   lines:[{u:'TC-03',k:'wet',basis:'day',from:'2026-10-01',to:'2026-10-22',on:'2026-10-01',op:'O8'}],
+   trips:[{dir:'Delivery',d:'2026-10-01',u:'TC-03',veh:null,drv:'O8',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-23',u:'TC-03',veh:null,drv:'O8',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   log:[{d:'2026-10-01 09:00',t:'On hire.'}]},
   {id:'H-2026-0141',c:'C1',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',siteContact:'En. Rosli (site supervisor) 013-202 4471',po:'BJ/PO/26/0912',status:'On hire',created:'2026-08-25',cycle:'Monthly in arrears',
    lines:[{u:'RC-01',k:'wet',basis:'month',from:'2026-09-01',to:'2026-11-30',on:'2026-09-01',op:'O1'}],
    trips:[{dir:'Delivery',d:'2026-09-01',u:'RC-01',veh:null,drv:'O1',zone:'Klang Valley',charge:500,status:'Done',self:true}],
@@ -646,12 +881,12 @@ let hires = [
    trips:[{dir:'Delivery',d:'2026-10-01',u:'FL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'}],
    log:[{d:'2026-10-01 11:00',t:'On hire. Delivery inspection signed by Mr. Ravi.'}]},
   {id:'H-2026-0152',c:'C3',site:'Jalan Kapar piling site, Klang',state:'Selangor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-311',status:'On hire',created:'2026-09-29',cycle:'End of hire',
-   lines:[{u:'RC-02',k:'wet',basis:'day',from:'2026-10-05',to:'2026-10-24',on:'2026-10-05',op:'O2'}],
-   trips:[{dir:'Delivery',d:'2026-10-05',u:'RC-02',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-24',u:'RC-02',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   lines:[{u:'TC-01',k:'wet',basis:'day',from:'2026-10-05',to:'2026-10-24',on:'2026-10-05',op:'O2'}],
+   trips:[{dir:'Delivery',d:'2026-10-05',u:'TC-01',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-24',u:'TC-01',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-13 11:40',t:'Breakdown: telescope circuit hose burst at 08:30. Workshop job J-2026-0417. Fixed on site 11:30 (3 h lost).'},{d:'2026-10-05 09:00',t:'On hire.'}]},
   {id:'H-2026-0153',c:'C3',site:'Pulau Indah jetty extension',state:'Selangor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-298',status:'Off-hire called',created:'2026-09-15',cycle:'Monthly in arrears',offCalled:'2026-10-14',
-   lines:[{u:'RC-03',k:'wet',basis:'day',from:'2026-09-21',to:'2026-10-31',on:'2026-09-21',off:'2026-10-15',op:'O5'}],
-   trips:[{dir:'Delivery',d:'2026-09-21',u:'RC-03',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-16',u:'RC-03',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   lines:[{u:'TC-02',k:'wet',basis:'day',from:'2026-09-21',to:'2026-10-31',on:'2026-09-21',off:'2026-10-15',op:'O5'}],
+   trips:[{dir:'Delivery',d:'2026-09-21',u:'TC-02',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-16',u:'TC-02',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-14 16:20',t:'Mr. Gan called off-hire from 15 Oct (WhatsApp). Crane drives back on 16 Oct.'},{d:'2026-09-21 10:00',t:'On hire.'}]},
   {id:'H-2026-0155',c:'C4',site:'Lot 88 Jalan Haji Sirat, Klang',state:'Selangor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2290',status:'Booked',created:'2026-10-13',cycle:'End of hire',note:'Lifting roof trusses, about 6 hours.',
    lines:[{u:'LC-01',k:'wet',basis:'hour',from:'2026-10-16',to:'2026-10-16',op:'O3'}],
@@ -667,8 +902,8 @@ let hires = [
    trips:[{dir:'Delivery',d:'2026-10-19',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:1200,status:'Planned'},{dir:'Collection',d:'2026-10-31',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:1200,status:'Planned'}],
    log:[{d:'2026-10-14 10:30',t:'New customer: deposit RM 3,000 required before delivery.'}]},
   {id:'H-2026-0160',c:'C1',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',siteContact:'En. Rosli 013-202 4471',po:'',status:'Quotation',created:'2026-10-15',cycle:'Monthly in arrears',quoteValid:'2026-10-22',
-   note:'Second 50 t crane for roof steel. No 50 t free (RC-01 is on this site to 30 Nov). Options: offer 25 t RC-03 after its CF renewal, or cross-hire.',
-   lines:[{u:null,m:'GR500',k:'wet',basis:'day',from:'2026-11-02',to:'2026-11-13'}], trips:[],
+   note:'Second 50 t crane for roof steel. No 50 t free (RC-01 is on this site to 30 Nov). Options: the 60 t GR-600-1 (RC-02) or a 50 t truck crane (TC-03, TC-04) is free; run Lift check to confirm.',
+   lines:[{u:null,m:'RK500',k:'wet',basis:'day',from:'2026-11-02',to:'2026-11-13'}], trips:[],
    log:[{d:'2026-10-15 15:40',t:'Enquiry by Mr. Lim. Quotation started.'}]},
   {id:'H-2026-0161',c:'C5',site:'Taman Desa drainage works, Rawang',state:'Selangor',siteContact:'En. Kamarul 013-388 4410',po:'',status:'Quotation',created:'2026-10-16',cycle:'Monthly in arrears',quoteValid:'2026-10-30',
    lines:[{u:'GS-01',k:'dry',basis:'month',from:'2026-11-02',to:'2026-12-31'}],
@@ -679,7 +914,7 @@ const workshop = [
   {u:'EX-01',from:'2026-10-10',to:'2026-10-20',job:'J-2026-0414',note:'Return damage repair, chargeable to H-2026-0130'},
   {u:'GS-01',from:'2026-10-26',to:'2026-10-27',job:'J-2026-0422',note:'500 h service before next hire'},
 ];
-const breakdowns = [{hire:'H-2026-0152',u:'RC-02',d:'2026-10-13',hrs:3,job:'J-2026-0417',note:'Telescope circuit hose burst. Fixed on site by Rajesh Kumar.'}];
+const breakdowns = [{hire:'H-2026-0152',u:'TC-01',d:'2026-10-13',hrs:3,job:'J-2026-0417',note:'Telescope circuit hose burst. Fixed on site by Rajesh Kumar.'}];
 const lost = [
   {d:'2026-10-15',c:'Bina Jaya Construction',type:'Rough terrain crane 50 t',why:'No machine free'},
   {d:'2026-10-02',c:'Sri Kenari Builders',type:'Rough terrain crane 50 t',why:'No machine free'},
@@ -697,7 +932,7 @@ let sheets = [];
 (function genSheets(){
   hires.forEach(h => h.lines.forEach(l => {
     if(l.k!=='wet' || !l.on) return;
-    let hm = fleet[l.u].hm0;
+    let hm = fleet[l.u].hm0 ?? fleet[l.u].hm;
     const last = l.off && l.off < TODAY ? l.off : addDays(TODAY,-1);
     for(let d=l.on; d<=last; d=addDays(d,1)){
       const r = rnd(l.u+d);
@@ -710,7 +945,7 @@ let sheets = [];
       const hmS = hm; hm += work;
       sheets.push({id:`${l.u}-${d}`,hire:h.id,u:l.u,op:l.op,d,start:'08:00',finish:hhmm(fin),brk:60,work,standby,reason,bd,hmS,hmE:hm,
         note: bd ? 'Hose burst on telescope, waited for mechanic.' : reason ? 'Stopped for rain, standby on site.' : ['Lifting steel trusses grid C–F','Lifting rebar cages and casing','Unloading precast panels','Lifting roof purlins','Placing piling casing'][Math.floor(rnd('n'+l.u+d)*5)],
-        status: (l.u==='RC-02' && d==='2026-10-15') ? 'unsigned' : 'signed', signer: SITE_SIGNER[h.c]});
+        status: (l.u==='TC-01' && d==='2026-10-15') ? 'unsigned' : 'signed', signer: SITE_SIGNER[h.c]});
     }
     fleet[l.u].hm = Math.round(hm);
   }));
@@ -777,9 +1012,15 @@ function availability(u, from, to, ignoreHire){
   hires.forEach(h => { if(h.id===ignoreHire || !LIVE.includes(h.status)) return;
     h.lines.forEach(l => { if(l.u===u && overlaps(from,to,l.on||l.from,lineEnd(l))) why.push(`${h.status==='Booked'?'Booked':'On hire'} to ${customers[h.c].name.replace(/ Sdn Bhd$/,'')} ${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))} (${h.id})`); }); });
   workshop.forEach(w => { if(w.u===u && overlaps(from,to,w.from,w.to)) why.push(`In workshop ${fmtD(w.from)}–${fmtD(w.to)} (${w.job})`); });
-  Object.entries(fleet[u].docs).forEach(([k,exp]) => { if(exp < to && ['cf','road','ins','pusp'].includes(k)) why.push(`${DOCS[k]} expires ${fmtD(exp)}${k==='cf'?' (cannot be overridden)':''}`); });
-  return {ok:!why.length, why};
+  Object.entries(fleet[u].docs).forEach(([k,exp]) => { if(exp < to && ['road','ins'].includes(k)) why.push(`${DOCS[k]} ${exp<from?'expired':'expires'} ${fmtD(exp)}: renew before booking`); });
+  return {ok:!why.length, why, warn:docIssues(u, from, to).map(x=>x.msg)};
 }
+/* DOSH Certificate of Fitness and Puspakom: the machine can still be booked, but every screen marks it red until renewed. */
+function docIssues(u, from, to){
+  return ['cf','pusp'].map(k=>[k, fleet[u].docs[k]]).filter(([,e])=>e && e < to).map(([k,e])=>({k, exp:e, expired:e < from,
+    msg: e < from ? `${DOCS[k]} expired ${fmtD(e)}: renew before delivery` : `${DOCS[k]} expires ${fmtD(e)}, during this hire: renew before then`}));
+}
+const warnHtml = w => w && w.length ? w.map(m=>`<span class="docwarn">⚠ ${esc(m)}</span>`).join('') : '';
 function operatorFree(o, from, to, ignoreHire){
   return !hires.some(h => h.id!==ignoreHire && LIVE.includes(h.status) && h.lines.some(l => l.op===o && overlaps(from,to,l.on||l.from,lineEnd(l))));
 }
@@ -825,6 +1066,7 @@ function lineCharges(h, l, from, to){
 }
 function charges(h, from, to){
   const out = h.lines.flatMap(l => lineCharges(h, l, from, to));
+  if(h.fuel==='charged'){ const fs = fuel.filter(f=>f.hire===h.id && f.d>=from && f.d<=to); if(fs.length){ const L = sum(fs.map(f=>f.l)), cost = sum(fs.map(f=>f.l*f.price)); out.push({kind:'fuel',desc:`Diesel supplied: ${num(L)} L at cost + 10%`,qty:L,unit:'L',rate:+(cost/L*1.1).toFixed(3),amt:cost*1.1}); } }
   h.trips.filter(t => t.status==='Done' && t.d>=from && t.d<=to).forEach(t => out.push({kind:'transport',desc:`${t.self?'Mobilisation (self-drive)':'Transport by lowloader'}: ${t.dir.toLowerCase()}, ${t.u}, ${t.zone}`,qty:1,unit:'trip',rate:t.charge,amt:t.charge}));
   return out;
 }
@@ -838,6 +1080,39 @@ function estimate(mk, k, basis, from, to, hrsDay=8){
   if(basis==='month'){ if(!r.month) return null; let amt = 0; for(let d=from; d<=to; d=addDays(d,1)) amt += r.month/dim(d); return {amt, text:`${num(+(amt/r.month).toFixed(2))} month × ${RM0(r.month)} (${r.mHrs} h a month included)`}; }
 }
 function transportCharge(mk, zone){ const z = zones.find(x=>x.z===zone) || zones[0]; return z[models[mk].size] || 0; }
+
+/* ---------- fuel ---------- */
+/* Normal diesel use in litres per working hour, per model (sample figures until the owner's records replace them). */
+const FUEL_RATE = {NK160:7, NK200:8, NK250:9, TL450:12, RK500:13, SS500:12.5, TL500:12.5, GR600:14, ATF60:16, SL700:15, SA1100:19, SL1300:21, UNIC:6};
+const DIESEL = 3.15;   // sample pump price, RM per litre: the actual price is taken from each receipt
+const FUEL_FLAG = 1.2; // flag a fill when use is 20% above the machine's normal L/h
+const STATIONS = {C1:'Shell Persiaran Kerjaya, Shah Alam', C3:'Petron Jalan Kapar, Klang'};
+const FUEL_PAID = ['Fleet card','Petty cash','Own tank (yard)','Supplied by customer'];
+hires.forEach(h => { h.fuel = h.lines.some(l=>l.k==='wet') ? 'included' : 'customer'; });
+hire('H-2026-0141').fuel = 'charged'; hire('H-2026-0153').fuel = 'charged';
+let fuel = [];
+(function genFuel(){
+  let id = 1, flagged = false;
+  hires.forEach(h => h.lines.forEach(l => {
+    if(l.k!=='wet' || !l.on) return;
+    const ts = sheets.filter(s=>s.u===l.u && s.hire===h.id).sort((a,b)=>a.d<b.d?-1:1);
+    let acc = 0;
+    ts.forEach(s => {
+      acc += s.work;
+      if(acc < 24) return;
+      const rate = FUEL_RATE[fleet[l.u].m] || 10;
+      let litres = Math.round(acc*rate*(0.94 + rnd('f'+l.u+s.d)*0.12)), odd = false;
+      if(l.u==='TC-02' && s.d>='2026-10-08' && !flagged){ litres = Math.round(litres*1.38); flagged = odd = true; }
+      fuel.push({id:id++, d:s.d, u:l.u, l:litres, price:DIESEL, hm:Math.round(s.hmE), hours:+acc.toFixed(1), hire:h.id, where:STATIONS[h.c]||'Petronas near site', by:l.op, paid:'Fleet card', receipt:true, note:odd?'':undefined});
+      acc = 0;
+    });
+  }));
+  fuel.push({id:id++, d:'2026-10-16', u:'LC-01', l:60, price:2.98, hm:fleet['LC-01'].hm, hours:null, hire:'H-2026-0155', where:'Own tank (yard)', by:'O3', paid:'Own tank (yard)', receipt:false});
+  fuel.push({id:id++, d:'2026-10-02', u:'TR-01', l:310, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Bukit Raja, Klang', by:'D1', paid:'Fleet card', receipt:true});
+  fuel.push({id:id++, d:'2026-10-12', u:'TR-02', l:240, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Bukit Raja, Klang', by:'D2', paid:'Fleet card', receipt:true});
+})();
+const fuelRate = f => f.hours ? f.l/f.hours : null;
+const fuelFlag = f => f.hours && FUEL_RATE[fleet[f.u].m] ? fuelRate(f) > FUEL_RATE[fleet[f.u].m]*FUEL_FLAG : false;
 
 /* ---------- invoices ---------- */
 let invoices = [];
@@ -862,20 +1137,21 @@ const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Pai
 const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
 
 /* ---------- state ---------- */
-const state = {view:'today', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, sheet:null, lastSheet:null};
-try{ const v = localStorage.getItem('hdg-rental-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
+const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
+try{ const v = localStorage.getItem('spc-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
 function setView(v){
-  if(role()==='operator') v = 'timesheets';
-  if(v==='reports' && !boss()) v = 'today';
+  const allowed = ROLE_VIEWS[role()];
+  if(!allowed.includes(v)) v = allowed[0];
+  document.querySelectorAll('nav.tabs button').forEach(b => b.hidden = !allowed.includes(b.dataset.view));
   state.view = v;
   document.querySelectorAll('section.view').forEach(s => s.hidden = s.id !== 'v-'+v);
   document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.view===v ? 'page' : 'false'));
-  try{ localStorage.setItem('hdg-rental-view', v); }catch(e){}
+  try{ localStorage.setItem('spc-view', v); }catch(e){}
   render();
 }
-function render(){ ({today:renderToday,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
+function render(){ ({dashboard:renderDashboard,today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
 function rerender(){ render(); refreshSheet(); }
 
 /* ---------- Today ---------- */
@@ -890,6 +1166,7 @@ function attention(){
       else if(t && t.status==='unsigned') items.push({sev:'warn',t:`Timesheet not signed: ${l.u} on ${fmtDW(d)}`,s:`Send to ${SITE_SIGNER[h.c]} by WhatsApp for approval`,a:`data-ts="${t.id}"`});
     }
   });
+  hires.filter(h=>LIVE.includes(h.status)).forEach(h => h.lines.forEach(l => { if(l.u) docIssues(l.u, maxD(TODAY, l.on||l.from), lineEnd(l)).forEach(x => items.push({sev:'crit', t:`${l.u}: ${x.msg}`, s:`${h.id} · ${custName(h.c)} · hire to ${fmtD(lineEnd(l))}`, a:`data-hire="${h.id}"`})); }));
   hires.filter(h=>h.status==='Booked' && h.deposit && !h.depositPaid).forEach(h => items.push({sev:'warn',t:`Deposit ${RM0(h.deposit)} not received: ${h.id}`,s:`${custName(h.c)} · delivery ${fmtDW(h.lines[0].from)}`,a:`data-hire="${h.id}"`}));
   hires.filter(h=>h.status==='Off-hire called').forEach(h => items.push({sev:'info',t:`Off-hire: ${h.lines.map(l=>l.u).join(', ')} from ${fmtD(h.lines[0].off)}`,s:`${custName(h.c)} · collection ${fmtDW(h.trips.find(t=>t.dir==='Collection')?.d)}`,a:`data-hire="${h.id}"`}));
   hires.filter(h=>h.status==='Quotation' && h.lines.some(l=>!l.u)).forEach(h => items.push({sev:'warn',t:`No machine free for quotation ${h.id}`,s:`${models[h.lines[0].m].type}, ${fmtD(h.lines[0].from)}–${fmtD(h.lines[0].to)} · ${custName(h.c)}`,a:`data-hire="${h.id}"`}));
@@ -917,7 +1194,7 @@ function renderToday(){
   const idle = st.filter(([,s])=>s.k==='Available').map(([u,s])=>({u,idle:s.idle})).sort((a,b)=>(b.idle||0)-(a.idle||0));
   const order = ['On hire','Off-hire called','Going out','Booked','In workshop','Available'];
   $('#v-today').innerHTML = `
-    <div class="view-head"><h2>Today · ${fmtDW(TODAY)} 2026</h2><button class="btn primary" data-action="new-hire">New hire / quotation</button></div>
+    <div class="view-head"><h2>Today · ${fmtDW(TODAY)} 2026</h2><button class="btn" data-action="new-enq">New enquiry</button><button class="btn primary" data-action="new-hire">New hire / quotation</button></div>
     <div class="kpis">
       <div class="kpi"><b>${onHire}<small class="muted" style="font-size:1rem"> / ${units.length}</small></b><span>Machines on hire</span></div>
       <div class="kpi"><b>${cnt('Available')}</b><span>Available now</span></div>
@@ -929,6 +1206,7 @@ function renderToday(){
     </div>
     <div class="dash">
       <div class="stack">
+        ${followupsTodayHtml()}
         <div class="panel"><div class="panel-head"><h3>Act now</h3><span class="muted num">${att.length}</span></div><div class="panel-body">
           ${att.map(a=>`<div class="attn ${a.cost?'cost':''}" ${a.a} role="button" tabindex="0" style="--sev:var(--${a.sev==='crit'?'crit':a.sev==='warn'?'warn':'info'})"><i></i><div><b>${esc(a.t)}</b><br><small class="muted">${esc(a.s)}</small></div></div>`).join('') || '<p class="muted" style="padding:8px 14px">Nothing waiting.</p>'}
         </div></div>
@@ -996,14 +1274,15 @@ function renderPlanner(){
       <button class="btn">Check</button>${fType?'<button class="btn" type="button" data-action="find-clear">Clear</button>':''}
     </form>
     ${fType ? `<div class="panel"><div class="panel-head"><h3>${esc(fType)} · ${fmtD(f.from)}–${fmtD(f.to)}</h3><span class="muted">${res.filter(r=>r.ok).length} of ${res.length} free</span></div><div class="findres">
-      ${res.map(r=>`<div class="fr"><div><b>${r.u} ${esc(uName(r.u))}</b> <span class="pill ${r.ok?'ok':'crit'}">${r.ok?'Free':'Not free'}</span><small>${r.ok?'No bookings, workshop jobs or document expiries in these dates.':r.why.map(esc).join(' · ')}</small></div>${r.ok?`<button class="btn small primary" data-action="book-unit" data-u="${r.u}">Book</button>`:''}</div>`).join('')}
+      ${res.map(r=>`<div class="fr"><div><b>${r.u} ${esc(uName(r.u))}</b> <span class="pill ${r.ok?'ok':'crit'}">${r.ok?'Free':'Not free'}</span>${r.ok&&r.warn.length?' <span class="pill crit">Document issue</span>':''}<small>${r.ok?(r.warn.length?'Can still be booked.':'No bookings, workshop jobs or document expiries in these dates.'):r.why.map(esc).join(' · ')}</small>${r.ok?warnHtml(r.warn):''}</div>${r.ok?`<button class="btn small primary" data-action="book-unit" data-u="${r.u}">Book</button>`:''}</div>`).join('')}
       ${!res.some(r=>r.ok)?`<div class="fr"><div><b>Nothing free.</b><small>Offer another size, other dates, or cross-hire from another company. The enquiry is kept as lost (no machine free) for the fleet report.</small></div></div>`:''}
     </div></div>` : ''}
-    <div class="g-legend"><span><i class="sw" style="background:var(--k-wet)"></i>Wet hire</span><span><i class="sw" style="background:var(--k-dry)"></i>Dry hire</span><span><i class="sw bar booked dry" style="position:static;height:12px;width:22px;padding:0"></i>Booked</span><span><i class="sw" style="outline:1.5px dashed var(--k-quote);outline-offset:-1.5px"></i>Quotation</span><span><i class="sw bar ws" style="position:static;height:12px;width:22px;padding:0"></i>Workshop</span><span><i class="sw" style="background:var(--crit);width:5px"></i>Breakdown</span><span><i class="sw" style="width:0;height:0;border-radius:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid var(--warn)"></i>Delivery / collection</span><span class="muted">Shaded = Sunday · amber line = today</span></div>
+    <div class="g-legend"><span><i class="sw" style="background:var(--k-wet)"></i>Wet hire</span><span><i class="sw" style="background:var(--k-dry)"></i>Dry hire</span><span><i class="sw bar booked dry" style="position:static;height:12px;width:22px;padding:0"></i>Booked</span><span><i class="sw" style="outline:1.5px dashed var(--k-quote);outline-offset:-1.5px"></i>Quotation</span><span><i class="sw bar ws" style="position:static;height:12px;width:22px;padding:0"></i>Workshop</span><span><i class="sw" style="background:var(--crit);width:5px"></i>Breakdown</span><span><i class="sw" style="width:0;height:0;border-radius:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid var(--warn)"></i>Delivery / collection</span><span class="muted">Shaded = Sunday · orange line = today</span></div>
     <div class="gantt-wrap"><div class="gantt">
       <div class="g-row g-head"><div class="g-lab">Machine</div><div class="g-track">${days.map((d,i)=>`<div class="g-day ${dow(d)===0?'sun':''} ${d===TODAY?'today':''}"><i>${+d.slice(8)===1||i===0?MON[+d.slice(5,7)-1]:''}</i><b>${+d.slice(8)}</b></div>`).join('')}</div></div>
       ${groups.map(g => { const us = Object.keys(fleet).filter(u=>mOf(u).grp===g); return us.length ? `<div class="g-group"><span>${esc(GROUPS[g])}</span></div>${us.map(rowFor).join('')}` : ''; }).join('')}
     </div></div>`;
+  $('#v-planner').insertAdjacentHTML('beforeend', demandHtml());
 }
 
 /* ---------- Hires ---------- */
@@ -1050,11 +1329,12 @@ function openHire(id){
       <div class="cost"><span class="label">Billing</span><b>${esc(h.cycle)}</b><small class="muted">${cu.terms?cu.terms+' days credit':'Cash / deposit'}</small></div>
       ${h.contract?`<div><span class="label">Contract</span><b>${esc(h.contract)}</b></div>`:''}
       ${h.quoteValid?`<div><span class="label">Quotation valid to</span><b>${fmtDY(h.quoteValid)}</b></div>`:''}
+      <div><span class="label">Diesel</span><b>${esc(FUEL_POLICY[h.fuel || (h.lines.some(l=>l.k==='wet')?'included':'customer')])}</b></div>
       ${h.deposit?`<div class="cost"><span class="label">Deposit</span><b>${RM0(h.deposit)} ${h.depositPaid?'<span class="pill ok">Received</span>':'<span class="pill warn">Due</span>'}</b></div>`:''}
     </div></div>
     <div class="sect"><h3>Machines</h3><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Machine</th><th>Hire</th><th class="cost">Rate</th><th>Operator</th><th>On hire</th><th>Off hire</th></tr></thead><tbody>
       ${h.lines.map(l=>{ const r = rate(lineModel(l), l.k)||{}; const main = {hour:r.hr,day:r.day,week:r.week,month:r.month}[l.basis];
-        return `<tr><td>${l.u?`<b>${l.u}</b> ${esc(uName(l.u))}<br><small class="muted">${esc(uRef(l.u))}</small>`:`<span class="pill crit">Not assigned</span><br><small class="muted">${esc(models[l.m].type)}</small>`}</td>
+        return `<tr><td>${l.u?`<b>${l.u}</b> ${esc(uName(l.u))}<br><small class="muted">${esc(uRef(l.u))}</small>${warnHtml(docIssues(l.u, l.on||l.from, lineEnd(l)).map(x=>x.msg))}`:`<span class="pill crit">Not assigned</span><br><small class="muted">${esc(models[l.m].type)}</small>`}</td>
         <td>${kindLabel(l.k)}<br><small class="muted">${basisLabel[l.basis]}</small></td>
         <td class="cost num">${RM0(main||0)} / ${({hour:'h',day:'day',week:'week',month:'month'})[l.basis]}${l.basis==='month'?`<br><small class="muted">${r.mHrs} h incl., then ${RM0(r.ex)}/h</small>`:l.basis==='hour'?`<br><small class="muted">min ${r.minH} h a day</small>`:l.k==='wet'?`<br><small class="muted">OT ${RM0(r.ot)}/h</small>`:''}</td>
         <td>${l.op?esc(staff[l.op].name):'<span class="muted">Customer\'s own</span>'}</td>
@@ -1085,13 +1365,13 @@ function openHire(id){
 
 /* ---------- New hire ---------- */
 function newHireDefaults(pre={}){
-  return {c:'C1', site:'', state:'Selangor', siteContact:'', po:'', k:'wet', basis:'day', type:'Rough terrain crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Klang Valley', del:true, col:true, ...pre};
+  return {c:'C1', site:'', state:'Selangor', siteContact:'', po:'', k:'wet', basis:'day', type:'Truck crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Klang Valley', del:true, col:true, ...pre};
 }
 function openNewHire(){
   const n = state.nh, types = [...new Set(hireUnits().map(u=>mOf(u).type))];
   const units = hireUnits().filter(u=>mOf(u).type===n.type).map(u=>({u,...availability(u,n.from,n.to)}));
   if(n.u && !units.some(x=>x.u===n.u && x.ok)) n.u = null;
-  if(!n.u){ const f = units.find(x=>x.ok); n.u = f ? f.u : null; }
+  if(!n.u){ const f = units.find(x=>x.ok && !x.warn.length) || units.find(x=>x.ok); n.u = f ? f.u : null; }
   const mk = n.u ? fleet[n.u].m : Object.values(fleet).find(f=>models[f.m].type===n.type)?.m;
   const kinds = ['dry','wet'].filter(k=>rate(mk,k));
   if(!kinds.includes(n.k)) n.k = kinds[0];
@@ -1121,7 +1401,8 @@ function openNewHire(){
           <label>From<input type="date" data-nh="from" value="${n.from}"></label>
           <label>To<input type="date" data-nh="to" value="${n.to}"></label>
         </div>
-        <div class="pick">${units.map(x=>`<label class="${x.ok?'':'no'}"><input type="radio" name="nhu" data-nh="u" value="${x.u}" ${x.u===n.u?'checked':''} ${x.ok?'':'disabled'}><span><b>${x.u} ${esc(uName(x.u))}</b> · ${esc(uRef(x.u))} ${x.ok?'<span class="pill ok">Free</span>':'<span class="pill crit">Not free</span>'}<small>${x.ok?Object.entries(fleet[x.u].docs).map(([k,e])=>docPill(k,e)).join(' '):x.why.map(esc).join(' · ')}</small></span></label>`).join('')}</div>
+        <div class="pick">${units.map(x=>`<label class="${x.ok?(x.warn.length?'docbad':''):'no'}"><input type="radio" name="nhu" data-nh="u" value="${x.u}" ${x.u===n.u?'checked':''} ${x.ok?'':'disabled'}><span><b>${x.u} ${esc(uName(x.u))}</b> · ${esc(uRef(x.u))} ${x.ok?'<span class="pill ok">Free</span>':'<span class="pill crit">Not free</span>'}${x.ok&&x.warn.length?' <span class="pill crit">Document issue</span>':''}<small>${x.ok?Object.entries(fleet[x.u].docs).map(([k,e])=>docPill(k,e)).join(' '):x.why.map(esc).join(' · ')}</small>${x.ok?warnHtml(x.warn):''}</span></label>`).join('')}</div>
+        ${n.u && units.find(x=>x.u===n.u)?.warn.length ? `<div class="banner crit"><b>${n.u}: ${units.find(x=>x.u===n.u).warn.map(esc).join(' · ')}. You can still book it. The Supervisor gets a follow-up to renew it, and the hire stays marked red until it is renewed.</b></div>` : ''}
         ${!n.u?'<div class="banner crit"><b>No machine of this type is free for these dates. Save as a quotation to keep the enquiry, change the dates, or pick another size.</b></div>':''}
       </div></div>
       <div class="sect"><h3>Hire terms</h3><div class="in">
@@ -1162,8 +1443,13 @@ function saveNewHire(as){
   hires.push({id,c:n.c,site:n.site,state:n.state,siteContact:n.siteContact||customers[n.c].contact,po:n.po,status:as,created:TODAY,cycle:n.basis==='month'?'Monthly in arrears':'End of hire',
     quoteValid: as==='Quotation'?addDays(TODAY,7):undefined, deposit:n._deposit||undefined, depositPaid:false,
     lines:[{u:n.u,m:n._mk,k:n.k,basis:n.basis,from:n.from,to:n.to,op:n.k==='wet'?n.op:undefined}], trips: n.u ? trips : [],
-    log:[{d:TODAY+' '+nowT(),t:`${as==='Booked'?'Booked':'Quotation created'} by ${staff[role()==='boss'?'HM':'S1'].name}.`}]});
-  toast(as==='Booked' ? `${id} booked. ${n.u} reserved on the planner.` : `${id} saved as quotation.`);
+    log:[{d:TODAY+' '+nowT(),t:`${as==='Booked'?'Booked':'Quotation created'} by ${staff[meStaff()].name}.`}]});
+  linkEnquiry(n, id, as);
+  const di = n.u ? docIssues(n.u, n.from, n.to) : [];
+  if(di.length){ const h = hire(id);
+    di.forEach(x => { h.log.unshift({d:TODAY+' '+nowT(), t:`Booked with a document issue: ${n.u} ${x.msg}.`});
+      tasks.push({id:++taskSeq, d: x.expired ? TODAY : maxD(TODAY, addDays(x.exp,-14)), type:'Renew document', who:'S1', hire:id, cust:n.c, t:`Renew ${DOCS[x.k]} for ${n.u} (${x.expired?'expired':'expires'} ${fmtD(x.exp)}) before ${x.expired?'delivery on '+fmtD(n.from):fmtD(x.exp)}`, rule:'Booked with a document issue', done:false}); }); }
+  toast((as==='Booked' ? `${id} booked. ${n.u} reserved on the planner.` : `${id} saved as quotation.`) + (di.length ? ` Note: ${di.map(x=>DOCS[x.k]).join(' and ')} needs renewing.` : ''));
   state.nh = null; render(); openHire(id);
 }
 const nowT = () => '09:'+String(10+Math.floor(Math.random()*40)).padStart(2,'0');
@@ -1361,6 +1647,8 @@ function renderOperator(){
     ${hist.length?`<div class="panel"><div class="panel-head"><h3>My last days</h3></div><div class="tbl-wrap" style="border:0"><table><tbody>
       ${hist.map(s=>`<tr class="click" data-ts="${s.id}"><td class="num">${fmtDW(s.d)}</td><td class="r num">${num(s.work)} h${s.standby?` <small class="muted">+${s.standby} standby</small>`:''}</td><td>${s.status==='signed'?'<span class="pill ok">Signed</span>':'<span class="pill warn">Waiting</span>'}</td></tr>`).join('')}
     </tbody></table></div></div>`:''}
+    ${fuelOpHtml()}
+    ${leaveApplyHtml()}
     <div class="panel"><div class="panel-head"><h3>My certificates</h3></div><div class="panel-body">${Object.entries(op.certs).map(([k,e])=>`<div class="attn" style="--sev:var(--${docState(e)==='ok'?'ok':docState(e)})"><i></i><div><b>${esc(k)}</b><br><small class="muted">Expires ${fmtDY(e)}</small></div></div>`).join('')}</div></div>
   </div>`;
   initSig();
@@ -1408,8 +1696,8 @@ function renderBilling(){
       ${run.map(({h,t})=>{ const e = exc(h); return `<tr class="click" data-hire="${h.id}"><td class="mono">${h.id}</td><td>${esc(custName(h.c))}</td><td>${esc(h.cycle)}</td><td>${e.length?e.map(x=>`<span class="pill warn">${esc(x)}</span>`).join(' '):'<span class="pill ok">Ready</span>'}</td><td class="r num">${RM(t.sub)}</td><td class="r num">${RM(t.sst)}</td><td class="r num"><b>${RM(t.total)}</b></td></tr>`; }).join('')}
       </tbody><tfoot><tr><td colspan="4"><b>Total</b></td><td class="r num"><b>${RM(sum(run.map(x=>x.t.sub)))}</b></td><td class="r num">${RM(sum(run.map(x=>x.t.sst)))}</td><td class="r num"><b>${RM(sum(run.map(x=>x.t.total)))}</b></td></tr></tfoot></table></div></div>
     <div class="panel"><div class="panel-head"><h3>Invoices</h3><span class="muted">e-Invoice via LHDN MyInvois</span></div>
-      <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Period</th><th>Due</th><th class="r">Total</th><th>Payment</th><th>MyInvois</th></tr></thead><tbody>
-      ${invoices.slice().sort((a,b)=>a.no<b.no?1:-1).map(i=>`<tr class="click" data-inv="${i.no}"><td class="mono">${i.no}</td><td>${esc(custName(i.c))}<br><small class="muted mono">${i.hire}</small></td><td>${esc(i.period)}</td><td class="num">${fmtD(i.due)}</td><td class="r num">${RM(i.total)}</td><td>${invPill(i)}</td><td>${einvPill(i)}</td></tr>`).join('')}
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Period</th><th>Due</th><th class="r">Total</th><th>Payment</th><th>MyInvois</th><th>Bukku</th></tr></thead><tbody>
+      ${invoices.slice().sort((a,b)=>a.no<b.no?1:-1).map(i=>`<tr class="click" data-inv="${i.no}"><td class="mono">${i.no}</td><td>${esc(custName(i.c))}<br><small class="muted mono">${i.hire}</small></td><td>${esc(i.period)}</td><td class="num">${fmtD(i.due)}</td><td class="r num">${RM(i.total)}</td><td>${invPill(i)}</td><td>${einvPill(i)}</td><td>${bukkuPill(i)}</td></tr>`).join('')}
       </tbody></table></div></div>`;
 }
 function openInvoice(no){
@@ -1471,6 +1759,7 @@ function renderReports(){
   $('#v-reports').innerHTML = `
     <div class="view-head"><h2>Reports · Jan–Sep 2026</h2></div>
     <div class="rgrid">
+      ${salesReportHtml()}
       <div class="panel"><div class="panel-head"><h3>Time utilisation</h3><span class="muted">target 70%</span></div><div class="rbars">
         ${us.map(u=>`<div class="rbar"><span>${u} ${esc(mOf(u).model)}</span><div class="track" style="position:relative"><div class="fill" style="width:${fleet[u].ytd.util}%;${fleet[u].ytd.util<50?'background:var(--warn)':''}"></div><i style="position:absolute;left:70%;top:-3px;bottom:-3px;width:1px;background:var(--ink);opacity:.5"></i></div><span class="v">${fleet[u].ytd.util}%</span></div>`).join('')}
       </div></div>
@@ -1481,8 +1770,998 @@ function renderReports(){
     <div class="panel"><div class="panel-head"><h3>Profit per machine</h3><span class="muted">workshop cost comes from workshop jobs on the machine</span></div>
       <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Machine</th><th class="r">Hire revenue</th><th class="r">Workshop cost</th><th class="r">Operator & transport</th><th class="r">Contribution</th><th class="r">Utilisation</th><th class="r">Revenue / purchase cost (yearly)</th></tr></thead><tbody>
         ${prof.map(p=>`<tr class="click" data-unit="${p.u}"><td><b>${p.u}</b> ${esc(uName(p.u))}</td><td class="r num">${RM0(p.rev)}</td><td class="r num ${p.ws/p.rev>0.25?'stock-low':''}">${RM0(p.ws)}</td><td class="r num">${RM0(p.opx)}</td><td class="r num"><b>${RM0(p.contrib)}</b></td><td class="r num">${p.util}%</td><td class="r num">${p.roc}%</td></tr>`).join('')}
-      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">RC-03 (2009) spent ${Math.round(fleet['RC-03'].ytd.ws/fleet['RC-03'].ytd.rev*100)}% of its revenue in the workshop, and its CF is due on 30 Oct. A candidate to replace.</small></div></div>`;
+      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">TC-02 (2009) spent ${Math.round(fleet['TC-02'].ytd.ws/fleet['TC-02'].ytd.rev*100)}% of its revenue in the workshop, and its CF is due on 30 Oct. A candidate to replace.</small></div></div>`;
 }
+
+/* ---------- people ---------- */
+Object.assign(staff, {
+  S2:{name:'Aisyah binti Karim',role:'Sales & customer service'},
+  S3:{name:'Lee Mei Fong',role:'Accounts'},
+});
+Object.entries({HM:'012-300 1001',S1:'012-388 2201',S2:'012-660 3317',S3:'016-224 9081',O1:'013-447 2190',O6:'012-218 5530',O7:'019-307 4416',O8:'016-552 9083',O9:'017-664 1209',O2:'016-301 8824',O3:'019-662 0475',O4:'012-905 3316',O5:'017-338 4021',D1:'012-771 0932',D2:'013-280 5517'}).forEach(([k,v])=>staff[k].phone=v);
+const OFFICE = ['HM','S1','S2','S3'], FIELD = ['O1','O2','O3','O4','O5','O6','O7','O8','O9','D1','D2'];
+const meStaff = () => ({boss:'HM',supervisor:'S1',sales:'S2'})[role()] || state.me;
+const ROLE_VIEWS = {
+  boss:['dashboard','today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates','reports','connect'],
+  supervisor:['dashboard','today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates'],
+  sales:['dashboard','today','enquiries','customers','hires','planner','lift','calendar','fleet','rates'],
+  operator:['timesheets'],
+};
+let leave = [
+  {id:1,s:'O2',type:'Annual leave',from:'2026-10-22',to:'2026-10-23',status:'Pending',note:'Family wedding in Ipoh'},
+  {id:2,s:'D2',type:'Medical leave (MC)',from:'2026-10-15',to:'2026-10-16',status:'Approved',note:'MC from Klinik Kesihatan Klang'},
+  {id:3,s:'O4',type:'Annual leave',from:'2026-10-29',to:'2026-10-30',status:'Pending',note:''},
+  {id:4,s:'S2',type:'Annual leave',from:'2026-11-09',to:'2026-11-09',status:'Approved',note:''},
+];
+const LTYPES = ['Annual leave','Medical leave (MC)','Emergency leave','Unpaid leave','Replacement leave'];
+const leaveBal = {O6:9,O7:5,O8:12,O9:7,HM:14,S1:10,S2:12,S3:9,O1:8,O2:3,O3:11,O4:6,O5:9,D1:7,D2:4};
+const CLOCK = {O6:'07:41 · Seksyen 13 site',O7:'07:50 · Pulau Indah',O8:'07:57 · Rawang site',O9:'07:48 · Bukit Raja site',O1:'07:46 · Seksyen 13 site',O2:'07:58 · Jalan Kapar site',O3:'07:30 · yard',O5:'08:05 · Pulau Indah',D1:'07:40 · yard',S1:'08:30 · office',S2:'08:41 · office',S3:'08:52 · office',HM:'08:15 · office'};
+
+/* ---------- customers, enquiries, follow-ups ---------- */
+customers.C8 = {name:'Sinar Timur Engineering Sdn Bhd',brn:'201101034455',tin:'C22334455070',sst:'',terms:30,limit:50000,contact:'Mr. Yap Kok Leong',phone:'012-338 7766'};
+Object.entries({C1:['Building construction','S2',2019,'2026-10-15'],C2:['Quarry','S2',2016,'2026-10-01'],C3:['Piling & foundations','S2',2018,'2026-10-14'],C4:['Steel structures','S2',2021,'2026-10-13'],
+  C5:['Civil & drainage','S2',2017,'2026-10-15'],C6:['Building construction','S2',2026,'2026-10-14'],C7:['Port & logistics','HM',2015,'2026-10-13'],C8:['M&E contractor','S2',2020,'2026-06-24']})
+  .forEach(([k,[ind,sales,since,last]]) => Object.assign(customers[k], {ind, sales, since, last, notes:[]}));
+customers.C8.lastHire = '2026-06-20';
+customers.C3.notes.push({d:'2026-10-14',t:'Mr. Gan says payment for August is with their finance, promised by 20 Oct.'});
+
+const STAGES = ['New','Contacted','Site visit','Quoted','Negotiating','Won','Lost'];
+const PROB = {New:.1,Contacted:.2,'Site visit':.4,Quoted:.5,Negotiating:.7,Won:1,Lost:0};
+const TEMP = {Hot:'var(--crit)',Warm:'var(--warn)',Cold:'var(--info)'};
+const SOURCES = ['Phone','WhatsApp','Email','Website form','Walk-in','Referral','Tender'];
+const LOST_WHY = ['No machine free','Price','Went elsewhere','Project postponed','No reply'];
+const HIST = {won:31, lost:19};
+let enquiries = [
+  {id:'E-2026-0231',at:'2026-10-16 08:20',src:'WhatsApp',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Truck crane 25 t',qty:1,k:'wet',from:'2026-10-26',to:'2026-10-30',site:'Bandar Rimbayu, Kota Kemuning',state:'Selangor',stage:'New',owner:'S2',temp:'Hot',
+   notes:'Lifting precast beams, heaviest 3.2 t at 18 m radius, set 12 m high. Site needs the crane CF copy and operator DOSH card.',lift:{w:3.2,r:18,h:12},log:[{d:'2026-10-16 08:20',t:'WhatsApp from Mr. Ong: 25 t truck crane 26–30 Oct.'}]},
+  {id:'E-2026-0230',at:'2026-10-15 15:30',src:'Phone',c:'C1',need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-11-02',to:'2026-11-13',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0160',
+   notes:'Second crane for roof steel. Our only 50 t (RC-01) is already on their site.',log:[{d:'2026-10-15 15:40',t:'Quotation H-2026-0160 started; no 50 t free.'},{d:'2026-10-15 15:30',t:'Call from Mr. Lim.'}]},
+  {id:'E-2026-0229',at:'2026-10-15 11:05',src:'Phone',c:'C5',need:'Generator 150 kVA',qty:1,k:'dry',from:'2026-11-02',to:'2026-12-31',site:'Taman Desa drainage works, Rawang',state:'Selangor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0161',
+   notes:'Site office and pumps.',log:[{d:'2026-10-16 08:50',t:'Quotation H-2026-0161 sent by WhatsApp.'}]},
+  {id:'E-2026-0228',at:'2026-10-14 10:10',src:'Website form',prospect:{name:'Ikhlas Plantation Sdn Bhd',contact:'En. Hairul Nizam',phone:'013-920 1188'},need:'Excavator 20 t',qty:2,k:'dry',from:'2026-11-09',to:'2027-02-08',site:'Ladang Sungai Tinggi, Kuala Selangor',state:'Selangor',stage:'Site visit',owner:'S2',temp:'Hot',
+   notes:'Drainage and estate road works. 2 units for 3 months. Soft ground: ask about mats and swamp shoes.',log:[{d:'2026-10-15 09:00',t:'Called En. Hairul. Site visit fixed for Mon 19 Oct.'},{d:'2026-10-14 10:10',t:'Website form received.'}]},
+  {id:'E-2026-0227',at:'2026-10-13 09:40',src:'Email',c:'C7',need:'Forklift 5 t',qty:1,k:'dry',from:'2026-10-26',to:'2026-11-08',site:'Westport warehouse 4, Pulau Indah',state:'Selangor',stage:'Negotiating',owner:'S2',temp:'Warm',
+   notes:'Peak season at the port. Asked for 10% off the weekly rate.',log:[{d:'2026-10-14 15:00',t:'Sent price: RM 1,300 a week. Customer asked for 10% off.'},{d:'2026-10-13 09:40',t:'E-mail from Mr. Ravi.'}]},
+  {id:'E-2026-0226',at:'2026-10-12 14:00',src:'Tender',prospect:{name:'Lebuh Raya Utama Contractors Sdn Bhd',contact:'Ir. Kumaran',phone:'03-7880 2210'},need:'Boom lift 20 m',qty:1,k:'dry',from:'2026-12-01',to:'2027-05-31',site:'Overhead sign gantries, Seremban',state:'Negeri Sembilan',stage:'Contacted',owner:'HM',temp:'Cold',
+   notes:'Tender closes 30 Oct. Needs company profile, CF and insurance copies.',log:[{d:'2026-10-13 10:00',t:'Tender documents downloaded.'}]},
+  {id:'E-2026-0225',at:'2026-10-13 16:20',src:'Referral',c:'C6',need:'Boom lift 20 m',qty:1,k:'dry',from:'2026-10-19',to:'2026-10-30',site:'Jalan Ampang condominium, Kuala Lumpur',stage:'Won',owner:'S2',temp:'Hot',hire:'H-2026-0157',notes:'Referred by Bina Jaya.',log:[{d:'2026-10-14 10:30',t:'Booked as H-2026-0157.'}]},
+  {id:'E-2026-0224',at:'2026-10-13 11:00',src:'Phone',c:'C4',need:'Lorry crane 10 t',qty:1,k:'wet',from:'2026-10-16',to:'2026-10-16',site:'Lot 88 Jalan Haji Sirat, Klang',stage:'Won',owner:'S2',temp:'Warm',hire:'H-2026-0155',notes:'',log:[{d:'2026-10-13 14:00',t:'Booked as H-2026-0155.'}]},
+  {id:'E-2026-0221',at:'2026-10-02 10:00',src:'Phone',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-10-05',to:'2026-10-16',site:'Bandar Rimbayu',stage:'Lost',lostWhy:'No machine free',owner:'S2',temp:'Hot',notes:'',log:[{d:'2026-10-02 11:00',t:'Lost: no 50 t free.'}]},
+  {id:'E-2026-0219',at:'2026-09-28 09:15',src:'Phone',c:'C3',need:'Excavator 20 t',qty:1,k:'dry',from:'2026-10-05',to:'2026-11-04',site:'Jalan Kapar, Klang',stage:'Lost',lostWhy:'Price',owner:'S2',temp:'Warm',notes:'',log:[{d:'2026-09-30 16:00',t:'Lost on price (competitor RM 12,800 a month).'}]},
+];
+const modelOfType = type => Object.keys(models).find(k=>models[k].type===type);
+const guessBasis = (mk,k,from,to) => { const n = daysBetween(from,to)+1, r = rate(mk,k)||{}; const order = n>=28?['month','week','day','hour']:n>=7?['week','day','month','hour']:['day','hour','week','month']; return order.find(b=>r[{hour:'hr',day:'day',week:'week',month:'month'}[b]]) || 'day'; };
+const kindFor = (mk,k) => rate(mk,k) ? k : rate(mk,'wet') ? 'wet' : 'dry';
+function enqValue(e){ if(e.value) return e.value; const mk = modelOfType(e.need), k = kindFor(mk,e.k), est = estimate(mk,k,guessBasis(mk,k,e.from,e.to),e.from,e.to); return Math.round((est?est.amt:0)*(e.qty||1)); }
+enquiries.forEach(e => e.value = enqValue(e));
+const enq = id => enquiries.find(e=>e.id===id);
+const enqName = e => e.c ? custName(e.c) : e.prospect.name;
+const openStage = e => !['Won','Lost'].includes(e.stage);
+
+let tasks = [
+  {id:1,d:'2026-10-16',time:'10:00',type:'Call',who:'S2',enq:'E-2026-0231',t:'Call Mr. Ong back: load weights, radius and site access for the 25 t truck crane'},
+  {id:2,d:'2026-10-16',time:'11:30',type:'WhatsApp',who:'S2',enq:'E-2026-0227',cust:'C7',t:'Reply Mr. Ravi on the 10% discount (up to 5% without the Head Manager)'},
+  {id:3,d:'2026-10-15',time:'16:00',type:'Call',who:'S2',enq:'E-2026-0230',cust:'C1',t:'Bina Jaya 50 t: offer the free 60 t GR-600-1 (RC-02) or a 50 t truck crane'},
+  {id:4,d:'2026-10-19',time:'09:30',type:'Site visit',who:'S1',enq:'E-2026-0228',t:'Site visit Ladang Sungai Tinggi with En. Hairul: ground and lowloader access'},
+  {id:5,d:'2026-10-20',time:'10:00',type:'Send documents',who:'HM',enq:'E-2026-0226',t:'Send company profile, BL-01 CF and insurance for the tender'},
+  {id:6,d:'2026-10-14',type:'Chase PO',who:'S2',enq:'E-2026-0225',cust:'C6',t:'Get the LOU from Lian Hup before booking',done:true,doneAt:'2026-10-14',note:'LOU received by e-mail.'},
+].map(t => ({done:false, ...t}));
+let taskSeq = 100;
+function lastHireOf(c){ const ends = hires.filter(h=>h.c===c && !['Quotation','Lost'].includes(h.status)).flatMap(h=>h.lines.map(l=>minD(lineEnd(l),TODAY))); return ends.sort().pop() || customers[c].lastHire || null; }
+(function autoTasks(){
+  const add = o => tasks.push({id:++taskSeq, done:false, ...o, d:dow(o.d)===0?addDays(o.d,1):o.d});
+  hires.filter(h=>h.status==='On hire' && !h.contract).forEach(h => { const end = h.lines[0].to, n = daysBetween(TODAY,end);
+    if(n>=0 && n<=10) add({d:addDays(end,-7)<'2026-10-15'?'2026-10-15':addDays(end,-7), type:'Extension check', who:'S2', hire:h.id, cust:h.c, t:`Ask ${customers[h.c].contact} whether to extend ${h.lines.map(l=>l.u).join(' and ')} past ${fmtD(end)}`, rule:'Hire ends within 7 days'}); });
+  hires.filter(h=>h.status==='Quotation' && h.lines.every(l=>l.u)).forEach(h => add({d:addDays(h.created,2), type:'Call', who:'S2', hire:h.id, cust:h.c, enq:enquiries.find(e=>e.hire===h.id)?.id, t:`Follow up quotation ${h.id} with ${customers[h.c].contact}`, rule:'Quotation sent 2 days ago'}));
+  invoices.filter(i=>invStatus(i)==='Overdue').forEach(i => add({d:TODAY, type:'Payment chase', who:'S3', inv:i.no, cust:i.c, t:`Remind ${customers[i.c].contact}: ${i.no}, ${RM(i.total)}, ${daysBetween(i.due,TODAY)} days overdue`, rule:'Invoice overdue 7 / 14 / 30 days'}));
+  Object.keys(customers).forEach(c => { const lh = lastHireOf(c); if(lh && daysBetween(lh,TODAY)>90) add({d:TODAY, type:'Call', who:customers[c].sales||'S2', cust:c, t:`Reactivation call to ${customers[c].contact}: no hire since ${fmtDY(lh)}`, rule:'No hire for 90 days'}); });
+})();
+const RULES_FU = [
+  ['New enquiry','Call back within 2 working hours (owner)'],
+  ['Quotation sent','Follow-up call after 2 days; again 1 day before it expires'],
+  ['Booking without PO / LOU','Chase PO 2 days before delivery'],
+  ['Hire ends within 7 days','Ask the customer about extension or off-hire'],
+  ['Invoice overdue','Reminders at 7, 14 and 30 days (Accounts); Head Manager at 60 days'],
+  ['No hire for 90 days','Reactivation call by the salesperson'],
+  ['Enquiry lost: no machine free','Added to the fleet report; call back if a machine frees up'],
+];
+const custOfTask = t => t.cust || (t.enq && enq(t.enq)?.c) || (t.hire && hire(t.hire)?.c) || (t.inv && invoices.find(i=>i.no===t.inv)?.c) || null;
+const taskAttr = t => t.enq ? `data-enq="${t.enq}"` : t.hire ? `data-hire="${t.hire}"` : t.inv ? `data-inv="${t.inv}"` : t.cust ? `data-cust="${t.cust}"` : '';
+function taskRow(t, showWho=true){
+  const over = t.d < TODAY, due = t.d === TODAY;
+  return `<div class="task-row"><div class="tr-main" ${taskAttr(t)} role="button" tabindex="0"><b>${esc(t.t)}</b><small class="muted">${esc(t.type)} · ${due?'Today':fmtDW(t.d)}${t.time?' '+t.time:''}${showWho?' · '+esc(staff[t.who].name):''}${t.rule?' · auto: '+esc(t.rule):''}${t.note?' · '+esc(t.note):''}</small></div>
+    ${t.done ? `<span class="pill ok">Done ${fmtD(t.doneAt)}</span>` : `<span class="pill ${over?'crit':due?'warn':'mute'}">${over?daysBetween(t.d,TODAY)+' d late':due?'Today':fmtD(t.d)}</span><div class="btnrow"><button class="btn small" data-action="task-done" data-id="${t.id}">Done</button><button class="btn small" data-action="task-snooze" data-id="${t.id}">+1 day</button></div>`}</div>`;
+}
+function followupsTodayHtml(){
+  const me = meStaff(), mine = role()==='sales';
+  const list = tasks.filter(t=>!t.done && t.d<=TODAY && (!mine || t.who===me)).sort((a,b)=>a.d<b.d?-1:1);
+  const upcoming = tasks.filter(t=>!t.done && t.d>TODAY && t.d<=addDays(TODAY,7) && (!mine || t.who===me)).length;
+  return `<div class="panel"><div class="panel-head"><h3>Follow-ups due${mine?' (mine)':''}</h3><span class="btnrow"><span class="muted num">${list.length}</span><button class="btn small" data-action="goto-fu">All follow-ups</button></span></div><div>
+    ${list.slice(0,7).map(t=>taskRow(t,!mine)).join('') || `<p class="muted" style="padding:8px 14px">Nothing due. ${upcoming} coming up this week.</p>`}
+    ${list.length>7?`<p class="muted" style="padding:8px 14px;margin:0">${list.length-7} more in Enquiries → Follow-ups.</p>`:''}</div></div>`;
+}
+
+/* ---------- Enquiries ---------- */
+function renderEnquiries(){
+  const open = enquiries.filter(openStage), me = meStaff();
+  const pipe = sum(open.map(e=>e.value*PROB[e.stage]));
+  const won = HIST.won + enquiries.filter(e=>e.stage==='Won').length, lostN = HIST.lost + enquiries.filter(e=>e.stage==='Lost').length;
+  const overdue = tasks.filter(t=>!t.done && t.d<TODAY).length;
+  const noFu = open.filter(e=>!tasks.some(t=>!t.done && t.enq===e.id)).length;
+  const tab = state.enqTab;
+  const nextFu = e => tasks.filter(t=>!t.done && t.enq===e.id).sort((a,b)=>a.d<b.d?-1:1)[0];
+  const card = e => { const f = nextFu(e); return `<button class="card" data-enq="${e.id}" style="--cat:${TEMP[e.temp]}">
+      <div class="card-top"><span class="mono">${e.id}</span><span class="pri ${e.temp==='Hot'?'High':'Normal'}">${e.temp}</span></div>
+      <span class="mach">${esc(e.need)}${e.qty>1?' × '+e.qty:''}</span>
+      <span class="cust">${esc(enqName(e))}${e.c?'':' · new'}</span>
+      <span class="cust">${fmtD(e.from)}–${fmtD(e.to)} · ${kindLabel(e.k)}</span>
+      <div class="card-foot"><b class="num">${RM0(e.value)}</b>${openStage(e) ? (f ? `<span class="due ${f.d<TODAY?'over':f.d===TODAY?'soon':''}">${f.d<TODAY?'Late: ':f.d===TODAY?'Today: ':fmtD(f.d)+': '}${esc(f.type)}</span>` : '<span class="due over">No follow-up</span>') : e.stage==='Lost' ? `<span class="muted">${esc(e.lostWhy||'')}</span>` : `<span class="mono muted">${e.hire||''}</span>`}<span class="avatar" title="${esc(staff[e.owner].name)}">${initials(staff[e.owner].name)}</span></div></button>`; };
+  let body = '';
+  if(tab==='board') body = `<div class="board">${STAGES.map(s=>{ const es = enquiries.filter(e=>e.stage===s); return `<div class="col"><div class="col-head"><h3>${s}</h3><span class="num">${es.length}${openStage({stage:s})&&es.length?' · '+RM0(sum(es.map(e=>e.value))):''}</span></div>${es.map(card).join('') || '<div class="empty-col">None</div>'}</div>`; }).join('')}</div>`;
+  else {
+    const mine = state.fuMine, list = tasks.filter(t => !mine || t.who===me);
+    const groups = [['Overdue', list.filter(t=>!t.done && t.d<TODAY)], ['Today', list.filter(t=>!t.done && t.d===TODAY)], ['Next 7 days', list.filter(t=>!t.done && t.d>TODAY && t.d<=addDays(TODAY,7))], ['Later', list.filter(t=>!t.done && t.d>addDays(TODAY,7))], ['Done recently', list.filter(t=>t.done)]];
+    body = `<div class="dash"><div class="panel"><div class="panel-head"><h3>Follow-ups</h3><label class="filters"><input type="checkbox" data-action="fu-mine" ${mine?'checked':''}> Mine only (${esc(staff[me].name)})</label></div>
+      ${groups.map(([g,ts])=>ts.length?`<div class="grp-h">${g} · ${ts.length}</div>${ts.sort((a,b)=>a.d<b.d?-1:1).map(t=>taskRow(t)).join('')}`:'').join('')}</div>
+      <div class="rail"><div class="panel"><div class="panel-head"><h3>Automatic follow-ups</h3></div><div class="tbl-wrap" style="border:0"><table><tbody>${RULES_FU.map(([a,b])=>`<tr><td><b>${esc(a)}</b><br><small class="muted">${esc(b)}</small></td></tr>`).join('')}</tbody></table></div></div></div></div>`;
+  }
+  $('#v-enquiries').innerHTML = `
+    <div class="view-head"><h2>Enquiries</h2>
+      <div class="seg"><button data-enqtab="board" aria-pressed="${tab==='board'}">Pipeline</button><button data-enqtab="fu" aria-pressed="${tab==='fu'}">Follow-ups <span class="muted num">${tasks.filter(t=>!t.done && t.d<=TODAY).length}</span></button></div>
+      <button class="btn primary" data-action="new-enq">New enquiry</button></div>
+    <div class="kpis">
+      <div class="kpi"><b>${open.length}</b><span>Open enquiries</span></div>
+      <div class="kpi"><b style="font-size:1.45rem">${RM0(pipe)}</b><span>Pipeline, weighted by stage</span></div>
+      <div class="kpi"><b>${enquiries.filter(e=>e.at.startsWith(TODAY)).length}</b><span>New today</span></div>
+      <div class="kpi"><b>${Math.round(won/(won+lostN)*100)}%</b><span>Win rate, last 90 days</span></div>
+      <div class="kpi"><b>41 min</b><span>Average first reply (Oct)</span></div>
+      <div class="kpi alert"><b>${overdue}</b><span>Follow-ups overdue</span></div>
+      <div class="kpi warn"><b>${noFu}</b><span>Open, no follow-up set</span></div>
+    </div>${body}`;
+}
+function neDefaults(pre={}){ return {src:'Phone', c:'', pname:'', pcontact:'', pphone:'', need:'Excavator 20 t', qty:1, k:'dry', from:addDays(TODAY,7), to:addDays(TODAY,20), site:'', state:'Selangor', notes:'', owner:OFFICE.includes(meStaff())?meStaff():'S2', fu:TODAY, fuT:'Call back with price and availability', temp:'Warm', ...pre}; }
+function openNewEnquiry(){
+  const n = state.ne, types = [...new Set(hireUnits().map(u=>mOf(u).type))], mk = modelOfType(n.need);
+  const kinds = ['dry','wet'].filter(k=>rate(mk,k)); if(!kinds.includes(n.k)) n.k = kinds[0];
+  const free = hireUnits().filter(u=>mOf(u).type===n.need && availability(u,n.from,n.to).ok).length;
+  const val = enqValue({...n, value:0});
+  const body = `<form class="stack" data-form="ne">
+    <div class="sect"><h3>Who is asking</h3><div class="in form">
+      <label>Source<select class="field" data-ne="src">${SOURCES.map(s=>`<option ${s===n.src?'selected':''}>${s}</option>`).join('')}</select></label>
+      <label>Customer<select class="field" data-ne="c"><option value="">New prospect (not a customer yet)</option>${Object.entries(customers).map(([k,c])=>`<option value="${k}" ${k===n.c?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
+      ${n.c ? `<label>Contact<input type="text" value="${esc(customers[n.c].contact)} · ${esc(customers[n.c].phone)}" readonly></label>` : `
+      <label>Company<input type="text" data-ne="pname" value="${esc(n.pname)}" placeholder="e.g. Sri Kenari Builders Sdn Bhd"></label>
+      <label>Contact person<input type="text" data-ne="pcontact" value="${esc(n.pcontact)}"></label>
+      <label>Phone / WhatsApp<input type="text" data-ne="pphone" value="${esc(n.pphone)}" placeholder="012-345 6789"></label>`}
+    </div></div>
+    <div class="sect"><h3>What they need</h3><div class="in form">
+      <label>Machine type<select class="field" data-ne="need">${types.map(t=>`<option ${t===n.need?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+      <label>Quantity<input type="number" min="1" max="10" data-ne="qty" value="${n.qty}"></label>
+      <label>Kind<select class="field" data-ne="k">${kinds.map(k=>`<option value="${k}" ${k===n.k?'selected':''}>${kindLabel(k)}</option>`).join('')}</select></label>
+      <label>From<input type="date" data-ne="from" value="${n.from}"></label>
+      <label>To<input type="date" data-ne="to" value="${n.to}"></label>
+      <label>Site<input type="text" data-ne="site" value="${esc(n.site)}" placeholder="Town / project"></label>
+      <label class="full">Details<textarea rows="2" data-ne="notes" placeholder="Loads, radius, ground, access, working hours…">${esc(n.notes)}</textarea></label>
+      <label class="full" style="color:var(--${free>=n.qty?'ok':'crit'})">${free} of ${hireUnits().filter(u=>mOf(u).type===n.need).length} ${esc(n.need)} free for these dates${free<n.qty?': offer other dates, another size, or cross-hire':''}. <span class="cost">Estimated value ${RM0(val)}.</span></label>
+    </div></div>
+    <div class="sect"><h3>Next step</h3><div class="in form">
+      <label>Owner<select class="field" data-ne="owner">${OFFICE.map(s=>`<option value="${s}" ${s===n.owner?'selected':''}>${esc(staff[s].name)}</option>`).join('')}</select></label>
+      <label>How hot<select class="field" data-ne="temp">${Object.keys(TEMP).map(t=>`<option ${t===n.temp?'selected':''}>${t}</option>`).join('')}</select></label>
+      <label>Follow up on<input type="date" data-ne="fu" value="${n.fu}"></label>
+      <label class="full">Follow-up action<input type="text" data-ne="fuT" value="${esc(n.fuT)}"></label>
+    </div></div>
+    <div class="btnrow"><button class="btn primary" type="button" data-action="ne-save">Save enquiry</button></div></form>`;
+  openSheet('New enquiry', `<span class="mono">E-2026-0${Math.max(...enquiries.map(e=>+e.id.slice(-4)))+1}</span>`, body, {type:'ne'});
+}
+function saveEnquiry(){
+  const n = state.ne;
+  if(!n.c && !n.pname.trim()){ toast('Enter the company name'); return; }
+  const id = 'E-2026-0' + (Math.max(...enquiries.map(e=>+e.id.slice(-4)))+1);
+  const e = {id, at:`${TODAY} ${nowT()}`, src:n.src, c:n.c||undefined, prospect:n.c?undefined:{name:n.pname.trim(),contact:n.pcontact,phone:n.pphone}, need:n.need, qty:+n.qty||1, k:n.k, from:n.from, to:n.to, site:n.site, state:n.state, stage:'New', owner:n.owner, temp:n.temp, notes:n.notes, log:[{d:`${TODAY} ${nowT()}`,t:`${n.src} enquiry logged by ${staff[meStaff()].name}.`}]};
+  e.value = enqValue(e);
+  enquiries.unshift(e);
+  tasks.push({id:++taskSeq, d:n.fu, type:'Call', who:n.owner, enq:id, cust:n.c||undefined, t:n.fuT || 'Call back', done:false});
+  state.ne = null; toast(`${id} saved. Follow-up set for ${fmtDW(n.fu)}.`); render(); openEnquiry(id);
+}
+function openEnquiry(id){
+  const e = enq(id), si = STAGES.indexOf(e.stage), cu = e.c ? customers[e.c] : null;
+  const us = hireUnits().filter(u=>mOf(u).type===e.need).map(u=>({u,...availability(u,e.from,e.to, e.hire)}));
+  const ts = tasks.filter(t=>t.enq===id).sort((a,b)=>a.done-b.done || (a.d<b.d?-1:1));
+  const body = `
+    <div class="steps">${STAGES.filter(s=>s!=='Lost').map((s,i)=>`<button class="step ${e.stage==='Lost'?'':i<si?'done':i===si?'cur':''}" data-action="enq-stage" data-id="${id}" data-s="${s}" ${openStage(e)?'':'disabled'}>${s}</button>`).join('')}</div>
+    ${e.stage==='Lost'?`<div class="banner crit"><b>Lost: ${esc(e.lostWhy||'')}</b></div>`:''}
+    <div class="btnrow">
+      ${e.hire?`<button class="btn" data-hire="${e.hire}">Open ${e.hire}</button>`:openStage(e)?`<button class="btn primary" data-action="enq-quote" data-id="${id}">Make quotation</button>`:''}
+      ${e.lift?`<button class="btn" data-action="lift-from-enq" data-id="${id}">Lift check: ${num(e.lift.w)} t at ${num(e.lift.r)} m</button>`:''}
+      ${!e.c && openStage(e)?`<button class="btn" data-action="enq-cust" data-id="${id}">Add as customer</button>`:''}
+    </div>
+    <div class="sect"><h3>Enquiry</h3><div class="facts">
+      <div><span class="label">${e.c?'Customer':'Prospect'}</span><b>${e.c?`<a href="#" data-cust="${e.c}">${esc(cu.name)}</a>`:esc(e.prospect.name)}</b></div>
+      <div><span class="label">Contact</span><b>${esc(cu?cu.contact:e.prospect.contact)} · ${esc(cu?cu.phone:e.prospect.phone)}</b></div>
+      <div><span class="label">Source</span><b>${esc(e.src)}</b><small class="muted">${esc(e.at)}</small></div>
+      <div><span class="label">Needs</span><b>${esc(e.need)}${e.qty>1?' × '+e.qty:''}</b><small class="muted">${kindLabel(e.k)}</small></div>
+      <div><span class="label">Dates</span><b>${fmtD(e.from)} – ${fmtDY(e.to)}</b><small class="muted">${daysBetween(e.from,e.to)+1} days</small></div>
+      <div><span class="label">Site</span><b>${esc(e.site||'—')}</b></div>
+      <div class="cost"><span class="label">Value</span><b>${RM0(e.value)}</b><small class="muted">${Math.round(PROB[e.stage]*100)}% likely at this stage</small></div>
+      <div><span class="label">Owner</span><select class="field" data-enqf="owner" data-id="${id}">${OFFICE.map(s=>`<option value="${s}" ${s===e.owner?'selected':''}>${esc(staff[s].name)}</option>`).join('')}</select></div>
+      <div><span class="label">How hot</span><select class="field" data-enqf="temp" data-id="${id}">${Object.keys(TEMP).map(t=>`<option ${t===e.temp?'selected':''}>${t}</option>`).join('')}</select></div>
+    </div>${e.notes?`<div class="in" style="border-top:1px solid var(--line)">${esc(e.notes)}</div>`:''}</div>
+    ${openStage(e)?`<div class="sect"><h3>Availability</h3><div class="findres">${us.map(r=>`<div class="fr"><div><b>${r.u} ${esc(uName(r.u))}</b> <span class="pill ${r.ok?'ok':'crit'}">${r.ok?'Free':'Not free'}</span><small>${r.ok?'Free for these dates.':r.why.map(esc).join(' · ')}</small>${r.ok?warnHtml(r.warn):''}</div></div>`).join('')}
+      ${us.filter(r=>r.ok).length<(e.qty||1)?`<div class="fr"><div><b>Short by ${(e.qty||1)-us.filter(r=>r.ok).length}.</b><small>Offer other dates or another size, or cross-hire from a partner.</small></div></div>`:''}</div></div>`:''}
+    <div class="sect"><h3>Follow-ups</h3><div>${ts.map(t=>taskRow(t)).join('') || '<p class="muted" style="padding:8px 14px;margin:0">No follow-up set.</p>'}</div>
+      ${openStage(e)?`<form class="in form" data-form="task" data-enq="${id}" style="border-top:1px solid var(--line)">
+        <label>Date<input type="date" name="d" value="${addDays(TODAY,1)}"></label>
+        <label>Type<select class="field" name="type">${['Call','WhatsApp','Site visit','Send quotation','Send documents','Chase PO','Meeting'].map(x=>`<option>${x}</option>`).join('')}</select></label>
+        <label>Who<select class="field" name="who">${OFFICE.map(s=>`<option value="${s}" ${s===e.owner?'selected':''}>${esc(staff[s].name)}</option>`).join('')}</select></label>
+        <label class="full">What<input type="text" name="t" placeholder="e.g. Call Mr. Ong to confirm the lift plan"></label>
+        <div class="btnrow"><button class="btn">Add follow-up</button></div></form>`:''}</div>
+    <div class="sect"><h3>Activity</h3><div class="in">
+      <form data-form="note" data-enq="${id}" class="btnrow"><input type="text" name="t" placeholder="Log a call, WhatsApp or visit…" style="flex:1"><button class="btn">Log</button></form>
+      <ul class="log">${e.log.map(x=>`<li><time>${esc(x.d)}</time><span>${esc(x.t)}</span></li>`).join('')}</ul></div></div>
+    ${openStage(e)?`<form class="docbar" data-form="lost" data-enq="${id}"><span class="label">Mark lost</span><div class="btnrow"><select class="field" name="why">${LOST_WHY.map(w=>`<option>${w}</option>`).join('')}</select><button class="btn">Mark lost</button></div></form>`:''}`;
+  openSheet(esc(enqName(e)), `<span class="mono">${id}</span> <span class="pill ${e.stage==='Won'?'ok':e.stage==='Lost'?'mute':'info'}">${e.stage}</span>`, body, {type:'enq',id});
+}
+function enqToCustomer(e){
+  if(e.c) return e.c;
+  const k = 'C' + (Math.max(...Object.keys(customers).map(x=>+x.slice(1)))+1);
+  customers[k] = {name:e.prospect.name, contact:e.prospect.contact, phone:e.prospect.phone, brn:'', tin:'', sst:'', terms:0, limit:0, isNew:true, ind:'', sales:e.owner, since:2026, last:TODAY, notes:[]};
+  enquiries.filter(x=>!x.c && x.prospect && x.prospect.name===e.prospect.name).forEach(x=>x.c=k);
+  tasks.filter(t=>t.enq===e.id).forEach(t=>t.cust=k);
+  e.log.unshift({d:`${TODAY} ${nowT()}`,t:'Added as a customer. SSM no. and TIN still needed.'});
+  return k;
+}
+function linkEnquiry(n, id, as){
+  if(!n.enq) return;
+  const e = enq(n.enq); e.hire = id; e.stage = as==='Booked' ? 'Won' : 'Quoted';
+  e.log.unshift({d:`${TODAY} ${nowT()}`,t:as==='Booked'?`Booked as ${id}.`:`Quotation ${id} made.`});
+  if(as!=='Booked') tasks.push({id:++taskSeq, d:addDays(TODAY,2), type:'Call', who:e.owner, enq:e.id, cust:e.c, hire:id, t:`Follow up quotation ${id}`, rule:'Quotation sent 2 days ago', done:false});
+}
+
+/* ---------- Customers ---------- */
+function lastContact(k){
+  const c = customers[k], ds = [c.last];
+  enquiries.filter(e=>e.c===k).forEach(e=>e.log.forEach(x=>ds.push(x.d.slice(0,10))));
+  tasks.filter(t=>t.done && custOfTask(t)===k).forEach(t=>ds.push(t.doneAt));
+  c.notes.forEach(n=>ds.push(n.d));
+  return ds.filter(Boolean).sort().pop();
+}
+const balanceOf = k => sum(invoices.filter(i=>i.c===k && i.status!=='Paid').map(i=>i.total));
+function renderCustomers(){
+  const q = (state.custQ||'').toLowerCase();
+  const rows = Object.entries(customers).filter(([k,c])=>!q || (c.name+' '+c.contact+' '+(c.ind||'')).toLowerCase().includes(q)).map(([k,c]) => ({k, c,
+    active: hires.filter(h=>h.c===k && LIVE.includes(h.status)).length, open: enquiries.filter(e=>e.c===k && openStage(e)).length,
+    bal: balanceOf(k), over: invoices.some(i=>i.c===k && invStatus(i)==='Overdue'), last: lastContact(k),
+    next: tasks.filter(t=>!t.done && custOfTask(t)===k).sort((a,b)=>a.d<b.d?-1:1)[0]}));
+  const prospects = [...new Map(enquiries.filter(e=>!e.c).map(e=>[e.prospect.name, e])).values()];
+  $('#v-customers').innerHTML = `
+    <div class="view-head"><h2>Customers</h2><input type="search" id="custQ" placeholder="Search name, contact, industry" value="${esc(state.custQ||'')}"><button class="btn primary" data-action="new-enq">New enquiry</button></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Customer</th><th>Contact</th><th>Salesperson</th><th class="r">On hire</th><th class="r">Open enquiries</th><th class="r cost">Balance</th><th>Last contact</th><th>Next follow-up</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr class="click" data-cust="${r.k}"><td><b>${esc(r.c.name)}</b>${r.c.isNew?' <span class="pill appr">New</span>':''}<br><small class="muted">${esc(r.c.ind||'')}${!r.c.tin?' · <span style="color:var(--crit)">TIN missing</span>':''}</small></td>
+        <td>${esc(r.c.contact)}<br><small class="muted">${esc(r.c.phone)}</small></td><td>${esc(staff[r.c.sales||'S2'].name)}</td>
+        <td class="r num">${r.active||'—'}</td><td class="r num">${r.open||'—'}</td>
+        <td class="r num cost">${r.bal?`<span class="${r.over?'stock-out':''}">${RM0(r.bal)}</span>`:'—'}</td>
+        <td class="num">${r.last?fmtD(r.last):'—'}${r.last&&daysBetween(r.last,TODAY)>60?' <span class="pill warn">'+daysBetween(r.last,TODAY)+' d</span>':''}</td>
+        <td>${r.next?`<span class="due ${r.next.d<TODAY?'over':r.next.d===TODAY?'soon':''}">${r.next.d===TODAY?'Today':fmtD(r.next.d)} · ${esc(r.next.type)}</span>`:'<span class="muted">—</span>'}</td></tr>`).join('')}
+    </tbody></table></div>
+    ${prospects.length?`<div class="panel"><div class="panel-head"><h3>Prospects</h3><span class="muted">asked for a machine, not customers yet</span></div><div class="tbl-wrap" style="border:0"><table><tbody>
+      ${prospects.map(e=>`<tr class="click" data-enq="${e.id}"><td><b>${esc(e.prospect.name)}</b><br><small class="muted">${esc(e.prospect.contact)} · ${esc(e.prospect.phone)}</small></td><td>${esc(e.need)}</td><td>${e.stage}</td></tr>`).join('')}
+    </tbody></table></div></div>`:''}`;
+}
+function openCustomer(k){
+  const c = customers[k], bal = balanceOf(k);
+  const tl = [
+    ...enquiries.filter(e=>e.c===k).map(e=>({d:e.at.slice(0,10),t:`Enquiry ${e.id}: ${e.need} (${e.stage})`,a:`data-enq="${e.id}"`})),
+    ...hires.filter(h=>h.c===k).map(h=>({d:h.created,t:`Hire ${h.id}: ${h.lines.map(l=>l.u||models[l.m].type).join(', ')} · ${h.status}`,a:`data-hire="${h.id}"`})),
+    ...invoices.filter(i=>i.c===k).map(i=>({d:i.issued,t:`Invoice ${i.no}: ${RM(i.total)} · ${invStatus(i)}`,a:`data-inv="${i.no}"`,cost:true})),
+    ...tasks.filter(t=>t.done && custOfTask(t)===k).map(t=>({d:t.doneAt,t:`${t.type} done: ${t.t}${t.note?' ('+t.note+')':''}`,a:''})),
+    ...c.notes.map(n=>({d:n.d,t:`Note: ${n.t}`,a:''})),
+  ].sort((a,b)=>a.d<b.d?1:-1);
+  const sites = [...new Set(hires.filter(h=>h.c===k).map(h=>h.site))];
+  const contacts = [...new Set(hires.filter(h=>h.c===k).map(h=>h.siteContact))];
+  const ts = tasks.filter(t=>!t.done && custOfTask(t)===k).sort((a,b)=>a.d<b.d?-1:1);
+  const body = `
+    <div class="btnrow"><button class="btn primary" data-action="new-enq" data-c="${k}">New enquiry</button><button class="btn" data-action="cust-hire" data-c="${k}">New hire / quotation</button></div>
+    <div class="sect"><div class="facts">
+      <div><span class="label">Industry</span><b>${esc(c.ind||'—')}</b></div>
+      <div><span class="label">Customer since</span><b>${c.since||'—'}</b></div>
+      <div><span class="label">Salesperson</span><b>${esc(staff[c.sales||'S2'].name)}</b></div>
+      <div><span class="label">SSM no.</span><b>${esc(c.brn||'Missing')}</b></div>
+      <div><span class="label">TIN</span><b>${c.tin?esc(c.tin):'<span style="color:var(--crit)">Missing: needed for e-invoice</span>'}</b></div>
+      <div><span class="label">SST no.</span><b>${esc(c.sst||'—')}</b></div>
+      <div class="cost"><span class="label">Credit</span><b>${c.terms?c.terms+' days, limit '+RM0(c.limit):'Cash / deposit'}</b></div>
+      <div class="cost"><span class="label">Balance owing</span><b>${RM0(bal)}</b>${c.limit?`<small class="muted">${Math.round(bal/c.limit*100)}% of limit</small>`:''}</div>
+    </div></div>
+    <div class="sect"><h3>Contacts and sites</h3><div class="in">
+      <div><b>${esc(c.contact)}</b> · ${esc(c.phone)} <span class="muted">(main)</span></div>
+      ${contacts.map(x=>`<div>${esc(x)} <span class="muted">(site)</span></div>`).join('')}
+      ${sites.length?`<small class="muted">Sites: ${sites.map(esc).join(' · ')}</small>`:''}
+    </div></div>
+    <div class="sect"><h3>Open follow-ups</h3><div>${ts.map(t=>taskRow(t)).join('') || '<p class="muted" style="padding:8px 14px;margin:0">None.</p>'}</div>
+      <form class="in form" data-form="task" data-cust="${k}" style="border-top:1px solid var(--line)">
+        <label>Date<input type="date" name="d" value="${addDays(TODAY,1)}"></label>
+        <label>Type<select class="field" name="type">${['Call','WhatsApp','Meeting','Site visit','Payment chase','Send documents'].map(x=>`<option>${x}</option>`).join('')}</select></label>
+        <label>Who<select class="field" name="who">${OFFICE.map(s=>`<option value="${s}" ${s===(c.sales||'S2')?'selected':''}>${esc(staff[s].name)}</option>`).join('')}</select></label>
+        <label class="full">What<input type="text" name="t" placeholder="e.g. Visit Mr. Lim about next year's projects"></label>
+        <div class="btnrow"><button class="btn">Add follow-up</button></div></form></div>
+    <div class="sect"><h3>History</h3><div class="in">
+      <form data-form="cnote" data-c="${k}" class="btnrow"><input type="text" name="t" placeholder="Add a note (call, visit, complaint…)" style="flex:1"><button class="btn">Add</button></form>
+      <ul class="log">${tl.map(x=>`<li class="${x.cost?'cost':''}"><time>${fmtDY(x.d)}</time><span ${x.a} ${x.a?'role="button" tabindex="0" style="cursor:pointer;text-decoration:underline dotted"':''}>${esc(x.t)}</span></li>`).join('')}</ul></div></div>`;
+  openSheet(esc(c.name), `<span class="mono">${k}</span>${c.isNew?' <span class="pill appr">New customer</span>':''}`, body, {type:'cust',id:k});
+}
+
+/* ---------- Calendar ---------- */
+const ETYPES = {Transport:'var(--warn)','Follow-up':'var(--info)','Site visit':'var(--c-pm)',Meeting:'var(--c-major)',Inspection:'var(--crit)',Workshop:'var(--muted)',Leave:'var(--c-paint)',Company:'var(--c-fab)',Training:'var(--c-minor)',Expiry:'var(--c-hyd)'};
+let events = [
+  {d:'2026-10-09',time:'08:00',type:'Company',t:'Toolbox talk: lifting near power lines'},
+  {d:'2026-10-17',time:'08:00',type:'Company',t:'Monthly safety briefing, all operators and drivers (yard)'},
+  {d:'2026-10-20',time:'10:30',type:'Meeting',t:'Bina Jaya site progress meeting, Shah Alam',cust:'C1'},
+  {d:'2026-10-22',time:'10:00',type:'Inspection',t:'DOSH CF inspection: TC-02 at the yard',unit:'TC-02'},
+  {d:'2026-10-24',time:'08:30',type:'Training',t:'CIDB green card renewal course: Azman bin Yusof'},
+  {d:'2026-10-27',time:'09:00',type:'Inspection',t:'Puspakom inspection: TR-01',unit:'TR-01'},
+  {d:'2026-10-30',time:'15:00',type:'Company',t:'Month-end planning meeting: fleet, staff and billing'},
+  {d:'2026-11-05',time:'14:00',type:'Meeting',t:'Kuari Semenyih contract renewal (EX-02 from Dec)',cust:'C2'},
+];
+function calEvents(from, to){
+  const out = [], inR = d => d>=from && d<=to;
+  allTrips().forEach(t => { if(inR(t.d)) out.push({d:t.d,type:'Transport',t:`${t.dir==='Delivery'?'Deliver':'Collect'} ${t.u} · ${custName(t.c).replace(/ Sdn Bhd$/,'')}`,a:`data-hire="${t.hire}"`}); });
+  tasks.forEach(t => { if(!t.done && inR(t.d)) out.push({d:t.d,time:t.time,type:t.type==='Site visit'?'Site visit':t.type==='Meeting'?'Meeting':'Follow-up',t:`${t.type}: ${t.t}`,a:taskAttr(t),who:t.who}); });
+  events.forEach(ev => { if(inR(ev.d)) out.push({d:ev.d,time:ev.time,type:ev.type,t:ev.t,a:ev.cust?`data-cust="${ev.cust}"`:ev.unit?`data-unit="${ev.unit}"`:''}); });
+  workshop.forEach(w => { if(inR(w.from)) out.push({d:w.from,type:'Workshop',t:`${w.u} into workshop: ${w.note}`,a:`data-unit="${w.u}"`}); });
+  Object.entries(fleet).forEach(([u,f]) => Object.entries(f.docs).forEach(([k,e]) => { if(inR(e)) out.push({d:e,type:'Expiry',t:`${u}: ${DOCS[k]} expires`,a:`data-unit="${u}"`}); }));
+  Object.values(staff).forEach(p => Object.entries(p.certs||{}).forEach(([k,e]) => { if(inR(e)) out.push({d:e,type:'Expiry',t:`${p.name}: ${k} expires`,a:''}); }));
+  leave.filter(l=>l.status!=='Rejected').forEach(l => { for(let d=l.from; d<=l.to; d=addDays(d,1)) if(inR(d) && dow(d)!==0) out.push({d,type:'Leave',t:`${staff[l.s].name.split(' ')[0]}: ${l.type}${l.status==='Pending'?' (pending)':''}`,a:'data-stafftab="leave"'}); });
+  return out.filter(x=>!state.calHide.includes(x.type)).sort((a,b)=>(a.d+(a.time||'99:99')) < (b.d+(b.time||'99:99')) ? -1 : 1);
+}
+const shiftMonth = (m, n) => { const [y,mo] = m.split('-').map(Number); return iso(new Date(Date.UTC(y, mo-1+n, 1))).slice(0,7); };
+function renderCalendar(){
+  const m = state.calM, first = m+'-01', start = addDays(first, -((dow(first)+6)%7));
+  const last = addDays(first, dim(first)-1), end = addDays(last, (7-dow(last))%7);
+  const evs = calEvents(start, end), sel = state.calDay, days = [];
+  for(let d=start; d<=end; d=addDays(d,1)) days.push(d);
+  const ev = x => `<button class="ev" style="--cat:${ETYPES[x.type]}" ${x.a} title="${esc(x.type+': '+x.t)}">${x.time?x.time+' ':''}${esc(x.t)}</button>`;
+  const dayEv = evs.filter(x=>x.d===sel);
+  $('#v-calendar').innerHTML = `
+    <div class="view-head"><h2>Calendar · ${MON[+m.slice(5)-1]} ${m.slice(0,4)}</h2>
+      <div class="btnrow"><button class="btn" data-action="cal-prev">‹</button><button class="btn" data-action="cal-today">Today</button><button class="btn" data-action="cal-next">›</button></div></div>
+    <div class="chipbar">${Object.entries(ETYPES).map(([t,c])=>`<button class="chip" style="--cat:${c}" data-caltype="${t}" aria-pressed="${!state.calHide.includes(t)}"><span class="dot"></span>${t}</button>`).join('')}</div>
+    <div class="dash">
+      <div class="cal">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="dow">${d}</div>`).join('')}
+        ${days.map(d=>{ const de = evs.filter(x=>x.d===d); return `<div class="day ${d.slice(0,7)!==m?'out':''} ${d===TODAY?'today':''}" ${d===sel?'style="box-shadow:inset 0 0 0 2px var(--info)"':''}>
+          <button class="dnum" data-calday="${d}" style="background:none;border:0;padding:0;cursor:pointer;text-align:left">${+d.slice(8)}${de.length?` · ${de.length}`:''}</button>
+          ${de.slice(0,4).map(ev).join('')}${de.length>4?`<button class="ev" style="--cat:var(--muted)" data-calday="${d}">+${de.length-4} more</button>`:''}</div>`; }).join('')}
+      </div>
+      <div class="rail"><div class="panel"><div class="panel-head"><h3>${fmtDW(sel)}</h3><span class="muted num">${dayEv.length}</span></div>
+        <div class="in agenda-list" style="padding:10px 14px">${dayEv.map(ev).join('') || '<p class="muted" style="margin:0">Nothing on this day.</p>'}</div>
+        <form class="in form" data-form="event" style="padding:10px 14px;border-top:1px solid var(--line)">
+          <label>Add to ${fmtD(sel)}<input type="text" name="t" placeholder="e.g. Meeting with Teguh Piling"></label>
+          <label>Time<input type="time" name="time" value="09:00"></label>
+          <label>Type<select class="field" name="type">${['Meeting','Site visit','Inspection','Training','Company'].map(t=>`<option>${t}</option>`).join('')}</select></label>
+          <div class="btnrow"><button class="btn">Add event</button></div></form></div>
+        <div class="panel"><div class="panel-head"><h3>This month</h3></div><div class="slegend" style="padding-top:12px">${Object.entries(ETYPES).map(([t,c])=>{ const n = evs.filter(x=>x.type===t && x.d.startsWith(m)).length; return n?`<div><i style="background:${c}"></i>${t}<b>${n}</b></div>`:''; }).join('')}</div></div>
+      </div>
+    </div>`;
+}
+
+/* ---------- Staff ---------- */
+function assignment(s, d){
+  const lv = leave.find(l=>l.s===s && l.status!=='Rejected' && l.from<=d && l.to>=d);
+  const jobs = [];
+  hires.forEach(h => { if(['Quotation','Lost'].includes(h.status)) return; h.lines.forEach(l => { if(l.op===s && (l.on||l.from)<=d && lineEnd(l)>=d) jobs.push({cls:'job',t:`${l.u} · ${h.site.split(',')[0]}`,a:`data-hire="${h.id}"`}); }); });
+  allTrips().forEach(t => { if(t.drv===s && t.d===d && (!t.self || !jobs.length)) jobs.push({cls:'trip',t:`${t.dir==='Delivery'?'Deliver':'Collect'} ${t.u}`,a:`data-hire="${t.hire}"`}); });
+  if(dow(d)===0 && !jobs.some(j=>j.cls==='trip') && !sheets.some(x=>x.op===s && x.d===d)) return [lv?{cls:'leave',t:'Leave'}:{cls:'off',t:'Off (Sunday)'}];
+  if(lv && jobs.length) return [{cls:'clash',t:`Clash: ${lv.status==='Pending'?'leave asked':'on leave'} + ${jobs[0].t}`,a:jobs[0].a}];
+  if(lv) return [{cls:lv.status==='Pending'?'pend':'leave',t:(lv.type.startsWith('Medical')?'MC':lv.type)+(lv.status==='Pending'?' (asked)':'')}];
+  if(jobs.length) return jobs;
+  return [OFFICE.includes(s) ? {cls:'office',t:'Office'} : {cls:'idle',t:'Yard / standby'}];
+}
+function reliefFor(l){
+  const h = hires.find(x=>LIVE.includes(x.status) && x.lines.some(y=>y.op===l.s && overlaps(l.from,l.to,y.on||y.from,lineEnd(y))));
+  if(!h) return null;
+  const line = h.lines.find(y=>y.op===l.s), need = mOf(line.u).grp==='crane'?'crane':'earth';
+  const free = Object.keys(staff).filter(o=>o!==l.s && staff[o].skills?.includes(need) && operatorFree(o,l.from,l.to) && !leave.some(x=>x.s===o && x.status!=='Rejected' && overlaps(x.from,x.to,l.from,l.to)));
+  return {h, line, free};
+}
+function renderStaff(){
+  const tab = state.staffTab, wk = state.week, days = [...Array(7)].map((_,i)=>addDays(wk,i));
+  const pend = leave.filter(l=>l.status==='Pending').length;
+  let body = '';
+  if(tab==='roster') body = `
+    <div class="btnrow"><button class="btn" data-action="wk-prev">‹ Week</button><button class="btn" data-action="wk-now">This week</button><button class="btn" data-action="wk-next">Week ›</button><span class="muted" style="align-self:center">Built from hires, trips and leave. Click a job to open the hire.</span></div>
+    <div class="tbl-wrap"><table class="sched"><thead><tr><th>Person</th>${days.map(d=>`<th class="${d===TODAY?'today':''}">${fmtDW(d)}</th>`).join('')}</tr></thead><tbody>
+      ${[...FIELD, ...OFFICE].map(s=>`<tr><td><b>${esc(staff[s].name)}</b><br><small class="muted">${esc(staff[s].role)}</small></td>${days.map(d=>`<td class="${d===TODAY?'today':''}">${assignment(s,d).map(a=>`<button class="rcell ${a.cls}" ${a.a||''} title="${esc(a.t)}">${esc(a.t)}</button>`).join('')}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div>
+    <div class="g-legend"><span><i class="rcell job" style="width:auto">On hire</i></span><span><i class="rcell trip" style="width:auto">Trip</i></span><span><i class="rcell leave" style="width:auto">Leave / MC</i></span><span><i class="rcell pend" style="width:auto">Leave asked</i></span><span><i class="rcell clash" style="width:auto">Clash</i></span><span><i class="rcell idle" style="width:auto">Free</i></span></div>`;
+  else if(tab==='people') body = `<div class="team">${[...OFFICE, ...FIELD].map(s=>{ const p = staff[s], a = assignment(s,TODAY)[0];
+    return `<div class="member" style="cursor:default"><div class="member-top"><span class="avatar lg">${initials(p.name)}</span><div><b>${esc(p.name)}</b><small class="muted">${esc(p.role)} · ${esc(p.phone)}</small></div></div>
+      <div class="tags">${Object.entries(p.certs||{}).map(([k,e])=>`<span class="tag ${docState(e)==='crit'?'expd':docState(e)==='warn'?'exp':''}" title="Expires ${fmtDY(e)}">${esc(k)} · ${fmtD(e)} ${e.slice(2,4)}</span>`).join('') || '<span class="tag">No licences needed</span>'}</div>
+      <div><small class="muted">Today</small><br><span class="rcell ${a.cls}" style="display:inline-block;width:auto">${esc(a.t)}</span> <small class="muted">${CLOCK[s]&&a.cls!=='leave'?'clocked in '+esc(CLOCK[s]):a.cls==='leave'?'':'not clocked in'}</small></div>
+      <div class="mstats"><div><b>${leaveBal[s]??'—'}</b><span>Leave days left</span></div><div><b>${num(sum(sheets.filter(x=>x.op===s && x.d>='2026-10-01').map(x=>x.work)))}</b><span>Hours on hire, Oct</span></div><div><b>${allTrips().filter(t=>t.drv===s && t.d>='2026-10-01' && t.d<=TODAY).length}</b><span>Trips, Oct</span></div></div></div>`; }).join('')}</div>`;
+  else body = `<div class="tbl-wrap"><table><thead><tr><th>Person</th><th>Leave</th><th>Dates</th><th class="r">Days</th><th class="r">Balance</th><th>Roster check</th><th>Status</th></tr></thead><tbody>
+      ${leave.slice().sort((a,b)=>a.from<b.from?1:-1).map(l=>{ let n = 0; for(let d=l.from; d<=l.to; d=addDays(d,1)) if(dow(d)!==0) n++; const r = reliefFor(l);
+        return `<tr><td><b>${esc(staff[l.s].name)}</b><br><small class="muted">${esc(staff[l.s].role)}</small></td><td>${esc(l.type)}${l.note?`<br><small class="muted">${esc(l.note)}</small>`:''}</td><td class="num">${fmtD(l.from)}${l.to!==l.from?' – '+fmtD(l.to):''}</td><td class="r num">${n}</td><td class="r num">${leaveBal[l.s]??'—'}</td>
+        <td>${r?`<span class="pill crit">On ${r.line.u} (${r.h.id})</span><br><small class="muted">${r.free.length?'Relief: '+r.free.map(o=>esc(staff[o].name)).join(', '):'No relief operator free'}</small>`:'<span class="pill ok">No clash</span>'}</td>
+        <td>${l.status==='Pending'?`<div class="btnrow"><button class="btn small primary" data-action="leave-ok" data-id="${l.id}">Approve</button><button class="btn small" data-action="leave-no" data-id="${l.id}">Reject</button></div>`:`<span class="pill ${l.status==='Approved'?'ok':'mute'}">${l.status}</span>`}</td></tr>`; }).join('')}
+    </tbody></table></div><p class="muted" style="margin:0">Staff apply for leave on their phone. Approving checks the roster: an operator on a wet hire needs a relief operator with the right DOSH competency. Payroll (EPF, SOCSO, EIS, PCB) stays in the payroll software; this app exports hours, overtime, allowances and leave.</p>`;
+  $('#v-staff').innerHTML = `<div class="view-head"><h2>Staff</h2><div class="seg"><button data-stafftab="roster" aria-pressed="${tab==='roster'}">Roster</button><button data-stafftab="people" aria-pressed="${tab==='people'}">People</button><button data-stafftab="leave" aria-pressed="${tab==='leave'}">Leave${pend?` <span class="pill warn">${pend}</span>`:''}</button></div></div>${body}`;
+}
+function leaveApplyHtml(){
+  const mine = leave.filter(l=>l.s===state.me);
+  return `<form class="sect" data-form="leave"><h3>Apply for leave</h3><div class="in"><div class="form">
+    <label>Type<select class="field" name="type">${LTYPES.map(t=>`<option>${t}</option>`).join('')}</select></label>
+    <label>From<input type="date" name="from" value="${addDays(TODAY,7)}"></label><label>To<input type="date" name="to" value="${addDays(TODAY,7)}"></label>
+    <label class="full">Note<input type="text" name="note" placeholder="Reason (optional)"></label></div>
+    <small class="muted">${leaveBal[state.me]} days of annual leave left. For MC, upload the slip photo when you are back.</small>
+    <div class="btnrow"><button class="btn primary">Send request</button></div>
+    ${mine.map(l=>`<div>${esc(l.type)} ${fmtD(l.from)}${l.to!==l.from?'–'+fmtD(l.to):''} <span class="pill ${l.status==='Approved'?'ok':l.status==='Pending'?'warn':'mute'}">${l.status}</span></div>`).join('')}</div></form>`;
+}
+
+/* ---------- planning & sales reports ---------- */
+function demandHtml(){
+  const from = addDays(TODAY,1), to = addDays(TODAY,28);
+  const types = [...new Set(hireUnits().map(u=>mOf(u).type))];
+  const rows = types.map(type => { const us = hireUnits().filter(u=>mOf(u).type===type); let busy = 0;
+    us.forEach(u => { for(let d=from; d<=to; d=addDays(d,1)) if(!availability(u,d,d).ok) busy++; });
+    const want = enquiries.filter(e=>openStage(e) && e.need===type && overlaps(e.from,e.to,from,to));
+    return {type, n:us.length, pct:Math.round(busy/(us.length*28)*100), free:us.length*28-busy, want}; });
+  return `<div class="panel"><div class="panel-head"><h3>Demand vs fleet, next 4 weeks</h3><span class="muted">${fmtD(from)}–${fmtD(to)}</span></div><div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Machine type</th><th class="r">Units</th><th>Booked</th><th class="r">Free unit-days</th><th>Open enquiries</th><th>Signal</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td><b>${esc(r.type)}</b></td><td class="r num">${r.n}</td><td><div class="rbar" style="grid-template-columns:minmax(80px,1fr) auto"><div class="track"><div class="fill" style="width:${r.pct}%"></div></div><span class="v">${r.pct}%</span></div></td><td class="r num">${r.free}</td>
+      <td>${r.want.map(e=>`<a href="#" data-enq="${e.id}">${e.id}</a> ×${e.qty}`).join(', ') || '<span class="muted">—</span>'}</td>
+      <td>${r.want.length && r.pct>=70 ? '<span class="pill crit">Tight: line up a cross-hire</span>' : r.want.length ? '<span class="pill ok">Can take it</span>' : r.pct<40 ? '<span class="pill warn">Idle: promote to customers</span>' : '<span class="pill mute">OK</span>'}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+const SRC_YTD = [['Phone',41,46],['WhatsApp',33,52],['Referral',12,67],['Website form',9,33],['Email',7,43],['Tender',4,25],['Walk-in',2,50]];
+function salesReportHtml(){
+  const max = Math.max(...SRC_YTD.map(x=>x[1]));
+  return `<div class="panel"><div class="panel-head"><h3>Enquiries by source</h3><span class="muted">count · won</span></div><div class="rbars">
+    ${SRC_YTD.map(([s,n,w])=>`<div class="rbar"><span>${s}</span><div class="track"><div class="fill" style="width:${n/max*100}%"></div></div><span class="v">${n} · ${w}% won</span></div>`).join('')}
+  </div><div class="in" style="padding:0 14px 12px"><small class="muted">Referrals win most often: ask happy customers for introductions.</small></div></div>`;
+}
+
+/* ---------- events for the new screens ---------- */
+document.addEventListener('click', e => {
+  if(e.target.closest('input,select,textarea,canvas')) return;
+  const a = e.target.closest('[data-action],[data-enq],[data-cust],[data-enqtab],[data-stafftab],[data-calday],[data-caltype]');
+  if(!a) return;
+  const d = a.dataset;
+  if(a.tagName==='A') e.preventDefault();
+  if(d.action){
+    const act = d.action;
+    if(act==='new-enq'){ state.ne = neDefaults(d.c ? {c:d.c} : {}); return openNewEnquiry(); }
+    if(act==='ne-save') return saveEnquiry();
+    if(act==='cust-hire'){ state.nh = newHireDefaults({c:d.c}); return openNewHire(); }
+    if(act==='goto-fu'){ state.enqTab='fu'; return setView('enquiries'); }
+    if(act==='task-done'){ const t = tasks.find(x=>x.id===+d.id); t.done = true; t.doneAt = TODAY; if(t.enq) enq(t.enq).log.unshift({d:`${TODAY} ${nowT()}`,t:`${t.type} done by ${staff[meStaff()].name}: ${t.t}`}); toast('Follow-up done'); return rerender(); }
+    if(act==='task-snooze'){ const t = tasks.find(x=>x.id===+d.id); t.d = addDays(maxD(t.d,TODAY),1); toast(`Moved to ${fmtDW(t.d)}`); return rerender(); }
+    if(act==='enq-stage'){ const x = enq(d.id); if(d.s==='Won' && !x.hire){ toast('Make the quotation and confirm the booking first'); return; } if(d.s==='Quoted' && !x.hire){ toast('Use "Make quotation": the quotation is built from the rate card'); return; } x.stage = d.s; x.log.unshift({d:`${TODAY} ${nowT()}`,t:`Moved to ${d.s}.`}); return rerender(); }
+    if(act==='enq-cust'){ enqToCustomer(enq(d.id)); toast('Added as a customer'); return rerender(); }
+    if(act==='enq-quote'){ const x = enq(d.id), c = enqToCustomer(x), mk = modelOfType(x.need), k = kindFor(mk,x.k);
+      state.nh = newHireDefaults({c, type:x.need, from:x.from, to:x.to, k, basis:guessBasis(mk,k,x.from,x.to), site:x.site||'', state:x.state||'Selangor', u:null, enq:x.id}); return openNewHire(); }
+    if(act==='confirm' || act==='lose'){ const x = enquiries.find(y=>y.hire===d.id); if(x){ x.stage = act==='confirm' ? 'Won' : 'Lost'; if(act==='lose') x.lostWhy = hire(d.id).lines.some(l=>!l.u)?'No machine free':'Price'; rerender(); } return; }
+    if(act==='leave-ok' || act==='leave-no'){ const l = leave.find(x=>x.id===+d.id), r = reliefFor(l); l.status = act==='leave-ok'?'Approved':'Rejected';
+      toast(act==='leave-ok' ? (r ? `Approved. ${r.line.u} needs a relief operator: ${r.free[0]?staff[r.free[0]].name+' is free':'none free, ask the customer'}` : 'Leave approved') : 'Leave rejected'); return rerender(); }
+    if(act==='wk-prev'){ state.week = addDays(state.week,-7); return render(); }
+    if(act==='wk-next'){ state.week = addDays(state.week,7); return render(); }
+    if(act==='wk-now'){ state.week = '2026-10-12'; return render(); }
+    if(act==='cal-prev'){ state.calM = shiftMonth(state.calM,-1); state.calDay = state.calM+'-01'; return render(); }
+    if(act==='cal-next'){ state.calM = shiftMonth(state.calM,1); state.calDay = state.calM+'-01'; return render(); }
+    if(act==='cal-today'){ state.calM = TODAY.slice(0,7); state.calDay = TODAY; return render(); }
+    return;
+  }
+  if(d.enqtab){ state.enqTab = d.enqtab; return render(); }
+  if(d.stafftab){ state.staffTab = d.stafftab; return state.view==='staff' ? render() : setView('staff'); }
+  if(d.calday){ state.calDay = d.calday; return render(); }
+  if(d.caltype){ const t = d.caltype; state.calHide = state.calHide.includes(t) ? state.calHide.filter(x=>x!==t) : [...state.calHide, t]; return render(); }
+  if(d.enq) return openEnquiry(d.enq);
+  if(d.cust) return openCustomer(d.cust);
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.dataset.ne){ state.ne[t.dataset.ne] = t.value; if(t.dataset.ne==='from' && state.ne.to < state.ne.from) state.ne.to = state.ne.from; if(t.tagName==='SELECT' || t.type==='date' || t.type==='number') openNewEnquiry(); return; }
+  if(t.dataset.enqf){ const x = enq(t.dataset.id); x[t.dataset.enqf] = t.value; x.log.unshift({d:`${TODAY} ${nowT()}`,t:`${t.dataset.enqf==='owner'?'Owner changed to '+staff[t.value].name:'Marked '+t.value}.`}); return rerender(); }
+  if(t.id==='roleSel'){ state.fuMine = t.value==='sales'; return render(); }
+  if(t.dataset.action==='fu-mine'){ state.fuMine = t.checked; return render(); }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if(t.dataset.ne && (t.type==='text' || t.tagName==='TEXTAREA')) state.ne[t.dataset.ne] = t.value;
+  if(t.id==='custQ'){ state.custQ = t.value; renderCustomers(); const q = $('#custQ'); q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+});
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target, fd = new FormData(f), v = k => (fd.get(k)||'').toString().trim();
+  if(f.dataset.form==='task'){ if(!v('t')){ toast('Say what to do'); return; } tasks.push({id:++taskSeq, d:v('d')||TODAY, type:v('type'), who:v('who'), enq:f.dataset.enq, cust:f.dataset.cust || (f.dataset.enq && enq(f.dataset.enq).c) || undefined, t:v('t'), done:false}); toast(`Follow-up set for ${fmtDW(v('d')||TODAY)}`); return rerender(); }
+  if(f.dataset.form==='note'){ if(!v('t')) return; enq(f.dataset.enq).log.unshift({d:`${TODAY} ${nowT()}`,t:`${v('t')} (${staff[meStaff()].name})`}); const x = enq(f.dataset.enq); if(x.stage==='New') x.stage = 'Contacted'; return rerender(); }
+  if(f.dataset.form==='cnote'){ if(!v('t')) return; customers[f.dataset.c].notes.push({d:TODAY,t:`${v('t')} (${staff[meStaff()].name})`}); return rerender(); }
+  if(f.dataset.form==='lost'){ const x = enq(f.dataset.enq); x.stage = 'Lost'; x.lostWhy = v('why'); x.log.unshift({d:`${TODAY} ${nowT()}`,t:`Lost: ${v('why')}.`}); tasks.filter(t=>t.enq===x.id && !t.done).forEach(t=>{ t.done = true; t.doneAt = TODAY; t.note = 'closed: enquiry lost'; }); lost.unshift({d:TODAY,c:enqName(x).replace(/ Sdn Bhd$/,''),type:x.need,why:x.lostWhy}); toast(`${x.id} marked lost`); return rerender(); }
+  if(f.dataset.form==='event'){ if(!v('t')){ toast('Enter what the event is'); return; } events.push({d:state.calDay, time:v('time'), type:v('type'), t:v('t')}); toast('Event added'); return render(); }
+  if(f.dataset.form==='leave'){ if(v('to') < v('from')){ toast('The end date is before the start date'); return; } leave.push({id:leave.length+1, s:state.me, type:v('type'), from:v('from'), to:v('to'), status:'Pending', note:v('note')}); toast('Leave request sent to the Supervisor'); return render(); }
+});
+
+/* ---------- crane selector & load charts ---------- */
+/* Sample charts only: generated for the prototype, NOT manufacturer data. Real charts are typed or pasted
+   from the manufacturer's load chart for each configuration and verified before use. */
+const RGRID = [2.5,3,3.5,4,4.5,5,5.5,6,7,8,9,10,11,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,44,48,52,56,60];
+function sampleChart(booms, maxT, K, h0, a, hook){
+  const rows = RGRID.map(r => ({r, caps: booms.map(L => {
+    const rMin = a + L*Math.cos(80*Math.PI/180), rMax = a + L*Math.cos(15*Math.PI/180);
+    if(r < rMin || r > rMax) return null;
+    const cap = Math.min(maxT*Math.pow(booms[0]/L, 1.1), K/(r+1), maxT);
+    const v = Math.floor(cap*20)/20;
+    return v >= 0.3 ? v : null;
+  })})).filter(row => row.caps.some(c=>c!=null));
+  return {booms, rows, h0, a, hook, maxT, cfg:'Outriggers fully extended, 360°, full counterweight, on firm level ground', verified:false, source:'Sample values for the prototype — not from the manufacturer', pdf:''};
+}
+let charts = {
+  'TC-05':{booms:[9.5, 16.5, 23.5], rows:[{"r": 3.0, "caps": [16.0, 10.0, null]}, {"r": 3.5, "caps": [13.55, 10.0, null]}, {"r": 4.0, "caps": [12.0, 10.0, null]}, {"r": 4.5, "caps": [10.75, 10.0, null]}, {"r": 5.0, "caps": [9.6, 9.6, 5.5]}, {"r": 5.5, "caps": [8.25, 8.25, 5.5]}, {"r": 6.0, "caps": [7.2, 7.2, 5.5]}, {"r": 6.5, "caps": [6.4, 6.4, 5.5]}, {"r": 7.0, "caps": [5.75, 5.75, 5.5]}, {"r": 7.4, "caps": [5.25, 5.25, 5.25]}, {"r": 8.0, "caps": [4.6, 4.6, 4.6]}, {"r": 8.5, "caps": [null, 4.2, 4.2]}, {"r": 9.0, "caps": [null, 3.8, 3.8]}, {"r": 10.0, "caps": [null, 3.25, 3.25]}, {"r": 11.0, "caps": [null, 2.75, 2.75]}, {"r": 12.0, "caps": [null, 2.4, 2.4]}, {"r": 13.0, "caps": [null, 2.0, 2.0]}, {"r": 14.0, "caps": [null, 1.8, 1.8]}, {"r": 16.0, "caps": [null, null, 1.3]}, {"r": 18.0, "caps": [null, null, 1.05]}, {"r": 20.0, "caps": [null, null, 0.75]}, {"r": 22.0, "caps": [null, null, 0.55]}], h0:1.9, a:0.5, hook:0.25, maxT:16, cfg:"Outriggers fully extended, over side and over rear", verified:false, transcribed:true, source:"Kato NK-160 rated lifting capacities (scan). Values include hook block. Hook 16 t: 250 kg. Main hook radius limit 22 m.", pdf:"KATO_NK160-B2.pdf"},
+  'TC-06':{booms:[10.2, 18.2, 26.2], rows:[{"r": 2.5, "caps": [20.0, null, null]}, {"r": 3.0, "caps": [20.0, null, null]}, {"r": 3.5, "caps": [17.5, 12.0, null]}, {"r": 4.0, "caps": [15.5, 12.0, null]}, {"r": 4.5, "caps": [13.9, 12.0, null]}, {"r": 5.0, "caps": [12.5, 12.0, 7.0]}, {"r": 5.5, "caps": [10.7, 10.5, 7.0]}, {"r": 6.0, "caps": [9.5, 9.5, 7.0]}, {"r": 6.5, "caps": [8.5, 8.6, 7.0]}, {"r": 7.0, "caps": [7.7, 7.9, 7.0]}, {"r": 7.5, "caps": [6.95, 7.25, 6.5]}, {"r": 8.0, "caps": [6.25, 6.75, 6.05]}, {"r": 8.5, "caps": [5.6, 6.25, 5.6]}, {"r": 9.0, "caps": [null, 5.75, 5.3]}, {"r": 9.5, "caps": [null, 5.35, 5.0]}, {"r": 10.0, "caps": [null, 4.9, 4.75]}, {"r": 11.0, "caps": [null, 4.15, 4.1]}, {"r": 12.0, "caps": [null, 3.55, 3.5]}, {"r": 13.0, "caps": [null, 3.1, 3.0]}, {"r": 14.0, "caps": [null, 2.7, 2.6]}, {"r": 15.0, "caps": [null, 2.3, 2.25]}, {"r": 16.0, "caps": [null, 2.0, 2.0]}, {"r": 16.5, "caps": [null, 1.85, 1.8]}, {"r": 17.0, "caps": [null, null, 1.75]}, {"r": 18.0, "caps": [null, null, 1.55]}, {"r": 19.0, "caps": [null, null, 1.35]}, {"r": 20.0, "caps": [null, null, 1.2]}, {"r": 21.0, "caps": [null, null, 1.05]}, {"r": 22.0, "caps": [null, null, 0.9]}, {"r": 23.0, "caps": [null, null, 0.8]}, {"r": 24.0, "caps": [null, null, 0.7]}, {"r": 24.5, "caps": [null, null, 0.65]}], h0:1.9, a:0.5, hook:0.23, maxT:20, cfg:"Fully extended outriggers, over side and over rear (360\u00b0 needs optional front jack)", verified:false, transcribed:true, source:"Kato NK-200E-III rated lifting capacity (1) (scan). Values include hook block. Hook 20 t: 230 kg.", pdf:"KATO_NK200E-3_LOAD_CHART.pdf"},
+  'TC-01':sampleChart([10.0,15.5,21.0,26.5,32.0], 25, 98, 2.4, 0.9, 0.30),
+  'TC-02':sampleChart([11.0,17.0,23.0,29.0,35.0,40.0], 45, 190, 2.5, 1.0, 0.45),
+  'RC-01':{booms:[10.2, 17.4, 23.6, 24.6, 31.8, 39.0], rows:[{"r": 2.9, "caps": [51.0, null, null, null, null, null]}, {"r": 3.0, "caps": [50.0, 28.0, 22.0, 20.0, null, null]}, {"r": 3.2, "caps": [45.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 3.5, "caps": [41.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 3.75, "caps": [38.9, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 4.0, "caps": [37.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 4.5, "caps": [33.5, 28.0, 22.0, 20.0, 14.0, 7.6]}, {"r": 5.0, "caps": [30.2, 28.0, 22.0, 20.0, 14.0, 7.6]}, {"r": 5.5, "caps": [27.5, 26.1, 22.0, 20.0, 14.0, 7.6]}, {"r": 6.0, "caps": [25.0, 24.4, 20.5, 20.0, 14.0, 7.6]}, {"r": 6.5, "caps": [22.7, 22.4, 19.2, 18.8, 14.0, 7.6]}, {"r": 7.0, "caps": [20.7, 20.6, 18.1, 17.7, 13.6, 7.6]}, {"r": 7.2, "caps": [11.5, 20.0, 17.7, 17.3, 13.45, 7.6]}, {"r": 7.5, "caps": [null, 18.9, 17.0, 16.6, 13.1, 7.6]}, {"r": 8.0, "caps": [null, 17.5, 16.1, 15.7, 12.6, 7.6]}, {"r": 8.5, "caps": [null, 16.2, 15.2, 14.8, 12.05, 7.6]}, {"r": 9.0, "caps": [null, 15.0, 14.4, 14.0, 11.5, 7.6]}, {"r": 9.5, "caps": [null, 14.0, 13.5, 13.2, 11.0, 7.6]}, {"r": 10.0, "caps": [null, 13.1, 12.7, 12.4, 10.5, 7.6]}, {"r": 11.0, "caps": [null, 11.1, 11.1, 11.0, 9.6, 7.1]}, {"r": 12.0, "caps": [null, 9.35, 9.3, 9.25, 8.8, 6.6]}, {"r": 13.0, "caps": [null, 7.9, 7.8, 7.75, 8.1, 6.15]}, {"r": 14.0, "caps": [null, 6.8, 6.7, 6.65, 7.5, 5.75]}, {"r": 14.4, "caps": [null, 4.0, 6.3, 6.25, 7.1, 5.6]}, {"r": 15.0, "caps": [null, null, 5.75, 5.7, 6.55, 5.35]}, {"r": 16.0, "caps": [null, null, 5.0, 4.95, 5.75, 5.0]}, {"r": 17.0, "caps": [null, null, 4.35, 4.3, 5.05, 4.7]}, {"r": 18.0, "caps": [null, null, 3.8, 3.75, 4.45, 4.4]}, {"r": 19.0, "caps": [null, null, 3.25, 3.2, 3.9, 4.2]}, {"r": 20.0, "caps": [null, null, 2.75, 2.7, 3.45, 4.0]}, {"r": 20.6, "caps": [null, null, 2.5, 2.45, 3.2, 3.8]}, {"r": 21.0, "caps": [null, null, null, 2.3, 3.05, 3.6]}, {"r": 21.6, "caps": [null, null, null, 2.1, 2.9, 3.4]}, {"r": 22.0, "caps": [null, null, null, null, 2.75, 3.25]}, {"r": 23.0, "caps": [null, null, null, null, 2.4, 2.9]}, {"r": 24.0, "caps": [null, null, null, null, 2.05, 2.6]}, {"r": 25.0, "caps": [null, null, null, null, 1.75, 2.3]}, {"r": 26.0, "caps": [null, null, null, null, 1.5, 2.05]}, {"r": 27.0, "caps": [null, null, null, null, 1.25, 1.8]}, {"r": 28.0, "caps": [null, null, null, null, 1.05, 1.55]}, {"r": 28.8, "caps": [null, null, null, null, 0.9, 1.4]}, {"r": 29.0, "caps": [null, null, null, null, null, 1.35]}, {"r": 30.0, "caps": [null, null, null, null, null, 1.15]}, {"r": 31.0, "caps": [null, null, null, null, null, 1.0]}, {"r": 32.0, "caps": [null, null, null, null, null, 0.85]}, {"r": 33.0, "caps": [null, null, null, null, null, 0.7]}, {"r": 34.0, "caps": [null, null, null, null, null, 0.55]}], h0:2.0, a:0.3, hook:0.43, maxT:51, cfg:"Outriggers in 7.4 m position, whole around (360\u00b0)", verified:false, hooks:[0.43,0.43,0.30,0.30,0.30,0.30], transcribed:true, source:"Kobelco RK500-2 p.380 (scan). Ratings include hook block. Hook 51 t: 430 kg (25 t hook 300 kg on 23.6 m+ boom).", pdf:"KOBELCO_RK500-2.pdf"},
+  'TC-03':sampleChart([11.0,17.5,24.0,30.5,37.0,43.0], 50, 215, 2.5, 1.0, 0.50),
+  'TC-04':sampleChart([11.0,17.4,23.8,30.2,36.6,43.0], 50, 212, 2.5, 1.0, 0.50),
+  'RC-02':sampleChart([10.6,17.0,23.4,29.8,36.2,42.6], 60, 260, 2.3, 0.6, 0.60),
+  'AT-01':sampleChart([10.7,17.0,23.4,29.8,36.2,42.6,48.0], 60, 270, 2.4, 0.9, 0.60),
+  'MC-01':{booms:[10.0, 16.9, 23.8, 30.7, 37.6, 41.5, 44.5], rows:[{"r": 2.5, "caps": [70.0, 32.0, 25.0, 12.5, null, null, null]}, {"r": 3.0, "caps": [61.0, 32.0, 25.0, 12.5, null, null, null]}, {"r": 3.5, "caps": [55.0, 32.0, 25.0, 12.5, 12.0, null, null]}, {"r": 4.0, "caps": [49.2, 32.0, 25.0, 12.5, 12.0, 10.0, null]}, {"r": 4.5, "caps": [44.1, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 5.0, "caps": [39.5, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 5.5, "caps": [35.7, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 6.0, "caps": [32.5, 32.0, 23.4, 12.5, 12.0, 10.0, 8.0]}, {"r": 6.5, "caps": [29.5, 29.0, 22.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 7.0, "caps": [26.8, 26.4, 20.7, 12.5, 12.0, 10.0, 8.0]}, {"r": 7.5, "caps": [null, 24.0, 19.5, 12.5, 12.0, 10.0, 8.0]}, {"r": 8.0, "caps": [null, 22.0, 18.5, 12.5, 12.0, 10.0, 8.0]}, {"r": 9.0, "caps": [null, 17.45, 16.6, 12.5, 12.0, 10.0, 8.0]}, {"r": 10.0, "caps": [null, 14.0, 13.85, 12.5, 12.0, 10.0, 8.0]}, {"r": 11.0, "caps": [null, 11.45, 11.3, 12.0, 11.1, 10.0, 8.0]}, {"r": 12.0, "caps": [null, 9.55, 9.4, 10.45, 10.2, 9.4, 8.0]}, {"r": 13.0, "caps": [null, 8.05, 7.9, 8.9, 9.4, 8.7, 8.0]}, {"r": 14.0, "caps": [null, null, 6.65, 7.65, 8.2, 8.0, 7.5]}, {"r": 15.0, "caps": [null, null, 5.6, 6.65, 7.2, 7.4, 7.0]}, {"r": 16.0, "caps": [null, null, 4.75, 5.75, 6.3, 6.55, 6.6]}, {"r": 17.0, "caps": [null, null, 4.0, 5.0, 5.55, 5.8, 5.95]}, {"r": 18.0, "caps": [null, null, 3.35, 4.3, 4.9, 5.15, 5.3]}, {"r": 19.0, "caps": [null, null, 2.8, 3.75, 4.3, 4.55, 4.75]}, {"r": 20.0, "caps": [null, null, 2.3, 3.25, 3.8, 4.0, 4.2]}, {"r": 21.0, "caps": [null, null, null, 2.8, 3.35, 3.55, 3.75]}, {"r": 22.0, "caps": [null, null, null, 2.4, 2.95, 3.15, 3.35]}, {"r": 24.0, "caps": [null, null, null, 1.75, 2.25, 2.5, 2.65]}, {"r": 26.0, "caps": [null, null, null, 1.2, 1.7, 1.9, 2.05]}, {"r": 28.0, "caps": [null, null, null, null, 1.25, 1.45, 1.6]}, {"r": 30.0, "caps": [null, null, null, null, 0.85, 1.05, 1.2]}, {"r": 32.0, "caps": [null, null, null, null, null, 0.7, 0.85]}, {"r": 33.0, "caps": [null, null, null, null, null, 0.55, 0.7]}, {"r": 34.0, "caps": [null, null, null, null, null, null, 0.55]}], h0:1.3, a:0.0, hook:0.53, maxT:70, cfg:"Outriggers fully extended (7.6 m), over side and over rear", verified:false, hooks:[0.53,0.47,0.33,0.33,0.33,0.33,0.33], transcribed:true, source:"Kato SL-700R chart p.2 (text). Values include main hook and slings. Hook 70 t: 530 kg (34 t hook 330 kg on 23.8 m+ boom).", pdf:"KATO_SL700R_LOAD_CHART.pdf"},
+  'MC-02':sampleChart([12.5,20.5,28.5,36.5,44.5,52.5,60.0], 110, 520, 2.8, 1.0, 1.10),
+  'MC-03':{booms:[11.8, 19.8, 27.88, 35.9, 44.0, 48.0, 52.0], rows:[{"r": 2.5, "caps": [70.0, null, null, null, null, null, null]}, {"r": 3.0, "caps": [70.0, 50.0, null, null, null, null, null]}, {"r": 3.5, "caps": [70.0, 50.0, null, null, null, null, null]}, {"r": 4.0, "caps": [70.0, 50.0, 35.0, null, null, null, null]}, {"r": 4.5, "caps": [70.0, 50.0, 35.0, null, null, null, null]}, {"r": 5.0, "caps": [70.0, 50.0, 35.0, 24.0, null, null, null]}, {"r": 6.0, "caps": [64.5, 50.0, 35.0, 24.0, null, null, null]}, {"r": 7.0, "caps": [54.0, 50.0, 35.0, 24.0, 17.0, 14.0, null]}, {"r": 8.0, "caps": [46.0, 46.0, 35.0, 24.0, 17.0, 14.0, 12.0]}, {"r": 9.0, "caps": [40.0, 40.0, 35.0, 24.0, 17.0, 14.0, 12.0]}, {"r": 10.0, "caps": [null, 35.5, 33.7, 24.0, 17.0, 14.0, 12.0]}, {"r": 12.0, "caps": [null, 28.5, 27.8, 23.2, 17.0, 14.0, 12.0]}, {"r": 14.0, "caps": [null, 22.0, 21.8, 20.7, 15.8, 14.0, 12.0]}, {"r": 16.0, "caps": [null, 17.2, 17.1, 18.4, 14.0, 14.0, 12.0]}, {"r": 18.0, "caps": [null, null, 13.6, 15.3, 12.6, 13.1, 12.0]}, {"r": 20.0, "caps": [null, null, 10.9, 12.5, 11.5, 11.7, 11.0]}, {"r": 22.0, "caps": [null, null, 8.8, 10.4, 10.5, 10.4, 9.8]}, {"r": 24.0, "caps": [null, null, 7.1, 8.7, 9.6, 9.3, 8.8]}, {"r": 26.0, "caps": [null, null, null, 7.3, 8.2, 8.4, 7.9]}, {"r": 28.0, "caps": [null, null, null, 6.0, 7.0, 7.3, 7.1]}, {"r": 30.0, "caps": [null, null, null, 4.8, 6.0, 6.3, 6.5]}, {"r": 32.0, "caps": [null, null, null, 3.8, 5.0, 5.4, 5.6]}, {"r": 34.0, "caps": [null, null, null, null, 4.0, 4.5, 4.8]}, {"r": 36.0, "caps": [null, null, null, null, 3.2, 3.7, 4.0]}, {"r": 38.0, "caps": [null, null, null, null, 2.5, 2.9, 3.3]}, {"r": 40.0, "caps": [null, null, null, null, 1.9, 2.3, 2.7]}, {"r": 42.0, "caps": [null, null, null, null, 1.4, 1.8, 2.1]}, {"r": 44.0, "caps": [null, null, null, null, null, 1.3, 1.6]}, {"r": 46.0, "caps": [null, null, null, null, null, null, 1.1]}], h0:2.6, a:0.5, hook:0.9, maxT:130, cfg:"A1: outriggers max (8.4 m), 360\u00b0, counterweight on. Heavy-lift attachment column (to 130 t) not included", verified:false, hooks:[0.9,0.6,0.6,0.6,0.6,0.6,0.6], transcribed:true, source:"Kato KA-1300SL p.364 A1 table (scan, Japanese). \u5b9a\u683c\u7dcf\u8377\u91cd = rated total load, includes hook. Hook 70 t: 0.9 t (50 t hook 0.6 t on 19.8 m+ boom).", pdf:"KATO_KA1300SL_LOAD_CHART.pdf"},
+};
+const LIFT_OK = 0.75, LIFT_MAX = 0.90;
+function liftCheck(u, j){
+  const c = charts[u], hookOf = bi => (c.hooks && c.hooks[bi] != null) ? c.hooks[bi] : c.hook, reqTip = j.h + j.head, tried = [];
+  let best = null;
+  c.booms.forEach((L, bi) => {
+    const dR = j.r - c.a;
+    const rows = c.rows.filter(row => row.caps[bi] != null);
+    if(!rows.length) return;
+    if(dR >= L || j.r > rows[rows.length-1].r){ tried.push({L, why:'reach', maxR:rows[rows.length-1].r}); return; }
+    const tip = c.h0 + Math.sqrt(L*L - dR*dR);
+    if(tip < reqTip){ tried.push({L, why:'height', tip}); return; }
+    if(j.r < rows[0].r){ tried.push({L, why:'close', minR:rows[0].r}); return; }
+    const row = rows.find(x => x.r >= j.r - 1e-9), cap = row.caps[bi];
+    const gross = j.w + j.rig + hookOf(bi);
+    const opt = {L, bi, r:row.r, cap, tip, gross, util:gross/cap, angle:Math.acos(dR/L)*180/Math.PI};
+    if(!best || opt.util < best.util) best = opt;
+  });
+  let verdict, why;
+  if(best && best.util <= LIFT_OK){ verdict = 'ok'; why = `${Math.ceil(best.util*100)}% of chart: normal lift`; }
+  else if(best && best.util <= LIFT_MAX){ verdict = 'crit'; why = `${Math.ceil(best.util*100)}% of chart: critical lift, needs a lift plan and Head Manager approval`; }
+  else if(best){ verdict = 'no'; why = `Over capacity: gross ${num(best.gross)} t vs ${num(best.cap)} t rated at ${best.r} m (${Math.ceil(best.util*100)}%)`; }
+  else {
+    verdict = 'no';
+    const h = tried.filter(t=>t.why==='height'), reach = tried.filter(t=>t.why==='reach');
+    why = h.length ? `Boom too short: highest tip at ${j.r} m radius is ${num(+Math.max(...h.map(t=>t.tip)).toFixed(1))} m, needs ${num(reqTip)} m`
+        : reach.length ? `Out of reach: chart goes to ${Math.max(...reach.map(t=>t.maxR))} m radius at most` : 'Radius too close for this crane';
+  }
+  return {u, c, best, verdict, why, gross: best ? best.gross : j.w + j.rig + Math.max(c.hook, ...(c.hooks||[])), reqTip};
+}
+function liftResults(j){
+  const res = Object.keys(charts).map(u => { const x = liftCheck(u, j); x.avail = j.from && j.to ? availability(u, j.from, j.to) : null; return x; });
+  const rank = {ok:0, crit:1, no:2};
+  return res.sort((a,b) => rank[a.verdict]-rank[b.verdict] || (a.verdict==='no' ? 0 : a.c.maxT-b.c.maxT) || ((a.avail&&!a.avail.ok)-(b.avail&&!b.avail.ok)) || (b.best?.util||0)-(a.best?.util||0));
+}
+function liftSvg(x, j){
+  if(!x.best) return '';
+  const c = x.c, b = x.best, W = 340, H = 230, pad = 28;
+  const span = Math.max(j.r + 3, 8), top = Math.max(b.tip + 2, j.h + 3);
+  const s = Math.min((W-2*pad)/span, (H-2*pad)/top);
+  const X = v => pad + v*s, Y = v => H - pad - v*s;
+  const tipX = j.r, tipY = b.tip, loadY = j.h;
+  return `<svg viewBox="0 0 ${W} ${H}" class="liftsvg" role="img" aria-label="Lift geometry: boom ${b.L} m at ${Math.round(b.angle)} degrees, radius ${j.r} m">
+    <line x1="${X(-2)}" y1="${Y(0)}" x2="${X(span)}" y2="${Y(0)}" style="stroke:var(--muted);stroke-width:1.5"/>
+    <rect x="${X(-1.6)}" y="${Y(1.5)}" width="${3.2*s}" height="${1.5*s}" rx="3" style="fill:var(--surface-2);stroke:var(--ink)"/>
+    <line x1="${X(c.a)}" y1="${Y(c.h0)}" x2="${X(tipX)}" y2="${Y(tipY)}" style="stroke:var(--accent);stroke-width:5;stroke-linecap:round"/>
+    <line x1="${X(tipX)}" y1="${Y(tipY)}" x2="${X(tipX)}" y2="${Y(loadY+0.8)}" style="stroke:var(--ink);stroke-width:1.2"/>
+    <rect x="${X(tipX)-9}" y="${Y(loadY+0.8)}" width="18" height="12" style="fill:var(--k-wet)"/>
+    <line x1="${X(0)}" y1="${Y(0)+12}" x2="${X(tipX)}" y2="${Y(0)+12}" style="stroke:var(--info);stroke-width:1" marker-end=""/>
+    <text x="${(X(0)+X(tipX))/2}" y="${Y(0)+24}" text-anchor="middle" style="fill:var(--info);font-size:11px">radius ${j.r} m</text>
+    <line x1="${X(tipX)+16}" y1="${Y(0)}" x2="${X(tipX)+16}" y2="${Y(loadY)}" style="stroke:var(--c-pm);stroke-width:1;stroke-dasharray:3 3"/>
+    <text x="${X(tipX)+20}" y="${Y(loadY/2)}" style="fill:var(--c-pm);font-size:11px">lift ${j.h} m</text>
+    <text x="${X(tipX)+6}" y="${Y(tipY)-4}" style="fill:var(--ink);font-size:11px">tip ${num(+b.tip.toFixed(1))} m</text>
+    <text x="${(X(c.a)+X(tipX))/2 + 10}" y="${(Y(c.h0)+Y(tipY))/2 + 16}" text-anchor="start" style="fill:var(--ink);font-size:11px;font-weight:600">boom ${b.L} m · ${Math.round(b.angle)}°</text>
+  </svg>`;
+}
+function chartTable(u, hl, gross){
+  const c = charts[u];
+  return `<div class="tbl-wrap"><table class="lc"><thead><tr><th>Radius (m) \\ Boom (m)</th>${c.booms.map((L,bi)=>`<th class="r ${hl&&hl.bi===bi?'hl':''}">${L}</th>`).join('')}</tr></thead><tbody>
+    ${c.rows.map(row=>`<tr><th class="${hl&&hl.r===row.r?'hl':''}">${row.r}</th>${row.caps.map((v,bi)=>`<td class="r num ${v==null?'na':''} ${hl&&hl.r===row.r&&hl.bi===bi?'pick':gross&&v!=null&&gross/v<=LIFT_OK?'can':''}">${v==null?'':v.toFixed(2)}</td>`).join('')}</tr>`).join('')}
+  </tbody></table></div>`;
+}
+function renderLift(){
+  const tab = state.liftTab;
+  const head = `<div class="view-head"><h2>Crane selector</h2><div class="seg"><button data-lifttab="find" aria-pressed="${tab==='find'}">Find a crane</button><button data-lifttab="charts" aria-pressed="${tab==='charts'}">Load charts</button></div></div>`;
+  const samples = Object.keys(charts).filter(u=>!charts[u].verified && !charts[u].transcribed), pdfs = Object.keys(charts).filter(u=>!charts[u].verified && charts[u].transcribed);
+  const warn = (samples.length ? `<div class="banner crit"><b>${samples.length} cranes still have sample charts (${samples.join(', ')}): made-up numbers. Send their manufacturer charts.</b></div>` : '') + (pdfs.length ? `<div class="banner"><b>${pdfs.length} charts were copied from your manufacturer PDFs (${pdfs.join(', ')}). Check them against the PDFs and mark verified before quoting.</b></div>` : '');
+  if(tab==='charts') return $('#v-lift').innerHTML = head + warn + chartsEditor();
+  const j = state.lift, res = j.done ? liftResults(j) : [];
+  const sel = res.find(x=>x.u===state.liftSel) || res.find(x=>x.verdict!=='no') || res[0];
+  const best = res.find(x=>x.verdict==='ok' && (!x.avail || x.avail.ok)) || res.find(x=>x.verdict!=='no' && (!x.avail || x.avail.ok));
+  $('#v-lift').innerHTML = head + warn + `
+    <form class="findbar" data-form="lift">
+      <label>Load weight (t)<input type="number" step="0.05" min="0.05" name="w" value="${j.w}" required></label>
+      <label>Working radius (m)<input type="number" step="0.5" min="1" name="r" value="${j.r}" required></label>
+      <label>Lifting height (m)<input type="number" step="0.5" min="0" name="h" value="${j.h}" required></label>
+      <label>Rigging weight (t)<input type="number" step="0.05" min="0" name="rig" value="${j.rig}"></label>
+      <label>Load + sling height (m)<input type="number" step="0.5" min="0" name="head" value="${j.head}"></label>
+      <label>From<input type="date" name="from" value="${j.from||''}"></label>
+      <label>To<input type="date" name="to" value="${j.to||''}"></label>
+      <button class="btn primary">Find cranes</button>
+    </form>
+    <p class="muted" style="margin:0">Gross load = load + rigging + the crane's hook block. Needed tip height = lifting height + load and sling height. Capacity is read at the next larger radius in the chart (never interpolated up). Up to ${LIFT_OK*100}% of chart is a normal lift; ${LIFT_OK*100}–${LIFT_MAX*100}% is a critical lift; above ${LIFT_MAX*100}% is not allowed.</p>
+    ${j.done ? `
+    ${best ? `<div class="banner" style="border-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--surface))"><b>Closest fit: ${best.u} ${esc(uName(best.u))}, boom ${best.best.L} m, ${Math.ceil(best.best.util*100)}% of chart${best.avail?' · free for those dates':''}.</b><button class="btn small primary" data-action="lift-enq" data-u="${best.u}">New enquiry with this crane</button></div>`
+      : `<div class="banner crit"><b>No crane in the fleet can do this lift${res.some(x=>x.verdict!=='no')?' on those dates':''}. Options: a bigger crane by cross-hire, a shorter radius (move the crane closer), or a lighter load.</b></div>`}
+    <div class="dash">
+      <div class="panel"><div class="panel-head"><h3>${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high</h3><span class="muted">${res.filter(x=>x.verdict!=='no').length} of ${res.length} cranes can lift it</span></div>
+        <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Crane</th><th>Result</th><th class="r">Boom</th><th class="r">Rated</th><th class="r">Gross</th><th>Use of chart</th>${j.from?'<th>Dates</th>':''}<th class="r cost">Day rate</th></tr></thead><tbody>
+        ${res.map(x=>{ const b = x.best, r = rate(fleet[x.u].m,'wet'), pct = b ? Math.ceil(b.util*100) : null;
+          return `<tr class="click" data-liftsel="${x.u}" ${sel&&sel.u===x.u?'style="background:var(--accent-soft)"':''}><td><b>${x.u}</b> ${esc(uName(x.u))}<br><small class="muted">${esc(mOf(x.u).type)}${chartTag(charts[x.u])}</small></td>
+          <td><span class="pill ${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'}">${x.verdict==='ok'?'Can lift':x.verdict==='crit'?'Critical lift':'Cannot'}</span><br><small class="muted">${esc(x.verdict==='no'?x.why:b?`tip ${num(+b.tip.toFixed(1))} m (needs ${num(x.reqTip)} m), boom angle ${Math.round(b.angle)}°`:'')}</small></td>
+          <td class="r num">${b?b.L+' m':'—'}</td><td class="r num">${b?num(b.cap)+' t':'—'}<br>${b?`<small class="muted">at ${b.r} m</small>`:''}</td><td class="r num">${num(+x.gross.toFixed(2))} t</td>
+          <td>${b?`<div class="rbar" style="grid-template-columns:minmax(70px,1fr) auto"><div class="track"><div class="fill" style="width:${Math.min(pct,100)}%;background:var(--${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'})"></div></div><span class="v">${pct}%</span></div>`:''}</td>
+          ${j.from?`<td>${x.avail.ok?'<span class="pill ok">Free</span>'+(x.avail.warn.length?'<br>'+warnHtml(x.avail.warn):''):`<span class="pill crit" title="${esc(x.avail.why.join(' · '))}">Busy</span><br><small class="muted">${esc(x.avail.why[0])}</small>`}</td>`:''}
+          <td class="r num cost">${r?RM0(r.day):'—'}</td></tr>`; }).join('')}
+        </tbody></table></div></div>
+      ${sel ? `<div class="rail"><div class="panel"><div class="panel-head"><h3>${sel.u} · ${esc(mOf(sel.u).model)}</h3>${sel.best?`<span class="pill ${sel.verdict==='ok'?'ok':sel.verdict==='crit'?'warn':'crit'}">${Math.ceil(sel.best.util*100)}%</span>`:''}</div>
+        <div class="in" style="padding:10px 14px">${sel.best ? liftSvg(sel, j) : `<p class="muted" style="margin:0">${esc(sel.why)}</p>`}
+          <small class="muted">${esc(sel.c.cfg)}. Hook block ${num(sel.best ? (sel.c.hooks?.[sel.best.bi] ?? sel.c.hook) : sel.c.hook)} t.</small>
+          ${sel.verdict!=='no'?`<div class="btnrow" style="margin-top:8px"><button class="btn small" data-action="lift-enq" data-u="${sel.u}">New enquiry with ${sel.u}</button></div>`:''}</div></div>
+        </div>` : ''}
+    </div>
+    ${sel ? `<div class="panel"><div class="panel-head"><h3>${sel.u} ${esc(uName(sel.u))}: load chart (t)</h3><button class="btn small" data-action="lift-edit" data-u="${sel.u}">Edit chart</button></div><div class="in" style="padding:8px">${chartTable(sel.u, sel.best, sel.gross)}<small class="muted">Orange: the cell used. Green: cells where this load is ${LIFT_OK*100}% or less of chart. Click another crane above to see its chart.</small></div></div>` : ''}` : ''}`;
+}
+function chartsEditor(){
+  const u = state.chartU, c = charts[u];
+  return `<div class="split">
+    <div class="panel"><div class="list">${Object.keys(charts).map(k=>`<button class="li" data-chartu="${k}" aria-current="${k===u}"><div class="li-main"><b>${k} ${esc(uName(k))}</b><small>${esc(mOf(k).type)} · ${charts[k].booms.length} boom lengths</small></div>${chartPill(charts[k])}</button>`).join('')}</div>
+      <div class="in" style="padding:10px 14px"><small class="muted">Each crane needs a chart for every set-up it is used in (outrigger width, counterweight, jib). Add the main one first: outriggers fully extended, 360°.</small></div></div>
+    <div class="detail">
+      <div class="sect"><h3>${u} ${esc(uName(u))} ${chartPill(c)}${c.verified?' <small class="muted">'+esc(c.verifiedBy||'')+'</small>':''}</h3><div class="in form">
+        <label class="full">Set-up this chart is for<input type="text" data-geo="${u}|cfg" value="${esc(c.cfg)}"></label>
+        <label>Boom foot height (m)<input type="number" step="0.1" data-geo="${u}|h0" value="${c.h0}"></label>
+        <label>Boom foot offset from slew centre (m)<input type="number" step="0.1" data-geo="${u}|a" value="${c.a}"></label>
+        <label>Hook block weight (t)<input type="number" step="0.05" data-geo="${u}|hook" value="${c.hook}">${c.hooks?`<small class="muted">By boom: ${c.booms.map((L,i)=>L+' m '+num(c.hooks[i])+' t').join(' · ')}. Typing one value here uses it for every boom.</small>`:''}</label>
+        <div class="full" style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1"><span class="label">Source</span><span style="font-size:.86rem">${esc((c.pdf?c.pdf+' — ':'')+c.source)}</span></div>
+      </div></div>
+      <div class="sect"><h3>Rated capacity (t) <span class="btnrow"><button class="btn small" data-action="lc-addrow">+ Radius</button><button class="btn small" data-action="lc-addcol">+ Boom length</button></span></h3><div class="in" style="padding:8px">
+        <div class="tbl-wrap"><table class="lc"><thead><tr><th>Radius \\ Boom</th>${c.booms.map((L,bi)=>`<th><input class="ratein" type="number" step="0.01" data-boom="${u}|${bi}" value="${L}" aria-label="Boom length ${bi+1}"></th>`).join('')}</tr></thead><tbody>
+          ${c.rows.map((row,ri)=>`<tr><th><input class="ratein" type="number" step="0.5" data-rad="${u}|${ri}" value="${row.r}" aria-label="Radius"></th>${row.caps.map((v,bi)=>`<td><input class="ratein" type="number" step="0.05" data-cell="${u}|${ri}|${bi}" value="${v??''}" aria-label="Capacity at ${row.r} m, boom ${c.booms[bi]} m"></td>`).join('')}</tr>`).join('')}
+        </tbody></table></div><small class="muted">Leave a cell empty where the chart has no value (boom angle out of range). On Kato and Kobelco charts the values include the hook block, so Lift check adds the hook block and rigging to the load before comparing.</small></div></div>
+      <form class="docbar" data-form="lc-paste"><label class="label" for="lcPaste">Paste from Excel: first row boom lengths, first column radius</label>
+        <textarea id="lcPaste" rows="4" placeholder="Radius&#9;9.35&#9;15.15&#9;20.95&#10;3.0&#9;25.00&#9;&#9;&#10;3.5&#9;23.50&#9;18.00&#9;"></textarea>
+        <div class="btnrow"><button class="btn">Replace chart with pasted table</button></div></form>
+      <div class="docbar boss"><span class="label">Verify against the manufacturer's chart</span>
+        <div class="btnrow"><input type="file" id="lcPdf" accept="application/pdf,image/*"><button class="btn primary" data-action="lc-verify">Mark verified</button></div>
+        <small class="muted">Attach the manufacturer's load chart (PDF or photo), check every value, then mark verified. Any later change sets it back to not verified.</small></div>
+    </div></div>`;
+}
+const chartChanged = u => { const c = charts[u]; if(c.verified){ c.verified = false; toast('Chart changed: it needs verifying again'); } };
+const chartPill = c => c.verified ? '<span class="pill ok">Verified</span>' : c.transcribed ? '<span class="pill warn">From PDF, not checked</span>' : '<span class="pill crit">Sample, not real</span>';
+const chartTag = c => c.verified ? '' : c.transcribed ? ' · chart from PDF, not checked' : ' · sample chart';
+
+document.addEventListener('click', e => {
+  if(e.target.closest('input,select,textarea,canvas')) return;
+  const a = e.target.closest('[data-lifttab],[data-liftsel],[data-chartu],[data-action^="lift-"],[data-action^="lc-"]');
+  if(!a) return;
+  const d = a.dataset;
+  if(d.lifttab){ state.liftTab = d.lifttab; return render(); }
+  if(d.liftsel){ state.liftSel = d.liftsel; return render(); }
+  if(d.chartu){ state.chartU = d.chartu; return render(); }
+  const act = d.action, c = charts[state.chartU];
+  if(act==='lift-from-enq'){ const x = enq(d.id); state.lift = {...x.lift, rig:0.2, head:3, from:x.from, to:x.to, done:true}; state.liftTab = 'find'; state.liftSel = null; closeSheet(); return setView('lift'); }
+  if(act==='lift-edit'){ state.chartU = d.u; state.liftTab = 'charts'; return render(); }
+  if(act==='lift-enq'){ const j = state.lift, x = liftCheck(d.u, j);
+    state.ne = neDefaults({need:mOf(d.u).type, k:'wet', from:j.from||addDays(TODAY,7), to:j.to||addDays(TODAY,11),
+      notes:`Lift: ${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high. Crane selector: ${d.u} ${uName(d.u)}, boom ${x.best.L} m, ${Math.ceil(x.best.util*100)}% of chart${charts[d.u].verified?'':charts[d.u].transcribed?' (chart from PDF, not checked)':' (sample chart)'}.`});
+    return openNewEnquiry(); }
+  if(act==='lc-addrow'){ const last = c.rows[c.rows.length-1]; c.rows.push({r:(last?last.r:0)+2, caps:c.booms.map(()=>null)}); chartChanged(state.chartU); return render(); }
+  if(act==='lc-addcol'){ c.booms.push(+(c.booms[c.booms.length-1]+4).toFixed(2)); c.rows.forEach(row=>row.caps.push(null)); chartChanged(state.chartU); return render(); }
+  if(act==='lc-verify'){ if(!boss()){ toast('Only the Head Manager can verify a load chart'); return; }
+    const f = $('#lcPdf').files[0]; if(!f){ toast("Attach the manufacturer's chart first"); return; }
+    c.verified = true; c.pdf = f.name; c.verifiedBy = `by ${staff.HM.name}, ${fmtDY(TODAY)}`; toast(`${state.chartU} chart verified`); return render(); }
+});
+document.addEventListener('change', e => {
+  const t = e.target, d = t.dataset;
+  if(d.geo){ const [u,f] = d.geo.split('|'); charts[u][f] = f==='cfg' ? t.value : +t.value; if(f==='hook') delete charts[u].hooks; chartChanged(u); return render(); }
+  if(d.boom){ const [u,bi] = d.boom.split('|'); charts[u].booms[+bi] = +t.value; chartChanged(u); return; }
+  if(d.rad){ const [u,ri] = d.rad.split('|'); charts[u].rows[+ri].r = +t.value; charts[u].rows.sort((x,y)=>x.r-y.r); chartChanged(u); return render(); }
+  if(d.cell){ const [u,ri,bi] = d.cell.split('|'); charts[u].rows[+ri].caps[+bi] = t.value==='' ? null : +t.value; chartChanged(u); return; }
+});
+document.addEventListener('submit', e => {
+  const f = e.target;
+  if(f.dataset.form==='lift'){ e.preventDefault(); const fd = new FormData(f), n = k => +(fd.get(k)||0);
+    if(n('w')<=0 || n('r')<=0){ toast('Enter the load weight and radius'); return; }
+    state.lift = {w:n('w'), r:n('r'), h:n('h'), rig:n('rig'), head:n('head'), from:fd.get('from')||'', to:fd.get('to')||'', done:true};
+    if(state.lift.to && state.lift.from && state.lift.to < state.lift.from) state.lift.to = state.lift.from;
+    state.liftSel = null; return render(); }
+  if(f.dataset.form==='lc-paste'){ e.preventDefault();
+    const lines = $('#lcPaste').value.trim().split(/\r?\n/).map(l=>l.split(/\t|;|,(?=\s*\d)/).map(x=>x.trim()));
+    if(lines.length < 2){ toast('Paste the header row and at least one radius row'); return; }
+    const booms = lines[0].slice(1).map(Number).filter(v=>v>0);
+    const rows = lines.slice(1).map(l=>({r:+l[0], caps:booms.map((_,i)=>{ const v = l[i+1]; return v===undefined || v==='' || v==='-' ? null : +v; })})).filter(r=>r.r>0);
+    if(!booms.length || !rows.length || rows.some(r=>r.caps.some(v=>v!=null && !(v>0)))){ toast('Could not read the table: check numbers and tabs'); return; }
+    const c = charts[state.chartU]; c.booms = booms; c.rows = rows.sort((x,y)=>x.r-y.r); c.source = 'Pasted table'; chartChanged(state.chartU);
+    toast(`Chart replaced: ${booms.length} boom lengths × ${rows.length} radii`); return render(); }
+});
+
+/* ---------- Fuel page ---------- */
+const FUEL_POLICY = {charged:'Charged to customer at cost + 10%', included:'Included in the hire rate', customer:'Customer supplies (dry hire)'};
+function renderFuel(){
+  const m = state.fuelMonth, list = fuel.filter(f=>f.d.startsWith(m)).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.id-a.id);
+  const L = sum(list.map(f=>f.l)), cost = sum(list.map(f=>f.l*f.price));
+  const toBill = sum(list.filter(f=>hire(f.hire)?.fuel==='charged').map(f=>f.l*f.price*1.1));
+  const flags = list.filter(fuelFlag);
+  const units = [...new Set(list.map(f=>f.u))];
+  const rows = units.map(u => { const fs = list.filter(f=>f.u===u), hrs = sum(fs.filter(f=>f.hours).map(f=>f.hours)), lt = sum(fs.filter(f=>f.hours).map(f=>f.l));
+    const norm = FUEL_RATE[fleet[u].m], act = hrs ? lt/hrs : null; return {u, n:fs.length, l:sum(fs.map(f=>f.l)), cost:sum(fs.map(f=>f.l*f.price)), hrs, act, norm, flag:fs.some(fuelFlag)}; }).sort((a,b)=>b.cost-a.cost);
+  $('#v-fuel').innerHTML = `
+    <div class="view-head"><h2>Fuel · ${MON[+m.slice(5)-1]} ${m.slice(0,4)}</h2>
+      <div class="seg">${['2026-09','2026-10'].map(x=>`<button data-fuelmonth="${x}" aria-pressed="${x===m}">${MON[+x.slice(5)-1]}</button>`).join('')}</div>
+      <button class="btn primary" data-action="fuel-add">Record a fill</button></div>
+    <div class="kpis">
+      <div class="kpi"><b>${num(L)} L</b><span>Diesel this month</span></div>
+      <div class="kpi"><b style="font-size:1.45rem">${RM0(cost)}</b><span>Fuel cost</span></div>
+      <div class="kpi"><b style="font-size:1.45rem">${RM0(toBill)}</b><span>To bill customers (cost + 10%)</span></div>
+      <div class="kpi ${flags.length?'alert':''}"><b>${flags.length}</b><span>Fills to check (over ${Math.round((FUEL_FLAG-1)*100)}% above normal)</span></div>
+      <div class="kpi"><b>${list.filter(f=>f.paid!=='Supplied by customer').length}</b><span>Receipts sent to Bukku</span></div>
+    </div>
+    ${flags.length?`<div class="banner crit"><b>${flags.map(f=>`${f.u} on ${fmtD(f.d)}: ${num(+fuelRate(f).toFixed(1))} L/h against a normal ${FUEL_RATE[fleet[f.u].m]} L/h`).join(' · ')}. Check for a leak, a wrong hour-meter reading, or fuel going missing.</b></div>`:''}
+    <div class="panel"><div class="panel-head"><h3>By machine</h3><span class="muted">litres per working hour from hour meter and timesheets</span></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Machine</th><th class="r">Fills</th><th class="r">Litres</th><th class="r">Cost</th><th class="r">Hours</th><th class="r">L/h</th><th class="r">Normal</th><th>Use</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr class="click" data-unit="${r.u}"><td><b>${r.u}</b> ${esc(uName(r.u))}</td><td class="r num">${r.n}</td><td class="r num">${num(r.l)}</td><td class="r num">${RM0(r.cost)}</td><td class="r num">${r.hrs?num(+r.hrs.toFixed(1)):'—'}</td><td class="r num">${r.act?num(+r.act.toFixed(1)):'—'}</td><td class="r num">${r.norm?r.norm:'—'}</td>
+        <td>${r.act&&r.norm?`<span class="pill ${r.act>r.norm*FUEL_FLAG?'crit':r.act>r.norm*1.08?'warn':'ok'}">${r.act>=r.norm?'+':''}${Math.round((r.act/r.norm-1)*100)}%</span>${r.flag?' <small class="muted">1+ fill to check</small>':''}`:`<span class="pill mute">${fleet[r.u].transport?'by km':'no hours'}</span>`}</td></tr>`).join('')}
+      </tbody></table></div></div>
+    <div class="panel"><div class="panel-head"><h3>Fills</h3><span class="muted">${list.length} this month</span></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Date</th><th>Machine</th><th class="r">Litres</th><th class="r">RM / L</th><th class="r">Amount</th><th class="r">Hour meter</th><th>Where · who</th><th>Hire · fuel terms</th><th>Bukku</th></tr></thead><tbody>
+      ${list.map(f=>{ const h = hire(f.hire); return `<tr><td class="num">${fmtDW(f.d)}</td><td><b>${f.u}</b> ${esc(mOf(f.u).model)}${fuelFlag(f)?' <span class="pill crit">Check</span>':''}</td><td class="r num">${num(f.l)}</td><td class="r num">${f.price.toFixed(2)}</td><td class="r num">${RM(f.l*f.price)}</td><td class="r num">${f.hm?num(f.hm):'—'}${f.hours?`<br><small class="muted">${num(f.hours)} h since last</small>`:''}</td>
+        <td>${esc(f.where)}<br><small class="muted">${esc(staff[f.by]?.name||'')} · ${esc(f.paid)}${f.receipt?' · receipt photo':''}</small></td>
+        <td>${h?`<button class="btn small" data-hire="${h.id}">${h.id}</button><br><small class="muted">${esc(FUEL_POLICY[h.fuel])}</small>`:'<small class="muted">Own use (transport)</small>'}</td>
+        <td>${f.paid==='Supplied by customer'||f.paid==='Own tank (yard)'?'<span class="pill mute">Not needed</span>':'<span class="pill ok">Expense sent</span>'}</td></tr>`; }).join('')}
+      </tbody></table></div></div>
+    <p class="muted" style="margin:0">Normal L/h figures and the diesel price here are sample values; the real price comes from each receipt. Own-tank fills are costed at the tank's average purchase price. Fuel charged to a customer goes onto that hire's next invoice automatically.</p>`;
+}
+function openFuelAdd(pre={}){
+  const fa = state.fa = state.fa || {u:'TC-01', d:TODAY, l:'', price:DIESEL, hm:'', where:'', paid:'Fleet card', receipt:false, ...pre};
+  const last = fuel.filter(f=>f.u===fa.u && f.hm).sort((a,b)=>a.d<b.d?1:-1)[0];
+  const live = hires.find(h=>LIVE.includes(h.status) && h.lines.some(l=>l.u===fa.u && (l.on||l.from)<=fa.d && lineEnd(l)>=fa.d));
+  const hrs = fa.hm && last ? +fa.hm - last.hm : null, rate = hrs>0 && fa.l ? fa.l/hrs : null, norm = FUEL_RATE[fleet[fa.u].m];
+  const body = `<form class="stack" data-form="fuel-add">
+    <div class="sect"><h3>Fill</h3><div class="in form">
+      <label>Machine<select class="field" data-fa="u">${Object.keys(fleet).map(u=>`<option value="${u}" ${u===fa.u?'selected':''}>${u} ${esc(uName(u))}</option>`).join('')}</select></label>
+      <label>Date<input type="date" data-fa="d" value="${fa.d}"></label>
+      <label>Litres<input type="number" min="1" step="1" data-fa="l" value="${fa.l}" placeholder="e.g. 220"></label>
+      <label>Price per litre (RM)<input type="number" min="0" step="0.01" data-fa="price" value="${fa.price}"></label>
+      <label>Hour meter now<input type="number" data-fa="hm" value="${fa.hm}" placeholder="${last?'last fill '+num(last.hm):''}"></label>
+      <label>Station / tank<input type="text" data-fa="where" value="${esc(fa.where)}" placeholder="e.g. Petron Jalan Kapar"></label>
+      <label>Paid by<select class="field" data-fa="paid">${FUEL_PAID.map(p=>`<option ${p===fa.paid?'selected':''}>${p}</option>`).join('')}</select></label>
+      <label>Receipt photo<button type="button" class="slot ${fa.receipt?'done':''}" data-action="fuel-snap" style="aspect-ratio:auto;height:44px">${fa.receipt?'Receipt attached':'＋ Take photo'}</button></label>
+    </div></div>
+    <div class="sect"><h3>Checks</h3><div class="in">
+      <div>${live?`On hire <b>${live.id}</b> (${esc(custName(live.c))}): ${esc(FUEL_POLICY[live.fuel])}.`:'Not on hire on this date: company cost.'}</div>
+      <div>${rate?`${num(hrs)} h since the last fill → <b>${num(+rate.toFixed(1))} L/h</b> (normal ${norm} L/h) ${rate>norm*FUEL_FLAG?'<span class="pill crit">Above normal: will be flagged</span>':'<span class="pill ok">Normal</span>'}`:'Enter litres and the hour meter to check the usage.'}</div>
+      <small class="muted">${fa.paid==='Supplied by customer'||fa.paid==='Own tank (yard)'?'No bill goes to Bukku for this fill.':'Saved as a fuel expense in Bukku, tagged with the machine, with the receipt photo attached.'}</small>
+    </div></div>
+    <div class="btnrow"><button class="btn primary" type="button" data-action="fuel-save">Save fill</button></div></form>`;
+  openSheet('Record a fill', '<span class="mono">Fuel</span>', body, {type:'fuel'});
+}
+function saveFuel(fa){
+  if(!(+fa.l>0)){ toast('Enter the litres'); return false; }
+  const last = fuel.filter(f=>f.u===fa.u && f.hm).sort((a,b)=>a.d<b.d?1:-1)[0];
+  const live = hires.find(h=>LIVE.includes(h.status) && h.lines.some(l=>l.u===fa.u && (l.on||l.from)<=fa.d && lineEnd(l)>=fa.d));
+  const hm = +fa.hm || null;
+  fuel.push({id:Math.max(...fuel.map(f=>f.id))+1, d:fa.d, u:fa.u, l:+fa.l, price:+fa.price||DIESEL, hm, hours: hm && last && hm>last.hm ? hm-last.hm : null, hire:live?.id||null, where:fa.where||'—', by:meStaff(), paid:fa.paid, receipt:!!fa.receipt});
+  if(hm) fleet[fa.u].hm = Math.max(fleet[fa.u].hm||0, hm);
+  const f = fuel[fuel.length-1];
+  toast(fuelFlag(f) ? `Saved. ${f.u} used ${num(+fuelRate(f).toFixed(1))} L/h: flagged for checking.` : fa.paid==='Supplied by customer'||fa.paid==='Own tank (yard)' ? 'Fill saved' : 'Fill saved and sent to Bukku as a fuel expense');
+  return true;
+}
+function fuelOpHtml(){
+  const cur = hires.find(h=>h.status==='On hire' && h.lines.some(l=>l.op===state.me));
+  if(!cur) return '';
+  const u = cur.lines.find(l=>l.op===state.me).u, last = fuel.filter(f=>f.u===u).sort((a,b)=>a.d<b.d?1:-1)[0];
+  return `<form class="sect" data-form="fuel-op"><h3>Add diesel · ${u}</h3><div class="in"><div class="form">
+    <label>Litres<input type="number" name="l" min="1" step="1" placeholder="e.g. 220"></label>
+    <label>RM per litre<input type="number" name="price" step="0.01" value="${DIESEL}"></label>
+    <label>Hour meter<input type="number" name="hm" value="${Math.round(fleet[u].hm||0)}"></label>
+    <label>Station<input type="text" name="where" value="${esc(last?.where||'')}"></label></div>
+    <small class="muted">Take a photo of the receipt and the pump. Last fill: ${last?`${fmtDW(last.d)}, ${num(last.l)} L`:'none'}.</small>
+    <div class="btnrow"><button class="btn primary">Save diesel</button></div></div></form>`;
+}
+
+/* ---------- Connections: Bukku and Worksy ---------- */
+const BUKKU_MAP = [
+  ['Hire charges','4100 Rental income – cranes & machinery'],['Transport and mobilisation','4110 Transport income'],['Overtime, Sunday, standby','4100 Rental income – cranes & machinery'],
+  ['Diesel recharged to customers','4120 Fuel recharge income'],['Damage repairs charged','4130 Damage recovery income'],['Fuel bought','6210 Fuel – diesel'],['Customer deposits','2300 Customer deposits']];
+let bukkuSeq = 1180;
+function bukkuOf(i){
+  if(!i.bukku || (i.bukku.st==='Waiting' && i.uuid)) i.bukku = i.uuid ? {st:'Synced', no:'IV-0'+(bukkuSeq++), at:i.issued} : {st:'Waiting'};
+  return i.bukku;
+}
+const bukkuPill = i => { const b = bukkuOf(i); return b.st==='Synced' ? `<span class="pill ok" title="Bukku ${b.no}">${b.no}</span>` : '<span class="pill warn" title="Sent once the e-invoice is fixed">Waiting</span>'; };
+function payrollRows(month){
+  return FIELD.map((s,k)=>{ const ts = sheets.filter(x=>x.op===s && x.d.startsWith(month));
+    const day = x => x.work + x.standby + x.bd;
+    const normal = sum(ts.filter(x=>dow(x.d)!==0).map(x=>Math.min(8, day(x)))), ot = sum(ts.filter(x=>dow(x.d)!==0).map(x=>Math.max(0, day(x)-8))), sun = sum(ts.filter(x=>dow(x.d)===0).map(day));
+    const trips = allTrips().filter(t=>t.drv===s && t.d.startsWith(month) && t.status==='Done').length;
+    let lv = 0, mc = 0; leave.filter(l=>l.s===s && l.status==='Approved').forEach(l=>{ for(let d=l.from; d<=l.to; d=addDays(d,1)) if(d.startsWith(month) && dow(d)!==0){ if(l.type.startsWith('Medical')) mc++; else lv++; } });
+    return {id:'HW'+String(101+k), s, normal, ot, sun, trips, lv, mc}; });
+}
+function renderConnect(){
+  const inv = invoices.slice().sort((a,b)=>a.issued<b.issued?1:-1);
+  const log = [
+    ...inv.map(i=>{ const b = bukkuOf(i); return b.st==='Synced' ? {d:i.issued, t:`Invoice ${i.no} (${RM(i.total)}) → Bukku ${b.no}`, ok:true} : {d:i.issued, t:`Invoice ${i.no} held: e-invoice rejected (${i.einvNote||'fix first'})`, ok:false}; }),
+    ...inv.filter(i=>i.status==='Paid').map(i=>({d:i.paid, t:`Payment ${RM(i.total)} recorded in Bukku → ${i.no} marked paid here`, ok:true, back:true})),
+    ...[...new Set(fuel.filter(f=>f.paid==='Fleet card'||f.paid==='Petty cash').map(f=>f.d))].map(d=>{ const fs = fuel.filter(f=>f.d===d && (f.paid==='Fleet card'||f.paid==='Petty cash')); return {d, t:`${fs.length} fuel receipt${fs.length>1?'s':''} (${RM(sum(fs.map(f=>f.l*f.price)))}) → Bukku expenses, tagged ${[...new Set(fs.map(f=>f.u))].join(', ')}`, ok:true}; }),
+  ].sort((a,b)=>a.d<b.d?1:-1).slice(0,14);
+  const pr = payrollRows(state.payMonth);
+  $('#v-connect').innerHTML = `
+    <div class="view-head"><h2>Connections</h2></div>
+    <div class="banner"><b>Prototype: the connections here are simulated with the example data. In the real system Bukku is linked with an API token from Bukku (Control Panel → Integrations → API Access).</b></div>
+    <div class="two">
+      <div class="panel"><div class="panel-head"><h3>Bukku · accounting</h3><span class="pill ok">Connected</span></div><div class="in" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+        <div class="facts" style="padding:0"><div><span class="label">Company</span><b>superpowercrane.bukku.my</b></div><div><span class="label">Access token</span><b class="mono">••••••••3f9a</b></div><div><span class="label">Last sync</span><b>${fmtDW(TODAY)} 09:15</b></div></div>
+        <table><tbody>
+          <tr><td>→</td><td><b>Invoices and credit notes</b><br><small class="muted">The moment they are issued here, with customer, lines, SST and hire number</small></td><td><span class="pill ok">Automatic</span></td></tr>
+          <tr><td>→</td><td><b>Customers</b><br><small class="muted">Name, SSM no., TIN, SST no., address, credit terms</small></td><td><span class="pill ok">Automatic</span></td></tr>
+          <tr><td>←</td><td><b>Payments received</b><br><small class="muted">Recorded in Bukku; the invoice here is marked paid and the follow-ups stop</small></td><td><span class="pill ok">Every 15 min</span></td></tr>
+          <tr><td>→</td><td><b>Fuel and parts bills</b><br><small class="muted">As expenses with the receipt photo, tagged by machine for cost per machine</small></td><td><span class="pill ok">Automatic</span></td></tr>
+          <tr><td>⇄</td><td><b>e-Invoice (MyInvois)</b><br><small class="muted">Choose one place to submit, so nothing is sent twice</small></td><td><select class="field" id="einvBy"><option>Bukku submits</option><option>This app submits</option></select></td></tr>
+        </tbody></table></div></div>
+      <div class="panel"><div class="panel-head"><h3>Worksy · HR and payroll</h3><span class="pill warn">File exchange</span></div><div class="in" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+        <p style="margin:0">Worksy has no public API, so until Worksy gives API access the link works with files in Worksy's import format.</p>
+        <table><tbody>
+          <tr><td>←</td><td><b>Staff list</b><br><small class="muted">Employee ID, name, IC / passport, position. Upload Worksy's staff export once, then when staff join or leave</small></td><td><span class="pill mute">Upload</span></td></tr>
+          <tr><td>→</td><td><b>Monthly payroll hours</b><br><small class="muted">Normal and overtime hours, Sunday / public holiday hours, trips, outstation nights, leave and MC, from signed timesheets</small></td><td><span class="pill mute">Monthly file</span></td></tr>
+          <tr><td>⇄</td><td><b>Leave</b><br><small class="muted">Keep leave in one system: either apply here (roster clash check) and send to Worksy, or apply in Worksy and import</small></td><td><span class="pill warn">To decide</span></td></tr>
+        </tbody></table>
+        <small class="muted">EPF, SOCSO, EIS and PCB are worked out in Worksy as today. If Worksy provides an API, these become automatic like Bukku.</small></div></div>
+    </div>
+    <div class="panel"><div class="panel-head"><h3>Bukku account mapping</h3><span class="muted">which Bukku account each kind of line posts to</span></div><div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><tbody>
+      ${BUKKU_MAP.map(([a,b],k)=>`<tr><td>${esc(a)}</td><td><input type="text" id="bmap${k}" value="${esc(b)}" style="width:100%"></td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="panel"><div class="panel-head"><h3>Sync log</h3><button class="btn small" data-action="bukku-sync">Sync now</button></div><div class="panel-body">
+      ${log.map(x=>`<div class="attn" style="--sev:var(--${x.ok?'ok':'warn'})"><i></i><div><b>${esc(x.t)}</b><br><small class="muted">${fmtDY(x.d)}${x.back?' · from Bukku':''}</small></div></div>`).join('')}
+    </div></div>
+    <div class="panel"><div class="panel-head"><h3>Payroll file for Worksy · ${MON[+state.payMonth.slice(5)-1]}</h3><div class="seg">${['2026-09','2026-10'].map(x=>`<button data-paymonth="${x}" aria-pressed="${x===state.payMonth}">${MON[+x.slice(5)-1]}</button>`).join('')}</div></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Employee ID</th><th>Name</th><th class="r">Normal h</th><th class="r">OT h</th><th class="r">Sun / PH h</th><th class="r">Trips</th><th class="r">Leave days</th><th class="r">MC days</th></tr></thead><tbody>
+      ${pr.map(r=>`<tr><td class="mono">${r.id}</td><td>${esc(staff[r.s].name)}<br><small class="muted">${esc(staff[r.s].role)}</small></td><td class="r num">${num(r.normal)}</td><td class="r num">${num(r.ot)}</td><td class="r num">${num(r.sun)}</td><td class="r num">${r.trips}</td><td class="r num">${r.lv}</td><td class="r num">${r.mc}</td></tr>`).join('')}
+      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">Built from signed timesheets, trips and approved leave${state.payMonth===TODAY.slice(0,7)?' (October so far)':''}. The real system makes this an Excel file in Worksy's import layout; the column names will follow Worksy's template once we have it.</small></div></div>`;
+}
+
+document.addEventListener('click', e => {
+  if(e.target.closest('input,select,textarea,canvas')) return;
+  const a = e.target.closest('[data-action^="fuel-"],[data-action="bukku-sync"],[data-fuelmonth],[data-paymonth]');
+  if(!a) return;
+  const d = a.dataset;
+  if(d.fuelmonth){ state.fuelMonth = d.fuelmonth; return render(); }
+  if(d.paymonth){ state.payMonth = d.paymonth; return render(); }
+  if(d.action==='fuel-add'){ state.fa = null; return openFuelAdd(); }
+  if(d.action==='fuel-snap'){ state.fa.receipt = true; return openFuelAdd(); }
+  if(d.action==='fuel-save'){ if(saveFuel(state.fa)){ state.fa = null; closeSheet(); render(); } return; }
+  if(d.action==='bukku-sync'){ toast('Bukku is up to date: nothing new to send'); return; }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.dataset.fa){ state.fa[t.dataset.fa] = t.value; if(t.dataset.fa==='u'){ state.fa.hm=''; } return openFuelAdd(); }
+});
+document.addEventListener('submit', e => {
+  const f = e.target;
+  if(f.dataset.form==='fuel-op'){ e.preventDefault(); const fd = new FormData(f), cur = hires.find(h=>h.status==='On hire' && h.lines.some(l=>l.op===state.me)), u = cur.lines.find(l=>l.op===state.me).u;
+    if(saveFuel({u, d:TODAY, l:fd.get('l'), price:fd.get('price'), hm:fd.get('hm'), where:fd.get('where'), paid:'Fleet card', receipt:true})) render(); }
+});
+
+/* ---------- Dashboard (home page) ---------- */
+const ATT_CAT = [
+  {k:'work', label:'On site / on the road', c:'var(--s1)'},
+  {k:'base', label:'In yard or office', c:'var(--s2)'},
+  {k:'leave', label:'On leave / MC', c:'var(--s3)'},
+];
+function attendanceToday(){
+  return [...OFFICE, ...FIELD].map(s => {
+    const lv = leave.find(l=>l.s===s && l.status==='Approved' && l.from<=TODAY && l.to>=TODAY);
+    const a = assignment(s, TODAY)[0], clock = CLOCK[s];
+    const start = OFFICE.includes(s) ? '08:30' : '08:00', time = clock ? clock.split(' · ')[0] : null;
+    const k = lv ? 'leave' : !clock ? 'none' : (a.cls==='job' || a.cls==='trip') ? 'work' : 'base';
+    return {s, k, time, where: clock ? clock.split(' · ')[1] : null, late: time && time > start, what: lv ? lv.type : a.t};
+  });
+}
+function monthSeries(){
+  const months = ['2026-05','2026-06','2026-07','2026-08','2026-09','2026-10'];
+  const uSep = utilisation('2026-09-01','2026-09-30'), uOct = utilisation('2026-10-01', TODAY);
+  const rSep = sum(invoices.filter(i=>i.period==='Sep 2026').map(i=>i.sub));
+  const rOct = sum(hires.filter(h=>h.status!=='Quotation').map(h=>totals(charges(h,'2026-10-01',TODAY)).sub));
+  const uHist = [uSep-9, uSep-5, uSep-2, uSep+3], rHist = [0.84, 0.9, 0.95, 1.06].map(f=>Math.round(rSep*f/100)*100);
+  return months.map((m,i) => ({m, label:MON[+m.slice(5)-1], util: i<4 ? uHist[i] : i===4 ? uSep : uOct, rev: i<4 ? rHist[i] : i===4 ? rSep : rOct, sample:i<4, partial:i===5}));
+}
+function lineChart(ms){
+  const W = 520, H = 210, L = 40, R = 46, T = 14, B = 30, w = W-L-R, h = H-T-B;
+  const x = i => L + i*(w/(ms.length-1)), y = v => T + h - v/100*h;
+  const pts = ms.map((d,i)=>[x(i), y(d.util)]);
+  const path = pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area = path + ` L${x(ms.length-1)} ${y(0)} L${x(0)} ${y(0)} Z`;
+  const last = ms[ms.length-1];
+  return `<svg viewBox="0 0 ${W} ${H}" class="dchart" role="img" aria-label="Fleet utilisation by month, ${ms.map(d=>d.label+' '+d.util+'%').join(', ')}">
+    ${[0,25,50,75,100].map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" class="gl"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" class="ax">${v}%</text>`).join('')}
+    <line x1="${L}" x2="${W-R}" y1="${y(70)}" y2="${y(70)}" class="target"/><text x="${W-R+4}" y="${y(70)+4}" class="ax">Target 70%</text>
+    <path d="${area}" class="area"/><path d="${path}" class="ln"/>
+    ${ms.map((d,i)=>`<text x="${x(i)}" y="${H-8}" text-anchor="middle" class="ax">${d.label}</text>
+      <circle cx="${x(i)}" cy="${y(d.util)}" r="5" class="pt ${d.partial?'open':''}"/>
+      <rect x="${x(i)-22}" y="${T}" width="44" height="${h}" fill="transparent" data-tip="${d.label} 2026: ${d.util}% utilisation${d.partial?' (1–16 Oct)':''}${d.sample?' · sample history':''}"/>`).join('')}
+    <text x="${x(ms.length-1)}" y="${y(last.util)-12}" text-anchor="middle" class="endv">${last.util}%</text>
+  </svg>`;
+}
+function barChart(ms){
+  const W = 520, H = 210, L = 58, R = 10, T = 18, B = 30, w = W-L-R, h = H-T-B;
+  const max = Math.ceil(Math.max(...ms.map(d=>d.rev))/50000)*50000, bw = w/ms.length*0.56;
+  const x = i => L + (i+0.5)*(w/ms.length), y = v => T + h - v/max*h;
+  const ticks = [0, max/2, max];
+  return `<svg viewBox="0 0 ${W} ${H}" class="dchart" role="img" aria-label="Invoiced hire revenue by month before SST, ${ms.map(d=>d.label+' RM '+Math.round(d.rev)).join(', ')}">
+    ${ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" class="gl"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" class="ax">${v>=1000?'RM '+Math.round(v/1000)+'k':'0'}</text>`).join('')}
+    ${ms.map((d,i)=>{ const top = y(d.rev), hh = y(0)-top, r = Math.min(4, hh);
+      return `<path d="M${x(i)-bw/2} ${y(0)} V${top+r} Q${x(i)-bw/2} ${top} ${x(i)-bw/2+r} ${top} H${x(i)+bw/2-r} Q${x(i)+bw/2} ${top} ${x(i)+bw/2} ${top+r} V${y(0)} Z" class="bar-m ${d.partial?'partial':''}" data-tip="${d.label} 2026: ${RM0(d.rev)}${d.partial?' so far (1–16 Oct)':''}${d.sample?' · sample history':''}"/>
+      <text x="${x(i)}" y="${H-8}" text-anchor="middle" class="ax">${d.label}</text>`; }).join('')}
+    <text x="${x(ms.length-2)}" y="${y(ms[ms.length-2].rev)-6}" text-anchor="middle" class="endv">${RM0(ms[ms.length-2].rev)}</text>
+  </svg>`;
+}
+function renderDashboard(){
+  const units = hireUnits(), st = units.map(u=>[u,unitStatus(u)]);
+  const rented = st.filter(([,s])=>['On hire','Off-hire called'].includes(s.k));
+  const ms = monthSeries(), uNow = ms[5].util, uPrev = ms[4].util;
+  const att = attendanceToday(), present = att.filter(a=>a.k==='work'||a.k==='base').length;
+  const none = att.filter(a=>a.k==='none'), late = att.filter(a=>a.late);
+  const open = enquiries.filter(openStage), pipe = sum(open.map(e=>e.value*PROB[e.stage]));
+  const fOct = fuel.filter(f=>f.d.startsWith('2026-10')), fL = sum(fOct.map(f=>f.l)), fRM = sum(fOct.map(f=>f.l*f.price));
+  const att3 = ATT_CAT.map(c=>({...c, n:att.filter(a=>a.k===c.k).length}));
+  const alerts = attention().slice(0,6), due = tasks.filter(t=>!t.done && t.d<=TODAY).length, exp = expiring().length;
+  const week = allTrips().filter(t=>t.d>=TODAY && t.d<=addDays(TODAY,7)).sort((a,b)=>a.d<b.d?-1:1);
+  const byGrp = Object.keys(GROUPS).filter(g=>g!=='transport').map(g=>{ const us = units.filter(u=>mOf(u).grp===g); return {g, n:us.length, on:us.filter(u=>onHireOn(u,TODAY)).length, util:utilisation('2026-10-01',TODAY,us)}; }).filter(x=>x.n);
+  const outstanding = sum(invoices.filter(i=>i.status!=='Paid' && i.status!=='Draft').map(i=>i.total)), overdue = sum(invoices.filter(i=>invStatus(i)==='Overdue').map(i=>i.total));
+  const delta = (a,b) => { const d = a-b; return `<small class="${d>=0?'up':'down'}">${d>=0?'▲':'▼'} ${Math.abs(d)} pts vs Sep</small>`; };
+  $('#v-dashboard').innerHTML = `
+    <div class="view-head"><div><h2>Dashboard</h2><span class="muted">${esc(CO.name)} · ${fmtDW(TODAY)} 2026, 9:15 am</span></div>
+      <div class="btnrow"><button class="btn" data-action="new-enq">New enquiry</button><button class="btn primary" data-action="new-hire">New hire / quotation</button></div></div>
+    <div class="kpis dk">
+      <button class="kpi" data-view="fleet"><span class="label">Machinery on rental</span><b>${rented.length}<small class="muted"> / ${units.length}</small></b><span>${units.length-rented.length} in yard, booked or in workshop</span></button>
+      <button class="kpi" data-view="reports"><span class="label">Utilisation rate</span><b>${uNow}%</b><span>Oct to date ${delta(uNow,uPrev)}</span></button>
+      <button class="kpi cost" data-view="billing"><span class="label">Hire revenue, Oct</span><b style="font-size:1.4rem">${RM0(ms[5].rev)}</b><span>to date, before SST · ${RM0(outstanding)} owed to us</span></button>
+      <button class="kpi" data-view="staff"><span class="label">Attendance today</span><b>${present}<small class="muted"> / ${att.length}</small></b><span>${none.length} not clocked in · ${att3[2].n} on leave / MC</span></button>
+      <button class="kpi cost" data-view="enquiries"><span class="label">Sales pipeline</span><b style="font-size:1.4rem">${RM0(pipe)}</b><span>${open.length} open enquiries · ${due} follow-ups due</span></button>
+      <button class="kpi" data-view="fuel"><span class="label">Fuel, Oct</span><b style="font-size:1.4rem">${num(fL)} L</b><span class="cost">${RM0(fRM)} · ${fuel.filter(f=>f.d.startsWith('2026-10') && fuelFlag(f)).length} fill to check</span></button>
+    </div>
+    <div class="dgrid">
+      <div class="panel"><div class="panel-head"><h3>Fleet utilisation</h3><span class="muted">days on hire ÷ days available</span></div><div class="in" style="padding:6px 10px 10px">${lineChart(ms)}
+        <small class="muted">May–Aug are sample history; Sep and Oct come from the hires in this prototype.</small></div></div>
+      <div class="panel"><div class="panel-head"><h3>Attendance today</h3><button class="btn small" data-view="staff">Staff</button></div><div class="in" style="padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+        <div class="segbar" role="img" aria-label="${att3.map(c=>c.label+' '+c.n).join(', ')}, not clocked in ${none.length}">${att3.filter(c=>c.n).map(c=>`<i style="flex:${c.n};background:${c.c}" data-tip="${c.label}: ${c.n}"></i>`).join('')}${none.length?`<i class="none" style="flex:${none.length}" data-tip="Not clocked in: ${none.length}"></i>`:''}</div>
+        <div class="slegend" style="padding:0">${att3.map(c=>`<div><i style="background:${c.c}"></i>${c.label}<b>${c.n}</b></div>`).join('')}<div><i class="none-sw"></i>Not clocked in<b>${none.length}</b></div></div>
+        ${none.length||late.length?`<div class="mini">${none.map(a=>`<div><span class="pill warn">! Not in</span> ${esc(staff[a.s].name)} <small class="muted">· ${esc(a.what)}</small></div>`).join('')}${late.map(a=>`<div><span class="pill mute">Late ${a.time}</span> ${esc(staff[a.s].name)} <small class="muted">· ${esc(a.where)}</small></div>`).join('')}</div>`:''}
+      </div></div>
+      <div class="panel span2"><div class="panel-head"><h3>Machinery on rental</h3><button class="btn small" data-view="planner">Planner</button></div>
+        <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Machine</th><th>Customer · site</th><th>Hire</th><th class="r">Days on hire</th><th>Until</th></tr></thead><tbody>
+        ${rented.map(([u,s])=>{ const left = daysBetween(TODAY, s.l.to); return `<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(mOf(u).type)}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${kindLabel(s.l.k)} · ${basisLabel[s.l.basis].toLowerCase()}${s.l.op?`<br><small class="muted">${esc(staff[s.l.op].name)}</small>`:''}</td><td class="r num">${daysBetween(s.l.on,TODAY)+1}</td>
+          <td>${s.k==='Off-hire called'?`<span class="pill warn">Off-hire ${fmtD(s.l.off)}</span>`:`${fmtD(s.l.to)} ${left<=7?`<span class="pill warn">${left} d left</span>`:''}`}</td></tr>`; }).join('')}
+        </tbody></table></div></div>
+      <div class="panel"><div class="panel-head"><h3>Utilisation by type</h3><span class="muted">Oct to date</span></div><div class="rbars">
+        ${byGrp.map(x=>`<div class="rbar"><span>${esc(GROUPS[x.g])} <small class="muted">${x.on}/${x.n} out</small></span><div class="track"><div class="fill" style="width:${x.util}%" data-tip="${esc(GROUPS[x.g])}: ${x.util}% (${x.on} of ${x.n} on hire today)"></div></div><span class="v">${x.util}%</span></div>`).join('')}
+      </div></div>
+      <div class="panel cost"><div class="panel-head"><h3>Hire revenue by month</h3><span class="muted">invoiced, before SST</span></div><div class="in" style="padding:6px 10px 10px">${barChart(ms)}
+        <small class="muted">October is to date (hatched). ${overdue?`<b>${RM0(overdue)}</b> is overdue.`:''}</small></div></div>
+      <div class="panel"><div class="panel-head"><h3>Needs attention</h3><button class="btn small" data-view="today">Today</button></div><div class="panel-body">
+        ${alerts.map(a=>`<div class="attn ${a.cost?'cost':''}" ${a.a} role="button" tabindex="0" style="--sev:var(--${a.sev==='crit'?'crit':a.sev==='warn'?'warn':'info'})"><i></i><div><b>${esc(a.t)}</b><br><small class="muted">${esc(a.s)}</small></div></div>`).join('')}
+        <div class="attn" data-view="calendar" role="button" tabindex="0" style="--sev:var(--warn)"><i></i><div><b>${exp} licences and machine documents expire within 60 days</b><br><small class="muted">DOSH CF, road tax, Puspakom, CIDB, GDL</small></div></div>
+      </div></div>
+      <div class="panel"><div class="panel-head"><h3>Next 7 days</h3><button class="btn small" data-view="transport">Transport</button></div><div class="panel-body">
+        ${week.map(t=>`<div class="attn" data-hire="${t.hire}" role="button" tabindex="0" style="--sev:var(--${t.dir==='Delivery'?'s1':'s2'})"><i></i><div><b>${fmtDW(t.d)} · ${t.dir==='Delivery'?'Out':'Back'}: ${t.u} ${esc(mOf(t.u).model)}</b><br><small class="muted">${esc(custName(t.c))} · ${t.veh?esc(t.veh):'self-drive'} · ${esc(staff[t.drv].name)}</small></div></div>`).join('') || '<p class="muted" style="padding:8px 14px">No trips planned.</p>'}
+      </div></div>
+    </div>`;
+}
+(function tipLayer(){
+  const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; document.body.appendChild(tip);
+  const show = e => { const t = e.target.closest && e.target.closest('[data-tip]'); if(!t){ tip.hidden = true; return; }
+    tip.textContent = t.getAttribute('data-tip'); tip.hidden = false;
+    const w = tip.offsetWidth, h = tip.offsetHeight; tip.style.left = Math.min(e.clientX+14, innerWidth-w-8)+'px'; tip.style.top = Math.min(e.clientY+14, innerHeight-h-8)+'px'; };
+  document.addEventListener('pointermove', show); document.addEventListener('pointerdown', show);
+  document.addEventListener('scroll', () => tip.hidden = true, true);
+})();
 
 /* ---------- sheet plumbing ---------- */
 function openSheet(title, sub, body, ctx){
@@ -1497,7 +2776,7 @@ function openSheet(title, sub, body, ctx){
 function closeSheet(){ $('#sheetRoot').innerHTML=''; document.body.style.overflow=''; state.sheet=null; state.lastSheet=null; }
 function refreshSheet(){
   const s = state.sheet; if(!s) return;
-  if(s.type==='hire') openHire(s.id); else if(s.type==='unit') openUnit(s.id); else if(s.type==='ts') openTimesheet(s.id); else if(s.type==='inv') openInvoice(s.id); else if(s.type==='nh') openNewHire(); else if(s.type==='insp') openInspection(s.id, s.kind);
+  if(s.type==='hire') openHire(s.id); else if(s.type==='unit') openUnit(s.id); else if(s.type==='ts') openTimesheet(s.id); else if(s.type==='inv') openInvoice(s.id); else if(s.type==='nh') openNewHire(); else if(s.type==='insp') openInspection(s.id, s.kind); else if(s.type==='enq') openEnquiry(s.id); else if(s.type==='cust') openCustomer(s.id); else if(s.type==='ne') openNewEnquiry(); else if(s.type==='fuel') openFuelAdd();
 }
 function toast(t){ $('#toastRoot').innerHTML=`<div class="toast" role="status">${esc(t)}</div>`; clearTimeout(toast.h); toast.h=setTimeout(()=>$('#toastRoot').innerHTML='',3200); }
 
@@ -1567,7 +2846,7 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target;
-  if(t.id==='roleSel'){ state.role = t.value; document.body.dataset.role = t.value; closeSheet(); state.ts=null; return setView(t.value==='operator' ? 'timesheets' : state.view==='timesheets' ? 'today' : state.view); }
+  if(t.id==='roleSel'){ state.role = t.value; document.body.dataset.role = t.value; closeSheet(); state.ts=null; return setView(t.value==='operator' ? 'timesheets' : state.view==='timesheets' ? 'dashboard' : state.view); }
   if(t.dataset.nh){ const f = t.dataset.nh; state.nh[f] = t.type==='checkbox' ? t.checked : t.value; if(f==='type') state.nh.u=null; if(f==='to' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; if(f==='from' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; return openNewHire(); }
   if(t.dataset.tsF){ state.ts[t.dataset.tsF] = t.value; return render(); }
   if(t.dataset.rate){ rates[t.dataset.rate][t.dataset.f] = +t.value; toast('Rate updated for new hires'); return; }
