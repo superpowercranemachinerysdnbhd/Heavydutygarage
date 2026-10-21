@@ -33,6 +33,9 @@ export default function PartPicker({ parts, name = "partId", placeholder, onPick
   }, [q, parts, hay]);
   const shown = found.slice(0, MAX);
 
+  // Tapping a result must not take focus from the box first: on iPad / Safari a tapped button does not get focus,
+  // so the list closed (blur) before the tap landed and nothing was chosen.
+  const keep = (e: React.MouseEvent) => e.preventDefault();
   const choose = (p: PickPart) => {
     setQ("");
     if (onPick) { onPick(p); setHi(0); input.current?.focus(); return; }
@@ -59,10 +62,10 @@ export default function PartPicker({ parts, name = "partId", placeholder, onPick
           else if (e.key === "Escape") setOpen(false);
         }} />
       {open && (
-        <ul className="pp-list" id={`${id}-list`} role="listbox">
+        <ul className="pp-list" id={`${id}-list`} role="listbox" onMouseDown={keep}>
           {shown.map((p, i) => (
             <li key={p.id} role="option" aria-selected={i === hi}>
-              <button type="button" className={i === hi ? "hi" : ""} onMouseEnter={() => setHi(i)} onClick={() => choose(p)}>
+              <button type="button" className={i === hi ? "hi" : ""} onMouseEnter={() => setHi(i)} onMouseDown={keep} onClick={() => choose(p)}>
                 <span className="pp-top"><b className="mono">{p.sku}</b>{p.fits && <span className="pill ok">{t("pp.fits")}</span>}
                   {p.bulk && <span className="pill info">{t("bulk.badge")}</span>}
                   <span className={`pp-stock ${stockCls(p)}`}>{stockText(t, p)}</span></span>
@@ -74,7 +77,7 @@ export default function PartPicker({ parts, name = "partId", placeholder, onPick
           {shown.length === 0 && !onCreate && <li className="pp-none muted">{t("pp.none")}</li>}
           {found.length > MAX && <li className="pp-none muted">{t("pp.more", { n: found.length - MAX })}</li>}
           {onCreate && (
-            <li><button type="button" className="pp-new" onClick={() => { const text = q.trim(); setQ(""); setOpen(false); onCreate(text); }}>
+            <li><button type="button" className="pp-new" onMouseDown={keep} onClick={() => { const text = q.trim(); setQ(""); setOpen(false); onCreate(text); }}>
               {q.trim() ? t("qp.addTyped", { text: q.trim() }) : t("qp.add")}</button></li>
           )}
         </ul>

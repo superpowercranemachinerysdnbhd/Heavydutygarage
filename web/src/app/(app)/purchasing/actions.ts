@@ -137,9 +137,9 @@ export async function recordPurchase(input: { supplierName: string; invoiceNo: s
   const lines = input.lines.filter((l) => (l.partId || l.newPart) && l.qty > 0);
   if (!lines.length) return { error: t("err.poNoLines") };
   if (lines.some((l) => !(l.price >= 0) || !Number.isFinite(l.price))) return { error: t("err.price") };
-  if (lines.some((l) => l.newPart && (!l.newPart.description.trim() || !l.newPart.categoryId))) return { error: t("rp2.err.newPart") };
+  if (lines.some((l) => l.newPart && !l.newPart.description.trim())) return { error: t("rp2.err.newPart") };
   const sup = await supplierByName(input.supplierName);
-  if (!sup) return { error: t("err.chooseSupplier") };
+  if (!sup) return { error: t("rp2.err.supplier") };
   const invoiceNo = input.invoiceNo.trim().slice(0, 60) || null;
   let job: { id: number; status: string } | undefined;
   if (input.jobId) [job] = await db.select({ id: schema.jobs.id, status: schema.jobs.status }).from(schema.jobs).where(eq(schema.jobs.id, input.jobId));

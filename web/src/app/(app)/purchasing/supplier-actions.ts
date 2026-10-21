@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { and, desc, eq, or } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requirePermission } from "@/lib/auth";
-import { createQuickPart, recordPrice } from "@/lib/inventory";
+import { UNCATEGORISED, createQuickPart, recordPrice } from "@/lib/inventory";
 import { isBigPriceChange, parsePriceCsv, priceChangePct } from "@/lib/stock";
 import { translator } from "@/i18n";
 
@@ -81,10 +81,9 @@ export async function quickPart(input: { sku: string; description: string; uom: 
   const t = translator(user.locale);
   const description = input.description.trim().slice(0, 200);
   if (!description) return { error: t("qp.err.desc") };
-  const [cat] = await db.select({ id: schema.partCategories.id, name: schema.partCategories.name }).from(schema.partCategories).where(eq(schema.partCategories.id, input.categoryId));
-  if (!cat) return { error: t("err.partCategory") };
-  const row = await createQuickPart(db, { ...input, description });
+  const [cat] = input.categoryId ? await db.select({ name: schema.partCategories.name }).from(schema.partCategories).where(eq(schema.partCategories.id, input.categoryId)) : [];
+  const row = await createQuickPart(db, { ...input, description, categoryId: cat ? input.categoryId : 0 });
   if (!row) return { error: t("err.skuUsed", { sku: input.sku.trim() }) };
   revalidatePath("/parts");
-  return { ...row, category: cat.name };
+  return { ...row, category: cat?.name ?? UNCATEGORISED };
 }

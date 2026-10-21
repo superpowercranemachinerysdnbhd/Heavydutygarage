@@ -29,8 +29,14 @@ export default function RecordForm({ parts, suppliers, categories, jobs, today, 
     setLines((ls) => [...ls, { key: seq.current++, np: { sku: isNo ? text : "", description: isNo ? "" : text, uom: "pc", categoryId: "", bulk: false }, qty: "1", price: "" }]);
   };
   const used = new Set(lines.map((l) => l.part?.id).filter(Boolean));
+  const blankNew = () => setLines((ls) => [...ls, { key: seq.current++, np: { sku: "", description: "", uom: "pc", categoryId: "", bulk: false }, qty: "1", price: "" }]);
   const save = () => start(async () => {
     setError("");
+    // Say what is missing instead of a grey button.
+    if (!head.supplier.trim()) { setError(t("rp2.err.supplier")); return; }
+    if (!lines.length) { setError(t("err.poNoLines")); return; }
+    if (lines.some((l) => l.np && !l.np.description.trim())) { setError(t("rp2.err.newPart")); return; }
+    if (lines.some((l) => !(Number(l.qty) > 0) || l.price === "" || !(Number(l.price) >= 0))) { setError(t("rp2.err.qtyPrice")); return; }
     const r = await recordPurchase({
       supplierName: head.supplier, invoiceNo: head.invoice, date: head.date, jobId: Number(head.jobId) || null, useOnJob: head.useOnJob,
       lines: lines.map((l) => ({ partId: l.part?.id, newPart: l.np ? { ...l.np, categoryId: Number(l.np.categoryId) } : undefined, qty: Number(l.qty), price: Number(l.price) })),
@@ -63,7 +69,7 @@ export default function RecordForm({ parts, suppliers, categories, jobs, today, 
                   <input value={l.np!.sku} onChange={(e) => setNp(l, { sku: e.target.value })} placeholder={t("rp2.skuPh")} aria-label={t("jp.partNo")} maxLength={60} />
                   <input value={l.np!.description} onChange={(e) => setNp(l, { description: e.target.value })} placeholder={t("bl.desc")} aria-label={t("bl.desc")} maxLength={200} required />
                   <input value={l.np!.uom} onChange={(e) => setNp(l, { uom: e.target.value })} list="rp2-uoms" aria-label={t("parts.uom")} style={{ maxWidth: 80 }} />
-                  <select className="field" value={l.np!.categoryId} onChange={(e) => setNp(l, { categoryId: e.target.value })} aria-label={t("parts.category")}><option value="">{t("parts.category")}…</option>{categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+                  <select className="field" value={l.np!.categoryId} onChange={(e) => setNp(l, { categoryId: e.target.value })} aria-label={t("parts.category")}><option value="">{t("rp2.noCat")}</option>{categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
                   <label className="set-check"><input type="checkbox" checked={l.np!.bulk} onChange={(e) => setNp(l, { bulk: e.target.checked })} /> {t("bulk.badge")}</label>
                 </div>)}</td>
               <td className="r"><input type="number" min="0.01" step="any" value={l.qty} onChange={(e) => set(l.key, { qty: e.target.value })} aria-label={t("po.qty")} /></td>
@@ -75,14 +81,15 @@ export default function RecordForm({ parts, suppliers, categories, jobs, today, 
           <tfoot><tr><td colSpan={3} className="r"><b>{t("bl.invoiceTotal")}</b></td><td className="r num"><b>{rm(total)}</b></td><td /></tr></tfoot>
         </table></div>}
         <datalist id="rp2-uoms"><option>pc</option><option>set</option><option>kit</option><option>m</option><option>L</option><option>pail</option><option>drum</option><option>kg</option><option>box</option><option>roll</option></datalist>
-        <div style={{ padding: "10px 14px" }}>
+        <div style={{ padding: "10px 14px", display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-start" }}>
           <PartPicker placeholder={t("rp2.addPh")} onPick={addPart} onCreate={addNew} parts={parts.filter((p) => !used.has(p.id))} />
+          <button type="button" className="btn" onClick={blankNew}>{t("rp2.newRow")}</button>
         </div>
       </div>
 
       {error && <div className="notice err" role="alert">{error}</div>}
       <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-        <button type="button" className="btn primary" disabled={pending || !lines.length || !head.supplier.trim()} onClick={save}>{pending ? t("common.saving") : t("rp2.save", { total: rm(total) })}</button>
+        <button type="button" className="btn primary" disabled={pending} onClick={save}>{pending ? t("common.saving") : t("rp2.save", { total: rm(total) })}</button>
         <small className="muted">{t("rp2.help")}</small>
       </div>
     </div>

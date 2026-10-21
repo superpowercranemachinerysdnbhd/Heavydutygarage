@@ -138,6 +138,8 @@ export async function requestsFor(jobId?: number, onlyOpen = false) {
   return rows.map((x) => ({ ...x.r, qty: n(x.r.qty), sku: x.sku, oem: x.oem, description: x.description, uom: x.uom, onHand: n(x.onHand), bin: x.bin, by: x.by, jobNo: x.jobNo }));
 }
 
+export const UNCATEGORISED = "Uncategorised";
+
 /** A new part from a quick form (purchase order, record a purchase). No part no.: a workshop number ITEM-0001…
  *  Returns null if the part no. is already used (any case). */
 export async function createQuickPart(tx: Tx | typeof db, v: { sku: string; description: string; uom: string; categoryId: number; bulk: boolean }) {
@@ -149,7 +151,14 @@ export async function createQuickPart(tx: Tx | typeof db, v: { sku: string; desc
     const [{ n: last }] = await tx.select({ n: sql<number>`coalesce(max(substring(${parts.sku} from '^ITEM-(\\d+)$')::int), 0)` }).from(parts);
     sku = `ITEM-${String(Number(last) + 1).padStart(4, "0")}`;
   }
+  // No category chosen: "Uncategorised" (sort it out later on the part page).
+  let categoryId = v.categoryId;
+  if (!categoryId) {
+    const C = schema.partCategories;
+    const [c] = await tx.insert(C).values({ name: UNCATEGORISED }).onConflictDoNothing().returning({ id: C.id });
+    categoryId = c?.id ?? (await tx.select({ id: C.id }).from(C).where(eq(C.name, UNCATEGORISED)))[0].id;
+  }
   const [row] = await tx.insert(parts).values({ sku, oemPartNo: v.sku.trim() || null, description: v.description.trim().slice(0, 200), uom: v.uom.trim().slice(0, 20) || "pc",
-    categoryId: v.categoryId, fitsAll: true, bulk: v.bulk }).returning({ id: parts.id, sku: parts.sku, description: parts.description, uom: parts.uom, bulk: parts.bulk });
+    categoryId, fitsAll: true, bulk: v.bulk }).returning({ id: parts.id, sku: parts.sku, description: parts.description, uom: parts.uom, bulk: parts.bulk });
   return row;
 }

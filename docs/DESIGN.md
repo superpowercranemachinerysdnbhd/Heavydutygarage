@@ -764,3 +764,8 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - With a work order and "All of these were used on this work order", every line is also issued to that work order.
 - No approval step: the parts are already bought. When a Supervisor records one, the Head Manager gets a notification with the supplier and total.
 - The full raise → approve → receive purchase order flow is unchanged for ordering ahead.
+
+### 49. Part search on iPad; record many new items (Oct 2026)
+- Fix: on iPad / Safari a tapped button does not take focus, so the part search list closed (blur) before the tap landed. Tapping a result or "+ Add new item" then did nothing. The list and its buttons now prevent the mousedown default, so the search box keeps focus and the tap goes through. This affects work orders, new purchase orders and Record parts bought.
+- Record parts bought: a "+ New item" button adds an empty new-item row (for an invoice of all new items). Save is never greyed out: it says what is missing (supplier, a description for new items, qty and unit price).
+- The category of a new item is optional. Without one, the item goes into "Uncategorised" (created when first needed) to sort out later on the part page. Same in the purchase order "+ Add new item".
