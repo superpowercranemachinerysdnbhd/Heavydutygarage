@@ -30,7 +30,10 @@ export const staff = pgTable("staff", {
   skills: text("skills").array().notNull().default([]),
   /** Other names this person was known by (e.g. after merging a duplicate); imports match them too. */
   aliases: text("aliases").array().notNull().default([]),
+  /** Hourly cost of normal time. Worked out from the monthly salary when one is set (salary ÷ normal hours a month). */
   payRate: numeric("pay_rate", { precision: 10, scale: 2 }).notNull().default("0"),
+  monthlySalary: numeric("monthly_salary", { precision: 10, scale: 2 }),
+  monthlyHours: numeric("monthly_hours", { precision: 6, scale: 1 }).notNull().default("195"),
   active: boolean("active").notNull().default(true),
   passwordHash: text("password_hash"),
   locale: varchar("locale", { length: 5 }).notNull().default("en"),
@@ -191,6 +194,9 @@ export const labourEntries = pgTable("labour_entries", {
   staffId: integer("staff_id").notNull().references(() => staff.id),
   workDate: date("work_date").notNull(),
   hours: numeric("hours", { precision: 6, scale: 2 }).notNull(),
+  /** normal / ot (after 5 pm) / sunday (Sunday or public holiday); the multiplier is kept as it was when logged. */
+  rateType: varchar("rate_type", { length: 10 }).notNull().default("normal"),
+  rateMult: numeric("rate_mult", { precision: 4, scale: 2 }).notNull().default("1"),
   note: text("note"),
   loggedBy: integer("logged_by").references(() => staff.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

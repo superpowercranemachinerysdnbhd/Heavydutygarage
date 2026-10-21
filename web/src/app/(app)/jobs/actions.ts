@@ -13,7 +13,8 @@ import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, deleteStoredFile, saveFile } from
 import { issueToJob } from "@/lib/inventory";
 import { supplierByName } from "@/lib/purchasing";
 import { saveMachine } from "@/lib/machines";
-import { bayCodes, findItem, isCategory, itemLabel, qcSuggestions } from "@/lib/lists";
+import { bayCodes, findItem, isCategory, itemLabel, qcSuggestions, settings } from "@/lib/lists";
+import { rateMultiplier, rateTypeFor } from "@/lib/pay";
 import { markServiceDone } from "@/lib/services";
 import { ensureLists } from "@/lib/lists-server";
 import { translator, type MessageKey, type Vars } from "@/i18n";
@@ -361,7 +362,8 @@ export async function logLabour(form: FormData) {
   if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
   const [s] = await db.select({ name: schema.staff.name }).from(schema.staff).where(eq(schema.staff.id, staffId));
   if (!s) back(user, jobId, { error: "err.choosePerson" });
-  await db.insert(schema.labourEntries).values({ jobId, staffId, hours: String(hours), workDate, note: str(form, "note") || null, loggedBy: user.id });
+  const rateType = rateTypeFor(str(form, "rateType"), workDate);
+  await db.insert(schema.labourEntries).values({ jobId, staffId, hours: String(hours), workDate, rateType, rateMult: String(rateMultiplier(rateType, settings())), note: str(form, "note") || null, loggedBy: user.id });
   await ensureOnTeam(jobId, staffId, job.leadId);
   await addActivity(jobId, user.id, "act.labour", { hours, who: s.name });
   back(user, jobId, { ok: "ok.timeLogged", hash: "labour" });
@@ -389,7 +391,10 @@ export async function updateLabour(form: FormData) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(workDate) || workDate > today()) back(user, job.id, { error: "err.futureDate", hash: "labour" });
   const [s] = await db.select({ name: schema.staff.name }).from(schema.staff).where(eq(schema.staff.id, staffId));
   if (!s) back(user, job.id, { error: "err.choosePerson", hash: "labour" });
-  await db.update(schema.labourEntries).set({ hours: String(hours), workDate, staffId, note: str(form, "note") || null }).where(eq(schema.labourEntries.id, e.id));
+  // The multiplier is kept from when it was logged unless the type of hour changes.
+  const rateType = rateTypeFor(str(form, "rateType") || e.rateType, workDate);
+  const rateMult = rateType === e.rateType ? e.rateMult : String(rateMultiplier(rateType, settings()));
+  await db.update(schema.labourEntries).set({ hours: String(hours), workDate, staffId, rateType, rateMult, note: str(form, "note") || null }).where(eq(schema.labourEntries.id, e.id));
   if (staffId !== e.staffId) await ensureOnTeam(job.id, staffId, job.leadId);
   await addActivity(job.id, user.id, "act.labourEdit", { who: s.name, from: Number(e.hours), hours, name: user.name });
   back(user, job.id, { ok: "lab.saved", hash: "labour" });

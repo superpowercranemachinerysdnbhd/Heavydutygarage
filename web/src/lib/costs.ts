@@ -18,7 +18,7 @@ export async function costRows(opts: { unitId?: number; from?: string; to?: stri
       coalesce((select sum(b.qty * b.unit_cost) from job_purchases b where b.job_id = j.id and b.kind <> 'service'), 0) as bought,
       coalesce((select sum(b.qty * b.unit_cost) from job_purchases b where b.job_id = j.id and b.kind = 'service'), 0) as outside,
       coalesce((select sum(l.hours) from labour_entries l where l.job_id = j.id), 0) as hours,
-      coalesce((select sum(l.hours * s.pay_rate) from labour_entries l join staff s on s.id = l.staff_id where l.job_id = j.id), 0) as labour
+      coalesce((select sum(l.hours * s.pay_rate * l.rate_mult) from labour_entries l join staff s on s.id = l.staff_id where l.job_id = j.id), 0) as labour
     from jobs j where ${sql.join(where, sql` and `)}`);
   return r.rows.map((x) => ({ jobId: Number(x.job_id), unitId: Number(x.unit_id), category: x.category, opened: x.opened, outsourced: !!x.outsourced,
     stock: Number(x.stock), bought: Number(x.bought), outside: Number(x.outside), hours: Number(x.hours), labour: Number(x.labour) }));

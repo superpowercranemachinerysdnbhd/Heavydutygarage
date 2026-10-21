@@ -775,3 +775,10 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Work order page: a "Done on this work order" list (✓ item, date, next due). Supervisor / Head Manager can remove a line ticked by mistake; the machine schedule is not changed.
 - Service report: a **Services done** table (service, done on, next due) in the customer's language, after Work carried out.
 - Migration 0021 fills `job_services` from the services already recorded on work orders (latest per machine and item).
+
+### 51. Monthly salary, overtime and Sunday rates (Oct 2026)
+- Staff: **Monthly salary** and **Normal hours a month** (default 195). With a salary, the hourly cost is worked out (`hourlyFromSalary`: RM 1,900 ÷ 195 = RM 9.74). Without one, the hourly rate typed in is used (casual workers). Team page (Head Manager): hourly rate, salary ÷ hours, and the overtime and Sunday hourly rates.
+- Settings → Workshop: **Overtime rate (after 5 pm) ×** (default 1.5) and **Sunday / public holiday rate ×** (default 2).
+- Logging time: a "Type of hours" choice (Normal / Overtime after 5 pm / Sunday or public holiday). Work dated on a Sunday is always the Sunday rate. `labour_entries.rate_type` and `rate_mult` keep the multiplier as it was when logged, so later changes in Settings don't rewrite history. Rows show an "OT ×1.5" / "Sunday ×2" tag.
+- Labour cost everywhere (work order cost, machine cost, Reports) = hours × hourly rate × multiplier. Pure rules in `lib/pay.ts`, unit-tested.
+- Entries logged before this change count as normal hours.

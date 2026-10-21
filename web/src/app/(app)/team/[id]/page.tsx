@@ -11,6 +11,7 @@ import { isLocale } from "@/i18n";
 import { langLabel, roleLabel, statusLabel } from "@/i18n/labels";
 import { Avatar, CatChip, Notice } from "@/components/ui";
 import StaffFields from "@/components/StaffFields";
+import { settings } from "@/lib/lists";
 import SubmitButton from "@/components/SubmitButton";
 import { addCert, mergeInto, removeCert, resetPassword, setActive, updateStaff } from "../actions";
 
@@ -49,7 +50,8 @@ export default async function StaffPage({ params, searchParams }: { params: Prom
         <div><span className="label">{t("team.permit")}</span><b className={p.permitExpiry && daysBetween(d, p.permitExpiry) < 45 ? "stock-low" : ""}>{fmtDate(p.permitExpiry, true, locale)}</b></div>
         <div><span className="label">{t("team.emergency")}</span><b>{p.emergencyContact ?? "—"}</b></div>
         <div><span className="label">{t("s.language")}</span><b>{isLocale(p.locale) ? langLabel(t, p.locale) : p.locale}</b></div>
-        {can(user.role, "money.labourCost") && <div><span className="label">{t("team.payRate")}</span><b className="num">{t("team.perHour", { rm: rm(Number(p.payRate)) })}</b></div>}
+        {can(user.role, "money.labourCost") && <div><span className="label">{t("team.payRate")}</span><b className="num">{t("team.perHour", { rm: rm(Number(p.payRate)) })}</b>
+          <small className="muted">{p.monthlySalary ? `${t("team.salaryLine", { rm: rm(Number(p.monthlySalary)), h: Number(p.monthlyHours) })} · ` : ""}{t("team.otLine", { ot: rm(Number(p.payRate) * settings().otMultiplier), sun: rm(Number(p.payRate) * settings().sundayMultiplier) })}</small></div>}
         <div style={{ gridColumn: "1/-1" }}><span className="label">{t("team.skills")}</span><div className="tags">{p.skills.map((s) => <span key={s} className="tag">{s}</span>)}{p.skills.length === 0 && "—"}</div></div>
       </div></div>
 

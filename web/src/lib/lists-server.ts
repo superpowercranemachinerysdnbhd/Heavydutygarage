@@ -3,7 +3,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { mergeLists, setLists, type Lists, type Settings } from "./lists";
 
-const NUM_KEYS = ["labourRate", "poApprovalLimit", "jobPurchaseMarkup"] as const;
+const NUM_KEYS = ["labourRate", "poApprovalLimit", "jobPurchaseMarkup", "otMultiplier", "sundayMultiplier"] as const;
 
 /** Read the Head Manager's list changes and settings and make them current for this server process. */
 export async function loadLists(): Promise<Lists> {

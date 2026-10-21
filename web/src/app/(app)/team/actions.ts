@@ -8,10 +8,19 @@ import { requirePermission } from "@/lib/auth";
 import { hashPassword, passwordProblem } from "@/lib/password";
 import { normalisePhone } from "@/lib/phone";
 import { isRole } from "@/lib/queries";
+import { hourlyFromSalary } from "@/lib/pay";
 import { isLocale, translator, type MessageKey, type Vars } from "@/i18n";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const optDate = (f: FormData, k: string) => { const v = str(f, k); return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null; };
+
+/** Monthly salary → hourly rate (salary ÷ normal hours a month); without a salary, the hourly rate as typed (casual workers). */
+function pay(f: FormData) {
+  const salary = Number(str(f, "monthlySalary")) || 0, hours = Number(str(f, "monthlyHours")) || 195;
+  return salary > 0
+    ? { monthlySalary: salary.toFixed(2), monthlyHours: String(hours), payRate: hourlyFromSalary(salary, hours).toFixed(2) }
+    : { monthlySalary: null, monthlyHours: String(hours), payRate: String(Number(str(f, "payRate")) || 0) };
+}
 
 function values(f: FormData) {
   const role = str(f, "role"), locale = str(f, "locale");
@@ -19,7 +28,7 @@ function values(f: FormData) {
     name: str(f, "name"), role: isRole(role) ? role : null, phone: normalisePhone(str(f, "phone")), email: str(f, "email") || null,
     reportsTo: Number(f.get("reportsTo")) || null, idNumber: str(f, "idNumber") || null, permitExpiry: optDate(f, "permitExpiry"),
     emergencyContact: str(f, "emergencyContact") || null, joined: optDate(f, "joined"),
-    skills: str(f, "skills").split(",").map((s) => s.trim()).filter(Boolean), payRate: String(Number(str(f, "payRate")) || 0),
+    skills: str(f, "skills").split(",").map((s) => s.trim()).filter(Boolean), ...pay(f),
     locale: isLocale(locale) ? locale : "en",
   };
 }
