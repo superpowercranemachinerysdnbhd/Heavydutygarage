@@ -692,6 +692,7 @@ button.g-group small{font-weight:400;opacity:.75;margin-left:6px}
 .iv-tot{display:grid;grid-template-columns:auto auto;gap:4px 28px;margin-left:auto;min-width:260px;text-align:right;font-variant-numeric:tabular-nums;font-size:12px}
 .iv-tot span{color:#5a6471}
 .iv-tot .t{color:#1a1f26;font-weight:700;border-top:1px solid #1a1f26;border-bottom:3px double #1a1f26;padding:3px 0}
+.bar.am,.bar.pm{padding:0 2px;font-size:.6rem;justify-content:center}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -811,7 +812,7 @@ const models = {
   RK500:{make:'Kobelco',model:'RK500-2',type:'Rough terrain crane 50 t',grp:'crane',size:'self'},
   NK250:{make:'Kato',model:'NK-250-5',type:'Truck crane 25 t',grp:'crane',size:'self'},
   TL450:{make:'Tadano',model:'TL-450-3',type:'Truck crane 45 t',grp:'crane',size:'self'},
-  UNIC:{make:'Hino / Unic',model:'URV550 lorry crane',type:'Lorry crane 10 t',grp:'crane',size:'self'},
+  UNIC:{make:'Hino',model:'Palfinger lorry crane',type:'Lorry crane 8 t',grp:'crane',size:'self'},
   FD30:{make:'Toyota',model:'8FD30',type:'Forklift 3 t',grp:'lift',size:'small'},
   FD50:{make:'TCM',model:'FD50',type:'Forklift 5 t',grp:'lift',size:'small'},
   S65:{make:'Genie',model:'S-65',type:'Boom lift 20 m',grp:'lift',size:'mid'},
@@ -826,9 +827,9 @@ const models = {
 const DOCS = {cf:'DOSH Certificate of Fitness', road:'Road tax', ins:'Insurance', pusp:'Puspakom', cpm:'Plant insurance', apad:'APAD licence'};
 const fleet = {
   'RC-01':{m:'RK500',plate:'WVX 5501',year:2016,hm0:11580,docs:{cf:'2027-03-02',road:'2027-01-15',ins:'2027-01-15'},cost:1650000,ytd:{rev:486000,ws:38500,opx:52000,util:86}},
-  'TC-01':{m:'NK250',plate:'BMK 2250',year:2012,hm0:18320,docs:{cf:'2026-11-28',road:'2027-04-10',ins:'2027-04-10'},cost:720000,ytd:{rev:268000,ws:61200,opx:47000,util:71}},
-  'TC-02':{m:'TL450',plate:'WTB 7121',year:2009,hm0:9790,docs:{cf:'2026-10-30',road:'2027-02-01',ins:'2027-02-01'},cost:540000,ytd:{rev:214000,ws:72400,opx:41000,util:64}},
-  'LC-01':{m:'UNIC',plate:'BPQ 6610',year:2018,hm:6120,docs:{cf:'2027-05-11',road:'2027-03-01',ins:'2027-03-01',pusp:'2026-12-04'},cost:380000,ytd:{rev:96000,ws:12800,opx:28000,util:48}},
+  'TC-01':{m:'NK250',plate:'JQA 5783',year:2012,hm0:18320,docs:{cf:'2026-11-28',road:'2027-04-10',ins:'2027-04-10'},cost:720000,ytd:{rev:268000,ws:61200,opx:47000,util:71}},
+  'TC-02':{m:'TL450',plate:'BMG 8858',year:2009,hm0:9790,docs:{cf:'2026-10-30',road:'2027-02-01',ins:'2027-02-01'},cost:540000,ytd:{rev:214000,ws:72400,opx:41000,util:64}},
+  'LC-01':{m:'UNIC',plate:'NDH 3921',year:2018,hm:6120,docs:{cf:'2027-05-11',road:'2027-03-01',ins:'2027-03-01',pusp:'2026-12-04'},cost:380000,ytd:{rev:96000,ws:12800,opx:28000,util:48}},
   'FL-01':{m:'FD30',serial:'8FD30-61822',year:2019,hm:4502,docs:{ins:'2027-02-20'},cost:85000,ytd:{rev:21800,ws:3100,opx:900,util:62}},
   'FL-02':{m:'FD50',serial:'FD50T9-30417',year:2017,hm:6305,docs:{ins:'2027-02-20'},cost:120000,ytd:{rev:30200,ws:4200,opx:900,util:70}},
   'BL-01':{m:'S65',serial:'S6015-2271',year:2015,hm:3870,docs:{cf:'2027-01-09',ins:'2027-02-20'},cost:260000,ytd:{rev:54000,ws:6900,opx:2400,util:58}},
@@ -890,26 +891,26 @@ const STATES = ['Johor','Melaka','Negeri Sembilan','Selangor','Kuala Lumpur','Pu
 
 /* The company's crane fleet. Types and capacity classes come from the model names; confirm each with the owner. */
 Object.assign(models, {
-  GR600:{make:'Tadano',model:'GR-600-1',type:'Rough terrain crane 60 t',grp:'crane',size:'self'},
-  SS500:{make:'Kato',model:'SS-500SP',type:'Truck crane 50 t',grp:'crane',size:'self'},
+  GR600:{make:'Tadano',model:'GR-600N-1',type:'Rough terrain crane 60 t',grp:'crane',size:'self'},
+  SS500:{make:'Kato',model:'SS-500SR',type:'Truck crane 50 t',grp:'crane',size:'self'},
   TL500:{make:'Tadano',model:'TL-500-3',type:'Truck crane 50 t',grp:'crane',size:'self'},
-  ATF60:{make:'Faun',model:'ATF 60-4',type:'All terrain crane 60 t',grp:'crane',size:'self'},
+  ATF60:{make:'Faun',model:'ATF 60-3',type:'All terrain crane 60 t',grp:'crane',size:'self'},
   SL700:{make:'Kato',model:'SL-700R',type:'Rough terrain crane 70 t',grp:'crane',size:'self'},
   SA1100:{make:'Sumitomo',model:'SA-1100',type:'Mobile crane 110 t',grp:'crane',size:'self'},
   SL1300:{make:'Kato',model:'KA-1300SL',type:'All terrain crane 130 t',grp:'crane',size:'self'},
-  NK160:{make:'Kato',model:'NK-160',type:'Truck crane 16 t',grp:'crane',size:'self'},
+  NK160:{make:'Kato',model:'NK-160B-2',type:'Truck crane 16 t',grp:'crane',size:'self'},
   NK200:{make:'Kato',model:'NK-200E-III',type:'Truck crane 20 t',grp:'crane',size:'self'},
 });
 Object.assign(fleet, {
-  'RC-02':{m:'GR600',plate:'WYD 6001',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:1450000,ytd:{rev:298000,ws:24400,opx:46000,util:66}},
-  'TC-03':{m:'SS500',plate:'BJH 5002',year:2010,hm:24310,docs:{cf:'2026-12-20',road:'2027-01-05',ins:'2027-01-05',pusp:'2027-02-11'},cost:620000,ytd:{rev:205000,ws:41800,opx:39000,util:58}},
-  'TC-04':{m:'TL500',plate:'WRK 5003',year:2014,hm:16880,docs:{cf:'2027-02-26',road:'2027-05-02',ins:'2027-05-02',pusp:'2027-03-15'},cost:780000,ytd:{rev:232000,ws:30500,opx:41000,util:62}},
-  'AT-01':{m:'ATF60',plate:'VFA 6004',year:2016,hm:11250,docs:{cf:'2027-06-07',road:'2027-04-21',ins:'2027-04-21'},cost:1600000,ytd:{rev:318000,ws:35600,opx:47000,util:68}},
-  'MC-01':{m:'SL700',plate:'WMK 7005',year:2015,hm:13960,docs:{cf:'2027-01-14',road:'2027-02-09',ins:'2027-02-09'},cost:1850000,ytd:{rev:356000,ws:44100,opx:52000,util:61}},
-  'MC-02':{m:'SA1100',plate:'WSA 1106',year:2013,hm:18720,docs:{cf:'2026-11-30',road:'2027-01-22',ins:'2027-01-22'},cost:2600000,ytd:{rev:462000,ws:68300,opx:61000,util:54}},
-  'TC-05':{m:'NK160',plate:'BCK 1608',year:1996,hm:31240,docs:{cf:'2027-03-04',road:'2027-02-17',ins:'2027-02-17',pusp:'2027-01-08'},cost:150000,ytd:{rev:88000,ws:21600,opx:30000,util:55}},
-  'TC-06':{m:'NK200',plate:'BDQ 2009',year:2001,hm:27650,docs:{cf:'2027-05-26',road:'2027-04-02',ins:'2027-04-02',pusp:'2027-03-21'},cost:210000,ytd:{rev:104000,ws:19800,opx:32000,util:59}},
-  'MC-03':{m:'SL1300',plate:'WKL 1307',year:2017,hm:9880,docs:{cf:'2027-07-19',road:'2027-03-11',ins:'2027-03-11'},cost:3400000,ytd:{rev:588000,ws:57900,opx:72000,util:52}},
+  'RC-02':{m:'GR600',plate:'JYR 2138',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:1450000,ytd:{rev:298000,ws:24400,opx:46000,util:66}},
+  'TC-03':{m:'SS500',plate:'JVY 2138',year:2010,hm:24310,docs:{cf:'2026-12-20',road:'2027-01-05',ins:'2027-01-05',pusp:'2027-02-11'},cost:620000,ytd:{rev:205000,ws:41800,opx:39000,util:58}},
+  'TC-04':{m:'TL500',plate:'VHX 8292',year:2014,hm:16880,docs:{cf:'2027-02-26',road:'2027-05-02',ins:'2027-05-02',pusp:'2027-03-15'},cost:780000,ytd:{rev:232000,ws:30500,opx:41000,util:62}},
+  'AT-01':{m:'ATF60',plate:'BLU 8865',year:2016,hm:11250,docs:{cf:'2027-06-07',road:'2027-04-21',ins:'2027-04-21'},cost:1600000,ytd:{rev:318000,ws:35600,opx:47000,util:68}},
+  'MC-01':{m:'SL700',plate:'SK 9920 F',year:2015,hm:13960,docs:{cf:'2027-01-14',road:'2027-02-09',ins:'2027-02-09'},cost:1850000,ytd:{rev:356000,ws:44100,opx:52000,util:61}},
+  'MC-02':{m:'SA1100',plate:'BPJ 8896',year:2013,hm:18720,docs:{cf:'2026-11-30',road:'2027-01-22',ins:'2027-01-22'},cost:2600000,ytd:{rev:462000,ws:68300,opx:61000,util:54}},
+  'TC-05':{m:'NK160',plate:'WEH 1567',year:1996,hm:31240,docs:{cf:'2027-03-04',road:'2027-02-17',ins:'2027-02-17',pusp:'2027-01-08'},cost:150000,ytd:{rev:88000,ws:21600,opx:30000,util:55}},
+  'TC-06':{m:'NK200',plate:'JES 4923',year:2001,hm:27650,docs:{cf:'2027-05-26',road:'2027-04-02',ins:'2027-04-02',pusp:'2027-03-21'},cost:210000,ytd:{rev:104000,ws:19800,opx:32000,util:59}},
+  'MC-03':{m:'SL1300',plate:'VAV 5711',year:2017,hm:9880,docs:{cf:'2027-07-19',road:'2027-03-11',ins:'2027-03-11'},cost:3400000,ytd:{rev:588000,ws:57900,opx:72000,util:52}},
 });
 Object.assign(rates, {
   'NK250/wet':{hr:280,minH:4,day:2000,month:34000,mHrs:200,ex:190,ot:280},
@@ -934,7 +935,6 @@ Object.assign(rates, {
     const f = REAL[mk] && r.month ? REAL[mk].month / r.month : 0.5, rd = (v, st) => Math.round(v*f/st)*st;
     // Day and hour rates are kept: invoice IV- 01158 2026 shows day rates well above month ÷ 26 (80 t RM 7,000, lorry crane with cargo RM 2,500).
     if(r.month) r.month = REAL[mk]?.month || rd(r.month,500); if(r.ex) r.ex = rd(r.ex,5);
-    if(mk==='UNIC') r.day = 2500;
     const base = r.month || r.day*22;
     r.ot = REAL[mk]?.ot ?? Math.round(base/177.3*100)/100;
     r.sun = REAL[mk]?.sun ?? Math.round(base/17/50)*50;
@@ -1008,7 +1008,7 @@ let hires = [
    trips:[{dir:'Delivery',d:'2026-10-19',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:1200,status:'Planned'},{dir:'Collection',d:'2026-10-31',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:1200,status:'Planned'}],
    log:[{d:'2026-10-14 10:30',t:'New customer: deposit RM 3,000 required before delivery.'}]},
   {id:'H-2026-0160',c:'C1',site:'Senai Airport City warehouse project, Senai',state:'Johor',siteContact:'En. Rosli 013-202 4471',po:'',status:'Quotation',created:'2026-10-15',cycle:'Monthly in arrears',quoteValid:'2026-10-22',
-   note:'Second 50 t crane for roof steel. No 50 t free (RC-01 is on this site to 30 Nov). Options: the 60 t GR-600-1 (RC-02) or a 50 t truck crane (TC-03, TC-04) is free; run Lift check to confirm.',
+   note:'Second 50 t crane for roof steel. No 50 t free (RC-01 is on this site to 30 Nov). Options: the 60 t GR-600N-1 (RC-02) or a 50 t truck crane (TC-03, TC-04) is free; run Lift check to confirm.',
    lines:[{u:null,m:'RK500',k:'wet',basis:'day',from:'2026-11-02',to:'2026-11-13'}], trips:[],
    log:[{d:'2026-10-15 15:40',t:'Enquiry by Mr. Lim. Quotation started.'}]},
   {id:'H-2026-0161',c:'C5',site:'Taman Daya drainage works, Johor Bahru',state:'Johor',siteContact:'En. Kamarul 013-388 4410',po:'',status:'Quotation',created:'2026-10-16',cycle:'Monthly in arrears',quoteValid:'2026-10-30',
@@ -1113,10 +1113,12 @@ function utilisation(from, to, units=hireUnits()){
   units.forEach(u => { for(let d=from; d<=to; d=addDays(d,1)){ n++; if(onHireOn(u,d)) on++; } });
   return n ? Math.round(on/n*100) : 0;
 }
-function availability(u, from, to, ignoreHire){
+/* A morning job (8–12) and an afternoon job (1–5) can share a machine on the same day. */
+const slotClash = (a, b) => !(a && b && a!=='full' && b!=='full' && a!==b);
+function availability(u, from, to, ignoreHire, slot){
   const why = [];
   hires.forEach(h => { if(h.id===ignoreHire || !LIVE.includes(h.status)) return;
-    h.lines.forEach(l => { if(l.u===u && overlaps(from,to,l.on||l.from,lineEnd(l))) why.push(`${h.status==='Booked'?'Booked':'On hire'} to ${customers[h.c].name.replace(/ Sdn Bhd$/,'')} ${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))} (${h.id})`); }); });
+    h.lines.forEach(l => { if(l.u===u && overlaps(from,to,l.on||l.from,lineEnd(l)) && slotClash(l.slot, slot)) why.push(`${h.status==='Booked'?'Booked':'On hire'} to ${customers[h.c].name.replace(/ Sdn Bhd$/,'')} ${fmtD(l.on||l.from)}${lineEnd(l)!==(l.on||l.from)?'–'+fmtD(lineEnd(l)):''}${l.slot&&l.slot!=='full'?' '+slotTag(l.slot):''} (${h.id})`); }); });
   workshop.forEach(w => { if(w.u===u && overlaps(from,to,w.from,w.to)) why.push(`In workshop ${fmtD(w.from)}–${fmtD(w.to)} (${w.job})`); });
   Object.entries(fleet[u].docs).forEach(([k,exp]) => { if(exp < to && ['road','ins'].includes(k)) why.push(`${DOCS[k]} ${exp<from?'expired':'expires'} ${fmtD(exp)}: renew before booking`); });
   return {ok:!why.length, why, warn:docIssues(u, from, to).map(x=>x.msg)};
@@ -1259,62 +1261,57 @@ const invStatus = i => i.status==='Paid' ? 'Paid' : i.status==='Draft' ? 'Draft'
 const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Paid:'ok',Draft:'mute',Overdue:'crit',Sent:'info'})[s]}">${s}${s==='Overdue'?' '+daysBetween(i.due,TODAY)+' d':''}</span>`; };
 const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn','Not validated':'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
 
-/* ---------- larger example fleet: shows the screens working at 60+ machines ---------- */
+/* ---------- the company's own fleet (MACHINERY LIST in WORK_ORDER_2026.xlsx) ----------
+   Plates and models are real. Document dates are sample dates: the dates in the list are out of date (see Connections → current records). */
 Object.assign(models, {
-  GR250:{make:'Tadano',model:'GR-250N',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
-  ATF100:{make:'Tadano',model:'ATF 100G-4',type:'All terrain crane 100 t',grp:'crane',size:'self'},
-  FD70:{make:'Toyota',model:'8FD70',type:'Forklift 7 t',grp:'lift',size:'small'},
-  GS4047:{make:'Genie',model:'GS-4047',type:'Scissor lift 12 m',grp:'lift',size:'small'},
-  DCA60:{make:'Denyo',model:'DCA-60ESI',type:'Generator 60 kVA',grp:'power',size:'small'},
+  KR300:{make:'Kato',model:'KR-300',type:'Rough terrain crane 30 t',grp:'crane',size:'self'},
+  SR250:{make:'Kato',model:'SR-250V6',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
+  TL2501:{make:'Tadano',model:'TL-250-1',type:'Truck crane 25 t',grp:'crane',size:'self'},
+  TL2502:{make:'Tadano',model:'TL-250-2',type:'Truck crane 25 t',grp:'crane',size:'self'},
+  TL2503:{make:'Tadano',model:'TL-250-3',type:'Truck crane 25 t',grp:'crane',size:'self'},
+  NK2502:{make:'Kato',model:'NK-250-2',type:'Truck crane 25 t',grp:'crane',size:'self'},
+  TL200:{make:'Tadano',model:'TL-200-4',type:'Truck crane 20 t',grp:'crane',size:'self'},
+  J340:{make:'Iveco',model:'J340 skylift',type:'Skylift 40 m',grp:'lift',size:'self'},
+  SK240:{make:'Ivichi',model:'240 skylift',type:'Skylift 24 m',grp:'lift',size:'self'},
+  SK270:{make:'Ivichi',model:'A270 skylift',type:'Skylift 27 m',grp:'lift',size:'self'},
+  LCK:{make:'Lorry crane',model:'c/w 40 ft cargo',type:'Lorry crane with 40 ft cargo',grp:'crane',size:'self'},
+  /* types the company cross-hires from other companies (同行车); no own machine */
+  X45:{make:'Cross-hire',model:'45 t mobile crane',type:'Mobile crane 45 t',grp:'crane',size:'self',peer:true},
+  X80:{make:'Cross-hire',model:'80 t mobile crane',type:'Mobile crane 80 t',grp:'crane',size:'self',peer:true},
+  X120:{make:'Cross-hire',model:'120 t mobile crane',type:'Mobile crane 120 t',grp:'crane',size:'self',peer:true},
+  X200:{make:'Cross-hire',model:'200 t mobile crane',type:'Mobile crane 200 t',grp:'crane',size:'self',peer:true},
+  XTIP:{make:'Cross-hire',model:'lorry tipper',type:'Lorry tipper',grp:'transport',size:'self',peer:true},
 });
-Object.assign(rates, {
-  'GR250/wet':{hr:300,minH:3.5,day:2100,month:18000,mHrs:200,ex:100,ot:101.52,sun:1050,sunOt:139}, 'GR250/dry':{day:1500,week:8000,month:26000,mHrs:200,ex:140},
-  'ATF100/wet':{hr:800,minH:7.5,day:5800,month:52500,mHrs:200,ex:260,ot:296.11,sun:3100,sunOt:406},
-  'NK250/dry':{day:1400,week:7500,month:24000,mHrs:200,ex:130}, 'RK500/dry':{day:2300,week:12500,month:40000,mHrs:200,ex:210},
-  'SS500/dry':{day:2200,week:12000,month:38000,mHrs:200,ex:200}, 'UNIC/dry':{day:900,week:4800,month:15000,mHrs:200,ex:80},
-  'FD70/dry':{day:380,week:1900,month:6200,mHrs:200,ex:30}, 'GS4047/dry':{day:220,week:1100,month:3200,mHrs:200,ex:20},
-  'DCA60/dry':{day:180,week:1000,month:3300,mHrs:300,ex:12},
+/* Day and half-day rates with operator: medians of the 2026 work orders for own machines (20 t, 25 t, 25 t rough terrain,
+   lorry crane and 24 m skylift have half-day medians; other half days are 70% of the day rate until confirmed). */
+const WO_RATES = {NK160:[850], NK200:[1080,820], TL200:[1080,820], NK250:[1400,1000], NK2502:[1400,1000], TL2501:[1400,1000], TL2502:[1400,1000], TL2503:[1400,1000],
+  SR250:[1800,1050], KR300:[1900], TL450:[1980], RK500:[2450], SS500:[2450], TL500:[2450], GR600:[3100], ATF60:[3100], SL700:[3300], SA1100:[5000], SL1300:[6600],
+  UNIC:[1500,800], LCK:[2500], J340:[1750], SK240:[620,470], SK270:[950], X45:[1980], X80:[3800], X120:[5000], X200:[8000], XTIP:[1200]};
+Object.entries(WO_RATES).forEach(([mk,[day,half]]) => {
+  const r = rates[mk+'/wet'] || (rates[mk+'/wet'] = {minH:3.5, mHrs:200});
+  r.day = day; r.half = half || Math.round(day*0.7/10)*10; r.hr = r.hr || Math.round(day/7.5/5)*5;
+  if(!r.ot){ r.ot = Math.round(day/9.3*100)/100; r.sun = Math.round(day*0.8/50)*50; r.sunOt = Math.round(r.ot*1.37); }
+  if(/25 t$/.test(models[mk].type) && !r.month && !models[mk].peer){ Object.assign(r, {month:18500, ex:90, ot:104.35, sun:1100, sunOt:147}); }
 });
-(function bigFleet(){
-  const EXTRA = [['TC','NK250',3,7],['RC','GR250',3,3],['RC','RK500',2,6],['TC','SS500',1,10],['AT','ATF100',1,2],['LC','UNIC',3,2],['FL','FD30',6,3],['FL','FD50',3,9],['FL','FD70',2,12],
-    ['BL','S65',3,2],['SL','GS4047',4,1],['EX','PC200',4,4],['EX','ZX70',3,8],['WL','W950',2,2],['GS','DCA150',3,2],['GS','DCA60',2,5]];
-  const SITES = {C1:'Senai Airport City warehouse project, Senai',C2:'Quarry pit 2, Ulu Choh',C3:'Pasir Gudang berth 9 piling',C4:'Tebrau steel warehouse, Johor Bahru',C5:'Kulai interchange bridge works',C7:'Pasir Gudang port warehouse 6'};
-  const CUS = Object.keys(SITES), L = 'ABCDEFGHJKLMNPQRSTUVWXY';
+(function realFleet(){
+  const ADD = [['RC-03','KR300','JKE 5227'],['RC-04','SR250','VNB 2138'],['RC-05','SR250','VNC 2138'],['RC-06','SR250','BPN 8918'],
+    ['TC-07','TL2501','BPG 8362'],['TC-08','TL2502','JVY 1832'],['TC-09','TL2503','KEK 3118'],['TC-10','NK2502','BMV 8865'],['TC-11','TL200','BMK 3428'],
+    ['SK-01','J340','BQB 9319'],['SK-02','SK240','JKU 2969'],['SK-03','SK240','WJC 9971'],['SK-04','SK270','MED 2138'],['LC-02','LCK','JWW 3688']];
   const pad = n => String(n).padStart(2,'0');
-  let hn = 170;
-  EXTRA.forEach(([pre, m, n, start]) => { for(let i=0;i<n;i++){
-    const u = `${pre}-${pad(start+i)}`, r = k => rnd(u+k), crane = models[m].grp==='crane';
-    const exp = k => r(k) < 0.07 ? `2026-12-${pad(5+Math.floor(r(k+'d')*20))}` : `2027-${pad(1+Math.floor(r(k)*9))}-${pad(1+Math.floor(r(k+'d')*27))}`;
-    const docs = crane ? {cf:exp('cf'), road:exp('rd'), ins:exp('rd')} : {cpm:exp('cp'), ins:exp('in')};
-    if(pre==='LC') docs.pusp = exp('pu');
-    const rt = rate(m,'dry') || rate(m,'wet'), util = 40 + Math.floor(r('u')*50);
-    fleet[u] = {m, plate: crane ? `${'WBV'[Math.floor(r('p')*3)]}${L[Math.floor(r('p1')*L.length)]}${L[Math.floor(r('p2')*L.length)]} ${1000+Math.floor(r('p3')*8999)}` : undefined,
-      serial: crane ? undefined : `${models[m].model.replace(/[^A-Z0-9]/gi,'')}-${10000+Math.floor(r('s')*89999)}`,
-      year: 2010 + Math.floor(r('y')*14), hm: 2000 + Math.floor(r('h')*20000), docs, cost: Math.round((rt.month||rt.day*26)*30/1000)*1000,
-      ytd:{rev:Math.round((rt.month||rt.day*26)*9*util/100), ws:Math.round((rt.month||rt.day*26)*0.9*util/100), opx:Math.round((rt.month||rt.day*26)*0.3*util/100), util}};
-    const pick = r('hire');
-    if(pick < 0.05){ workshop.push({u, from:addDays(TODAY,-2), to:addDays(TODAY,3+Math.floor(r('w')*6)), job:`J-2026-04${30+Math.floor(r('j')*60)}`, note:'Scheduled service'}); continue; }
-    if(pick > 0.68) continue;
-    const c = CUS[Math.floor(r('c')*CUS.length)], k = rate(m,'dry') ? 'dry' : 'wet';
-    if(k==='wet') continue;
-    const booked = pick > 0.6;
-    const from = booked ? addDays(TODAY, 3+Math.floor(r('f')*14)) : `2026-${pad(7+Math.floor(r('fm')*4))}-${pad(1+Math.floor(r('fd')*14))}`;
-    const fromOk = from > TODAY && !booked ? addDays(TODAY,-3) : from, open = r('o') < 0.4;
-    const to = open ? '2099-12-31' : addDays(maxD(fromOk, TODAY), 30 + Math.floor(r('t')*90));
-    const id = 'H-2026-0' + (hn++);
-    hires.push({id, c, site:SITES[c], state:'Johor', siteContact:customers[c].contact+' '+customers[c].phone, po:`PO-${id.slice(-4)}`, status: booked ? 'Booked' : 'On hire', created: addDays(fromOk,-5), cycle:'Monthly in arrears',
-      lines:[{u, k, basis:'month', from:fromOk, to, on: booked ? undefined : fromOk, open: open || undefined, hm: booked ? [] : (()=>{ const end = fleet[u].hm, perDay = 4 + r('hm')*5, mk = d => ({d, v: Math.round(end - perDay*daysBetween(d, addDays(TODAY,-1)))}); return [...new Set([fromOk, maxD(fromOk,'2026-09-30'), addDays(TODAY,-1)])].map(mk); })()}],
-      trips: booked ? [{dir:'Delivery', d:fromOk, u, veh: models[m].size==='self' ? null : 'TR-02', drv: models[m].size==='self' ? 'O4' : 'D2', zone:'Johor Bahru', charge:transportCharge(m,'Johor Bahru'), status:'Planned', self: models[m].size==='self'}] : [],
-      log:[{d:addDays(fromOk,-5)+' 10:00', t: booked ? 'Booked.' : 'On hire (monthly).'}]});
-  } });
+  ADD.forEach(([u, m, plate]) => { const r = k => rnd(u+k);
+    const exp = k => r(k) < 0.08 ? `2026-12-${pad(5+Math.floor(r(k+'d')*20))}` : `2027-${pad(1+Math.floor(r(k)*9))}-${pad(1+Math.floor(r(k+'d')*27))}`;
+    const rt = rate(m,'wet'), util = 45 + Math.floor(r('u')*45);
+    fleet[u] = {m, plate, year:2008 + Math.floor(r('y')*14), hm:4000 + Math.floor(r('h')*18000), docs:{cf:exp('cf'), road:exp('rd'), ins:exp('rd'), pusp:exp('pu')},
+      cost:Math.round(rt.day*260/1000)*1000, ytd:{rev:Math.round(rt.day*util*2), ws:Math.round(rt.day*util*0.25), opx:Math.round(rt.day*util*0.4), util}};
+  });
+  workshop.push({u:'SK-02', from:addDays(TODAY,-6), to:addDays(TODAY,4), job:'J-2026-0431', note:'Repair (维修 in the machinery list)'});
 })();
-
 
 /* ---------- working with a large fleet: families, capacity classes, search ---------- */
 const FAMILIES = [
-  {k:'Cranes', re:/crane/i, buckets:[[20,'up to 20 t'],[30,'21–30 t'],[60,'31–60 t'],[100,'61–100 t'],[1e9,'over 100 t']]},
+  {k:'Cranes', re:/crane(?! with)|lorry crane/i, buckets:[[20,'up to 20 t'],[30,'21–30 t'],[60,'31–60 t'],[100,'61–100 t'],[1e9,'over 100 t']]},
   {k:'Forklifts', re:/forklift/i, buckets:[[3,'up to 3 t'],[5,'3–5 t'],[1e9,'over 5 t']]},
-  {k:'Access platforms', re:/boom lift|scissor/i, buckets:[[12,'up to 12 m'],[1e9,'over 12 m']]},
+  {k:'Access platforms', re:/boom lift|scissor|skylift/i, buckets:[[12,'up to 12 m'],[1e9,'over 12 m']]},
   {k:'Excavators', re:/excavator/i, buckets:[[8,'up to 8 t'],[1e9,'over 8 t']]},
   {k:'Loaders', re:/loader/i, buckets:[[1e9,'all']]},
   {k:'Generators', re:/generator/i, buckets:[[100,'up to 100 kVA'],[1e9,'over 100 kVA']]},
@@ -1341,7 +1338,7 @@ function renderAvail2(){
   const a = state.av, need = parseNeed(a.q), fam = a.fam || need.fam || '';
   const days = [...Array(14)].map((_,i)=>addDays(a.start,i));
   let rows = hireUnits().filter(u => (!fam || classOf(u).fam===fam) && (!need.cap || (capOf(u).unit===need.cap.unit && capOf(u).n>=need.cap.n)) && textHit(u, need.text))
-    .map(u => ({u, cls:classOf(u), cap:capOf(u), av:availability(u,a.from,a.to), tent:tentativeFor(mOf(u).type,a.from,a.to).filter(t=>t.u===u)}));
+    .map(u => ({u, cls:classOf(u), cap:capOf(u), av:availability(u,a.from,a.to,null,a.slot), tent:tentativeFor(mOf(u).type,a.from,a.to).filter(t=>t.u===u)}));
   const all = rows.length, free = rows.filter(r=>r.av.ok), docIss = free.filter(r=>r.av.warn.length);
   if(a.freeOnly) rows = rows.filter(r=>r.av.ok);
   rows.sort((x,y)=>x.cls.order-y.cls.order || (y.av.ok-x.av.ok) || (!!x.av.warn.length-!!y.av.warn.length) || x.cap.n-y.cap.n || (x.u<y.u?-1:1));
@@ -1364,6 +1361,7 @@ function renderAvail2(){
     <form class="findbar" data-form="av2">
       <label style="flex:1 1 260px">What do you need?<input type="search" id="avQ" name="q" value="${esc(a.q)}" placeholder="e.g. 25t crane, forklift 5t, scissor 12m, WVX 5501"></label>
       <label>From<input type="date" name="from" value="${a.from}"></label><label>To<input type="date" name="to" value="${a.to}"></label>
+      <label>Time<select class="field" name="slot">${Object.entries(SLOTS).map(([k,v])=>`<option value="${k}" ${k===(a.slot||'full')?'selected':''}>${k==='full'?'Full day':k==='am'?'Morning':'Afternoon'} · ${v}</option>`).join('')}</select></label>
       <label>Family<select class="field" name="fam"><option value="">${need.fam?'From search: '+need.fam:'All families'}</option>${famList.map(f=>`<option ${f===a.fam?'selected':''}>${f}</option>`).join('')}</select></label>
       <label style="flex-direction:row;align-items:center;gap:8px;align-self:center"><input type="checkbox" name="freeOnly" ${a.freeOnly?'checked':''}> Free only</label>
       <button class="btn">Search</button>
@@ -1373,6 +1371,7 @@ function renderAvail2(){
     ${groups.map(g => { const rs = rows.filter(r=>r.cls.label===g.label), fr = rs.filter(r=>r.av.ok).length, ask = asked(g.label), more = state.av.more[g.label], shown = more ? rs : rs.slice(0,LIMIT);
       return `<details class="avgroup panel" ${(fr && groups.length<=4) || state.av.open[g.label] ? 'open' : ''} data-avgroup="${esc(g.label)}"><summary><b>${esc(g.label)}</b><span class="muted">${fr} of ${rs.length} free${ask.length?` · ${ask.length} enquiring`:''}</span><span class="minibar"><i style="width:${rs.length?fr/rs.length*100:0}%"></i></span></summary>
         ${ask.length?`<div class="in" style="padding:6px 14px"><div class="tchips">${ask.map(tentChip).join('')}</div></div>`:''}
+        ${!fr&&rs.length?`<div class="in" style="padding:8px 14px"><span class="muted">None free.</span> <button class="btn small" data-action="qq-new" data-type="${esc(mOf(rs[0].u).type)}" data-peer="1">Quote with a cross-hire (同行车)</button> <small class="muted">${esc(PEERS.filter(p=>/crane/.test(p.has)===/crane/i.test(g.label)).slice(0,3).map(p=>p.n).join(', '))}</small></div>`:''}
         <div class="tbl-wrap" style="border:0;border-radius:0"><table class="avt"><tbody>${shown.map(rowHtml).join('')}</tbody></table></div>
         ${rs.length>LIMIT?`<div class="in" style="padding:8px 14px"><button class="btn small" data-avmore="${esc(g.label)}">${more?'Show fewer':`Show all ${rs.length}`}</button></div>`:''}</details>`; }).join('') || '<p class="muted">No machine matches. Clear the search or change the family.</p>'}
     <div class="panel"><div class="panel-head"><h3>Next 14 days by class</h3><span class="muted">${hireUnits().length} machines in ${gridRows.length} classes</span></div>
@@ -1444,11 +1443,11 @@ document.addEventListener('input', e => {
 document.addEventListener('submit', e => {
   const f = e.target;
   if(f.dataset.form==='av2'){ e.preventDefault(); const fd = new FormData(f);
-    Object.assign(state.av, {q:fd.get('q')||'', from:fd.get('from'), to:fd.get('to')<fd.get('from')?fd.get('from'):fd.get('to'), fam:fd.get('fam')||'', freeOnly:!!fd.get('freeOnly'), more:{}, open:{}}); return render(); }
+    Object.assign(state.av, {q:fd.get('q')||'', from:fd.get('from'), to:fd.get('to')<fd.get('from')?fd.get('from'):fd.get('to'), slot:fd.get('slot')||'full', fam:fd.get('fam')||'', freeOnly:!!fd.get('freeOnly'), more:{}, open:{}}); return render(); }
 });
 
 /* ---------- state ---------- */
-const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Truck crane 25 t', grp:'', start:'2026-10-16', q:'25t crane', fam:'', freeOnly:false, more:{}, open:{}}, fl:{q:'', fam:'', st:'', sort:'cls', page:1}, planQ:'', planFam:'', planCol:{}, planCompact:true, qq:null, qSeq:1094, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
+const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Truck crane 25 t', grp:'', start:'2026-10-16', q:'25t crane', fam:'', slot:'full', freeOnly:false, more:{}, open:{}}, fl:{q:'', fam:'', st:'', sort:'cls', page:1}, planQ:'', planFam:'', planCol:{}, planCompact:true, qq:null, qSeq:1094, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
 try{ const v = localStorage.getItem('spc-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
@@ -1552,7 +1551,8 @@ function barHtml(a, b, cls, label, attrs, title){
   const more = b > GN-1;
   const x = Math.max(0,a), y = Math.min(GN-1,b);
   if(y < 0 || x > GN-1 || y < x) return '';
-  return `<button class="bar ${cls}${more?' more':''}" style="left:calc(var(--cw) * ${x} + 1px);width:calc(var(--cw) * ${y-x+1} - 2px)" ${attrs} title="${esc(title)}">${esc(label)}${more?' →':''}</button>`;
+  const half = / (am|pm)\b/.exec(' '+cls)?.[1], off = half==='pm' ? ' + var(--cw) / 2' : '', w = half ? `var(--cw) / 2 - 2px` : `var(--cw) * ${y-x+1} - 2px`;
+  return `<button class="bar ${cls}${more?' more':''}" style="left:calc(var(--cw) * ${x} + 1px${off});width:calc(${w})" ${attrs} title="${esc(title)}">${esc(label)}${more?' →':''}</button>`;
 }
 function renderPlanner(){
   const days = [...Array(GN)].map((_,i)=>addDays(G0,i)), ti = daysBetween(G0,TODAY);
@@ -1565,8 +1565,8 @@ function renderPlanner(){
     const bars = [];
     hires.forEach(h => { if(['Lost'].includes(h.status)) return; h.lines.forEach(l => { if(l.u!==u) return;
       const a = daysBetween(G0, l.on||l.from), b = daysBetween(G0, lineEnd(l));
-      const cls = h.status==='Quotation' ? 'quote' : h.status==='Booked' ? `booked ${l.k}` : `${l.k}${h.status==='Off-hire called'?' offcalled':''}`;
-      bars.push(barHtml(a, b, cls, `${h.status==='Quotation'?'Quote · ':''}${customers[h.c].name.replace(/ (Sdn Bhd|Construction|Engineering|Structure|Builders|Logistics)/g,'')}`, `data-hire="${h.id}"`, `${h.id} · ${custName(h.c)} · ${kindLabel(l.k)} ${basisLabel[l.basis].toLowerCase()} · ${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))} · ${h.status}`));
+      const cls = (h.status==='Quotation' ? 'quote' : h.status==='Booked' ? `booked ${l.k}` : `${l.k}${h.status==='Off-hire called'?' offcalled':''}`) + (l.slot && l.slot!=='full' && a===b ? ' '+l.slot : '');
+      bars.push(barHtml(a, b, cls, `${l.slot&&l.slot!=='full'&&a!==b?slotTag(l.slot)+' · ':''}${h.status==='Quotation'?'Quote · ':''}${customers[h.c].name.replace(/ (Sdn Bhd|Construction|Engineering|Structure|Builders|Logistics)/g,'')}`, `data-hire="${h.id}"`, `${h.id} · ${custName(h.c)} · ${kindLabel(l.k)} ${basisLabel[l.basis].toLowerCase()}${l.slot&&l.slot!=='full'?' '+SLOTS[l.slot]:''} · ${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))} · ${h.status}`));
     }); });
     workshop.filter(w=>w.u===u).forEach(w => bars.push(barHtml(daysBetween(G0,w.from), daysBetween(G0,w.to), 'ws', w.note.startsWith('Return')?'Repair':'Service', `data-unit="${u}"`, `${w.job} · ${w.note} · ${fmtD(w.from)}–${fmtD(w.to)}`)));
     breakdowns.filter(b=>b.u===u).forEach(b => { const i = daysBetween(G0,b.d); if(i>=0 && i<GN) bars.push(`<button class="bd" style="left:calc(var(--cw) * ${i})" data-hire="${b.hire}" title="Breakdown ${fmtD(b.d)}: ${esc(b.note)} (${b.hrs} h lost, ${b.job})" aria-label="Breakdown"></button>`); });
@@ -1614,7 +1614,7 @@ function renderHires(){
       <button class="btn primary" data-action="new-hire">New hire / quotation</button></div>
     <div class="tbl-wrap"><table><thead><tr><th>Hire</th><th>Customer · site</th><th>Machines</th><th>Kind</th><th>Period</th><th>Status</th><th class="r cost">Oct to date</th></tr></thead><tbody>
     ${list.map(h=>`<tr class="click" data-hire="${h.id}"><td class="mono">${h.id}</td><td><b>${esc(custName(h.c))}</b><br><small class="muted">${esc(h.site)}</small></td>
-      <td>${h.lines.map(l=>l.u?`<b>${l.u}</b> ${esc(mOf(l.u).model)}`:`<span class="pill crit">No machine</span> ${esc(models[l.m].type)}`).join('<br>')}</td>
+      <td>${h.lines.map(l=>l.u?`<b>${l.u}</b> ${esc(mOf(l.u).model)}${l.slot&&l.slot!=='full'?` <span class="pill mute">${slotTag(l.slot)}</span>`:''}`:l.src==='peer'?`<span class="pill info">Cross-hire</span> ${esc(models[l.m].type)} <small class="muted">${esc(l.peer?.s||'')}</small>`:`<span class="pill crit">No machine</span> ${esc(models[l.m].type)}`).join('<br>')}</td>
       <td>${[...new Set(h.lines.map(l=>kindLabel(l.k)))].join(', ')}<br><small class="muted">${[...new Set(h.lines.map(l=>basisLabel[l.basis]))].join(', ')}</small></td>
       <td class="num">${fmtD(h.lines[0].on||h.lines[0].from)} – ${fmtD(lineEnd(h.lines[0]))}${h.contract?'<br><small class="muted">Long-term contract</small>':''}</td>
       <td>${hireStatusPill(h)}${h.deposit&&!h.depositPaid&&h.status==='Booked'?'<br><small class="muted">Deposit due</small>':''}</td>
@@ -1654,7 +1654,7 @@ function openHire(id){
     </div></div>
     <div class="sect"><h3>Machines</h3><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Machine</th><th>Hire</th><th class="cost">Rate</th><th>Operator</th><th>On hire</th><th>Off hire</th></tr></thead><tbody>
       ${h.lines.map(l=>{ const r = rate(lineModel(l), l.k)||{}; const main = {hour:r.hr,day:r.day,week:r.week,month:r.month}[l.basis];
-        return `<tr><td>${l.u?`<b>${l.u}</b> ${esc(uName(l.u))}<br><small class="muted">${esc(uRef(l.u))}</small>${warnHtml(docIssues(l.u, l.on||l.from, lineEnd(l)).map(x=>x.msg))}`:`<span class="pill crit">Not assigned</span><br><small class="muted">${esc(models[l.m].type)}</small>`}</td>
+        return `<tr><td>${l.u?`<b>${l.u}</b> ${esc(uName(l.u))}<br><small class="muted">${esc(uRef(l.u))}</small>${warnHtml(docIssues(l.u, l.on||l.from, lineEnd(l)).map(x=>x.msg))}`:l.src==='peer'?`<span class="pill info">Cross-hire (同行车)</span> ${esc(models[l.m].type)}<br><small class="muted">from ${esc(l.peer?.s||'—')}</small><small class="cost muted"> · cost ${RM0(l.peer?.cost||0)}${l.price?` · charged ${RM0(l.price)} · margin ${RM0(l.price-(l.peer?.cost||0))}`:''}</small>`:`<span class="pill crit">Not assigned</span><br><small class="muted">${esc(models[l.m].type)}</small>`}${l.slot&&l.slot!=='full'?`<br><small class="muted">${SLOTS[l.slot]}</small>`:''}</td>
         <td>${kindLabel(l.k)}<br><small class="muted">${basisLabel[l.basis]}</small></td>
         <td class="cost num">${RM0(main||0)} / ${({hour:'h',day:'day',week:'week',month:'month'})[l.basis]}${l.basis==='month'?`<br><small class="muted">${r.mHrs} h incl., then ${RM0(r.ex)}/h</small>`:l.basis==='hour'?`<br><small class="muted">min ${r.minH} h a day</small>`:l.k==='wet'?`<br><small class="muted">OT ${RM0(r.ot)}/h</small>`:''}</td>
         <td>${l.op?esc(staff[l.op].name):'<span class="muted">Customer\'s own</span>'}</td>
@@ -2067,8 +2067,8 @@ function renderRates(){
   const cell = (key, f) => { const v = rates[key][f]; return ed && v!=null ? `<input class="ratein" type="number" data-rate="${key}" data-f="${f}" step="0.01" value="${v}">` : v!=null ? (v%1 ? RM(v) : RM0(v)) : '<span class="muted">—</span>'; };
   $('#v-rates').innerHTML = `
     <div class="view-head"><h2>Rates</h2>${ed?'<span class="muted">Changes apply to new quotations and bookings. Running hires keep the rates they were booked at.</span>':'<span class="muted">Only the Head Manager can change rates.</span>'}</div>
-    <div class="tbl-wrap"><table><thead><tr><th>Model</th><th>Kind</th><th class="r">Hour</th><th class="r">Min h</th><th class="r">Day (8 h)</th><th class="r">Week</th><th class="r">Month</th><th class="r">Month h</th><th class="r">Excess / h</th><th class="r">OT / h</th><th class="r">Sun / PH day</th><th class="r">Sun OT / h</th></tr></thead><tbody>
-      ${Object.keys(rates).map(key=>{ const [mk,k] = key.split('/'); return `<tr><td><b>${esc(mName(mk))}</b><br><small class="muted">${esc(models[mk].type)}</small></td><td>${kindLabel(k)}</td><td class="r">${cell(key,'hr')}</td><td class="r">${rates[key].minH??'—'}</td><td class="r">${cell(key,'day')}</td><td class="r">${cell(key,'week')}</td><td class="r">${cell(key,'month')}</td><td class="r">${rates[key].mHrs??'—'}</td><td class="r">${cell(key,'ex')}</td><td class="r">${cell(key,'ot')}</td><td class="r">${cell(key,'sun')}</td><td class="r">${cell(key,'sunOt')}</td></tr>`; }).join('')}
+    <div class="tbl-wrap"><table><thead><tr><th>Model</th><th>Kind</th><th class="r">Hour</th><th class="r">Min h</th><th class="r">Day (8–5)</th><th class="r">Half day</th><th class="r">Week</th><th class="r">Month</th><th class="r">Month h</th><th class="r">Excess / h</th><th class="r">OT / h</th><th class="r">Sun / PH day</th><th class="r">Sun OT / h</th></tr></thead><tbody>
+      ${Object.keys(rates).map(key=>{ const [mk,k] = key.split('/'); return `<tr><td><b>${esc(mName(mk))}</b><br><small class="muted">${esc(models[mk].type)}</small></td><td>${kindLabel(k)}</td><td class="r">${cell(key,'hr')}</td><td class="r">${rates[key].minH??'—'}</td><td class="r">${cell(key,'day')}</td><td class="r">${cell(key,'half')}</td><td class="r">${cell(key,'week')}</td><td class="r">${cell(key,'month')}</td><td class="r">${rates[key].mHrs??'—'}</td><td class="r">${cell(key,'ex')}</td><td class="r">${cell(key,'ot')}</td><td class="r">${cell(key,'sun')}</td><td class="r">${cell(key,'sunOt')}</td></tr>`; }).join('')}
     </tbody></table></div>
     <div class="two">
       <div class="panel"><div class="panel-head"><h3>Transport by zone</h3></div><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Zone</th><th class="r">Self-drive mobilisation</th><th class="r">Lowloader up to 10 t</th><th class="r">Lowloader 10–30 t</th></tr></thead><tbody>
@@ -2181,7 +2181,7 @@ const openStage = e => !['Won','Lost'].includes(e.stage);
 let tasks = [
   {id:1,d:'2026-10-16',time:'10:00',type:'Call',who:'S2',enq:'E-2026-0231',t:'Call Mr. Ong back: load weights, radius and site access for the 25 t truck crane'},
   {id:2,d:'2026-10-16',time:'11:30',type:'WhatsApp',who:'S2',enq:'E-2026-0227',cust:'C7',t:'Reply Mr. Ravi on the 10% discount (up to 5% without the Head Manager)'},
-  {id:3,d:'2026-10-15',time:'16:00',type:'Call',who:'S2',enq:'E-2026-0230',cust:'C1',t:'Bina Jaya 50 t: offer the free 60 t GR-600-1 (RC-02) or a 50 t truck crane'},
+  {id:3,d:'2026-10-15',time:'16:00',type:'Call',who:'S2',enq:'E-2026-0230',cust:'C1',t:'Bina Jaya 50 t: offer the free 60 t GR-600N-1 (RC-02) or a 50 t truck crane'},
   {id:4,d:'2026-10-19',time:'09:30',type:'Site visit',who:'S1',enq:'E-2026-0228',t:'Site visit Ladang Sungai Tinggi with En. Hairul: ground and lowloader access'},
   {id:5,d:'2026-10-20',time:'10:00',type:'Send documents',who:'HM',enq:'E-2026-0226',t:'Send company profile, BL-01 CF and insurance for the tender'},
   {id:6,d:'2026-10-14',type:'Chase PO',who:'S2',enq:'E-2026-0225',cust:'C6',t:'Get the LOU from Lian Hup before booking',done:true,doneAt:'2026-10-14',note:'LOU received by e-mail.'},
@@ -2938,6 +2938,27 @@ function renderConnect(){
   $('#v-connect').innerHTML = `
     <div class="view-head"><h2>Connections</h2></div>
     <div class="banner"><b>Prototype: the connections here are simulated with the example data. In the real system Bukku is linked with an API token from Bukku (Control Panel → Integrations → API Access).</b></div>
+    <div class="panel"><div class="panel-head"><h3>Current records: WORK_ORDER_2026.xlsx (AppSheet)</h3><span class="pill info">Checked 21 Oct 2026</span></div>
+      <div class="in" style="padding:12px 14px;display:flex;flex-direction:column;gap:12px">
+        <div class="kpis"><div class="kpi"><b>1,714</b><span>work orders, January to October 2026</span></div><div class="kpi"><b>5.7</b><span>confirmed jobs a working day</span></div><div class="kpi"><b>98%</b><span>single-day jobs: 80% full day 8–5, 18% half day (8–12 or 1–5)</span></div><div class="kpi"><b>19%</b><span>cross-hired from other companies (同行车)</span></div></div>
+        <div class="tbl-wrap" style="border:0"><table><thead><tr><th>Check before importing</th><th>Found</th><th>What the new system does</th></tr></thead><tbody>
+          <tr><td><b>Machinery list dates</b></td><td><span class="pill crit">26 of 26</span> machines with dates show at least one expired PMA, Puspakom or insurance date; 4 have the same date in all three columns</td><td>Each renewal is entered once with its new expiry and a copy of the certificate; red warnings 30 days before</td></tr>
+          <tr><td><b>Jobs without an invoice no.</b></td><td><span class="pill warn">83</span> confirmed jobs before October (27 are cash sales, 37 are for one customer)</td><td>Every signed work order sits in <i>Ready to invoice</i> until it is on an invoice</td></tr>
+          <tr><td><b>Price on the work order</b></td><td><span class="pill warn">18%</span> of confirmed jobs since March have a price (Jan–Feb: 84%)</td><td>The price comes from the quotation or rate card and is always on the job</td></tr>
+          <tr><td><b>WO no.</b></td><td><span class="pill warn">77</span> confirmed jobs without one; <span class="pill warn">13</span> numbers used twice</td><td>WO no. typed from the book when the work order is signed; a number used twice is refused</td></tr>
+          <tr><td><b>Cross-hire supplier and cost</b></td><td>Typed in the remarks (e.g. "AIRLEX-800", "SUPER S-2800")</td><td>Supplier and cost are fields, so the margin per job is reported</td></tr>
+          <tr><td><b>Machine names</b></td><td>Free text: "25T", "25T(RT)", "25 TON ROUGH TERRAIN", "LC 40FT", "CARGO 40FT"…</td><td>Machine type picked from the list; the plate from the machine</td></tr>
+          <tr><td><b>Machine use</b></td><td>Busiest: 25 t rough terrain VNB 2138, 217 job days. Under 10 job days: 10 machines</td><td>Utilisation per machine on Reports, from the jobs themselves</td></tr>
+        </tbody></table></div>
+        <div class="tbl-wrap" style="border:0"><table><thead><tr><th>AppSheet column</th><th>New system</th><th>AppSheet column</th><th>New system</th></tr></thead><tbody>
+          <tr><td>START 日期 / END 日期</td><td>Hire from / to</td><td>现况 确定 · 等待 · 需跟进 · 取消</td><td>Confirmed · Quotation / waiting · Follow-up · Cancelled</td></tr>
+          <tr><td>顾客 · 联络人 · 电话</td><td>Customer · site contact</td><td>机械 · 车牌</td><td>Machine type · machine (plate)</td></tr>
+          <tr><td>租赁时段</td><td>Time: full day, morning, afternoon</td><td>地点 · 工作内容</td><td>Site · job scope</td></tr>
+          <tr><td>司机 · 跟车</td><td>Operator · assistant (rigger)</td><td>出租类 自己车 / 同行车</td><td>Own machine / cross-hire (supplier, cost)</td></tr>
+          <tr><td>价格</td><td>Price (from quotation or rate card)</td><td>照片 · WO · INVOICE</td><td>Signed WO photo · WO no. · invoice no. (from Bukku)</td></tr>
+        </tbody></table></div>
+        <small class="muted">The import brings in 1,147 customers (968 with an address), 51 staff and their departments, 28 machines and the work-order history, so reports start with this year's figures. Duplicate customers (e.g. "Cash Sales" and spelling variants) are merged during the import.</small>
+      </div></div>
     <div class="two">
       <div class="panel"><div class="panel-head"><h3>Bukku · accounting</h3><span class="pill ok">Connected</span></div><div class="in" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
         <div class="facts" style="padding:0"><div><span class="label">Company</span><b>superpowercrane.bukku.my</b></div><div><span class="label">Access token</span><b class="mono">••••••••3f9a</b></div><div><span class="label">Last sync</span><b>${fmtDW(TODAY)} 09:15</b></div></div>
@@ -3167,6 +3188,53 @@ function cashAmount(h){
   const l = h.lines[0], mk = lineModel(l), est = estimate(mk, l.k, l.basis, l.from, minD(l.to, addDays(l.from,29)), 8);
   const tr = sum(h.trips.map(t=>t.charge)), sub = (est?.amt||0) + tr; return sub*(1+RULES.sst/100);
 }
+/* ---------- day-to-day jobs, as in the work orders: mostly single days, some half days, some cross-hired ---------- */
+const SLOTS = {full:'8:00AM - 05:00PM', am:'08:00AM - 12:00PM', pm:'01:00PM - 05:00PM'};
+const SLOT_T = {full:['08:00','17:00'], am:['08:00','12:00'], pm:['13:00','17:00']};
+const slotTag = s => s==='am' ? 'AM' : s==='pm' ? 'PM' : '';
+const PLACES = ['SENAI','MASAI','SEELONG','ISKANDAR PUTERI','ULU TIRAM','PASIR GUDANG','TAMPOI','KULAI','GELANG PATAH','TEBRAU','PLENTONG','JOHOR PORT','PERMAS JAYA','FOREST CITY','PENGERANG','KEMPAS','SEDENAK TECH PARK','PEKAN NANAS'];
+/* Companies the business cross-hires from, and what they usually supply (from the 2026 work-order remarks). */
+const PEERS = [
+  {n:'MANTA', has:'20–50 t cranes'}, {n:'SUPER S', has:'25–120 t cranes'}, {n:'YONG FATT', has:'20–70 t cranes'}, {n:'SPRUCE MOVER', has:'120–200 t cranes'},
+  {n:'FAR EAST', has:'70 t and 130 t cranes'}, {n:'WISE', has:'20–24 m skylifts'}, {n:'HONG CHUAN', has:'30–40 m skylifts'}, {n:'AIRLEX', has:'lorry cranes'},
+  {n:'CAHAYA', has:'lorry tippers'}, {n:'PKSB', has:'40 ft cargo lorries'}, {n:'GHL', has:'forklifts'}];
+Object.assign(staff, {
+  O10:{name:'Hairul Nizam bin Osman',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-02-11','CIDB green card':'2027-01-19'},skills:['crane']},
+  O11:{name:'Saiful Bahri bin Kassim',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-06-03','CIDB green card':'2027-04-14'},skills:['crane']},
+  O12:{name:'Vijay a/l Ganesan',role:'Crane operator',certs:{'DOSH mobile crane operator':'2026-12-20','CIDB green card':'2027-03-08'},skills:['crane']},
+  O13:{name:'Amirul Hakim bin Zainal',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-05-17','CIDB green card':'2027-02-26'},skills:['crane']},
+  O14:{name:'Goh Chee Meng',role:'Crane operator',certs:{'DOSH mobile crane operator':'2027-08-30','CIDB green card':'2027-06-12'},skills:['crane']},
+  O15:{name:'Rosli bin Ahmad',role:'Skylift operator',certs:{'CIDB green card':'2027-01-30'},skills:['lift']},
+  O16:{name:'Kamal bin Yusoff',role:'Lorry crane operator',certs:{'DOSH lorry crane operator':'2027-03-22','CIDB green card':'2027-05-05','GDL licence':'2027-07-01'},skills:['crane']},
+});
+(function dailyJobs(){
+  const pool = ['RC-04','TC-09','TC-11','TC-10','RC-05','TC-07','TC-08','RC-06','RC-03','SK-03','SK-04','LC-02','TC-05'];
+  const ops = ['O10','O11','O12','O13','O14','O15','O16'];
+  const SCOPE = ['Lifting steel beams','Unloading precast panels','Lifting rebar','Lifting cabin and material','Turun piling','Lifting aircond units','Machine shifting','Roof truss erection','Lifting glass panels'];
+  const CUS = Object.keys(customers).filter(c=>customers[c].contact);
+  let hn = 260;
+  const PEERJ = [[1,'X80','SUPER S',3400,3800,'full'],[2,'SK240','WISE',600,680,'full'],[2,'XTIP','CAHAYA',1000,1200,'full'],[3,'X45','MANTA',2000,2600,'full'],[4,'UNIC','AIRLEX',650,800,'am']];
+  for(let i=1;i<=7;i++){ const d = addDays(TODAY,i); if(dow(d)===0) continue;
+    pool.forEach(u => { const r = x => rnd(u+d+x); if(r('go') > 0.5 || !availability(u,d,d).ok) return;
+      const p = r('slot'), slots = p < 0.14 ? ['am','pm'] : [p<0.2?'am':p<0.26?'pm':'full'];
+      const skill = mOf(u).grp==='lift' ? 'lift' : 'crane', op = ops.find(o=>(staff[o].skills||[]).includes(skill) && operatorFree(o,d,d)) || ops.find(o=>(staff[o].skills||[]).includes(skill));
+      slots.forEach(sl => { const c = CUS[Math.floor(r('c'+sl)*CUS.length)];
+        const id = 'H-2026-0'+(hn++), cash = !customers[c].terms;
+        hires.push({id, c, site:PLACES[Math.floor(r('p'+sl)*PLACES.length)], state:'Johor', siteContact:customers[c].contact+' '+customers[c].phone, po:'', status:'Booked', order:true, created:addDays(d,-2), cycle:'End of hire',
+          lines:[{u, k:'wet', basis:'day', from:d, to:d, slot:sl, op}], trips:[],
+          job:{type:'Lifting', scope:SCOPE[Math.floor(r('s'+sl)*SCOPE.length)], arrive:SLOT_T[sl][0], requests:'', pay:cash?'cash':'credit', collect:cash},
+          check:Object.fromEntries(PRECONFIRM.map(x=>[x[0],true])), checkNote:{}, track:{confirmed:addDays(d,-2)+' 16:30', ...(i===1?{sent:addDays(d,-1)+' 18:10'}:{})},
+          log:[{d:addDays(d,-2)+' 16:30', t:`Order confirmed: ${SLOTS[sl]}.`}]});
+      });
+    });
+    PEERJ.filter(x=>x[0]===i).forEach(([,m,s,cost,price,sl]) => { const c = CUS[Math.floor(rnd(m+d)*CUS.length)], id = 'H-2026-0'+(hn++);
+      hires.push({id, c, site:PLACES[Math.floor(rnd('p'+m+d)*PLACES.length)], state:'Johor', siteContact:customers[c].contact+' '+customers[c].phone, po:'', status:'Booked', order:true, created:addDays(d,-1), cycle:'End of hire',
+        lines:[{u:null, m, k:'wet', basis:'day', from:d, to:d, slot:sl, src:'peer', peer:{s, cost}, price}], trips:[], check:{}, checkNote:{}, track:{},
+        log:[{d:addDays(d,-1)+' 11:00', t:`Cross-hired from ${s} at ${RM0(cost)} a day; charged ${RM0(price)}.`}]});
+    });
+  }
+})();
+
 function waOperator(h){
   const l = h.lines[0], j = h.job || {}, op = staff[l.op];
   const lines = [
@@ -3234,6 +3302,8 @@ function openWorkOrder(id){
     <div class="sect"><h3>Work order · ${esc(h.job?.type||'')}</h3><div class="in form">
       <label>Start<input type="time" name="start" value="${st}"></label><label>Finish<input type="time" name="finish" value="${hhmm(toH(st)+5.5)}"></label>
       <label>Break (min)<input type="number" name="brk" value="30" step="15"></label><label>Standby hours<input type="number" name="standby" value="0" step="0.5"></label>
+      <label>WO no. (from the work order book)<input type="text" name="wo" inputmode="numeric" maxlength="6" placeholder="e.g. 173961"></label>
+      <label style="justify-content:flex-end"><button class="btn" type="button" data-action="wo-photo">${state.woPhoto?'✓ Photo of signed WO added':'Add photo of the signed WO'}</button></label>
       <label class="full">Work done<textarea name="note" rows="2">${esc(h.job?.scope||'')}</textarea></label></div></div>
     <div class="sect"><h3>Customer signs</h3><div class="in"><div class="form"><label>Name<input type="text" name="signer" value="${esc(SITE_SIGNER[h.c]||'')}"></label></div>
       <canvas class="sig" id="sigPad" aria-label="Signature pad"></canvas><div class="btnrow"><button class="btn small" type="button" data-action="sig-clear">Clear</button></div></div></div>
@@ -3270,6 +3340,11 @@ function renderDispatch(){
   const moving = cranes.filter(u=>gpsLive(u).state==='Moving').length, atSite = cranes.filter(u=>gpsLive(u).state.startsWith('At site')).length;
   $('#v-dispatch').innerHTML = `
     <div class="view-head"><h2>Dispatch · ${fmtDW(TODAY)}</h2><button class="btn primary" data-action="new-hire">New order</button></div>
+    ${(()=>{ const px = hires.filter(h=>['Booked','On hire'].includes(h.status) && h.lines.some(l=>l.src==='peer') && lineEnd(h.lines[0])>=TODAY).sort((a,b)=>a.lines[0].from<b.lines[0].from?-1:1);
+      return px.length ? `<div class="panel"><div class="panel-head"><h3>Cross-hired jobs (同行车)</h3><span class="muted">The supplier sends the machine and operator; we send them the job order and invoice the customer</span></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Date</th><th>Machine</th><th>From</th><th>Customer · site</th><th class="r cost">Cost</th><th class="r cost">Charged</th><th class="r cost">Margin</th></tr></thead><tbody>
+      ${px.map(h=>{ const l = h.lines.find(x=>x.src==='peer'), mg = (l.price||0)-(l.peer?.cost||0); return `<tr class="click" data-hire="${h.id}"><td class="num">${fmtDW(l.from)}${l.slot&&l.slot!=='full'?' · '+slotTag(l.slot):''}</td><td>${esc(models[l.m].type)}</td><td><b>${esc(l.peer?.s||'')}</b></td><td>${esc(custName(h.c))}<br><small class="muted">${esc(h.site)}</small></td><td class="r num cost">${RM0(l.peer?.cost||0)}</td><td class="r num cost">${l.price?RM0(l.price):'—'}</td><td class="r num cost" style="color:${mg>0?'var(--ok)':'var(--crit)'}">${l.price?RM0(mg)+' ('+Math.round(mg/l.price*100)+'%)':'—'}</td></tr>`; }).join('')}
+      </tbody></table></div></div>` : ''; })()}
     <div class="kpis"><div class="kpi"><b>${jobs.length}</b><span>Jobs today and coming</span></div><div class="kpi ${pend?'warn':''}"><b>${pend}</b><span>Checklists not complete</span></div><div class="kpi ${unsent?'alert':''}"><b>${unsent}</b><span>Job orders not sent</span></div><div class="kpi"><b>${moving}</b><span>On the road now</span></div><div class="kpi"><b>${atSite}</b><span>At site</span></div></div>
     ${jobs.map(h=>{ const l = h.lines[0], i = stepNow(h), next = jobSteps(h)[i+1];
       const act = h.status==='Quotation' ? `<button class="btn small primary" data-hire="${h.id}">${checkOk(h)?'Confirm order':'Open checklist'}</button>`
@@ -3332,9 +3407,12 @@ document.addEventListener('submit', e => {
     h.track.precheck = tNow(); h.log.unshift({d:h.track.precheck, t:`Pre-dispatch check done (${n}/${PREDISPATCH.length})${fd.get('note')?': '+fd.get('note'):''}. Hour meter ${fd.get('hm')}, fuel ${fd.get('fuel')}.`});
     toast('Pre-dispatch check saved: ready to go'); closeSheet(); return render(); }
   if(f.dataset.form==='wo'){ e.preventDefault(); if(!sigDrawn){ toast('The customer has to sign'); return; } const h = hire(f.dataset.id), l = h.lines[0];
+    const woIn = (fd.get('wo')||'').trim(), dup = woIn && sheets.find(s=>String(s.wo)===woIn);
+    if(woIn && !/^\d{6}$/.test(woIn)){ toast('The WO no. has 6 digits, as printed on the work order'); return; }
+    if(dup){ toast(`WO ${woIn} is already used (${dup.u}, ${fmtD(dup.d)}). Check the number on the paper.`); return; }
     const work = Math.max(0, toH(fd.get('finish'))-toH(fd.get('start'))-(+fd.get('brk')||0)/60-(+fd.get('standby')||0));
     sheets = sheets.filter(s=>!(s.u===l.u && s.d===TODAY && s.hire===h.id));
-    sheets.push({id:`${l.u}-${TODAY}`, hire:h.id, u:l.u, op:l.op, d:TODAY, start:fd.get('start'), finish:fd.get('finish'), brk:+fd.get('brk')||0, work, standby:+fd.get('standby')||0, reason:'Site', bd:0, hmS:fleet[l.u].hm||0, hmE:(fleet[l.u].hm||0)+work, note:fd.get('note'), status:'signed', signer:fd.get('signer')});
+    sheets.push({id:`${l.u}-${TODAY}`, hire:h.id, u:l.u, op:l.op, d:TODAY, start:fd.get('start'), finish:fd.get('finish'), brk:+fd.get('brk')||0, work, standby:+fd.get('standby')||0, reason:'Site', bd:0, hmS:fleet[l.u].hm||0, hmE:(fleet[l.u].hm||0)+work, note:fd.get('note'), status:'signed', signer:fd.get('signer'), wo:woIn?+woIn:undefined, photo:!!state.woPhoto}); state.woPhoto = false;
     h.track.done = tNow(); h.log.unshift({d:h.track.done, t:`Work order signed by ${fd.get('signer')}: ${fd.get('start')}–${fd.get('finish')}, ${num(work)} h.${h.job?.pay==='cash'&&h.job.collect?' Cash collected.':''}`});
     toast(`Work order signed: ${num(work)} h`); closeSheet(); return render(); }
 });
@@ -3424,11 +3502,14 @@ function qtLine(desc, qty, uom, rate, discPct, sub, sched){
 }
 /* Lines in the company's quotation format: the rental line first, then its rate schedule (OT, Sunday / PH, Sunday OT) at qty 1. */
 function qtItems(q, mk, k, r){
-  const base = r[{hour:'hr',day:'day',week:'week',month:'month'}[q.basis]] || 0, d = q.disc || 0;
+  const half = q.basis==='day' && q.slot && q.slot!=='full', d = q.disc || 0;
+  const base = half ? (r.half || Math.round((r.day||0)*0.7)) : (q.peerPrice && q.basis==='day' ? +q.peerPrice : 0) || r[{hour:'hr',day:'day',week:'week',month:'month'}[q.basis]] || 0;
   const to = q.open ? addDays(q.from, 29) : q.to, est = estimate(mk, k, q.basis, q.from, to, +q.hrs||8);
-  const qty = q.open && q.basis==='month' ? 1 : base ? Math.max(q.basis==='month'?1:0, +((est?.amt||0)/base).toFixed(2)) : 0;
-  const items = [qtLine(`${QT_BASIS[q.basis]} RENTAL OF ${qtName(models[mk].type)} ${k==='wet'?'WITH OPERATOR':'WITHOUT OPERATOR (DRY HIRE)'} ${q.diesel?'WITH DIESEL':'WITHOUT DIESEL'}`,
-    qty, QT_UOM[q.basis], base, d, `${models[mk].make} ${models[mk].model}${q.u?' · '+q.u:''} · ${fmtD(q.from)} ${q.open?'until the customer stops':'– '+fmtD(q.to)+' '+q.to.slice(0,4)}`)];
+  let work = 0; for(let x=q.from; x<=to; x=addDays(x,1)) if(dow(x)!==0) work++;
+  const dayBase = r.day || 0, qty = q.open && q.basis==='month' ? 1 : q.basis==='day' && k==='wet' ? Math.max(1, work) : base ? Math.max(q.basis==='month'?1:0, +((est?.amt||0)/(q.basis==='day'?dayBase||base:base)).toFixed(2)) : 0;
+  const own = q.u && q.u!=='peer' && !models[mk].peer;
+  const items = [qtLine(`${half?'HALF DAY':QT_BASIS[q.basis]} RENTAL OF ${qtName(models[mk].type)} ${k==='wet'?'WITH OPERATOR':'WITHOUT OPERATOR (DRY HIRE)'} ${q.diesel?'WITH DIESEL':'WITHOUT DIESEL'}${q.basis==='day'?` (${SLOTS[q.slot||'full']})`:''}`,
+    qty, half?'HALF DAY':QT_UOM[q.basis], base, d, `${own?`${models[mk].make} ${models[mk].model} · ${q.u} · `:''}${fmtD(q.from)} ${q.open?'until the customer stops':q.to!==q.from?'– '+fmtD(q.to)+' '+q.to.slice(0,4):q.from.slice(0,4)}`)];
   if(k==='wet' && r.ot){
     items.push(qtLine('OVERTIME', 1, 'HRS', r.ot, d, '5 pm – 11:59 pm; double after midnight', true));
     if(r.sun) items.push(qtLine('SUNDAY / P.HOLIDAY', 1, 'DAY', r.sun, d, '', true));
@@ -3437,21 +3518,23 @@ function qtItems(q, mk, k, r){
   if(k==='dry' && q.basis==='month' && r.ex) items.push(qtLine(`EXCESS HOURS ABOVE ${r.mHrs||RULES.mHrs} H A MONTH`, 1, 'HRS', r.ex, d, 'by hour meter', true));
   const tc = transportCharge(mk, q.zone);
   if(q.mob && tc) items.push(qtLine(models[mk].size==='self' ? 'MOBILISATION & DEMOBILISATION' : 'LOWLOADER DELIVERY & COLLECTION', 2, 'TRIP', tc, 0, q.zone));
-  if(q.rigger){ let work = 0; for(let x=q.from; x<=to; x=addDays(x,1)) if(dow(x)!==0) work++; items.push(qtLine('RIGGER / SIGNALMAN', Math.max(1,work), 'DAY', RIGGER_DAY, 0)); }
+  if(q.rigger){ items.push(qtLine('RIGGER / SIGNALMAN', Math.max(1,work), 'DAY', RIGGER_DAY, 0)); }
   return items;
 }
+const PEER_TYPES = () => Object.keys(models).filter(k=>models[k].peer).map(k=>models[k].type);
 const qtSums = items => { const main = items.filter(i=>!i.sched), sub = r2(sum(main.map(i=>i.amt))), sst = r2(sum(main.map(i=>i.tax))); return {sub, sst, total:r2(sub+sst)}; };
 function qqDefaults(pre={}){
   const from = state.av?.from || addDays(TODAY,1), to = state.av?.to || from, type = state.av?.type || 'Truck crane 25 t';
-  return {c:'', name:'', contact:'', phone:'', site:'', type, u:null, from, to, k:'wet', basis:'', hrs:8, disc:0, zone:'Johor Bahru', mob:true, rigger:false, diesel:false, open:false, valid:RULES.valid,
+  return {c:'', name:'', contact:'', phone:'', site:'', type, u:null, from, to, k:'wet', basis:'', hrs:8, disc:0, zone:'Johor Bahru', mob:false, rigger:false, diesel:false, open:false, slot:'full', peerS:'', peerCost:'', valid:RULES.valid,
     extra:'', more:[], enq:null, ...pre};
 }
 function qqCalc(q){
-  const types = [...new Set(hireUnits().map(u=>mOf(u).type))];
-  const units = hireUnits().filter(u=>mOf(u).type===q.type).map(u=>({u,...availability(u,q.from,q.to)}));
-  if(q.u && !units.some(x=>x.u===q.u)) q.u = null;
-  if(!q.u){ const f = units.find(x=>x.ok && !x.warn.length) || units.find(x=>x.ok) || units[0]; q.u = f ? f.u : null; }
-  const mk = q.u ? fleet[q.u].m : modelOfType(q.type), k = kindFor(mk, q.k); q.k = k;
+  const types = [...new Set(hireUnits().map(u=>mOf(u).type)), ...PEER_TYPES()];
+  const units = hireUnits().filter(u=>mOf(u).type===q.type).map(u=>({u,...availability(u,q.from,q.to,null,q.basis==='day'?q.slot:undefined)}));
+  if(q.u && q.u!=='peer' && !units.some(x=>x.u===q.u)) q.u = null;
+  if(!q.u){ const f = units.find(x=>x.ok && !x.warn.length) || units.find(x=>x.ok); q.u = f ? f.u : 'peer'; }
+  if(q.u==='peer' && !q.peerS){ q.peerS = PEERS[0].n; }
+  const mk = q.u && q.u!=='peer' ? fleet[q.u].m : modelOfType(q.type), k = kindFor(mk, q.k); q.k = k;
   const r = rate(mk, k) || {}, bases = ['hour','day','week','month'].filter(b=>r[{hour:'hr',day:'day',week:'week',month:'month'}[b]]);
   if(!bases.includes(q.basis)) q.basis = guessBasis(mk, k, q.from, q.to);
   if(q.basis!=='month') q.open = false;
@@ -3460,7 +3543,8 @@ function qqCalc(q){
     const b2 = r2[{hour:'hr',day:'day',week:'week',month:'month'}[q.basis]] ? q.basis : guessBasis(mk2, k2, q.from, q.to);
     const its = qtItems({...q, type:m.type, u:null, basis:b2, open:q.open && b2==='month', rigger:false}, mk2, k2, r2); items.push(...its); return {mk:mk2, k:k2, basis:b2}; });
   const t = qtSums(items), limit = DISC_LIMIT[role()] ?? 0;
-  return {types, units, mk, k, r, bases, items, more, ...t, overLimit:q.disc>limit, limit};
+  const peerCost = q.u==='peer' && +q.peerCost ? +q.peerCost * Math.max(1, items[0].qty) : 0;
+  return {types, units, mk, k, r, bases, items, more, ...t, overLimit:q.disc>limit, limit, peerCost, margin: peerCost ? items[0].amt - peerCost : null};
 }
 const money = v => (+v).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
 function openQuickQuote(){
@@ -3473,12 +3557,15 @@ function openQuickQuote(){
       <label>Contact person<input type="text" data-qq="contact" value="${esc(q.contact)}"></label>
       <label>Phone / WhatsApp<input type="text" data-qq="phone" value="${esc(q.phone)}" placeholder="012-345 6789"></label>
       <label>Payment term<input type="text" value="COD (new customer)" readonly></label>`}
-      <label class="full">Project / site<input type="text" data-qq="site" value="${esc(q.site)}" placeholder="e.g. Senai, or Lot 12 Jalan Seelong, Senai"></label>
+      <label class="full">Project / site<input type="text" data-qq="site" value="${esc(q.site)}" list="placeList" placeholder="e.g. Senai, or Lot 12 Jalan Seelong, Senai"><datalist id="placeList">${PLACES.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></label>
     </div></div>
     <div class="sect"><h3>Machine and rate</h3><div class="in form">
       <label>Machine type<select class="field" data-qq="type">${x.types.map(t=>`<option ${t===q.type?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
       <label>From<input type="date" data-qq="from" value="${q.from}"></label>${q.open?'':`<label>To<input type="date" data-qq="to" value="${q.to}"></label>`}
-      <label>Machine offered<select class="field" data-qq="u">${x.units.map(o=>`<option value="${o.u}" ${o.u===q.u?'selected':''}>${o.u} ${esc(mOf(o.u).model)} · ${o.ok?(o.warn.length?'free, document issue':'free'):'NOT free'}</option>`).join('')}</select></label>
+      <label>Machine offered<select class="field" data-qq="u">${x.units.map(o=>`<option value="${o.u}" ${o.u===q.u?'selected':''}>${o.u} ${esc(mOf(o.u).model)} · ${esc(uRef(o.u))} · ${o.ok?(o.warn.length?'free, document issue':'free'):'NOT free'}</option>`).join('')}<option value="peer" ${q.u==='peer'?'selected':''}>Cross-hire from another company (同行车)</option></select></label>
+      ${q.u==='peer'?`<label>Cross-hire from<select class="field" data-qq="peerS">${PEERS.map(p=>`<option value="${esc(p.n)}" ${p.n===q.peerS?'selected':''}>${esc(p.n)} · ${esc(p.has)}</option>`).join('')}</select></label>
+      <label class="cost">Their price to us (RM a ${q.basis==='day'&&q.slot!=='full'?'half day':q.basis==='day'?'day':q.basis})<input type="number" min="0" step="50" data-qq="peerCost" value="${esc(q.peerCost)}" placeholder="e.g. 2800"></label>`:''}
+      ${q.basis==='day'?`<label>Time<select class="field" data-qq="slot">${Object.entries(SLOTS).map(([k2,v])=>`<option value="${k2}" ${k2===(q.slot||'full')?'selected':''}>${k2==='full'?'Full day':k2==='am'?'Morning':'Afternoon'} · ${v}</option>`).join('')}</select></label>`:''}
       <label>Charged by<select class="field" data-qq="basis">${x.bases.map(b=>`<option value="${b}" ${b===q.basis?'selected':''}>${basisLabel[b]} · ${RM0(x.r[{hour:'hr',day:'day',week:'week',month:'month'}[b]])}</option>`).join('')}</select></label>
       ${q.basis==='hour'?`<label>Expected hours a day<input type="number" min="1" step="0.5" data-qq="hrs" value="${q.hrs}"></label>`:''}
       <label>Discount %<input type="number" min="0" max="50" step="1" data-qq="disc" value="${q.disc}"></label>
@@ -3489,11 +3576,12 @@ function openQuickQuote(){
       <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="diesel" ${q.diesel?'checked':''}> Rate includes diesel</label>
       <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="mob" ${q.mob?'checked':''}> Include mobilisation / transport</label>
       <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="rigger" ${q.rigger?'checked':''}> Add rigger / signalman (${RM0(RIGGER_DAY)} a day)</label>
-      ${!x.units.find(o=>o.u===q.u)?.ok?`<label class="full" style="color:var(--crit);font-weight:600">${q.u} is not free on these dates. You can still quote, but check Availability first.</label>`:''}
+      ${q.u==='peer'?`<label class="full"><span class="docwarn" style="color:var(--info,inherit)">${x.units.some(o=>o.ok)?'Own machines are free on these dates: cross-hire only if the customer asks for a size or model we do not have.':x.units.length?'None of our own machines of this type is free: cross-hire keeps the job.':'We have no machine of this type: cross-hire it.'}</span></label>`:!x.units.find(o=>o.u===q.u)?.ok?`<label class="full" style="color:var(--crit);font-weight:600">${q.u} is not free on these dates. You can still quote, but check Availability first.</label>`:''}
       ${x.units.find(o=>o.u===q.u)?.warn.length?`<label class="full">${warnHtml(x.units.find(o=>o.u===q.u).warn)}</label>`:''}
       ${x.overLimit?`<label class="full" style="color:var(--crit);font-weight:600">Discount above your ${x.limit}% limit: the Head Manager must approve before it is issued.</label>`:''}
     </div></div>
     <div class="sect cost"><h3>Lines on the quotation</h3><div class="in est">${x.items.map(i=>`<span>${esc(i.desc)}${i.sched?' <small class="muted">(rate)</small>':''}<br><small class="muted">${num(i.qty)} ${i.uom} × ${RM(i.rate)}${i.disc?` − ${RM(i.disc)} disc`:''} + ${RM(i.tax)} tax</small></span><b>${RM(i.net)}</b>`).join('')}
+      ${x.peerCost?`<span class="cost">Cross-hire cost from ${esc(q.peerS)}</span><b class="cost">− ${RM(x.peerCost)}</b><span class="cost"><b>Our margin on the rental line</b></span><b class="cost" style="color:${x.margin>0?'var(--ok)':'var(--crit)'}">${RM(x.margin)} (${Math.round(x.margin/x.items[0].amt*100)}%)</b>`:''}
       <hr><span>Estimated value (rental, transport and crew, before tax)</span><b>${RM(x.sub)}</b><span>Service tax ${RULES.sst}%</span><b>${RM(x.sst)}</b><span class="tot">Estimated total</span><b class="tot">${RM(x.total)}</b></div>
       <div class="in" style="padding:0 14px 10px"><small class="muted">The overtime and Sunday lines are rates at qty 1, as on your quotation. They are not added to the estimate; the invoice charges what the work order shows.</small></div></div>
     <div class="sect"><h3>Remarks and terms</h3><div class="in form">
@@ -3515,7 +3603,8 @@ function issueQuote(){
   const id = 'H-2026-0' + (Math.max(...hires.map(h=>+h.id.slice(-4)))+1), no = qtNo(++state.qSeq);
   const remarks = q.extra.trim() ? [q.extra.trim()] : [];
   hires.push({id, c, site:q.site, state:'Johor', siteContact:customers[c].contact+' '+customers[c].phone, po:'', status:'Quotation', created:TODAY, cycle:q.basis==='month'?'Monthly in arrears':'End of hire', quoteValid:addDays(TODAY, +q.valid),
-    lines:[{u:q.u, m:x.mk, k:x.k, basis:q.basis, from:q.from, to:q.open?OPEN_END:q.to, open:q.open||undefined, op:undefined, disc:q.disc},
+    lines:[{u:q.u==='peer'?null:q.u, m:x.mk, k:x.k, basis:q.basis, from:q.from, to:q.open?OPEN_END:q.to, open:q.open||undefined, op:undefined, disc:q.disc, slot:q.basis==='day'?q.slot:undefined,
+      ...(q.u==='peer'?{src:'peer', peer:{s:q.peerS, cost:+q.peerCost||0}, price:x.items[0].rate}:{})},
       ...x.more.map(m=>({u:null, m:m.mk, k:m.k, basis:m.basis, from:q.from, to:q.open&&m.basis==='month'?OPEN_END:q.to, open:(q.open&&m.basis==='month')||undefined, disc:q.disc}))], trips:[], check:{}, checkNote:{}, track:{},
     quote:{no, issued:TODAY, valid:addDays(TODAY,+q.valid), items:x.items, sub:x.sub, sst:x.sst, total:x.total, remarks, by:meStaff(), disc:q.disc, diesel:q.diesel},
     log:[{d:TODAY+' '+nowT(), t:`Quotation ${no} issued by ${staff[meStaff()].name}: ${RM(x.total)} estimated.`}]});
@@ -3555,13 +3644,14 @@ function openQuoteDoc(id){
 
 document.addEventListener('click', e => {
   if(e.target.closest('input,select,textarea,canvas')) return;
-  const a = e.target.closest('[data-action^="qq-"],[data-action^="qd-"],[data-avpick],[data-avgrp]');
+  const a = e.target.closest('[data-action^="qq-"],[data-action^="qd-"],[data-action="wo-photo"],[data-avpick],[data-avgrp]');
   if(!a) return;
   const d = a.dataset;
   if(d.avpick){ const [type, day] = d.avpick.split('|'); Object.assign(state.av, {type, from:day, to:day}); return render(); }
   if(d.avgrp!=null){ state.av.grp = d.avgrp; return render(); }
-  if(d.action==='qq-new'){ state.qq = qqDefaults(d.u ? {u:d.u, type:mOf(d.u).type} : {}); return openQuickQuote(); }
+  if(d.action==='qq-new'){ state.qq = qqDefaults(d.u ? {u:d.u, type:mOf(d.u).type, slot:state.av.slot||'full'} : d.type ? {type:d.type, u:d.peer?'peer':null, slot:state.av.slot||'full'} : {}); return openQuickQuote(); }
   if(d.action==='qq-issue') return issueQuote();
+  if(d.action==='wo-photo'){ state.woPhoto = true; a.textContent = '✓ Photo of signed WO added'; toast('Photo attached to the work order'); return; }
   if(d.action==='qq-addm'){ const q = state.qq; q.more = q.more||[]; const ts = [...new Set(hireUnits().map(u=>mOf(u).type))]; q.more.push({type: ts.find(t=>t!==q.type && !q.more.some(m=>m.type===t)) || ts[0]}); return openQuickQuote(); }
   if(d.action==='qq-delm'){ state.qq.more.splice(+d.i,1); return openQuickQuote(); }
   if(d.action==='qd-open') return openQuoteDoc(d.id);
@@ -3577,7 +3667,7 @@ document.addEventListener('change', e => {
   const t = e.target;
   if(t.dataset.qqm!=null){ state.qq.more[+t.dataset.qqm].type = t.value; return openQuickQuote(); }
   if(t.dataset.qq){ const f = t.dataset.qq; state.qq[f] = t.type==='checkbox' ? t.checked : (t.type==='number' ? +t.value : t.value);
-    if(f==='type'){ state.qq.u = null; state.qq.basis = ''; } if((f==='from'||f==='to') && state.qq.to < state.qq.from) state.qq.to = state.qq.from; if(f==='from'||f==='to') state.qq.basis = '';
+    if(f==='type'){ state.qq.u = null; state.qq.basis = ''; } if(f==='slot' && state.qq.u!=='peer') state.qq.u = null; if((f==='from'||f==='to') && state.qq.to < state.qq.from) state.qq.to = state.qq.from; if(f==='from'||f==='to') state.qq.basis = '';
     if(t.type==='text') return; return openQuickQuote(); }
 });
 document.addEventListener('input', e => { const t = e.target; if(t.dataset.qq && t.type==='text') state.qq[t.dataset.qq] = t.value; });

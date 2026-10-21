@@ -702,7 +702,80 @@ One box per machine works for a dozen cranes. At 50 to 200 machines it becomes a
 | `machine_classes` | family, label, cap_min, cap_max, unit (t, m, kVA), sort |
 | `models` (added) | family, capacity, capacity_unit (filled from the type, can be overridden) |
 
-## 29. Open questions for the owner
+## 29. What the current records show (WORK_ORDER_2026.xlsx) and moving across
+
+The current system is an AppSheet app on a spreadsheet. It has these sheets:
+- WORKORDER: 1,714 rows, January to October 2026;
+- MACHINERY LIST: 28 machines;
+- OPERATORS: 51 staff;
+- CUSTOMERS LIST: 1,147 customers;
+- MASTER CALENDER: 3 entries;
+- CATEGORIES: the pick lists.
+
+### 29.1 How the business really runs
+
+| Finding | Effect on the design |
+|---|---|
+| About 5.7 confirmed jobs a working day. 98% are single-day jobs: 80% full day (8:00 to 5:00), 18% half day (8:00 to 12:00 or 1:00 to 5:00). Monthly hire is rare (16 jobs). | The main screens are the daily job board (Dispatch, Planner, Availability). Monthly hire is kept, but it is not the centre. |
+| A machine often does a morning job and an afternoon job on the same day (74 machine-days). | **Time slot** on every daily booking: full day, morning or afternoon. Morning and afternoon on the same machine do not clash. Availability, the quick quotation and the Planner (half-width bars) all use it. Quotations show `HALF DAY RENTAL OF … (08:00AM - 12:00PM)` at the half-day rate. |
+| 19% of jobs (300) are **cross-hired** from other companies (同行车). The supplier and the cost are typed into the remarks ("SUPER S-2800", "AIRLEX-800"). Main suppliers: MANTA, WISE, CAHAYA, SUPER S, AIRLEX, YONG FATT, SPRUCE MOVER, PKSB. Types we cross-hire: 20 t, 45 t, 80 t, 120 t and 200 t cranes, skylifts, lorry cranes, lorry tippers, 40 ft cargo. | **Cross-hire** is a choice on every booking. The fields are: supplier (from a list of peers with what each one usually supplies), their price to us, and our price. The margin shows on the job, in Dispatch (*Cross-hired jobs*) and in Reports. The customer's quotation and invoice look the same as for our own machine. The job order goes to the supplier, not to our operator. When none of our machines of a type is free, Availability offers *Quote with a cross-hire*. |
+| Day rates from the work orders (median, own machines, with operator). | Rate card, with half day added. These are the prototype's day rates until the owner confirms them. |
+| Every operator has a **work order book** (for example, numbers 167594 to 167600 on one operator's jobs). The WO no. and the invoice no. are kept against the job. 404 jobs have a photo of the signed WO. | The operator types the WO no. from the book when the work order is signed, and can add a photo of the paper. A number used twice is refused. The invoice line prints `WO no.: plate`. |
+| Statuses 确定 (confirmed), 等待 (waiting), 需跟进 (follow up), 取消 (cancelled). | Mapped to Confirmed, Quotation / waiting, Follow-up task, and Cancelled / lost. |
+| The office works in Chinese and English. Operators' names are Malay, Chinese and Indian. | The screens should be in **English and 中文**, and the operator's phone screens in **Bahasa Melayu**. |
+
+Day rates found in the work orders (RM, with operator, median of own machines):
+
+| Machine | Full day (8–5) | Half day | | Machine | Full day |
+|---|---|---|---|---|---|
+| 16 t | 850 | – | | 50 t | 2,450 |
+| 20 t | 1,080 | 820 | | 60 t | 3,100 |
+| 25 t truck crane | 1,400 | 950–1,065 | | 70 t | 3,300 |
+| 25 t rough terrain | 1,800 | 1,050 | | 80 t | 3,800 |
+| 35 t | 1,900 | – | | 100 t and 120 t | 5,000 |
+| 45 t | 1,980 | – | | 130 t | 6,600 |
+| Lorry crane | 1,500 | 675–875 | | Skylift 20 / 24 / 27 / 40 m | 600 / 620 / 950 / 1,750 |
+
+Cross-hire margins in the remarks:
+
+| Job | Supplier's price | Our price | Margin |
+|---|---|---|---|
+| 50 t (SUPER S) | 2,800 | 3,000 | 7% |
+| 45 t (MANTA) | 2,000 | 2,600 | 23% |
+| 24 m skylift (WISE) | 600 | 680 | 12% |
+| Lorry crane (AIRLEX) | 650 | 800 | 19% |
+| Forklift (GHL) | 800 | 1,547 | 48% |
+
+### 29.2 Things to check before moving the data across
+
+| Check | Found | In the new system |
+|---|---|---|
+| **Machinery list dates** | All 26 machines that have dates show at least one expired PMA, Puspakom or insurance date (as of 21 Oct 2026). 4 machines have the same date in all three columns, which looks like a placeholder. One example: TL-250-3 KEK 3118 worked 157 days this year, but its PMA date is 13 Aug 2026 and its insurance date is 13 Oct 2026. | Each renewal is entered with the new expiry and a copy of the certificate. **Either the list was not updated after renewals, or machines are working with expired papers. Please check this first.** |
+| **Jobs with no invoice no.** | 83 confirmed jobs before October. 27 are cash sales, possibly paid with a receipt, and 37 are for one customer. 29 have a price, worth RM 157,212 in total. | Every signed work order stays in *Ready to invoice* until it is on an invoice. |
+| **Prices on work orders** | 84% of confirmed jobs in January and February have a price. Since March, only 18% do. | The price comes from the quotation or the rate card, and is always on the job. |
+| **WO no.** | 77 confirmed jobs have none. 13 numbers are used twice. | WO no. checked when the work order is signed. |
+| **Machine type** | Free text, for example "25T", "25T(RT)", "25 TON ROUGH TERRAIN", "LC 40FT", "CARGO 40FT". | Picked from the list. The plate comes from the machine. |
+| **Machine use** | Busiest: SR-250V6 VNB 2138, 217 job days. 10 machines have fewer than 10 job days, either because they were idle or because their jobs were recorded under another plate. | Utilisation per machine, from the jobs themselves. |
+| **Names in the machinery list** | "FUAN ATF-60-3" (Faun), "IVICHI" skylifts, a row with no name (MEG 2638) and a row "text value". | Cleaned up during the import. |
+
+**How the import works.** A one-off script reads the spreadsheet and brings across:
+- customers, merging duplicates and spelling variants;
+- staff and their departments;
+- machines (plate, model, capacity, status);
+- the work-order history.
+
+So Reports start with this year's figures. The column mapping is in the prototype under Connections → Current records. The photos (`WORKORDER_Images/…`, `OPERATORS_Images/…`) come across as attachments.
+
+## 30. Open questions for the owner
+
+**From WORK_ORDER_2026.xlsx:**
+
+- **Machinery dates.** Are the PMA, Puspakom and insurance dates in the machinery list up to date? Every machine shows at least one expired date (section 29.2).
+- **Missing machines.** RC-01 Kobelco RK500-2 is not in the machinery list. Do you still have it? And which machine is MEG 2638?
+- **Model names.** The machinery list says SL700L and NK200-3. The load charts you sent are for the SL-700R and NK-200E-III. Please confirm which models you have, because the lift check must use the right chart.
+- **Unbilled jobs.** Do the 83 confirmed jobs with no invoice no. need checking? 27 of them are cash sales.
+- **Language.** Should the office screens be in English and 中文, and the operator's phone in Bahasa Melayu?
+- **Cross-hire suppliers.** Is the list of peer companies right? Do you also want to track what they owe you when they cross-hire *our* machines?
 
 **From invoice IV- 01158 2026:**
 
