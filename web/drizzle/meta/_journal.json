@@ -169,6 +169,13 @@
       "when": 1792564449746,
       "tag": "0023_labour_times",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792567183180,
+      "tag": "0024_pay_history",
+      "breakpoints": true
     }
   ]
 }

@@ -2,6 +2,13 @@ import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 
+/** SQL for the hourly rate in force on the day a labour entry was worked (aliases: l = labour_entries, s = staff).
+ *  Same rule as rateOn in lib/pay.ts: latest change on or before the day, else the first, else staff.pay_rate. */
+export const RATE_AT = sql.raw(`coalesce(
+  (select r.hourly_rate from staff_pay_rates r where r.staff_id = l.staff_id and r.effective_from <= l.work_date order by r.effective_from desc limit 1),
+  (select r.hourly_rate from staff_pay_rates r where r.staff_id = l.staff_id order by r.effective_from limit 1),
+  s.pay_rate)`);
+
 /** What maintenance costs, per work order: parts from stock (at their cost), things bought for the work order, outside work
  *  (vendor invoices) and labour at each person's pay rate. Dated by the day the work order was opened. Cancelled history is included. */
 export type CostRow = { jobId: number; unitId: number; category: string; opened: string; outsourced: boolean; stock: number; bought: number; outside: number; hours: number; labour: number };
@@ -18,7 +25,7 @@ export async function costRows(opts: { unitId?: number; from?: string; to?: stri
       coalesce((select sum(b.qty * b.unit_cost) from job_purchases b where b.job_id = j.id and b.kind <> 'service'), 0) as bought,
       coalesce((select sum(b.qty * b.unit_cost) from job_purchases b where b.job_id = j.id and b.kind = 'service'), 0) as outside,
       coalesce((select sum(l.hours) from labour_entries l where l.job_id = j.id), 0) as hours,
-      coalesce((select sum(l.hours * s.pay_rate * l.rate_mult) from labour_entries l join staff s on s.id = l.staff_id where l.job_id = j.id), 0) as labour
+      coalesce((select sum(l.hours * ${RATE_AT} * l.rate_mult) from labour_entries l join staff s on s.id = l.staff_id where l.job_id = j.id), 0) as labour
     from jobs j where ${sql.join(where, sql` and `)}`);
   return r.rows.map((x) => ({ jobId: Number(x.job_id), unitId: Number(x.unit_id), category: x.category, opened: x.opened, outsourced: !!x.outsourced,
     stock: Number(x.stock), bought: Number(x.bought), outside: Number(x.outside), hours: Number(x.hours), labour: Number(x.labour) }));

@@ -31,3 +31,13 @@ test("split clock times at the start of overtime", async () => {
   assert.equal(splitHours("19:00", "15:00", "17:00"), null);
   assert.equal(splitHours("x", "15:00", "17:00"), null);
 });
+
+test("rate on a day follows the pay history", async () => {
+  const { rateOn } = await import("../src/lib/pay");
+  const h = [{ effectiveFrom: "2000-01-01", hourlyRate: 9.74 }, { effectiveFrom: "2026-10-01", hourlyRate: 10.77 }];
+  assert.equal(rateOn(h, "2026-09-30", 0), 9.74);
+  assert.equal(rateOn(h, "2026-10-01", 0), 10.77);
+  assert.equal(rateOn(h, "2026-12-15", 0), 10.77);
+  assert.equal(rateOn([{ effectiveFrom: "2026-10-01", hourlyRate: 10.77 }], "2026-01-01", 0), 10.77);
+  assert.equal(rateOn([], "2026-01-01", 8), 8);
+});

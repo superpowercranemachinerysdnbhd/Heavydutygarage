@@ -31,3 +31,10 @@ export function splitHours(from: string, to: string, otStart: string): { normal:
   const normal = Math.max(0, Math.min(b, s) - a), ot = Math.max(0, b - Math.max(a, s));
   return { normal: Math.round((normal / 60) * 100) / 100, ot: Math.round((ot / 60) * 100) / 100 };
 }
+
+/** Hourly rate in force on a day: the latest change on or before it; before the first change, the first rate. */
+export function rateOn(history: { effectiveFrom: string; hourlyRate: number }[], day: string, fallback: number): number {
+  const sorted = [...history].sort((a, b) => a.effectiveFrom.localeCompare(b.effectiveFrom));
+  const hit = sorted.filter((h) => h.effectiveFrom <= day).at(-1) ?? sorted[0];
+  return hit ? hit.hourlyRate : fallback;
+}

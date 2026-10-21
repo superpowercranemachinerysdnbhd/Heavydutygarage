@@ -11,6 +11,9 @@ export async function mergeStaff(fromId: number, toId: number) {
     const [from] = await tx.select().from(schema.staff).where(eq(schema.staff.id, fromId));
     const [to] = await tx.select().from(schema.staff).where(eq(schema.staff.id, toId));
     if (!from || !to || fromId === toId) throw new Error("bad-merge");
+    // Pay history belongs to the person kept; the duplicate's is dropped unless the kept person has none.
+    const kept = await tx.select({ id: schema.staffPayRates.id }).from(schema.staffPayRates).where(eq(schema.staffPayRates.staffId, toId));
+    if (kept.length) await tx.delete(schema.staffPayRates).where(eq(schema.staffPayRates.staffId, fromId));
     const fks = (await tx.execute<{ tbl: string; col: string; notnull: boolean }>(sql`
       select c.conrelid::regclass::text as tbl, a.attname as col, a.attnotnull as notnull
       from pg_constraint c join pg_attribute a on a.attrelid = c.conrelid and a.attnum = any(c.conkey)

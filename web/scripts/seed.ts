@@ -248,6 +248,9 @@ for (const [threadId, staffId] of [[teamT.id, sup.id], [teamT.id, boss.id], [pum
   await db.insert(schema.attendance).values(rows);
 }
 
+// Everyone's pay as the start of their pay history (same as migration 0024).
+await db.execute(sql`insert into staff_pay_rates (staff_id, effective_from, monthly_salary, monthly_hours, hourly_rate) select id, '2000-01-01', monthly_salary, monthly_hours, pay_rate from staff on conflict do nothing`);
+
 // Bulk / consumable parts (same rule as migration 0019), with one drum marked as running low.
 await db.execute(sql`update parts set bulk = true where category_id in (select id from part_categories where name in
   ('Oils, grease & lubricants', 'Coolant & fluids', 'Electrical, sensors & switches', 'Workshop consumables', 'Paint'))`);

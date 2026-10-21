@@ -500,6 +500,20 @@ export const jobServices = pgTable("job_services", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("job_services_job_item_idx").on(t.jobId, t.item)]);
 
+/** Pay history: from `effectiveFrom`, this person costs `hourlyRate` per normal hour (from a monthly salary ÷ hours, or
+ *  an hourly rate). Labour is costed at the rate in force on the day it was worked, so a raise never changes past work. */
+export const staffPayRates = pgTable("staff_pay_rates", {
+  id: serial("id").primaryKey(),
+  staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+  effectiveFrom: date("effective_from").notNull(),
+  monthlySalary: numeric("monthly_salary", { precision: 10, scale: 2 }),
+  monthlyHours: numeric("monthly_hours", { precision: 6, scale: 1 }),
+  hourlyRate: numeric("hourly_rate", { precision: 10, scale: 4 }).notNull(),
+  note: text("note"),
+  createdBy: integer("created_by").references((): AnyPgColumn => staff.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("staff_pay_rates_staff_from_idx").on(t.staffId, t.effectiveFrom)]);
+
 /** Weekly crew plan: what each person does on a day — a job, or leave / MC / off. One entry per person per day. */
 export const crewPlan = pgTable("crew_plan", {
   id: serial("id").primaryKey(),

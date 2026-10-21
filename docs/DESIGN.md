@@ -787,3 +787,9 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Logging time on a work order defaults to **From – to** (clock times). The form shows the split before saving ("2 h normal + 2 h overtime"). Saving makes one entry per part: 15:00–19:00 → 15:00–17:00 normal and 17:00–19:00 overtime. A Sunday is one entry at the Sunday rate. **Hours** (a number plus a type) is still there.
 - Settings → Workshop: **Overtime starts at** (default 17:00).
 - `labour_entries.time_from` / `time_to` keep the clock times, shown under the date. `splitHours` in `lib/pay.ts` is unit-tested.
+
+### 53. Pay history: raises don't change past labour cost (Oct 2026)
+- New table `staff_pay_rates` (person, effective from, monthly salary, hours a month, hourly rate, note). Labour is costed at the rate in force on the day it was worked: the latest change on or before that day, else the first, else `staff.pay_rate` (`RATE_AT` SQL in `lib/costs.ts`, `rateOn` in `lib/pay.ts`, unit-tested). This applies to the work order cost, machine cost and Reports.
+- Team → person → **Pay** (Head Manager): the history (from, salary, hours, normal / OT / Sunday hourly rates, "Now" and "Upcoming" tags) and **Change pay** (new pay from a date, salary + hours or an hourly rate, note). Work before the date keeps the old rate. A back-dated change (e.g. 1 Oct entered on 21 Oct) re-costs the work since that date. A change entered by mistake can be removed; the first entry stays.
+- `staff.pay_rate` / `monthly_salary` mirror the pay in force today. "Edit details" no longer changes pay; adding a person still takes their starting pay.
+- Migration 0024: everyone's current pay becomes their first entry "from the start" (2000-01-01). Merging staff keeps the kept person's history.

@@ -9,6 +9,8 @@ import { hashPassword, passwordProblem } from "@/lib/password";
 import { normalisePhone } from "@/lib/phone";
 import { isRole } from "@/lib/queries";
 import { hourlyFromSalary } from "@/lib/pay";
+import { fmtDate } from "@/lib/format";
+import { ensurePayBaseline, payHistory, syncCurrentPay } from "@/lib/pay-server";
 import { isLocale, translator, type MessageKey, type Vars } from "@/i18n";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
@@ -49,6 +51,7 @@ export async function createStaff(form: FormData) {
   const [dupe] = await db.select({ id: schema.staff.id }).from(schema.staff).where(eq(schema.staff.phone, v.phone));
   if (dupe) go("/team/new", "error", "err.phoneUsed");
   const [row] = await db.insert(schema.staff).values({ ...v, role: v.role!, passwordHash: await hashPassword(pw) }).returning({ id: schema.staff.id });
+  await ensurePayBaseline(row.id, null);
   revalidatePath("/team");
   go(`/team/${row.id}`, "ok", "ok.staffAdded");
 }
@@ -60,7 +63,9 @@ export async function updateStaff(form: FormData) {
   if (id === me.id && v.role !== "boss") go(`/team/${id}`, "error", "err.ownRole");
   const [dupe] = await db.select({ id: schema.staff.id }).from(schema.staff).where(and(eq(schema.staff.phone, v.phone), ne(schema.staff.id, id)));
   if (dupe) go(`/team/${id}`, "error", "err.phoneUsed");
-  await db.update(schema.staff).set({ ...v, role: v.role! }).where(eq(schema.staff.id, id));
+  const { payRate: _p, monthlySalary: _s, monthlyHours: _h, ...rest } = v;
+  void _p; void _s; void _h; // pay changes go through "Change pay" (dated history)
+  await db.update(schema.staff).set({ ...rest, role: v.role! }).where(eq(schema.staff.id, id));
   revalidatePath(`/team/${id}`);
   go(`/team/${id}`, "ok", "ok.saved");
 }
@@ -112,4 +117,31 @@ export async function mergeInto(form: FormData) {
   await mergeStaff(fromId, toId);
   revalidatePath("/team"); revalidatePath("/jobs");
   redirect(`/team/${toId}?ok=${encodeURIComponent(t("team.merged"))}`);
+}
+
+/** A pay change from a date (raise, new salary). Work before that date keeps the old rate. */
+export async function changePay(form: FormData) {
+  const { me, go } = await boss();
+  const id = Number(form.get("id"));
+  const from = optDate(form, "effectiveFrom");
+  const p = pay(form);
+  if (!from) go(`/team/${id}`, "error", "pay.err.date");
+  if (!(Number(p.payRate) > 0)) go(`/team/${id}`, "error", "pay.err.amount");
+  await ensurePayBaseline(id, me.id);
+  const R = schema.staffPayRates, v = { monthlySalary: p.monthlySalary, monthlyHours: p.monthlyHours, hourlyRate: p.monthlySalary ? hourlyFromSalary(Number(p.monthlySalary), Number(p.monthlyHours)).toFixed(4) : p.payRate, note: str(form, "note") || null, createdBy: me.id };
+  await db.insert(R).values({ staffId: id, effectiveFrom: from!, ...v }).onConflictDoUpdate({ target: [R.staffId, R.effectiveFrom], set: v });
+  await syncCurrentPay(id);
+  revalidatePath(`/team/${id}`);
+  go(`/team/${id}`, "ok", "pay.saved", { date: fmtDate(from!, true, me.locale) });
+}
+
+/** Remove a pay change entered by mistake (the first entry stays). */
+export async function removePayChange(form: FormData) {
+  const { go } = await boss();
+  const id = Number(form.get("id")), rowId = Number(form.get("rowId"));
+  const rows = await payHistory(id);
+  if (rows.length > 1 && rows[0].id !== rowId) await db.delete(schema.staffPayRates).where(and(eq(schema.staffPayRates.id, rowId), eq(schema.staffPayRates.staffId, id)));
+  await syncCurrentPay(id);
+  revalidatePath(`/team/${id}`);
+  go(`/team/${id}`, "ok", "pay.removed");
 }
