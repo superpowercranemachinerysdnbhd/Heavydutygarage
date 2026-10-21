@@ -769,3 +769,35 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Fix: on iPad / Safari a tapped button does not take focus, so the part search list closed (blur) before the tap landed. Tapping a result or "+ Add new item" then did nothing. The list and its buttons now prevent the mousedown default, so the search box keeps focus and the tap goes through. This affects work orders, new purchase orders and Record parts bought.
 - Record parts bought: a "+ New item" button adds an empty new-item row (for an invoice of all new items). Save is never greyed out: it says what is missing (supplier, a description for new items, qty and unit price).
 - The category of a new item is optional. Without one, the item goes into "Uncategorised" (created when first needed) to sort out later on the part page. Same in the purchase order "+ Add new item".
+
+### 50. Services done are printed on the service report (Oct 2026)
+- Before, "Services done on this work order" only updated the machine's service schedule (`machine_services` keeps the latest per item), so the report had nothing to show. Now each work order keeps its own record in a new table `job_services` (job, item, done on, next due, who). `markServiceDone` writes it, and recording the same item again on the same job updates the row.
+- Work order page: a "Done on this work order" list (✓ item, date, next due). Supervisor / Head Manager can remove a line ticked by mistake; the machine schedule is not changed.
+- Service report: a **Services done** table (service, done on, next due) in the customer's language, after Work carried out.
+- Migration 0021 fills `job_services` from the services already recorded on work orders (latest per machine and item).
+
+### 51. Monthly salary, overtime and Sunday rates (Oct 2026)
+- Staff: **Monthly salary** and **Normal hours a month** (default 195). With a salary, the hourly cost is worked out (`hourlyFromSalary`: RM 1,900 ÷ 195 = RM 9.74). Without one, the hourly rate typed in is used (casual workers). Team page (Head Manager): hourly rate, salary ÷ hours, and the overtime and Sunday hourly rates.
+- Settings → Workshop: **Overtime rate (after 5 pm) ×** (default 1.5) and **Sunday / public holiday rate ×** (default 2).
+- Logging time: a "Type of hours" choice (Normal / Overtime after 5 pm / Sunday or public holiday). Work dated on a Sunday is always the Sunday rate. `labour_entries.rate_type` and `rate_mult` keep the multiplier as it was when logged, so later changes in Settings don't rewrite history. Rows show an "OT ×1.5" / "Sunday ×2" tag.
+- Labour cost everywhere (work order cost, machine cost, Reports) = hours × hourly rate × multiplier. Pure rules in `lib/pay.ts`, unit-tested.
+- Entries logged before this change count as normal hours.
+
+### 52. Log time as "from – to", split at the start of overtime (Oct 2026)
+- Logging time on a work order defaults to **From – to** (clock times). The form shows the split before saving ("2 h normal + 2 h overtime"). Saving makes one entry per part: 15:00–19:00 → 15:00–17:00 normal and 17:00–19:00 overtime. A Sunday is one entry at the Sunday rate. **Hours** (a number plus a type) is still there.
+- Settings → Workshop: **Overtime starts at** (default 17:00).
+- `labour_entries.time_from` / `time_to` keep the clock times, shown under the date. `splitHours` in `lib/pay.ts` is unit-tested.
+
+### 53. Pay history: raises don't change past labour cost (Oct 2026)
+- New table `staff_pay_rates` (person, effective from, monthly salary, hours a month, hourly rate, note). Labour is costed at the rate in force on the day it was worked: the latest change on or before that day, else the first, else `staff.pay_rate` (`RATE_AT` SQL in `lib/costs.ts`, `rateOn` in `lib/pay.ts`, unit-tested). This applies to the work order cost, machine cost and Reports.
+- Team → person → **Pay** (Head Manager): the history (from, salary, hours, normal / OT / Sunday hourly rates, "Now" and "Upcoming" tags) and **Change pay** (new pay from a date, salary + hours or an hourly rate, note). Work before the date keeps the old rate. A back-dated change (e.g. 1 Oct entered on 21 Oct) re-costs the work since that date. A change entered by mistake can be removed; the first entry stays.
+- `staff.pay_rate` / `monthly_salary` mirror the pay in force today. "Edit details" no longer changes pay; adding a person still takes their starting pay.
+- Migration 0024: everyone's current pay becomes their first entry "from the start" (2000-01-01). Merging staff keeps the kept person's history.
+
+### 54. Edit or remove parts on a work order (Oct 2026)
+- Parts issued from stock: **Edit** (Supervisor / Head Manager, also after completion for those who may edit details). Change the quantity (lower → the difference goes back in stock; higher → more is taken, same rules as issuing), or **Remove: return all to stock**. `changeIssuedQty` in `lib/inventory.ts` writes return / issue stock movements with a note (e.g. "J-2026-0003: 4 → 1"). A return never puts back more than the work order actually took off the shelf (bulk parts stop at 0 when issued).
+- Parts bought for the work order and outside work: **Edit** (part no., description, qty, unit price, invoice no.) as well as Remove (with a confirmation).
+
+### 55. Edit or remove tasks on a work order (Oct 2026)
+- Each task has **Edit** (wording, and for Supervisor / Head Manager who it is assigned to) and **Remove task** (with a confirmation). The activity log records the change.
+- Supervisor / Head Manager can change any task; crew only the tasks assigned to them. Open work orders only (reopen a completed one to change its tasks).

@@ -3,7 +3,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { mergeLists, setLists, type Lists, type Settings } from "./lists";
 
-const NUM_KEYS = ["labourRate", "poApprovalLimit", "jobPurchaseMarkup"] as const;
+const NUM_KEYS = ["labourRate", "poApprovalLimit", "jobPurchaseMarkup", "otMultiplier", "sundayMultiplier"] as const;
 
 /** Read the Head Manager's list changes and settings and make them current for this server process. */
 export async function loadLists(): Promise<Lists> {
@@ -11,6 +11,7 @@ export async function loadLists(): Promise<Lists> {
   const settings: Partial<Settings> = {};
   for (const s of sets) {
     if ((NUM_KEYS as readonly string[]).includes(s.key)) { const n = Number(s.value); if (Number.isFinite(n) && n >= 0) (settings as Record<string, number>)[s.key] = n; }
+    else if (s.key === "otStart" && /^\d{2}:\d{2}$/.test(s.value)) settings.otStart = s.value;
     else if (["companyName", "companyAddress", "companyPhone", "companyReg"].includes(s.key)) (settings as Record<string, string>)[s.key] = s.value;
   }
   const merged = mergeLists(rows.map(({ list, code, label, grp, color, priority, num, sort, active }) => ({ list, code, label, grp, color, priority, num, sort, active })), settings);

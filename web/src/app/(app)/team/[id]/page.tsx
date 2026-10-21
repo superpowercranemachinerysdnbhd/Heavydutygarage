@@ -10,9 +10,11 @@ import { getI18n } from "@/i18n/server";
 import { isLocale } from "@/i18n";
 import { langLabel, roleLabel, statusLabel } from "@/i18n/labels";
 import { Avatar, CatChip, Notice } from "@/components/ui";
-import StaffFields from "@/components/StaffFields";
+import StaffFields, { PayInputs } from "@/components/StaffFields";
+import { HISTORY_START, payHistory } from "@/lib/pay-server";
+import { settings } from "@/lib/lists";
 import SubmitButton from "@/components/SubmitButton";
-import { addCert, mergeInto, removeCert, resetPassword, setActive, updateStaff } from "../actions";
+import { addCert, changePay, mergeInto, removeCert, removePayChange, resetPassword, setActive, updateStaff } from "../actions";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("team.title") };
@@ -36,6 +38,8 @@ export default async function StaffPage({ params, searchParams }: { params: Prom
   ]);
   const theirs = jobs.filter((j) => j.leadId === id || j.teamIds.includes(id));
   const d = today();
+  const history = manage ? await payHistory(id) : [];
+  const currentRow = [...history].filter((h) => h.effectiveFrom <= d).at(-1);
   return (
     <div className="page">
       <div className="crumbs"><Link href="/team">{t("team.title")}</Link> / {p.name}</div>
@@ -49,7 +53,8 @@ export default async function StaffPage({ params, searchParams }: { params: Prom
         <div><span className="label">{t("team.permit")}</span><b className={p.permitExpiry && daysBetween(d, p.permitExpiry) < 45 ? "stock-low" : ""}>{fmtDate(p.permitExpiry, true, locale)}</b></div>
         <div><span className="label">{t("team.emergency")}</span><b>{p.emergencyContact ?? "—"}</b></div>
         <div><span className="label">{t("s.language")}</span><b>{isLocale(p.locale) ? langLabel(t, p.locale) : p.locale}</b></div>
-        {can(user.role, "money.labourCost") && <div><span className="label">{t("team.payRate")}</span><b className="num">{t("team.perHour", { rm: rm(Number(p.payRate)) })}</b></div>}
+        {can(user.role, "money.labourCost") && <div><span className="label">{t("team.payRate")}</span><b className="num">{t("team.perHour", { rm: rm(Number(p.payRate)) })}</b>
+          <small className="muted">{p.monthlySalary ? `${t("team.salaryLine", { rm: rm(Number(p.monthlySalary)), h: Number(p.monthlyHours) })} · ` : ""}{t("team.otLine", { ot: rm(Number(p.payRate) * settings().otMultiplier), sun: rm(Number(p.payRate) * settings().sundayMultiplier) })}</small></div>}
         <div style={{ gridColumn: "1/-1" }}><span className="label">{t("team.skills")}</span><div className="tags">{p.skills.map((s) => <span key={s} className="tag">{s}</span>)}{p.skills.length === 0 && "—"}</div></div>
       </div></div>
 
@@ -76,6 +81,30 @@ export default async function StaffPage({ params, searchParams }: { params: Prom
             {theirs.length === 0 && <tr><td className="muted">{t("team.noJobs")}</td></tr>}
           </tbody></table></div></div>
       </div>
+
+      {manage && (
+        <section className="panel" id="pay">
+          <div className="panel-head"><h3>{t("pay.title")}</h3></div>
+          <div className="tbl-wrap" style={{ border: 0, borderRadius: 0 }}><table>
+            <thead><tr><th>{t("pay.from")}</th><th className="r">{t("s.salary")}</th><th className="r">{t("pay.hours")}</th><th className="r">{t("pay.normal")}</th><th className="r">{t("pay.ot")}</th><th className="r">{t("pay.sunday")}</th><th /></tr></thead>
+            <tbody>{[...history].reverse().map((h, i) => { const r = Number(h.hourlyRate); const current = h.id === currentRow?.id; return (
+              <tr key={h.id} className={current ? "row-sel" : ""}>
+                <td>{h.effectiveFrom === HISTORY_START ? t("pay.start") : fmtDate(h.effectiveFrom, true, locale)}{current && <> <span className="pill ok">{t("pay.current")}</span></>}{h.effectiveFrom > d && <> <span className="pill info">{t("pay.upcoming")}</span></>}{h.note && <><br /><small className="muted">{h.note}</small></>}</td>
+                <td className="r num">{h.monthlySalary ? rm(Number(h.monthlySalary)) : "—"}</td><td className="r num">{h.monthlySalary ? Number(h.monthlyHours) : "—"}</td>
+                <td className="r num">{rm(r)}</td><td className="r num">{rm(r * settings().otMultiplier)}</td><td className="r num">{rm(r * settings().sundayMultiplier)}</td>
+                <td className="r">{i < history.length - 1 && <form action={removePayChange}><input type="hidden" name="id" value={id} /><input type="hidden" name="rowId" value={h.id} /><SubmitButton className="linkbtn muted" confirm={t("pay.removeConfirm")}>{t("common.remove")}</SubmitButton></form>}</td>
+              </tr>); })}</tbody>
+          </table></div>
+          <form action={changePay} className="form" style={{ padding: 14, borderTop: "1px solid var(--line)" }}>
+            <input type="hidden" name="id" value={id} />
+            <label>{t("pay.effectiveFrom")}<input type="date" name="effectiveFrom" required defaultValue={`${d.slice(0, 7)}-01`} /></label>
+            <PayInputs t={t} hours={String(Number(p.monthlyHours))} />
+            <label className="full">{t("u.notes")}<input name="note" placeholder={t("pay.notePh")} maxLength={200} /></label>
+            <p className="full hint" style={{ margin: 0 }}>{t("pay.help")}</p>
+            <div className="full"><SubmitButton className="btn primary">{t("pay.save")}</SubmitButton></div>
+          </form>
+        </section>
+      )}
 
       {manage && (<>
         <details className="panel"><summary className="panel-head" style={{ cursor: "pointer" }}><h3>{t("team.edit")}</h3></summary>

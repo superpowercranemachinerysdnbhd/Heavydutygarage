@@ -24,7 +24,7 @@ export default async function NewStaffPage({ searchParams }: { searchParams: Pro
       <h2>{t("team.addTitle")}</h2>
       <Notice error={sp.error} />
       <form action={createStaff} className="panel"><div className="form" style={{ padding: 14 }}>
-        <StaffFields managers={managers} t={t} />
+        <StaffFields managers={managers} t={t} withPay />
         <label>{t("team.tempPw")}<input name="password" type="text" required minLength={8} autoComplete="off" /></label>
         <div className="full"><SubmitButton className="btn primary">{t("team.addBtn")}</SubmitButton></div>
       </div></form>

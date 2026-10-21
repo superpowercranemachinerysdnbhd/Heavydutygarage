@@ -17,13 +17,15 @@ import SubmitButton from "@/components/SubmitButton";
 import ChatRoom from "@/components/ChatRoom";
 import PhotoInput from "@/components/PhotoInput";
 import StatusPicker from "@/components/StatusPicker";
+import LabourHours from "@/components/LabourHours";
+import { RATE_TYPES, rateMultiplier } from "@/lib/pay";
 import PartPicker from "@/components/PartPicker";
 import BoughtLines from "@/components/BoughtLines";
 import Suggest from "@/components/Suggest";
 import { recommendationIdeas } from "@/lib/recommendations";
 import { ServiceDue } from "@/components/ServicePanel";
-import { servicesFor } from "@/lib/services";
-import { isServiceCategory, itemLabel, listItems } from "@/lib/lists";
+import { servicesFor, servicesOnJob } from "@/lib/services";
+import { isServiceCategory, itemLabel, listItems, settings } from "@/lib/lists";
 import { jobThreadId, messagesFor } from "@/lib/chat";
 import * as A from "../actions";
 import { machineTypeLabel, unitRef } from "@/lib/machine-types";
@@ -37,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 const STAGES = ["before", "during", "after", "qc"] as const;
 const subtle = { fontFamily: "var(--f-body)", fontSize: ".8rem", textTransform: "none", letterSpacing: 0 } as const;
 
-export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string; labour?: string; short?: string }> }) {
+export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string; labour?: string; short?: string; part?: string; bought?: string; task?: string }> }) {
   const user = await requireUser();
   const { t, locale } = await getI18n();
   const id = Number((await params).id);
@@ -66,6 +68,9 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const short = shortPart && Number(shortBits[1]) > 0 ? { part: shortPart, qty: Number(shortBits[1]), requestId: Number(shortBits[2]) || 0 } : null;
   const pickParts = stockParts.map((p) => ({ id: p.id, sku: p.sku, oem: p.oemPartNo, description: p.description, category: p.category, bin: p.bin, onHand: p.onHand, uom: p.uom, fits: p.fits, models: p.models, bulk: p.bulk }));
   const recIdeas = recommendationIdeas(d, t, locale);
+  const canFixParts = can(user.role, "stock.manage") && (open || can(user.role, "job.editDetails"));
+  const editPart = canFixParts ? issued.find((x) => String(x.id) === sp.part) : undefined;
+  const editBought = bought.find((x) => String(x.id) === sp.bought);
   const canLines = can(user.role, "stock.manage") && (open || can(user.role, "job.editDetails"));
   const canOutside = canLines;
   const pendingInvoice = invoicePending({ ...job, outsideLines: bought.filter((x) => x.kind === "service").length });
@@ -77,15 +82,20 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     (open || can(user.role, "job.editDetails")) && (can(user.role, "job.assign") || l.staffId === user.id || l.loggedBy === user.id);
   const editing = labour.find((l) => String(l.id) === sp.labour && canEditLabour(l));
   const hours = labour.reduce((a, l) => a + Number(l.hours), 0);
-  const labourCost = labour.reduce((a, l) => a + Number(l.hours) * Number(l.payRate), 0);
+  const lineCost = (l: (typeof labour)[number]) => Number(l.hours) * Number(l.payRate) * Number(l.rateMult);
+  const labourCost = labour.reduce((a, l) => a + lineCost(l), 0);
+  const rateSelect = (v = "normal") => (
+    <select className="field" name="rateType" defaultValue={v} aria-label={t("lab.rateType")} style={{ width: "auto" }}>
+      {RATE_TYPES.map((r) => <option key={r} value={r}>{t(`lab.rate.${r}` as MessageKey, { x: rateMultiplier(r, settings()) })}</option>)}
+    </select>);
   const qcDone = qc.filter((q) => q.passedAt).length;
   const due = dueInfo(job, t, locale);
   const hidden = (n: string, v: string | number) => <input type="hidden" name={n} value={v} />;
   const canWrite = open || can(user.role, "job.editDetails");
-  const services = await servicesFor(unit.id);
+  const [services, doneHere] = await Promise.all([servicesFor(unit.id), servicesOnJob(job.id)]);
   const svcItems = listItems("service_item");
   // Services done: on service jobs, when the machine has a service due, or when this job already recorded one.
-  const showServices = isServiceCategory(job.category) || services.some((x) => x.state === "overdue" || x.state === "soon" || x.lastJobId === job.id);
+  const showServices = isServiceCategory(job.category) || services.some((x) => x.state === "overdue" || x.state === "soon") || doneHere.length > 0;
   const qcText = (q: (typeof qc)[number]) => (q.itemKey ? t(qcMessageKey(q.itemKey)) : q.item);
 
   return (
@@ -168,11 +178,25 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {tasks.length === 0 && <span className="muted">{t("job.noTasks")}</span>}
             {tasks.map((x) => {
               const who = [lead, ...team].find((p) => p && p.id === x.assigneeId);
+              const mayEdit = open && (can(user.role, "job.assign") || x.assigneeId === user.id);
+              if (mayEdit && sp.task === String(x.id)) return (
+                <div key={x.id} className="task-edit">
+                  <form action={A.updateTask} className="filters">
+                    {hidden("jobId", job.id)}{hidden("taskId", x.id)}
+                    <input name="description" defaultValue={x.description} required aria-label={t("job.tasks")} style={{ flex: "1 1 220px" }} autoFocus />
+                    {sup && <select className="field" name="assigneeId" defaultValue={x.assigneeId ?? ""} aria-label={t("job.assignTo")}><option value="">{t("common.anyone")}</option>{crew.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select>}
+                    <SubmitButton className="btn small primary">{t("common.save")}</SubmitButton>
+                    <Link className="btn small" href={`/jobs/${job.id}`}>{t("common.cancel")}</Link>
+                  </form>
+                  <form action={A.removeTask}>{hidden("jobId", job.id)}{hidden("taskId", x.id)}<SubmitButton className="linkbtn muted" confirm={t("task.removeConfirm", { task: x.description })}>{t("task.remove")}</SubmitButton></form>
+                </div>
+              );
               return (
                 <form key={x.id} action={A.toggleTask} className={`task ${x.doneAt ? "done" : ""}`}>
                   {hidden("jobId", job.id)}{hidden("taskId", x.id)}
                   <button className="tick" disabled={!open} aria-label={x.doneAt ? t("job.markNotDone", { task: x.description }) : t("job.markDone", { task: x.description })}>{x.doneAt ? "✓" : ""}</button>
                   <span>{x.description}</span><span className="who">{who && <Avatar name={who.name} />}</span>
+                  {mayEdit && <Link className="task-edit-link plain muted" href={`/jobs/${job.id}?task=${x.id}`} aria-label={`${t("lab.edit")}: ${x.description}`}>{t("lab.edit")}</Link>}
                 </form>
               );
             })}
@@ -209,7 +233,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {job.outsourced && <small className="muted">{t("out.labourHint")}</small>}
             {labour.length > 0 && (
               <div className="tbl-wrap"><table><thead><tr><th>{t("col.date")}</th><th>{t("col.person")}</th><th>{t("col.note")}</th><th className="r">{t("col.hours")}</th>{can(user.role, "money.labourCost") && <th className="r">{t("col.labourCost")}</th>}<th></th></tr></thead>
-                <tbody>{labour.map((l) => <tr key={l.id} className={editing?.id === l.id ? "row-sel" : ""}><td className="num">{fmtDate(l.workDate, false, locale)}</td><td>{l.name}</td><td>{l.note}</td><td className="r num">{Number(l.hours)}</td>{can(user.role, "money.labourCost") && <td className="r num">{rm(Number(l.hours) * Number(l.payRate))}</td>}
+                <tbody>{labour.map((l) => <tr key={l.id} className={editing?.id === l.id ? "row-sel" : ""}><td className="num">{fmtDate(l.workDate, false, locale)}{l.timeFrom && <><br /><small className="muted">{l.timeFrom}–{l.timeTo}</small></>}</td><td>{l.name}</td><td>{l.note}</td><td className="r num">{Number(l.hours)}{l.rateType !== "normal" && <><br /><span className="pill warn">{t(`lab.tag.${l.rateType}` as MessageKey, { x: Number(l.rateMult) })}</span></>}</td>{can(user.role, "money.labourCost") && <td className="r num">{rm(lineCost(l))}</td>}
                   <td className="r">{canEditLabour(l) && <Link className="btn small" href={`/jobs/${job.id}?labour=${l.id}#labour`}>{t("lab.edit")}</Link>}</td></tr>)}</tbody></table></div>
             )}
             {editing && (
@@ -219,6 +243,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                   {sup ? <select className="field" name="staffId" aria-label={t("col.person")} defaultValue={editing.staffId}>{[...crew, ...(crew.some((s) => s.id === editing.staffId) ? [] : [{ id: editing.staffId, name: editing.name }])].map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select> : <span className="muted">{editing.name}</span>}
                   <input type="date" name="workDate" defaultValue={editing.workDate} max={today()} aria-label={t("col.date")} required />
                   <input type="number" name="hours" min="0.25" max="24" step="0.25" defaultValue={Number(editing.hours)} style={{ width: 90 }} required aria-label={t("col.hours")} />
+                  {rateSelect(editing.rateType)}
                   <input type="text" name="note" defaultValue={editing.note ?? ""} placeholder={t("job.whatDone")} style={{ flex: "1 1 160px" }} aria-label={t("col.note")} />
                   <SubmitButton className="btn small primary">{t("common.save")}</SubmitButton>
                   <Link className="btn small" href={`/jobs/${job.id}#labour`}>{t("common.cancel")}</Link>
@@ -231,7 +256,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                 {hidden("jobId", job.id)}
                 {sup ? <select className="field" name="staffId" aria-label={t("col.person")} defaultValue={job.leadId ?? undefined}>{crew.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select> : <span className="muted">{user.name}</span>}
                 <input type="date" name="workDate" defaultValue={today()} max={today()} aria-label={t("col.date")} />
-                <input type="number" name="hours" min="0.25" max="24" step="0.25" placeholder={t("col.hours")} style={{ width: 90 }} required aria-label={t("col.hours")} />
+                <LabourHours otStart={settings().otStart} rateSelect={rateSelect()} />
                 <input type="text" name="note" placeholder={t("job.whatDone")} style={{ flex: "1 1 160px" }} aria-label={t("col.note")} />
                 <SubmitButton>{t("job.logTime")}</SubmitButton>
               </form>
@@ -256,9 +281,24 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               <span className="label">{t("jp.internal")}</span>
               {issued.length > 0 ? (
                 <div className="tbl-wrap"><table>
-                  <thead><tr><th>{t("jp.issued")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.selling") && <th className="r">{t("parts.sell")}</th>}{can(user.role, "money.cost") && <th className="r">{t("parts.costCol")}</th>}</tr></thead>
-                  <tbody>{issued.map((x) => <tr key={x.id}><td><span className="mono">{x.sku}</span> {x.description}<br /><small className="muted">{fmtDateTime(x.issuedAt, locale)}</small></td><td className="r num">{q2(x.qty)} {x.uom}</td>
-                    {can(user.role, "money.selling") && <td className="r num">{rm(x.qty * x.unitPrice)}</td>}{can(user.role, "money.cost") && <td className="r num">{rm(x.qty * x.unitCost)}</td>}</tr>)}</tbody>
+                  <thead><tr><th>{t("jp.issued")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.cost") && <th className="r">{t("parts.costCol")}</th>}{canFixParts && <th />}</tr></thead>
+                  <tbody>{issued.map((x) => editPart?.id === x.id ? (
+                    <tr key={x.id} className="row-sel"><td colSpan={can(user.role, "money.cost") ? 4 : 3}>
+                      <span className="mono">{x.sku}</span> {x.description}
+                      <div className="filters" style={{ marginTop: 6 }}>
+                        <form action={A.updateIssuedPart} className="filters">{hidden("jobId", job.id)}{hidden("jobPartId", x.id)}
+                          <label className="label" htmlFor={`q-${x.id}`}>{t("po.qty")}</label>
+                          <input id={`q-${x.id}`} type="number" name="qty" min="0.01" step="any" defaultValue={x.qty} style={{ width: 100 }} required /> <span className="muted">{x.uom}</span>
+                          <SubmitButton className="btn small primary">{t("common.save")}</SubmitButton></form>
+                        <form action={A.updateIssuedPart}>{hidden("jobId", job.id)}{hidden("jobPartId", x.id)}{hidden("remove", "1")}
+                          <SubmitButton className="btn small" confirm={t("jp.returnConfirm", { qty: q2(x.qty), uom: x.uom, part: x.description })}>{t("jp.returnAll")}</SubmitButton></form>
+                        <Link className="btn small" href={`/jobs/${job.id}#parts`}>{t("common.cancel")}</Link>
+                      </div>
+                      <small className="muted">{t("jp.editHelp")}</small>
+                    </td></tr>
+                  ) : <tr key={x.id}><td><span className="mono">{x.sku}</span> {x.description}<br /><small className="muted">{fmtDateTime(x.issuedAt, locale)}</small></td><td className="r num">{q2(x.qty)} {x.uom}</td>
+                    {can(user.role, "money.cost") && <td className="r num">{rm(x.qty * x.unitCost)}</td>}
+                    {canFixParts && <td className="r"><Link className="btn small" href={`/jobs/${job.id}?part=${x.id}#parts`}>{t("lab.edit")}</Link></td>}</tr>)}</tbody>
                 </table></div>
               ) : <small className="muted">—</small>}
               {requests.map((r) => (
@@ -300,10 +340,24 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               {bought.length > 0 ? (
                 <div className="tbl-wrap"><table>
                   <thead><tr><th>{t("jp.partNo")}</th><th>{t("bl.desc")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.cost") && <><th className="r">{t("bl.unitPrice")}</th><th className="r">{t("bl.total")}</th></>}{canLines && <th />}</tr></thead>
-                  <tbody>{bought.map((x) => <tr key={x.id}><td className="mono">{x.partNo ?? "—"}</td><td>{x.kind === "service" && <><span className="pill out">{t("out.line")}</span> </>}{x.description}<br /><small className="muted">{fmtDate(x.purchasedAt, false, locale)}{x.supplier ? ` · ${t("jp.from", { s: x.supplier })}` : ""}{x.ref ? ` · ${x.ref}` : ""}</small></td>
+                  <tbody>{bought.map((x) => editBought?.id === x.id ? (
+                    <tr key={x.id} className="row-sel"><td colSpan={can(user.role, "money.cost") ? 6 : 4}>
+                      <form action={A.updateJobPurchase} className="filters">{hidden("jobId", job.id)}{hidden("purchaseId", x.id)}
+                        <input name="partNo" defaultValue={x.partNo ?? ""} placeholder={t("jp.partNo")} aria-label={t("jp.partNo")} style={{ width: 120 }} />
+                        <input name="description" defaultValue={x.description} required aria-label={t("bl.desc")} style={{ flex: "1 1 200px" }} />
+                        {x.kind !== "service" && <input type="number" name="qty" min="0.01" step="any" defaultValue={x.qty} required aria-label={t("po.qty")} style={{ width: 80 }} />}
+                        <input type="number" name="unitCost" min="0" step="0.01" defaultValue={x.unitCost} required aria-label={t("bl.unitPrice")} style={{ width: 110 }} />
+                        <input name="ref" defaultValue={x.ref ?? ""} placeholder={t("jp.ref")} aria-label={t("jp.ref")} style={{ width: 120 }} />
+                        <SubmitButton className="btn small primary">{t("common.save")}</SubmitButton>
+                        <Link className="btn small" href={`/jobs/${job.id}#parts`}>{t("common.cancel")}</Link>
+                      </form>
+                    </td></tr>
+                  ) : <tr key={x.id}><td className="mono">{x.partNo ?? "—"}</td><td>{x.kind === "service" && <><span className="pill out">{t("out.line")}</span> </>}{x.description}<br /><small className="muted">{fmtDate(x.purchasedAt, false, locale)}{x.supplier ? ` · ${t("jp.from", { s: x.supplier })}` : ""}{x.ref ? ` · ${x.ref}` : ""}</small></td>
                     <td className="r num">{q2(x.qty)} {x.uom}</td>
                     {can(user.role, "money.cost") && <><td className="r num">{rm(x.unitCost)}</td><td className="r num">{rm(x.qty * x.unitCost)}</td></>}
-                    {canLines && <td className="r">{(open || x.kind === "service") && <form action={A.removeJobPurchase}>{hidden("jobId", job.id)}{hidden("purchaseId", x.id)}<button className="linkbtn muted">{t("jp.remove")}</button></form>}</td>}</tr>)}</tbody>
+                    {canLines && <td className="r">{(open || x.kind === "service") && <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center" }}>
+                      <Link className="btn small" href={`/jobs/${job.id}?bought=${x.id}#parts`}>{t("lab.edit")}</Link>
+                      <form action={A.removeJobPurchase}>{hidden("jobId", job.id)}{hidden("purchaseId", x.id)}<SubmitButton className="linkbtn muted" confirm={t("jp.removeConfirm")}>{t("jp.remove")}</SubmitButton></form></div>}</td>}</tr>)}</tbody>
                 </table></div>
               ) : <small className="muted">{t("jp.noBought")}</small>}
               {open && can(user.role, "stock.manage") && (
@@ -330,6 +384,15 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           </section>
 
           {showServices && <section className="sect" id="services"><h3>{t("svc.onJob")} <Link className="btn small" href={`/machinery/${unit.id}#services`} style={subtle}>{t("svc.schedule")}</Link></h3><div className="in">
+            {doneHere.length > 0 && (
+              <div className="svc-done">
+                <span className="label">{t("svc.doneHere")}</span>
+                <ul>{doneHere.map((s) => (
+                  <li key={s.id}>✓ <b>{itemLabel(t, "service_item", s.item)}</b> <small className="muted">{fmtDate(s.doneOn, false, locale)}{s.nextDue ? ` · ${t("svc.nextOn", { date: fmtDate(s.nextDue, false, locale) })}` : ""}</small>
+                    {canWrite && can(user.role, "job.assign") && <form action={A.removeJobService} style={{ display: "inline" }}>{hidden("jobId", job.id)}{hidden("id", s.id)}<SubmitButton className="linkbtn muted" confirm={t("svc.removeConfirm")}>{t("jp.remove")}</SubmitButton></form>}</li>
+                ))}</ul>
+              </div>
+            )}
             {canWrite ? (
               <form action={A.recordServices} className="stack" style={{ gap: 8 }}>
                 {hidden("jobId", job.id)}
@@ -349,7 +412,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                   <SubmitButton className="btn small primary">{t("svc.record")}</SubmitButton></div>
                 <small className="muted">{t("svc.onJobHelp")}</small>
               </form>
-            ) : <span className="muted">{services.filter((x) => x.lastJobId === job.id).map((x) => itemLabel(t, "service_item", x.item)).join(", ") || "—"}</span>}
+            ) : doneHere.length === 0 && <span className="muted">—</span>}
           </div></section>}
 
           <section className="sect" id="qc"><h3>{t("job.qc")} <span className="muted" style={subtle}>{qcDone}/{qc.length}</span></h3><div className="in">

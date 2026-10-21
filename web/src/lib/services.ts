@@ -39,4 +39,14 @@ export async function markServiceDone(unitId: number, item: string, date: string
   const months = row?.intervalMonths ?? listItems("service_item", { all: true }).find((i) => i.code === item)?.num ?? null;
   const values = { lastDone: date, nextDue: nextDueFrom(date, months), intervalMonths: months, lastJobId: jobId, updatedBy: userId, updatedAt: new Date() };
   await db.insert(S).values({ unitId, item, ...values }).onConflictDoUpdate({ target: [S.unitId, S.item], set: values });
+  if (jobId) {
+    const J = schema.jobServices, v = { doneOn: date, nextDue: values.nextDue, recordedBy: userId };
+    await db.insert(J).values({ jobId, item, ...v }).onConflictDoUpdate({ target: [J.jobId, J.item], set: v });
+  }
+}
+
+/** Services recorded on a work order, in the order of the service list. */
+export async function servicesOnJob(jobId: number) {
+  const J = schema.jobServices;
+  return db.select({ id: J.id, item: J.item, doneOn: J.doneOn, nextDue: J.nextDue }).from(J).where(eq(J.jobId, jobId)).orderBy(asc(J.doneOn), asc(J.id));
 }

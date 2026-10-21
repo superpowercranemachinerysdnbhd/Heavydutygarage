@@ -30,7 +30,10 @@ export const staff = pgTable("staff", {
   skills: text("skills").array().notNull().default([]),
   /** Other names this person was known by (e.g. after merging a duplicate); imports match them too. */
   aliases: text("aliases").array().notNull().default([]),
+  /** Hourly cost of normal time. Worked out from the monthly salary when one is set (salary ÷ normal hours a month). */
   payRate: numeric("pay_rate", { precision: 10, scale: 2 }).notNull().default("0"),
+  monthlySalary: numeric("monthly_salary", { precision: 10, scale: 2 }),
+  monthlyHours: numeric("monthly_hours", { precision: 6, scale: 1 }).notNull().default("195"),
   active: boolean("active").notNull().default(true),
   passwordHash: text("password_hash"),
   locale: varchar("locale", { length: 5 }).notNull().default("en"),
@@ -191,6 +194,12 @@ export const labourEntries = pgTable("labour_entries", {
   staffId: integer("staff_id").notNull().references(() => staff.id),
   workDate: date("work_date").notNull(),
   hours: numeric("hours", { precision: 6, scale: 2 }).notNull(),
+  /** normal / ot (after 5 pm) / sunday (Sunday or public holiday); the multiplier is kept as it was when logged. */
+  rateType: varchar("rate_type", { length: 10 }).notNull().default("normal"),
+  rateMult: numeric("rate_mult", { precision: 4, scale: 2 }).notNull().default("1"),
+  /** Clock times when entered as "from – to" (each part of a split entry keeps its own times). */
+  timeFrom: varchar("time_from", { length: 5 }),
+  timeTo: varchar("time_to", { length: 5 }),
   note: text("note"),
   loggedBy: integer("logged_by").references(() => staff.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -478,6 +487,32 @@ export const machineServices = pgTable("machine_services", {
   updatedBy: integer("updated_by").references(() => staff.id),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("machine_services_unit_item_idx").on(t.unitId, t.item), index("machine_services_due_idx").on(t.nextDue)]);
+
+/** Services done on a work order (engine oil, greasing…): what the service report lists. The machine's schedule
+ *  (machine_services) keeps only the latest; this keeps every work order's own record. */
+export const jobServices = pgTable("job_services", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  item: varchar("item", { length: 60 }).notNull(),
+  doneOn: date("done_on").notNull(),
+  nextDue: date("next_due"),
+  recordedBy: integer("recorded_by").references(() => staff.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("job_services_job_item_idx").on(t.jobId, t.item)]);
+
+/** Pay history: from `effectiveFrom`, this person costs `hourlyRate` per normal hour (from a monthly salary ÷ hours, or
+ *  an hourly rate). Labour is costed at the rate in force on the day it was worked, so a raise never changes past work. */
+export const staffPayRates = pgTable("staff_pay_rates", {
+  id: serial("id").primaryKey(),
+  staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+  effectiveFrom: date("effective_from").notNull(),
+  monthlySalary: numeric("monthly_salary", { precision: 10, scale: 2 }),
+  monthlyHours: numeric("monthly_hours", { precision: 6, scale: 1 }),
+  hourlyRate: numeric("hourly_rate", { precision: 10, scale: 4 }).notNull(),
+  note: text("note"),
+  createdBy: integer("created_by").references((): AnyPgColumn => staff.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("staff_pay_rates_staff_from_idx").on(t.staffId, t.effectiveFrom)]);
 
 /** Weekly crew plan: what each person does on a day — a job, or leave / MC / off. One entry per person per day. */
 export const crewPlan = pgTable("crew_plan", {

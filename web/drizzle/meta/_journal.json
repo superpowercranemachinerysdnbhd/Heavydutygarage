@@ -148,6 +148,34 @@
       "when": 1792463871075,
       "tag": "0020_invoice_pending",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792561694689,
+      "tag": "0021_job_services",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792562129224,
+      "tag": "0022_salary_overtime",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792564449746,
+      "tag": "0023_labour_times",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792567183180,
+      "tag": "0024_pay_history",
+      "breakpoints": true
     }
   ]
 }

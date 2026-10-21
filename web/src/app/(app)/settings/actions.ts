@@ -107,8 +107,11 @@ export async function saveWorkshop(form: FormData) {
   const t = translator(user.locale);
   const limit = Number(str(form, "poApprovalLimit"));
   if (!Number.isFinite(limit) || limit < 0) done(t, "workshop", { error: "set.err.number" });
+  const ot = Number(str(form, "otMultiplier") || 1.5), sun = Number(str(form, "sundayMultiplier") || 2);
+  if (!(ot >= 1 && ot <= 5) || !(sun >= 1 && sun <= 5)) done(t, "workshop", { error: "set.err.multiplier" });
   const values: Record<string, string> = {
-    poApprovalLimit: String(limit),
+    poApprovalLimit: String(limit), otMultiplier: String(ot), sundayMultiplier: String(sun),
+    otStart: /^\d{2}:\d{2}$/.test(str(form, "otStart")) ? str(form, "otStart") : "17:00",
     companyName: str(form, "companyName").slice(0, 120), companyAddress: str(form, "companyAddress").slice(0, 400), companyPhone: str(form, "companyPhone").slice(0, 60), companyReg: str(form, "companyReg").slice(0, 60),
   };
   for (const [key, value] of Object.entries(values)) {

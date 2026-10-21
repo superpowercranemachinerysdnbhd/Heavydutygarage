@@ -781,3 +781,6 @@ table.bl .num{white-space:nowrap}
 .rp2-new input{width:auto;flex:1 1 120px}
 .rp2-new select{flex:1 1 160px}
 .rp2tbl td:nth-child(2) input{min-width:0;max-width:90px}.rp2tbl td:nth-child(3) input{max-width:110px}.rp2tbl .rp2-new input{max-width:none}
+.svc-done ul{margin:4px 0 8px;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}.svc-done li{font-size:.9rem}
+.task-edit-link{margin-left:8px;font-size:.78rem;text-decoration:underline}
+.task-edit{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2)}

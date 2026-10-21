@@ -10,10 +10,11 @@ import { today } from "@/lib/format";
 import { addActivity } from "@/lib/queries";
 import { jobMachine, notifyRoles, notifyStaff } from "@/lib/notify";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, deleteStoredFile, saveFile } from "@/lib/storage";
-import { issueToJob } from "@/lib/inventory";
+import { changeIssuedQty, issueToJob } from "@/lib/inventory";
 import { supplierByName } from "@/lib/purchasing";
 import { saveMachine } from "@/lib/machines";
-import { bayCodes, findItem, isCategory, itemLabel, qcSuggestions } from "@/lib/lists";
+import { bayCodes, findItem, isCategory, itemLabel, qcSuggestions, settings } from "@/lib/lists";
+import { rateMultiplier, rateTypeFor, splitHours } from "@/lib/pay";
 import { markServiceDone } from "@/lib/services";
 import { ensureLists } from "@/lib/lists-server";
 import { translator, type MessageKey, type Vars } from "@/i18n";
@@ -337,6 +338,37 @@ export async function toggleTask(form: FormData) {
   back(user, jobId);
 }
 
+/** A task the user may change: Supervisor / Head Manager any task; crew the tasks assigned to them. Open work orders only. */
+async function editableTask(user: CurrentUser, form: FormData) {
+  const jobId = num(form, "jobId"), taskId = num(form, "taskId");
+  const { job } = await access(jobId, user);
+  if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
+  const [task] = await db.select().from(schema.jobTasks).where(and(eq(schema.jobTasks.id, taskId), eq(schema.jobTasks.jobId, jobId)));
+  if (!task) back(user, jobId, { error: "err.taskNotFound" });
+  if (!can(user.role, "job.assign") && task.assigneeId !== user.id) back(user, jobId, { error: "err.notOnJob" });
+  return { job, task };
+}
+
+export async function updateTask(form: FormData) {
+  const user = await requireUser();
+  const { job, task } = await editableTask(user, form);
+  const description = str(form, "description");
+  if (!description) back(user, job.id, { error: "err.taskDesc" });
+  const assigneeId = can(user.role, "job.assign") ? num(form, "assigneeId") || null : task.assigneeId;
+  await db.update(schema.jobTasks).set({ description, assigneeId }).where(eq(schema.jobTasks.id, task.id));
+  if (assigneeId && assigneeId !== task.assigneeId) await ensureOnTeam(job.id, assigneeId, job.leadId);
+  if (description !== task.description) await addActivity(job.id, user.id, "act.taskEdited", { from: task.description, task: description, name: user.name });
+  back(user, job.id, { ok: "task.saved" });
+}
+
+export async function removeTask(form: FormData) {
+  const user = await requireUser();
+  const { job, task } = await editableTask(user, form);
+  await db.delete(schema.jobTasks).where(eq(schema.jobTasks.id, task.id));
+  await addActivity(job.id, user.id, "act.taskRemoved", { task: task.description, name: user.name });
+  back(user, job.id, { ok: "task.removed" });
+}
+
 export async function toggleQc(form: FormData) {
   const user = await requirePermission("job.qc");
   const jobId = num(form, "jobId"), qcId = num(form, "qcId");
@@ -352,16 +384,36 @@ export async function toggleQc(form: FormData) {
 
 export async function logLabour(form: FormData) {
   const user = await requireUser();
-  const jobId = num(form, "jobId"), hours = num(form, "hours");
+  const jobId = num(form, "jobId");
   const { job } = await access(jobId, user);
   const staffId = can(user.role, "job.assign") ? num(form, "staffId") : user.id;
   const workDate = str(form, "workDate") || today();
+  // "From – to" clock times: split at the time overtime starts (15:00–19:00 → 2 h normal + 2 h overtime). Sundays are all Sunday rate.
+  const from = str(form, "timeFrom"), to = str(form, "timeTo");
+  if (from || to) {
+    const split = splitHours(from, to, settings().otStart);
+    if (!split) back(user, jobId, { error: "lab.err.times", hash: "labour" });
+    if (workDate > today()) back(user, jobId, { error: "err.futureDate" });
+    if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
+    const [s] = await db.select({ name: schema.staff.name }).from(schema.staff).where(eq(schema.staff.id, staffId));
+    if (!s) back(user, jobId, { error: "err.choosePerson" });
+    const note = str(form, "note") || null, sunday = rateTypeFor("normal", workDate) === "sunday", ot = settings().otStart;
+    const parts = sunday ? [{ type: "sunday" as const, hours: split.normal + split.ot, a: from, b: to }]
+      : [{ type: "normal" as const, hours: split.normal, a: from, b: split.ot ? ot : to }, { type: "ot" as const, hours: split.ot, a: split.normal ? ot : from, b: to }].filter((p) => p.hours > 0);
+    await db.insert(schema.labourEntries).values(parts.map((p) => ({ jobId, staffId, workDate, hours: String(p.hours), rateType: p.type, rateMult: String(rateMultiplier(p.type, settings())),
+      timeFrom: p.a, timeTo: p.b, note, loggedBy: user.id })));
+    await ensureOnTeam(jobId, staffId, job.leadId);
+    await addActivity(jobId, user.id, "act.labour", { hours: split.normal + split.ot, who: s.name });
+    back(user, jobId, { ok: split.ot && !sunday ? "lab.splitSaved" : "ok.timeLogged", vars: { n: split.normal, ot: split.ot }, hash: "labour" });
+  }
+  const hours = num(form, "hours");
   if (!(hours > 0 && hours <= 24)) back(user, jobId, { error: "err.hours" });
   if (workDate > today()) back(user, jobId, { error: "err.futureDate" });
   if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
   const [s] = await db.select({ name: schema.staff.name }).from(schema.staff).where(eq(schema.staff.id, staffId));
   if (!s) back(user, jobId, { error: "err.choosePerson" });
-  await db.insert(schema.labourEntries).values({ jobId, staffId, hours: String(hours), workDate, note: str(form, "note") || null, loggedBy: user.id });
+  const rateType = rateTypeFor(str(form, "rateType"), workDate);
+  await db.insert(schema.labourEntries).values({ jobId, staffId, hours: String(hours), workDate, rateType, rateMult: String(rateMultiplier(rateType, settings())), note: str(form, "note") || null, loggedBy: user.id });
   await ensureOnTeam(jobId, staffId, job.leadId);
   await addActivity(jobId, user.id, "act.labour", { hours, who: s.name });
   back(user, jobId, { ok: "ok.timeLogged", hash: "labour" });
@@ -389,7 +441,10 @@ export async function updateLabour(form: FormData) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(workDate) || workDate > today()) back(user, job.id, { error: "err.futureDate", hash: "labour" });
   const [s] = await db.select({ name: schema.staff.name }).from(schema.staff).where(eq(schema.staff.id, staffId));
   if (!s) back(user, job.id, { error: "err.choosePerson", hash: "labour" });
-  await db.update(schema.labourEntries).set({ hours: String(hours), workDate, staffId, note: str(form, "note") || null }).where(eq(schema.labourEntries.id, e.id));
+  // The multiplier is kept from when it was logged unless the type of hour changes.
+  const rateType = rateTypeFor(str(form, "rateType") || e.rateType, workDate);
+  const rateMult = rateType === e.rateType ? e.rateMult : String(rateMultiplier(rateType, settings()));
+  await db.update(schema.labourEntries).set({ hours: String(hours), workDate, staffId, rateType, rateMult, note: str(form, "note") || null }).where(eq(schema.labourEntries.id, e.id));
   if (staffId !== e.staffId) await ensureOnTeam(job.id, staffId, job.leadId);
   await addActivity(job.id, user.id, "act.labourEdit", { who: s.name, from: Number(e.hours), hours, name: user.name });
   back(user, job.id, { ok: "lab.saved", hash: "labour" });
@@ -540,6 +595,41 @@ export async function issueDirect(form: FormData) {
   await issue(user, jobId, partId, qty, undefined, undefined, form.get("force") === "1");
 }
 
+/** Change the quantity of a part issued from stock, or remove it (qty 0): the difference goes back on the shelf.
+ *  Supervisor / Head Manager, while the work order is open (and after completion for those who may edit details). */
+export async function updateIssuedPart(form: FormData) {
+  const user = await requirePermission("stock.manage");
+  const jobId = num(form, "jobId"), id = num(form, "jobPartId");
+  const { job } = await access(jobId, user);
+  if (job.status === "closed" && !can(user.role, "job.editDetails")) back(user, jobId, { error: "tr.closed", hash: "parts" });
+  const qty = form.get("remove") === "1" ? 0 : num(form, "qty");
+  if (!(qty >= 0)) back(user, jobId, { error: "err.qty", hash: "parts" });
+  const [jp] = await db.select({ qty: schema.jobParts.qty, description: schema.parts.description, uom: schema.parts.uom, onHand: schema.parts.onHand })
+    .from(schema.jobParts).innerJoin(schema.parts, eq(schema.jobParts.partId, schema.parts.id)).where(and(eq(schema.jobParts.id, id), eq(schema.jobParts.jobId, jobId)));
+  if (!jp) back(user, jobId, { hash: "parts" });
+  const ok = await db.transaction((tx) => changeIssuedQty(tx, { jobPartId: id, jobId, qty, staffId: user.id, note: `${job.jobNo}: ${Number(jp.qty)} → ${qty}` }));
+  if (!ok) back(user, jobId, { error: "err.notEnoughStock", vars: { n: Number(jp.onHand), uom: jp.uom }, hash: "parts" });
+  await addActivity(jobId, user.id, qty ? "act.partChanged" : "act.partReturned", { part: jp.description, from: Number(jp.qty), qty, uom: jp.uom, name: user.name });
+  revalidatePath("/parts");
+  back(user, jobId, { ok: qty ? "jp.changed" : "jp.returned", hash: "parts" });
+}
+
+/** Correct a line bought for the work order (part no., description, qty, unit price). */
+export async function updateJobPurchase(form: FormData) {
+  const user = await requirePermission("stock.manage");
+  const jobId = num(form, "jobId"), id = num(form, "purchaseId");
+  const { job } = await access(jobId, user);
+  const P = schema.jobPurchases;
+  const [line] = await db.select().from(P).where(and(eq(P.id, id), eq(P.jobId, jobId)));
+  if (!line) back(user, jobId, { hash: "parts" });
+  if (job.status === "closed" && !(line.kind === "service" && can(user.role, "job.editDetails"))) back(user, jobId, { error: "tr.closed", hash: "parts" });
+  const qty = line.kind === "service" ? 1 : num(form, "qty"), cost = num(form, "unitCost"), description = str(form, "description").slice(0, 200) || str(form, "partNo");
+  if (!description || !(qty > 0) || !(cost >= 0)) back(user, jobId, { error: "bl.err", hash: "parts" });
+  await db.update(P).set({ description, partNo: str(form, "partNo").slice(0, 60) || null, qty: String(qty), unitCost: cost.toFixed(2), unitPrice: cost.toFixed(2), ref: str(form, "ref").slice(0, 60) || null }).where(eq(P.id, id));
+  await addActivity(jobId, user.id, "act.boughtEdited", { what: description, name: user.name });
+  back(user, jobId, { ok: "jp.changed", hash: "parts" });
+}
+
 export async function rejectRequest(form: FormData) {
   const user = await requirePermission("stock.manage");
   const jobId = num(form, "jobId"), requestId = num(form, "requestId");
@@ -655,6 +745,15 @@ export async function recordServices(form: FormData) {
   await addActivity(jobId, user.id, "act.services", { what: items.map((i) => itemLabel(t, "service_item", i)).join(", "), name: user.name });
   revalidatePath(`/machinery/${job.unitId}`);
   back(user, jobId, { ok: "svc.recorded", hash: "services" });
+}
+
+/** Take a service off this work order's record (ticked by mistake). The machine's schedule is not changed. */
+export async function removeJobService(form: FormData) {
+  const user = await requirePermission("job.assign");
+  const jobId = num(form, "jobId");
+  await access(jobId, user);
+  await db.delete(schema.jobServices).where(and(eq(schema.jobServices.id, num(form, "id")), eq(schema.jobServices.jobId, jobId)));
+  back(user, jobId, { ok: "svc.removedHere", hash: "services" });
 }
 
 /** Delete a work order entered by mistake (Head Manager). Parts issued from stock go back on the shelf; purchase
