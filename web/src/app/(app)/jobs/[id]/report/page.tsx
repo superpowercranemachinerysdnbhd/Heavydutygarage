@@ -16,6 +16,8 @@ import { saveRecommendations } from "../../actions";
 import { machineTypeLabel } from "@/lib/machine-types";
 import DocBrand from "@/components/DocBrand";
 import Suggest from "@/components/Suggest";
+import { servicesOnJob } from "@/lib/services";
+import { itemLabel } from "@/lib/lists";
 import { recommendationIdeas } from "@/lib/recommendations";
 
 export async function generateMetadata() {
@@ -30,6 +32,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   if (!d) notFound();
   const sp = await searchParams;
   const { job, unit, model, customer, lead, team, tasks, qc, labour, photos } = d;
+  const servicesDone = await servicesOnJob(job.id);
   const doneTasks = tasks.filter((x) => x.doneAt);
   // The report itself is written in the customer's language; the controls above it stay in the user's language.
   const lang: Locale = isLocale(sp.lang) ? sp.lang : isLocale(customer.locale) ? customer.locale : "en";
@@ -106,6 +109,10 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           {doneTasks.length > 0 && <ul>{doneTasks.map((x) => <li key={x.id}>{x.description}</li>)}</ul>}
           {!job.workDone && doneTasks.length === 0 && <p>—</p>}
         </div>
+        {servicesDone.length > 0 && <div><h4>{t("rep.services")}</h4>
+          <div className="dt"><table><thead><tr><th>{t("rep.service")}</th><th>{t("rep.doneOn")}</th><th>{t("rep.nextDue")}</th></tr></thead>
+            <tbody>{servicesDone.map((s) => <tr key={s.id}><td>✓ {itemLabel(t, "service_item", s.item)}</td><td>{fmtDate(s.doneOn, true, lang)}</td><td>{s.nextDue ? fmtDate(s.nextDue, true, lang) : "—"}</td></tr>)}</tbody></table></div>
+        </div>}
         <div><h4>{t("rep.parts")}</h4>{issued.length ? (
           <div className="dt"><table><thead><tr><th>{t("parts.partNo")}</th><th>{t("parts.description")}</th><th className="r">{t("po.qty")}</th>{o.prices && <><th className="r">{t("po.unitPrice")}</th><th className="r">{t("col.amount")}</th></>}</tr></thead>
             <tbody>{issued.map((x) => <tr key={x.id}><td>{x.ref}</td><td>{x.description}</td><td className="r">{x.qty} {x.uom}</td>{o.prices && <><td className="r">{warr ? t("rep.noCharge") : rm(x.unitPrice)}</td><td className="r">{warr ? t("rep.noCharge") : rm(x.qty * x.unitPrice)}</td></>}</tr>)}</tbody></table></div>

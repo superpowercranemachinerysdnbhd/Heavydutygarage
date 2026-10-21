@@ -657,6 +657,15 @@ export async function recordServices(form: FormData) {
   back(user, jobId, { ok: "svc.recorded", hash: "services" });
 }
 
+/** Take a service off this work order's record (ticked by mistake). The machine's schedule is not changed. */
+export async function removeJobService(form: FormData) {
+  const user = await requirePermission("job.assign");
+  const jobId = num(form, "jobId");
+  await access(jobId, user);
+  await db.delete(schema.jobServices).where(and(eq(schema.jobServices.id, num(form, "id")), eq(schema.jobServices.jobId, jobId)));
+  back(user, jobId, { ok: "svc.removedHere", hash: "services" });
+}
+
 /** Delete a work order entered by mistake (Head Manager). Parts issued from stock go back on the shelf; purchase
  *  orders and stock history that pointed at it are kept, without the link. Everything else on it is removed. */
 export async function deleteJob(form: FormData) {

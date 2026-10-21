@@ -22,7 +22,7 @@ import BoughtLines from "@/components/BoughtLines";
 import Suggest from "@/components/Suggest";
 import { recommendationIdeas } from "@/lib/recommendations";
 import { ServiceDue } from "@/components/ServicePanel";
-import { servicesFor } from "@/lib/services";
+import { servicesFor, servicesOnJob } from "@/lib/services";
 import { isServiceCategory, itemLabel, listItems } from "@/lib/lists";
 import { jobThreadId, messagesFor } from "@/lib/chat";
 import * as A from "../actions";
@@ -82,10 +82,10 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const due = dueInfo(job, t, locale);
   const hidden = (n: string, v: string | number) => <input type="hidden" name={n} value={v} />;
   const canWrite = open || can(user.role, "job.editDetails");
-  const services = await servicesFor(unit.id);
+  const [services, doneHere] = await Promise.all([servicesFor(unit.id), servicesOnJob(job.id)]);
   const svcItems = listItems("service_item");
   // Services done: on service jobs, when the machine has a service due, or when this job already recorded one.
-  const showServices = isServiceCategory(job.category) || services.some((x) => x.state === "overdue" || x.state === "soon" || x.lastJobId === job.id);
+  const showServices = isServiceCategory(job.category) || services.some((x) => x.state === "overdue" || x.state === "soon") || doneHere.length > 0;
   const qcText = (q: (typeof qc)[number]) => (q.itemKey ? t(qcMessageKey(q.itemKey)) : q.item);
 
   return (
@@ -330,6 +330,15 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           </section>
 
           {showServices && <section className="sect" id="services"><h3>{t("svc.onJob")} <Link className="btn small" href={`/machinery/${unit.id}#services`} style={subtle}>{t("svc.schedule")}</Link></h3><div className="in">
+            {doneHere.length > 0 && (
+              <div className="svc-done">
+                <span className="label">{t("svc.doneHere")}</span>
+                <ul>{doneHere.map((s) => (
+                  <li key={s.id}>✓ <b>{itemLabel(t, "service_item", s.item)}</b> <small className="muted">{fmtDate(s.doneOn, false, locale)}{s.nextDue ? ` · ${t("svc.nextOn", { date: fmtDate(s.nextDue, false, locale) })}` : ""}</small>
+                    {canWrite && can(user.role, "job.assign") && <form action={A.removeJobService} style={{ display: "inline" }}>{hidden("jobId", job.id)}{hidden("id", s.id)}<SubmitButton className="linkbtn muted" confirm={t("svc.removeConfirm")}>{t("jp.remove")}</SubmitButton></form>}</li>
+                ))}</ul>
+              </div>
+            )}
             {canWrite ? (
               <form action={A.recordServices} className="stack" style={{ gap: 8 }}>
                 {hidden("jobId", job.id)}
@@ -349,7 +358,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                   <SubmitButton className="btn small primary">{t("svc.record")}</SubmitButton></div>
                 <small className="muted">{t("svc.onJobHelp")}</small>
               </form>
-            ) : <span className="muted">{services.filter((x) => x.lastJobId === job.id).map((x) => itemLabel(t, "service_item", x.item)).join(", ") || "—"}</span>}
+            ) : doneHere.length === 0 && <span className="muted">—</span>}
           </div></section>}
 
           <section className="sect" id="qc"><h3>{t("job.qc")} <span className="muted" style={subtle}>{qcDone}/{qc.length}</span></h3><div className="in">

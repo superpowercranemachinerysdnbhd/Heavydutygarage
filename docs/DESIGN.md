@@ -769,3 +769,9 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Fix: on iPad / Safari a tapped button does not take focus, so the part search list closed (blur) before the tap landed. Tapping a result or "+ Add new item" then did nothing. The list and its buttons now prevent the mousedown default, so the search box keeps focus and the tap goes through. This affects work orders, new purchase orders and Record parts bought.
 - Record parts bought: a "+ New item" button adds an empty new-item row (for an invoice of all new items). Save is never greyed out: it says what is missing (supplier, a description for new items, qty and unit price).
 - The category of a new item is optional. Without one, the item goes into "Uncategorised" (created when first needed) to sort out later on the part page. Same in the purchase order "+ Add new item".
+
+### 50. Services done are printed on the service report (Oct 2026)
+- Before, "Services done on this work order" only updated the machine's service schedule (`machine_services` keeps the latest per item), so the report had nothing to show. Now each work order keeps its own record in a new table `job_services` (job, item, done on, next due, who). `markServiceDone` writes it, and recording the same item again on the same job updates the row.
+- Work order page: a "Done on this work order" list (✓ item, date, next due). Supervisor / Head Manager can remove a line ticked by mistake; the machine schedule is not changed.
+- Service report: a **Services done** table (service, done on, next due) in the customer's language, after Work carried out.
+- Migration 0021 fills `job_services` from the services already recorded on work orders (latest per machine and item).

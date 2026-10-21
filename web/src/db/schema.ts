@@ -479,6 +479,18 @@ export const machineServices = pgTable("machine_services", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("machine_services_unit_item_idx").on(t.unitId, t.item), index("machine_services_due_idx").on(t.nextDue)]);
 
+/** Services done on a work order (engine oil, greasing…): what the service report lists. The machine's schedule
+ *  (machine_services) keeps only the latest; this keeps every work order's own record. */
+export const jobServices = pgTable("job_services", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  item: varchar("item", { length: 60 }).notNull(),
+  doneOn: date("done_on").notNull(),
+  nextDue: date("next_due"),
+  recordedBy: integer("recorded_by").references(() => staff.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("job_services_job_item_idx").on(t.jobId, t.item)]);
+
 /** Weekly crew plan: what each person does on a day — a job, or leave / MC / off. One entry per person per day. */
 export const crewPlan = pgTable("crew_plan", {
   id: serial("id").primaryKey(),
