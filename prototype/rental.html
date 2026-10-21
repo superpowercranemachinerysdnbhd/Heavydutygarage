@@ -693,6 +693,12 @@ button.g-group small{font-weight:400;opacity:.75;margin-left:6px}
 .iv-tot span{color:#5a6471}
 .iv-tot .t{color:#1a1f26;font-weight:700;border-top:1px solid #1a1f26;border-bottom:3px double #1a1f26;padding:3px 0}
 .bar.am,.bar.pm{padding:0 2px;font-size:.6rem;justify-content:center}
+
+.platefind{padding:0 2px}
+td.mono{white-space:nowrap}
+.platefind input{width:100%;background:color-mix(in srgb,#fff 10%,transparent);border:1px solid color-mix(in srgb,#fff 22%,transparent);color:#fff;border-radius:8px;padding:8px 10px;font:inherit;font-family:var(--f-mono);font-size:.85rem;letter-spacing:.03em}
+.platefind input::placeholder{color:color-mix(in srgb,#fff 60%,transparent);font-family:var(--f-body);letter-spacing:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -702,6 +708,7 @@ button.g-group small{font-weight:400;opacity:.75;margin-left:6px}
       <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="8" style="fill:var(--accent)"/><path d="M8 24V8h2v16M10 9l13 3M10 13l13-1M21 12v5" style="fill:none;stroke:var(--accent-ink);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"/><path d="M21 17c0 2 2.6 2 2.6 0" style="fill:none;stroke:var(--accent-ink);stroke-width:1.8;stroke-linecap:round"/><path d="M6 24h7" style="stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round"/></svg>
       <div><b>Super Power Crane</b><small>Machinery Sdn Bhd</small></div>
     </div>
+    <form class="platefind" id="plateFind" role="search"><label for="plateIn" class="sr">Find a machine by plate</label><input id="plateIn" list="plateList" autocomplete="off" placeholder="Plate, e.g. BPN 8918"><datalist id="plateList"></datalist></form>
     <div class="side-foot">
       <label for="roleSel">Viewing as</label>
       <select id="roleSel">
@@ -826,10 +833,10 @@ const models = {
 };
 const DOCS = {cf:'DOSH Certificate of Fitness', road:'Road tax', ins:'Insurance', pusp:'Puspakom', cpm:'Plant insurance', apad:'APAD licence'};
 const fleet = {
-  'RC-01':{m:'RK500',plate:'WVX 5501',year:2016,hm0:11580,docs:{cf:'2027-03-02',road:'2027-01-15',ins:'2027-01-15'},cost:1650000,ytd:{rev:486000,ws:38500,opx:52000,util:86}},
-  'TC-01':{m:'NK250',plate:'JQA 5783',year:2012,hm0:18320,docs:{cf:'2026-11-28',road:'2027-04-10',ins:'2027-04-10'},cost:720000,ytd:{rev:268000,ws:61200,opx:47000,util:71}},
-  'TC-02':{m:'TL450',plate:'BMG 8858',year:2009,hm0:9790,docs:{cf:'2026-10-30',road:'2027-02-01',ins:'2027-02-01'},cost:540000,ytd:{rev:214000,ws:72400,opx:41000,util:64}},
-  'LC-01':{m:'UNIC',plate:'NDH 3921',year:2018,hm:6120,docs:{cf:'2027-05-11',road:'2027-03-01',ins:'2027-03-01',pusp:'2026-12-04'},cost:380000,ytd:{rev:96000,ws:12800,opx:28000,util:48}},
+  'WVX 5501':{m:'RK500',plate:'WVX 5501',year:2016,hm0:11580,docs:{cf:'2027-03-02',road:'2027-01-15',ins:'2027-01-15'},cost:1650000,ytd:{rev:486000,ws:38500,opx:52000,util:86}},
+  'JQA 5783':{m:'NK250',plate:'JQA 5783',year:2012,hm0:18320,docs:{cf:'2026-11-28',road:'2027-04-10',ins:'2027-04-10'},cost:720000,ytd:{rev:268000,ws:61200,opx:47000,util:71}},
+  'BMG 8858':{m:'TL450',plate:'BMG 8858',year:2009,hm0:9790,docs:{cf:'2026-10-30',road:'2027-02-01',ins:'2027-02-01'},cost:540000,ytd:{rev:214000,ws:72400,opx:41000,util:64}},
+  'NDH 3921':{m:'UNIC',plate:'NDH 3921',year:2018,hm:6120,docs:{cf:'2027-05-11',road:'2027-03-01',ins:'2027-03-01',pusp:'2026-12-04'},cost:380000,ytd:{rev:96000,ws:12800,opx:28000,util:48}},
   'FL-01':{m:'FD30',serial:'8FD30-61822',year:2019,hm:4502,docs:{ins:'2027-02-20'},cost:85000,ytd:{rev:21800,ws:3100,opx:900,util:62}},
   'FL-02':{m:'FD50',serial:'FD50T9-30417',year:2017,hm:6305,docs:{ins:'2027-02-20'},cost:120000,ytd:{rev:30200,ws:4200,opx:900,util:70}},
   'BL-01':{m:'S65',serial:'S6015-2271',year:2015,hm:3870,docs:{cf:'2027-01-09',ins:'2027-02-20'},cost:260000,ytd:{rev:54000,ws:6900,opx:2400,util:58}},
@@ -838,8 +845,8 @@ const fleet = {
   'EX-03':{m:'ZX70',serial:'HCM1HE00T00071224',year:2020,hm:4120,docs:{cpm:'2027-06-30'},cost:210000,ytd:{rev:41200,ws:5200,opx:3600,util:55}},
   'WL-01':{m:'W950',serial:'CAT0950HJN1A04412',year:2011,hm:21480,docs:{cpm:'2027-06-30'},cost:330000,ytd:{rev:63500,ws:9800,opx:4800,util:52}},
   'GS-01':{m:'DCA150',serial:'DCA150-4471029',year:2018,hm:12840,docs:{cpm:'2027-06-30'},cost:95000,ytd:{rev:28400,ws:3900,opx:1800,util:39}},
-  'TR-01':{m:'FM',plate:'WPL 8812',year:2015,transport:true,docs:{road:'2027-02-14',ins:'2027-02-14',pusp:'2026-11-12',apad:'2027-08-01'}},
-  'TR-02':{m:'H700',plate:'BKT 4410',year:2013,transport:true,docs:{road:'2026-10-31',ins:'2026-10-31',pusp:'2027-01-20',apad:'2027-08-01'}},
+  'WPL 8812':{m:'FM',plate:'WPL 8812',year:2015,transport:true,docs:{road:'2027-02-14',ins:'2027-02-14',pusp:'2026-11-12',apad:'2027-08-01'}},
+  'BKT 4410':{m:'H700',plate:'BKT 4410',year:2013,transport:true,docs:{road:'2026-10-31',ins:'2026-10-31',pusp:'2027-01-20',apad:'2027-08-01'}},
 };
 const staff = {
   HM:{name:'Head Manager',role:'Head Manager'},
@@ -902,15 +909,15 @@ Object.assign(models, {
   NK200:{make:'Kato',model:'NK-200E-III',type:'Truck crane 20 t',grp:'crane',size:'self'},
 });
 Object.assign(fleet, {
-  'RC-02':{m:'GR600',plate:'JYR 2138',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:1450000,ytd:{rev:298000,ws:24400,opx:46000,util:66}},
-  'TC-03':{m:'SS500',plate:'JVY 2138',year:2010,hm:24310,docs:{cf:'2026-12-20',road:'2027-01-05',ins:'2027-01-05',pusp:'2027-02-11'},cost:620000,ytd:{rev:205000,ws:41800,opx:39000,util:58}},
-  'TC-04':{m:'TL500',plate:'VHX 8292',year:2014,hm:16880,docs:{cf:'2027-02-26',road:'2027-05-02',ins:'2027-05-02',pusp:'2027-03-15'},cost:780000,ytd:{rev:232000,ws:30500,opx:41000,util:62}},
-  'AT-01':{m:'ATF60',plate:'BLU 8865',year:2016,hm:11250,docs:{cf:'2027-06-07',road:'2027-04-21',ins:'2027-04-21'},cost:1600000,ytd:{rev:318000,ws:35600,opx:47000,util:68}},
-  'MC-01':{m:'SL700',plate:'SK 9920 F',year:2015,hm:13960,docs:{cf:'2027-01-14',road:'2027-02-09',ins:'2027-02-09'},cost:1850000,ytd:{rev:356000,ws:44100,opx:52000,util:61}},
-  'MC-02':{m:'SA1100',plate:'BPJ 8896',year:2013,hm:18720,docs:{cf:'2026-11-30',road:'2027-01-22',ins:'2027-01-22'},cost:2600000,ytd:{rev:462000,ws:68300,opx:61000,util:54}},
-  'TC-05':{m:'NK160',plate:'WEH 1567',year:1996,hm:31240,docs:{cf:'2027-03-04',road:'2027-02-17',ins:'2027-02-17',pusp:'2027-01-08'},cost:150000,ytd:{rev:88000,ws:21600,opx:30000,util:55}},
-  'TC-06':{m:'NK200',plate:'JES 4923',year:2001,hm:27650,docs:{cf:'2027-05-26',road:'2027-04-02',ins:'2027-04-02',pusp:'2027-03-21'},cost:210000,ytd:{rev:104000,ws:19800,opx:32000,util:59}},
-  'MC-03':{m:'SL1300',plate:'VAV 5711',year:2017,hm:9880,docs:{cf:'2027-07-19',road:'2027-03-11',ins:'2027-03-11'},cost:3400000,ytd:{rev:588000,ws:57900,opx:72000,util:52}},
+  'JYR 2138':{m:'GR600',plate:'JYR 2138',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:1450000,ytd:{rev:298000,ws:24400,opx:46000,util:66}},
+  'JVY 2138':{m:'SS500',plate:'JVY 2138',year:2010,hm:24310,docs:{cf:'2026-12-20',road:'2027-01-05',ins:'2027-01-05',pusp:'2027-02-11'},cost:620000,ytd:{rev:205000,ws:41800,opx:39000,util:58}},
+  'VHX 8292':{m:'TL500',plate:'VHX 8292',year:2014,hm:16880,docs:{cf:'2027-02-26',road:'2027-05-02',ins:'2027-05-02',pusp:'2027-03-15'},cost:780000,ytd:{rev:232000,ws:30500,opx:41000,util:62}},
+  'BLU 8865':{m:'ATF60',plate:'BLU 8865',year:2016,hm:11250,docs:{cf:'2027-06-07',road:'2027-04-21',ins:'2027-04-21'},cost:1600000,ytd:{rev:318000,ws:35600,opx:47000,util:68}},
+  'SK 9920 F':{m:'SL700',plate:'SK 9920 F',year:2015,hm:13960,docs:{cf:'2027-01-14',road:'2027-02-09',ins:'2027-02-09'},cost:1850000,ytd:{rev:356000,ws:44100,opx:52000,util:61}},
+  'BPJ 8896':{m:'SA1100',plate:'BPJ 8896',year:2013,hm:18720,docs:{cf:'2026-11-30',road:'2027-01-22',ins:'2027-01-22'},cost:2600000,ytd:{rev:462000,ws:68300,opx:61000,util:54}},
+  'WEH 1567':{m:'NK160',plate:'WEH 1567',year:1996,hm:31240,docs:{cf:'2027-03-04',road:'2027-02-17',ins:'2027-02-17',pusp:'2027-01-08'},cost:150000,ytd:{rev:88000,ws:21600,opx:30000,util:55}},
+  'JES 4923':{m:'NK200',plate:'JES 4923',year:2001,hm:27650,docs:{cf:'2027-05-26',road:'2027-04-02',ins:'2027-04-02',pusp:'2027-03-21'},cost:210000,ytd:{rev:104000,ws:19800,opx:32000,util:59}},
+  'VAV 5711':{m:'SL1300',plate:'VAV 5711',year:2017,hm:9880,docs:{cf:'2027-07-19',road:'2027-03-11',ins:'2027-03-11'},cost:3400000,ytd:{rev:588000,ws:57900,opx:72000,util:52}},
 });
 Object.assign(rates, {
   'NK250/wet':{hr:280,minH:4,day:2000,month:34000,mHrs:200,ex:190,ot:280},
@@ -947,80 +954,80 @@ Object.assign(rates, {
 let hires = [
   {id:'H-2026-0109',c:'C7',site:'Pasir Gudang port warehouse 2',state:'Johor',siteContact:'Mr. Ravi Shankar 012-388 7701',po:'PKL-PO-26-0418',status:'Closed',created:'2026-08-01',cycle:'Monthly in arrears',
    lines:[{u:'GS-01',k:'dry',basis:'month',from:'2026-08-06',to:'2026-09-05',on:'2026-08-06',off:'2026-09-05',hm:[{d:'2026-08-06',v:12160},{d:'2026-08-31',v:12620},{d:'2026-09-05',v:12840}]}],
-   trips:[{dir:'Delivery',d:'2026-08-06',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-05',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'}],
+   trips:[{dir:'Delivery',d:'2026-08-06',u:'GS-01',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-05',u:'GS-01',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'}],
    log:[{d:'2026-09-05 15:10',t:'Returned, no damage. Hire closed.'}]},
   {id:'H-2026-0118',c:'C2',site:'Quarry pit 3, Ulu Choh',state:'Johor',siteContact:'En. Shahril (quarry manager) 019-330 1172',po:'KS/LT/2026/02',status:'On hire',created:'2026-05-20',cycle:'Monthly in arrears',contract:'6-month contract, Jun–Nov 2026 · 200 h a month',
    lines:[{u:'EX-02',k:'dry',basis:'month',from:'2026-06-01',to:'2026-11-30',on:'2026-06-01',hm:[{d:'2026-08-31',v:14988},{d:'2026-09-30',v:15230},{d:'2026-10-15',v:15362}]}],
-   trips:[{dir:'Delivery',d:'2026-06-01',u:'EX-02',veh:'TR-01',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'}],
+   trips:[{dir:'Delivery',d:'2026-06-01',u:'EX-02',veh:'WPL 8812',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'}],
    log:[{d:'2026-10-15 17:20',t:'Hour meter 15,362 h read by Suresh (photo).'},{d:'2026-10-01 09:00',t:'September invoiced: 242 h used, 42 h over the 200 h allowance.'},{d:'2026-06-01 11:30',t:'Delivered. Delivery inspection signed by En. Shahril.'}]},
   {id:'H-2026-0130',c:'C5',site:'Bandar Seri Alam housing phase 4',state:'Johor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0726',status:'Returned',created:'2026-08-05',cycle:'Monthly in arrears',
    lines:[{u:'EX-01',k:'dry',basis:'month',from:'2026-08-10',to:'2026-10-09',on:'2026-08-10',off:'2026-10-09',hm:[{d:'2026-08-10',v:9120},{d:'2026-08-31',v:9268},{d:'2026-09-30',v:9471},{d:'2026-10-09',v:9530}]}],
-   trips:[{dir:'Delivery',d:'2026-08-10',u:'EX-01',veh:'TR-01',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'},{dir:'Collection',d:'2026-10-09',u:'EX-01',veh:'TR-01',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'}],
+   trips:[{dir:'Delivery',d:'2026-08-10',u:'EX-01',veh:'WPL 8812',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'},{dir:'Collection',d:'2026-10-09',u:'EX-01',veh:'WPL 8812',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'}],
    damage:{job:'J-2026-0414',note:'Bucket cylinder hose torn, left side cutter cracked. Not on the delivery photos.',est:2850,done:false},
    log:[{d:'2026-10-10 09:30',t:'Workshop job J-2026-0414 opened for return damage (chargeable to this hire).'},{d:'2026-10-09 16:45',t:'Return inspection: damage found on bucket cylinder hose and side cutter. Photos taken. Customer rep. signed.'}]},
   {id:'H-2026-0138',c:'C4',site:'Tebrau factory extension, Johor Bahru',state:'Johor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2215',status:'Closed',created:'2026-08-28',cycle:'Monthly in arrears',
    lines:[{u:'FL-02',k:'dry',basis:'month',from:'2026-09-01',to:'2026-09-30',on:'2026-09-01',off:'2026-09-30',hm:[{d:'2026-09-01',v:6120},{d:'2026-09-30',v:6305}]}],
-   trips:[{dir:'Delivery',d:'2026-09-01',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-30',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'}],
+   trips:[{dir:'Delivery',d:'2026-09-01',u:'FL-02',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-30',u:'FL-02',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'}],
    log:[{d:'2026-09-30 16:00',t:'Returned, no damage.'}]},
   {id:'H-2026-0124',c:'C1',site:'Senai Airport City warehouse project, Senai',state:'Johor',siteContact:'En. Rosli (site supervisor) 013-202 4471',po:'BJ/PO/26/0744',status:'On hire',created:'2026-08-10',cycle:'Monthly in arrears',
-   lines:[{u:'MC-02',k:'wet',basis:'month',from:'2026-08-17',to:'2026-12-15',on:'2026-08-17',op:'O6'}],
-   trips:[{dir:'Delivery',d:'2026-08-17',u:'MC-02',veh:null,drv:'O6',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
+   lines:[{u:'BPJ 8896',k:'wet',basis:'month',from:'2026-08-17',to:'2026-12-15',on:'2026-08-17',op:'O6'}],
+   trips:[{dir:'Delivery',d:'2026-08-17',u:'BPJ 8896',veh:null,drv:'O6',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
    log:[{d:'2026-08-17 10:00',t:'On hire for the roof truss lifts. Delivery inspection signed by En. Rosli.'}]},
   {id:'H-2026-0144',c:'C3',site:'Pasir Gudang free zone, pier 3',state:'Johor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-277',status:'On hire',created:'2026-09-02',cycle:'Monthly in arrears',
-   lines:[{u:'AT-01',k:'wet',basis:'month',from:'2026-09-07',to:'2026-11-30',on:'2026-09-07',op:'O7'}],
-   trips:[{dir:'Delivery',d:'2026-09-07',u:'AT-01',veh:null,drv:'O7',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
+   lines:[{u:'BLU 8865',k:'wet',basis:'month',from:'2026-09-07',to:'2026-11-30',on:'2026-09-07',op:'O7'}],
+   trips:[{dir:'Delivery',d:'2026-09-07',u:'BLU 8865',veh:null,drv:'O7',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
    log:[{d:'2026-09-07 09:40',t:'On hire.'}]},
   {id:'H-2026-0147',c:'C4',site:'Tebrau steel warehouse, Johor Bahru',state:'Johor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2241',status:'On hire',created:'2026-09-22',cycle:'Monthly in arrears',
-   lines:[{u:'MC-01',k:'wet',basis:'month',from:'2026-09-28',to:'2026-12-27',on:'2026-09-28',op:'O9'}],
-   trips:[{dir:'Delivery',d:'2026-09-28',u:'MC-01',veh:null,drv:'O9',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
+   lines:[{u:'SK 9920 F',k:'wet',basis:'month',from:'2026-09-28',to:'2026-12-27',on:'2026-09-28',op:'O9'}],
+   trips:[{dir:'Delivery',d:'2026-09-28',u:'SK 9920 F',veh:null,drv:'O9',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
    log:[{d:'2026-09-28 10:20',t:'On hire.'}]},
   {id:'H-2026-0150',c:'C5',site:'Kulai interchange bridge works',state:'Johor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0802',status:'On hire',created:'2026-09-25',cycle:'End of hire',
-   lines:[{u:'TC-03',k:'wet',basis:'day',from:'2026-10-01',to:'2026-10-22',on:'2026-10-01',op:'O8'}],
-   trips:[{dir:'Delivery',d:'2026-10-01',u:'TC-03',veh:null,drv:'O8',zone:'Johor Bahru',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-23',u:'TC-03',veh:null,drv:'O8',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
+   lines:[{u:'JVY 2138',k:'wet',basis:'day',from:'2026-10-01',to:'2026-10-22',on:'2026-10-01',op:'O8'}],
+   trips:[{dir:'Delivery',d:'2026-10-01',u:'JVY 2138',veh:null,drv:'O8',zone:'Johor Bahru',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-23',u:'JVY 2138',veh:null,drv:'O8',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-01 09:00',t:'On hire.'}]},
   {id:'H-2026-0141',c:'C1',site:'Senai Airport City warehouse project, Senai',state:'Johor',siteContact:'En. Rosli (site supervisor) 013-202 4471',po:'BJ/PO/26/0912',status:'On hire',created:'2026-08-25',cycle:'Monthly in arrears',
-   lines:[{u:'RC-01',k:'wet',basis:'month',from:'2026-09-01',to:'2026-11-30',on:'2026-09-01',op:'O1'}],
-   trips:[{dir:'Delivery',d:'2026-09-01',u:'RC-01',veh:null,drv:'O1',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
+   lines:[{u:'WVX 5501',k:'wet',basis:'month',from:'2026-09-01',to:'2026-11-30',on:'2026-09-01',op:'O1'}],
+   trips:[{dir:'Delivery',d:'2026-09-01',u:'WVX 5501',veh:null,drv:'O1',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
    log:[{d:'2026-10-01 09:00',t:'September invoiced.'},{d:'2026-09-01 10:15',t:'On hire. Delivery inspection signed by En. Rosli.'}]},
   {id:'H-2026-0149',c:'C7',site:'Pasir Gudang port warehouse 4',state:'Johor',siteContact:'Mr. Ravi Shankar 012-388 7701',po:'PKL-PO-26-0533',status:'On hire',created:'2026-09-24',cycle:'Monthly in arrears',
    lines:[{u:'FL-01',k:'dry',basis:'month',from:'2026-10-01',to:'2026-12-31',on:'2026-10-01',hm:[{d:'2026-10-01',v:4410},{d:'2026-10-15',v:4502}]}],
-   trips:[{dir:'Delivery',d:'2026-10-01',u:'FL-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'}],
+   trips:[{dir:'Delivery',d:'2026-10-01',u:'FL-01',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'}],
    log:[{d:'2026-10-01 11:00',t:'On hire. Delivery inspection signed by Mr. Ravi.'}]},
   {id:'H-2026-0152',c:'C3',site:'Jalan Pasir Gudang piling site, Masai',state:'Johor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-311',status:'On hire',created:'2026-09-29',cycle:'End of hire',
-   lines:[{u:'TC-01',k:'wet',basis:'day',from:'2026-10-05',to:'2026-10-24',on:'2026-10-05',op:'O2'}],
-   trips:[{dir:'Delivery',d:'2026-10-05',u:'TC-01',veh:null,drv:'O2',zone:'Johor Bahru',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-24',u:'TC-01',veh:null,drv:'O2',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
+   lines:[{u:'JQA 5783',k:'wet',basis:'day',from:'2026-10-05',to:'2026-10-24',on:'2026-10-05',op:'O2'}],
+   trips:[{dir:'Delivery',d:'2026-10-05',u:'JQA 5783',veh:null,drv:'O2',zone:'Johor Bahru',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-24',u:'JQA 5783',veh:null,drv:'O2',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-13 11:40',t:'Breakdown: telescope circuit hose burst at 08:30. Workshop job J-2026-0417. Fixed on site 11:30 (3 h lost).'},{d:'2026-10-05 09:00',t:'On hire.'}]},
   {id:'H-2026-0153',c:'C3',site:'Tanjung Langsat jetty extension',state:'Johor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-298',status:'Off-hire called',created:'2026-09-15',cycle:'Monthly in arrears',offCalled:'2026-10-14',
-   lines:[{u:'TC-02',k:'wet',basis:'day',from:'2026-09-21',to:'2026-10-31',on:'2026-09-21',off:'2026-10-15',op:'O5'}],
-   trips:[{dir:'Delivery',d:'2026-09-21',u:'TC-02',veh:null,drv:'O5',zone:'Johor Bahru',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-16',u:'TC-02',veh:null,drv:'O5',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
+   lines:[{u:'BMG 8858',k:'wet',basis:'day',from:'2026-09-21',to:'2026-10-31',on:'2026-09-21',off:'2026-10-15',op:'O5'}],
+   trips:[{dir:'Delivery',d:'2026-09-21',u:'BMG 8858',veh:null,drv:'O5',zone:'Johor Bahru',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-16',u:'BMG 8858',veh:null,drv:'O5',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-14 16:20',t:'Mr. Gan called off-hire from 15 Oct (WhatsApp). Crane drives back on 16 Oct.'},{d:'2026-09-21 10:00',t:'On hire.'}]},
   {id:'H-2026-0155',c:'C4',site:'Lot 88 Jalan Kempas Lama, Johor Bahru',state:'Johor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2290',status:'Booked',created:'2026-10-13',cycle:'End of hire',note:'Lifting roof trusses, about 6 hours.',
-   lines:[{u:'LC-01',k:'wet',basis:'hour',from:'2026-10-16',to:'2026-10-16',op:'O3'}],
-   trips:[{dir:'Delivery',d:'2026-10-16',u:'LC-01',veh:null,drv:'O3',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
+   lines:[{u:'NDH 3921',k:'wet',basis:'hour',from:'2026-10-16',to:'2026-10-16',op:'O3'}],
+   trips:[{dir:'Delivery',d:'2026-10-16',u:'NDH 3921',veh:null,drv:'O3',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-13 14:00',t:'Booked by phone. PO received by e-mail.'}]},
   {id:'H-2026-0156',c:'C5',site:'Taman Daya drainage works, Johor Bahru',state:'Johor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0811',status:'On hire',created:'2026-10-08',cycle:'End of hire',
    lines:[{u:'EX-03',k:'dry',basis:'week',from:'2026-10-12',to:'2026-10-25',on:'2026-10-12'},{u:'WL-01',k:'dry',basis:'week',from:'2026-10-12',to:'2026-10-25',on:'2026-10-12'}],
-   trips:[{dir:'Delivery',d:'2026-10-12',u:'EX-03',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'},{dir:'Delivery',d:'2026-10-12',u:'WL-01',veh:'TR-01',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'},
-          {dir:'Collection',d:'2026-10-26',u:'EX-03',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Planned'},{dir:'Collection',d:'2026-10-26',u:'WL-01',veh:'TR-01',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Planned'}],
+   trips:[{dir:'Delivery',d:'2026-10-12',u:'EX-03',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'},{dir:'Delivery',d:'2026-10-12',u:'WL-01',veh:'WPL 8812',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'},
+          {dir:'Collection',d:'2026-10-26',u:'EX-03',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:450,status:'Planned'},{dir:'Collection',d:'2026-10-26',u:'WL-01',veh:'WPL 8812',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Planned'}],
    log:[{d:'2026-10-12 13:00',t:'Both machines delivered and signed for.'}]},
   {id:'H-2026-0157',c:'C6',site:'Jalan Tebrau condominium, Johor Bahru',state:'Kuala Lumpur',siteContact:'Mr. Wong 017-202 8817',po:'LOU dated 14 Oct',status:'Booked',created:'2026-10-14',cycle:'End of hire',deposit:3000,depositPaid:false,
    lines:[{u:'BL-01',k:'dry',basis:'week',from:'2026-10-19',to:'2026-10-30'}],
-   trips:[{dir:'Delivery',d:'2026-10-19',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:1200,status:'Planned'},{dir:'Collection',d:'2026-10-31',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:1200,status:'Planned'}],
+   trips:[{dir:'Delivery',d:'2026-10-19',u:'BL-01',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:1200,status:'Planned'},{dir:'Collection',d:'2026-10-31',u:'BL-01',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:1200,status:'Planned'}],
    log:[{d:'2026-10-14 10:30',t:'New customer: deposit RM 3,000 required before delivery.'}]},
   {id:'H-2026-0160',c:'C1',site:'Senai Airport City warehouse project, Senai',state:'Johor',siteContact:'En. Rosli 013-202 4471',po:'',status:'Quotation',created:'2026-10-15',cycle:'Monthly in arrears',quoteValid:'2026-10-22',
-   note:'Second 50 t crane for roof steel. No 50 t free (RC-01 is on this site to 30 Nov). Options: the 60 t GR-600N-1 (RC-02) or a 50 t truck crane (TC-03, TC-04) is free; run Lift check to confirm.',
+   note:'Second 50 t crane for roof steel. No 50 t free (WVX 5501 is on this site to 30 Nov). Options: the 60 t GR-600N-1 (JYR 2138) or a 50 t truck crane (JVY 2138, VHX 8292) is free; run Lift check to confirm.',
    lines:[{u:null,m:'RK500',k:'wet',basis:'day',from:'2026-11-02',to:'2026-11-13'}], trips:[],
    log:[{d:'2026-10-15 15:40',t:'Enquiry by Mr. Lim. Quotation started.'}]},
   {id:'H-2026-0161',c:'C5',site:'Taman Daya drainage works, Johor Bahru',state:'Johor',siteContact:'En. Kamarul 013-388 4410',po:'',status:'Quotation',created:'2026-10-16',cycle:'Monthly in arrears',quoteValid:'2026-10-30',
    lines:[{u:'GS-01',k:'dry',basis:'month',from:'2026-11-02',to:'2026-12-31'}],
-   trips:[{dir:'Delivery',d:'2026-11-02',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Planned'}],
+   trips:[{dir:'Delivery',d:'2026-11-02',u:'GS-01',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:450,status:'Planned'}],
    log:[{d:'2026-10-16 08:50',t:'Quotation sent by WhatsApp.'}]},
 ];
 const workshop = [
   {u:'EX-01',from:'2026-10-10',to:'2026-10-20',job:'J-2026-0414',note:'Return damage repair, chargeable to H-2026-0130'},
   {u:'GS-01',from:'2026-10-26',to:'2026-10-27',job:'J-2026-0422',note:'500 h service before next hire'},
 ];
-const breakdowns = [{hire:'H-2026-0152',u:'TC-01',d:'2026-10-13',hrs:3,job:'J-2026-0417',note:'Telescope circuit hose burst. Fixed on site by Rajesh Kumar.'}];
+const breakdowns = [{hire:'H-2026-0152',u:'JQA 5783',d:'2026-10-13',hrs:3,job:'J-2026-0417',note:'Telescope circuit hose burst. Fixed on site by Rajesh Kumar.'}];
 const lost = [
   {d:'2026-10-15',c:'Bina Jaya Construction',type:'Rough terrain crane 50 t',why:'No machine free'},
   {d:'2026-10-02',c:'Sri Kenari Builders',type:'Rough terrain crane 50 t',why:'No machine free'},
@@ -1043,7 +1050,7 @@ let sheets = [];
     for(let d=l.on; d<=last; d=addDays(d,1)){
       const r = rnd(l.u+d);
       if(dow(d)===0 && r>0.3) continue;
-      if(l.u==='RC-01' && d==='2026-10-15') continue;          // missing
+      if(l.u==='WVX 5501' && d==='2026-10-15') continue;          // missing
       let work = 8 + Math.round(r*5)/2, standby = 0, reason = '', bd = 0;
       if(rnd('rain'+d) > 0.8){ standby = 2 + Math.round(rnd('s'+l.u+d)*2); work = Math.max(4, work-standby); reason = 'Rain'; }
       const b = breakdowns.find(x=>x.u===l.u && x.d===d); if(b){ bd = b.hrs; work = Math.max(0, work-bd); }
@@ -1051,7 +1058,7 @@ let sheets = [];
       const hmS = hm; hm += work;
       sheets.push({id:`${l.u}-${d}`,hire:h.id,u:l.u,op:l.op,d,start:'08:00',finish:hhmm(fin),brk:60,work,standby,reason,bd,hmS,hmE:hm,
         note: bd ? 'Hose burst on telescope, waited for mechanic.' : reason ? 'Stopped for rain, standby on site.' : ['Lifting steel trusses grid C–F','Lifting rebar cages and casing','Unloading precast panels','Lifting roof purlins','Placing piling casing'][Math.floor(rnd('n'+l.u+d)*5)],
-        status: (l.u==='TC-01' && d==='2026-10-15') ? 'unsigned' : 'signed', signer: SITE_SIGNER[h.c]});
+        status: (l.u==='JQA 5783' && d==='2026-10-15') ? 'unsigned' : 'signed', signer: SITE_SIGNER[h.c]});
     }
     fleet[l.u].hm = Math.round(hm);
   }));
@@ -1064,7 +1071,9 @@ const hire = id => hires.find(h=>h.id===id);
 const mOf = u => models[fleet[u].m];
 const mName = mk => `${models[mk].make} ${models[mk].model}`;
 const uName = u => `${mOf(u).make} ${mOf(u).model}`;
-const uRef = u => fleet[u].plate || fleet[u].serial;
+/* The plate is the machine's ID (as in the machinery list). uRef gives a second reference only when there is one. */
+const uRef = u => [fleet[u].plate, fleet[u].serial].find(x => x && x!==u) || '';
+const normPlate = t => String(t||'').toUpperCase().replace(/\s+/g,'');
 const lineModel = l => l.u ? fleet[l.u].m : l.m;
 const rate = (mk, k) => rates[`${mk}/${k}`];
 const hireUnits = () => Object.keys(fleet).filter(u => !fleet[u].transport);
@@ -1145,7 +1154,7 @@ function lineCharges(h, l, from, to){
   const s = maxD(l.on, from), e = minD(l.off || to, to);
   if(s > e) return [];
   const r = rate(fleet[l.u].m, l.k), days = daysBetween(s,e)+1, name = `${l.u} ${uName(l.u)}`;
-  const what = `${qtName(mOf(l.u).type)} ${l.k==='wet'?'WITH OPERATOR':'WITHOUT OPERATOR'} @ AT ${siteTown(h.site)}`, tag = `${l.u}: ${fleet[l.u].plate||fleet[l.u].serial||''}`;
+  const what = `${qtName(mOf(l.u).type)} ${l.k==='wet'?'WITH OPERATOR':'WITHOUT OPERATOR'} @ AT ${siteTown(h.site)}`, tag = fleet[l.u].plate || `${l.u}: ${fleet[l.u].serial||''}`;
   const ts = sheets.filter(t => t.hire===h.id && t.u===l.u && t.d>=s && t.d<=e);
   const out = []; let hourly = r.hr || r.day/RULES.dayHrs;
   if(l.basis==='month'){
@@ -1176,7 +1185,7 @@ function lineCharges(h, l, from, to){
 function charges(h, from, to){
   const out = h.lines.flatMap(l => lineCharges(h, l, from, to));
   if(h.fuel==='charged'){ const fs = fuel.filter(f=>f.hire===h.id && f.d>=from && f.d<=to); if(fs.length){ const L = sum(fs.map(f=>f.l)), cost = sum(fs.map(f=>f.l*f.price)); out.push({kind:'fuel',desc:'DIESEL SUPPLIED',det:[`${num(L)} L at cost + 10%`],qty:L,unit:'L',rate:+(cost/L*1.1).toFixed(3),amt:cost*1.1}); } }
-  h.trips.filter(t => t.status==='Done' && t.d>=from && t.d<=to).forEach(t => out.push({kind:'transport',desc:`${t.self?'MOBILISATION':'LOWLOADER TRANSPORT'} - ${t.dir.toUpperCase()}`,det:[dotD(t.d), `${t.u}: ${fleet[t.u]?.plate||fleet[t.u]?.serial||''}`, t.zone],qty:1,unit:'trip',rate:t.charge,amt:t.charge}));
+  h.trips.filter(t => t.status==='Done' && t.d>=from && t.d<=to).forEach(t => out.push({kind:'transport',desc:`${t.self?'MOBILISATION':'LOWLOADER TRANSPORT'} - ${t.dir.toUpperCase()}`,det:[dotD(t.d), (fleet[t.u]?.plate || `${t.u}: ${fleet[t.u]?.serial||''}`), t.zone],qty:1,unit:'trip',rate:t.charge,amt:t.charge}));
   return out;
 }
 const totals = lines => { const sub = sum(lines.map(l=>l.amt)), sst = sub*RULES.sst/100; return {sub, sst, total:sub+sst}; };
@@ -1211,14 +1220,14 @@ let fuel = [];
       if(acc < 24) return;
       const rate = FUEL_RATE[fleet[l.u].m] || 10;
       let litres = Math.round(acc*rate*(0.94 + rnd('f'+l.u+s.d)*0.12)), odd = false;
-      if(l.u==='TC-02' && s.d>='2026-10-08' && !flagged){ litres = Math.round(litres*1.38); flagged = odd = true; }
+      if(l.u==='BMG 8858' && s.d>='2026-10-08' && !flagged){ litres = Math.round(litres*1.38); flagged = odd = true; }
       fuel.push({id:id++, d:s.d, u:l.u, l:litres, price:DIESEL, hm:Math.round(s.hmE), hours:+acc.toFixed(1), hire:h.id, where:STATIONS[h.c]||'Petronas near site', by:l.op, paid:'Fleet card', receipt:true, note:odd?'':undefined});
       acc = 0;
     });
   }));
-  fuel.push({id:id++, d:'2026-10-16', u:'LC-01', l:60, price:2.98, hm:fleet['LC-01'].hm, hours:null, hire:'H-2026-0155', where:'Own tank (yard)', by:'O3', paid:'Own tank (yard)', receipt:false});
-  fuel.push({id:id++, d:'2026-10-02', u:'TR-01', l:310, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Jalan Kempas, Johor Bahru', by:'D1', paid:'Fleet card', receipt:true});
-  fuel.push({id:id++, d:'2026-10-12', u:'TR-02', l:240, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Jalan Kempas, Johor Bahru', by:'D2', paid:'Fleet card', receipt:true});
+  fuel.push({id:id++, d:'2026-10-16', u:'NDH 3921', l:60, price:2.98, hm:fleet['NDH 3921'].hm, hours:null, hire:'H-2026-0155', where:'Own tank (yard)', by:'O3', paid:'Own tank (yard)', receipt:false});
+  fuel.push({id:id++, d:'2026-10-02', u:'WPL 8812', l:310, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Jalan Kempas, Johor Bahru', by:'D1', paid:'Fleet card', receipt:true});
+  fuel.push({id:id++, d:'2026-10-12', u:'BKT 4410', l:240, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Jalan Kempas, Johor Bahru', by:'D2', paid:'Fleet card', receipt:true});
 })();
 const fuelRate = f => f.hours ? f.l/f.hours : null;
 const fuelFlag = f => f.hours && FUEL_RATE[fleet[f.u].m] ? fuelRate(f) > FUEL_RATE[fleet[f.u].m]*FUEL_FLAG : false;
@@ -1294,9 +1303,9 @@ Object.entries(WO_RATES).forEach(([mk,[day,half]]) => {
   if(/25 t$/.test(models[mk].type) && !r.month && !models[mk].peer){ Object.assign(r, {month:18500, ex:90, ot:104.35, sun:1100, sunOt:147}); }
 });
 (function realFleet(){
-  const ADD = [['RC-03','KR300','JKE 5227'],['RC-04','SR250','VNB 2138'],['RC-05','SR250','VNC 2138'],['RC-06','SR250','BPN 8918'],
-    ['TC-07','TL2501','BPG 8362'],['TC-08','TL2502','JVY 1832'],['TC-09','TL2503','KEK 3118'],['TC-10','NK2502','BMV 8865'],['TC-11','TL200','BMK 3428'],
-    ['SK-01','J340','BQB 9319'],['SK-02','SK240','JKU 2969'],['SK-03','SK240','WJC 9971'],['SK-04','SK270','MED 2138'],['LC-02','LCK','JWW 3688']];
+  const ADD = [['JKE 5227','KR300','JKE 5227'],['VNB 2138','SR250','VNB 2138'],['VNC 2138','SR250','VNC 2138'],['BPN 8918','SR250','BPN 8918'],
+    ['BPG 8362','TL2501','BPG 8362'],['JVY 1832','TL2502','JVY 1832'],['KEK 3118','TL2503','KEK 3118'],['BMV 8865','NK2502','BMV 8865'],['BMK 3428','TL200','BMK 3428'],
+    ['BQB 9319','J340','BQB 9319'],['JKU 2969','SK240','JKU 2969'],['WJC 9971','SK240','WJC 9971'],['MED 2138','SK270','MED 2138'],['JWW 3688','LCK','JWW 3688']];
   const pad = n => String(n).padStart(2,'0');
   ADD.forEach(([u, m, plate]) => { const r = k => rnd(u+k);
     const exp = k => r(k) < 0.08 ? `2026-12-${pad(5+Math.floor(r(k+'d')*20))}` : `2027-${pad(1+Math.floor(r(k)*9))}-${pad(1+Math.floor(r(k+'d')*27))}`;
@@ -1304,7 +1313,7 @@ Object.entries(WO_RATES).forEach(([mk,[day,half]]) => {
     fleet[u] = {m, plate, year:2008 + Math.floor(r('y')*14), hm:4000 + Math.floor(r('h')*18000), docs:{cf:exp('cf'), road:exp('rd'), ins:exp('rd'), pusp:exp('pu')},
       cost:Math.round(rt.day*260/1000)*1000, ytd:{rev:Math.round(rt.day*util*2), ws:Math.round(rt.day*util*0.25), opx:Math.round(rt.day*util*0.4), util}};
   });
-  workshop.push({u:'SK-02', from:addDays(TODAY,-6), to:addDays(TODAY,4), job:'J-2026-0431', note:'Repair (维修 in the machinery list)'});
+  workshop.push({u:'JKU 2969', from:addDays(TODAY,-6), to:addDays(TODAY,4), job:'J-2026-0431', note:'Repair (维修 in the machinery list)'});
 })();
 
 /* ---------- working with a large fleet: families, capacity classes, search ---------- */
@@ -1325,13 +1334,14 @@ function classOf(u){
 const FAM_WORDS = [[/crane|kren/i,'Cranes'],[/forklift/i,'Forklifts'],[/boom|scissor|skylift|access|platform/i,'Access platforms'],[/excavator|digger|jentolak/i,'Excavators'],[/loader/i,'Loaders'],[/genset|generator/i,'Generators']];
 function parseNeed(q){
   q = (q||'').trim(); if(!q) return {};
+  if(Object.keys(fleet).some(u => normPlate(u).includes(normPlate(q)) && normPlate(q).length>=3) && /\d{2,}/.test(q)) return {text:q.toLowerCase()};
   const fam = FAM_WORDS.find(([re])=>re.test(q))?.[1];
   const m = q.match(/(\d+(?:\.\d+)?)\s*(t|ton|tons|tan|tonne|m|meter|metre|kva)\b/i);
   const cap = m ? {n:+m[1], unit:/^m/i.test(m[2]) ? 'm' : /kva/i.test(m[2]) ? 'kVA' : 't'} : null;
   const rest = q.replace(m?.[0]||'','').replace(/crane|kren|forklift|boom|scissor|lift|excavator|loader|generator|genset|ton|tan/gi,'').trim();
   return {fam, cap, text: !fam && !cap ? q.toLowerCase() : (rest.length>=3 ? rest.toLowerCase() : '')};
 }
-const textHit = (u, t) => !t || [u, fleet[u].plate, fleet[u].serial, mOf(u).make, mOf(u).model, mOf(u).type].filter(Boolean).join(' ').toLowerCase().includes(t);
+const textHit = (u, t) => !t || [u, fleet[u].plate, fleet[u].serial, mOf(u).make, mOf(u).model, mOf(u).type].filter(Boolean).join(' ').toLowerCase().includes(t) || normPlate([u, fleet[u].plate, fleet[u].serial].join('|')).includes(normPlate(t));
 
 /* ---------- Availability for a large fleet ---------- */
 function renderAvail2(){
@@ -1351,7 +1361,7 @@ function renderAvail2(){
     const tq = sum([...new Set(us.map(u=>mOf(u).type))].map(t=>sum(tentativeFor(t,d,d).map(x=>x.qty||1))));
     const c = f===0 ? 'none' : (f - tq <= 0 && tq) ? 'tight' : f===us.length ? 'all' : 'some';
     return `<button class="avc ${c} ${d>=a.from&&d<=a.to?'sel-d':''}" data-avcls="${esc(cl)}|${d}" title="${esc(cl)} ${fmtDW(d)}: ${f} of ${us.length} free${tq?`, ${tq} asked`:''}">${f}<small>/${us.length}</small>${tq?`<i>+${tq}</i>`:''}</button>`; };
-  const rowHtml = r => `<tr class="${r.av.ok?'':'busy'}"><td class="mono"><b>${r.u}</b></td><td>${esc(uName(r.u))}<br><small class="muted">${esc(mOf(r.u).type)} · ${esc(uRef(r.u))}</small></td>
+  const rowHtml = r => `<tr class="${r.av.ok?'':'busy'}"><td class="mono"><b>${r.u}</b></td><td>${esc(uName(r.u))}<br><small class="muted">${[mOf(r.u).type, uRef(r.u)].filter(Boolean).map(esc).join(' · ')}</small></td>
     <td>${r.av.ok?`<span class="pill ok">Free</span>${r.av.warn.length?' <span class="pill crit">Document issue</span>':''}`:'<span class="pill crit">Not free</span>'}${r.tent.length?' <span class="pill warn">Quoted to someone else</span>':''}
       <br><small class="muted">${r.av.ok ? (r.av.warn.length ? esc(r.av.warn[0]) : 'Nothing booked') : esc(r.av.why[0])}</small></td>
     <td class="r">${r.av.ok?`<button class="btn small primary" data-action="qq-new" data-u="${r.u}">Quote</button>`:''}</td></tr>`;
@@ -1359,7 +1369,7 @@ function renderAvail2(){
   $('#v-avail').innerHTML = `
     <div class="view-head"><h2>Availability</h2><button class="btn primary" data-action="qq-new">Quick quotation</button></div>
     <form class="findbar" data-form="av2">
-      <label style="flex:1 1 260px">What do you need?<input type="search" id="avQ" name="q" value="${esc(a.q)}" placeholder="e.g. 25t crane, forklift 5t, scissor 12m, WVX 5501"></label>
+      <label style="flex:1 1 260px">What do you need?<input type="search" id="avQ" name="q" value="${esc(a.q)}" placeholder="e.g. BPN 8918, 25t crane, forklift 5t, skylift 24m"></label>
       <label>From<input type="date" name="from" value="${a.from}"></label><label>To<input type="date" name="to" value="${a.to}"></label>
       <label>Time<select class="field" name="slot">${Object.entries(SLOTS).map(([k,v])=>`<option value="${k}" ${k===(a.slot||'full')?'selected':''}>${k==='full'?'Full day':k==='am'?'Morning':'Afternoon'} · ${v}</option>`).join('')}</select></label>
       <label>Family<select class="field" name="fam"><option value="">${need.fam?'From search: '+need.fam:'All families'}</option>${famList.map(f=>`<option ${f===a.fam?'selected':''}>${f}</option>`).join('')}</select></label>
@@ -1397,14 +1407,14 @@ function renderFleet2(){
   $('#v-fleet').innerHTML = `
     <div class="view-head"><h2>Fleet</h2><span class="muted">${Object.keys(fleet).length} machines</span></div>
     <div class="findbar">
-      <label style="flex:1 1 240px">Search<input type="search" id="fleetQ" value="${esc(f.q)}" placeholder="Fleet no., plate, model, or e.g. 50t crane"></label>
+      <label style="flex:1 1 240px">Search<input type="search" id="fleetQ" value="${esc(f.q)}" placeholder="Plate (e.g. BPN 8918), model, or 50t crane"></label>
       <label>Family<select class="field" id="fleetFam"><option value="">All families</option>${FAMILIES.map(x=>`<option ${x.k===f.fam?'selected':''}>${x.k}</option>`).join('')}</select></label>
-      <label>Sort by<select class="field" id="fleetSort">${Object.entries({cls:'Class and size',no:'Fleet no.',idle:'Idle longest',end:'Hire ends soonest'}).map(([k,v])=>`<option value="${k}" ${k===f.sort?'selected':''}>${v}</option>`).join('')}</select></label>
+      <label>Sort by<select class="field" id="fleetSort">${Object.entries({cls:'Class and size',no:'Plate',idle:'Idle longest',end:'Hire ends soonest'}).map(([k,v])=>`<option value="${k}" ${k===f.sort?'selected':''}>${v}</option>`).join('')}</select></label>
     </div>
     <div class="seg" style="align-self:flex-start;flex-wrap:wrap">${Object.entries(FLEET_ST).map(([k,v])=>`<button data-flst="${k}" aria-pressed="${f.st===k}">${v} <span class="muted num">${counts[k]}</span></button>`).join('')}</div>
-    <div class="tbl-wrap"><table><thead><tr><th>Fleet no.</th><th>Machine</th><th>Class</th><th>Status</th><th>Where / customer</th><th>Documents</th><th class="r boss">Revenue YTD</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table><thead><tr><th>Plate</th><th>Machine</th><th>Class</th><th>Status</th><th>Where / customer</th><th>Documents</th><th class="r boss">Revenue YTD</th></tr></thead><tbody>
     ${shown.map(({u,s,cls,di})=>{ const fl = fleet[u], wd = worstDoc(u);
-      return `<tr class="click" data-unit="${u}"><td class="mono"><b>${u}</b></td><td><b>${esc(uName(u))}</b><br><small class="muted">${esc(uRef(u))} · ${fl.year}</small></td><td><small>${esc(cls.label)}</small></td>
+      return `<tr class="click" data-unit="${u}"><td class="mono"><b>${u}</b></td><td><b>${esc(uName(u))}</b><br><small class="muted">${[mOf(u).type, uRef(u), fl.year].filter(Boolean).map(esc).join(' · ')}</small></td><td><small>${esc(cls.label)}</small></td>
       <td><span class="pill ${s.cls}">${esc(s.label)}</span>${s.k==='Available'&&s.idle!=null?`<br><small class="muted">idle ${s.idle} d</small>`:''}</td>
       <td>${s.h?`${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site.split(',')[0])}${s.l&&s.k==='On hire'?' · to '+fmtD(s.l.to):''}</small>`:s.note?esc(s.note):'Kempas yard'}</td>
       <td>${wd?docPill(wd[0],wd[1]):''}${di.length?'<br><span class="docwarn" style="display:inline">⚠ due in 60 days</span>':''}</td><td class="r num boss">${fl.ytd?RM0(fl.ytd.rev):'—'}</td></tr>`; }).join('') || '<tr><td colspan="7" class="muted">No machine matches.</td></tr>'}
@@ -1447,7 +1457,7 @@ document.addEventListener('submit', e => {
 });
 
 /* ---------- state ---------- */
-const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Truck crane 25 t', grp:'', start:'2026-10-16', q:'25t crane', fam:'', slot:'full', freeOnly:false, more:{}, open:{}}, fl:{q:'', fam:'', st:'', sort:'cls', page:1}, planQ:'', planFam:'', planCol:{}, planCompact:true, qq:null, qSeq:1094, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
+const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Truck crane 25 t', grp:'', start:'2026-10-16', q:'25t crane', fam:'', slot:'full', freeOnly:false, more:{}, open:{}}, fl:{q:'', fam:'', st:'', sort:'cls', page:1}, planQ:'', planFam:'', planCol:{}, planCompact:true, qq:null, qSeq:1094, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'JQA 5783', week:'2026-10-12', sheet:null, lastSheet:null};
 try{ const v = localStorage.getItem('spc-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
@@ -1529,7 +1539,7 @@ function renderToday(){
           </tbody></table></div></div>
         <div class="panel"><div class="panel-head"><h3>On hire now</h3><span class="muted">${onHire} machines</span></div>
           <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Machine</th><th>Customer · site</th><th>Hire</th><th>Since</th><th>Until</th></tr></thead><tbody>
-          ${st.filter(([,s])=>['On hire','Off-hire called'].includes(s.k)).sort((a,b)=>(a[1].k==='Off-hire called'?-1:0)-(b[1].k==='Off-hire called'?-1:0) || ((a[1].l.off||a[1].l.to)<(b[1].l.off||b[1].l.to)?-1:1)).slice(0,10).map(([u,s])=>`<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(uRef(u))}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${kindLabel(s.l.k)}<br><small class="muted">${basisLabel[s.l.basis]}${s.l.op?' · '+esc(staff[s.l.op].name):''}</small></td><td class="num">${fmtD(s.l.on)}</td><td class="num">${s.k==='Off-hire called'?'<span class="pill warn">Off-hire '+fmtD(s.l.off)+'</span>':fmtD(s.l.to)}</td></tr>`).join('')}
+          ${st.filter(([,s])=>['On hire','Off-hire called'].includes(s.k)).sort((a,b)=>(a[1].k==='Off-hire called'?-1:0)-(b[1].k==='Off-hire called'?-1:0) || ((a[1].l.off||a[1].l.to)<(b[1].l.off||b[1].l.to)?-1:1)).slice(0,10).map(([u,s])=>`<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(uRef(u)||mOf(u).type)}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${kindLabel(s.l.k)}<br><small class="muted">${basisLabel[s.l.basis]}${s.l.op?' · '+esc(staff[s.l.op].name):''}</small></td><td class="num">${fmtD(s.l.on)}</td><td class="num">${s.k==='Off-hire called'?'<span class="pill warn">Off-hire '+fmtD(s.l.off)+'</span>':fmtD(s.l.to)}</td></tr>`).join('')}
           </tbody></table></div></div>
       </div>
       <div class="rail">
@@ -1570,7 +1580,7 @@ function renderPlanner(){
     }); });
     workshop.filter(w=>w.u===u).forEach(w => bars.push(barHtml(daysBetween(G0,w.from), daysBetween(G0,w.to), 'ws', w.note.startsWith('Return')?'Repair':'Service', `data-unit="${u}"`, `${w.job} · ${w.note} · ${fmtD(w.from)}–${fmtD(w.to)}`)));
     breakdowns.filter(b=>b.u===u).forEach(b => { const i = daysBetween(G0,b.d); if(i>=0 && i<GN) bars.push(`<button class="bd" style="left:calc(var(--cw) * ${i})" data-hire="${b.hire}" title="Breakdown ${fmtD(b.d)}: ${esc(b.note)} (${b.hrs} h lost, ${b.job})" aria-label="Breakdown"></button>`); });
-    if(fleet[u].transport) allTrips().filter(t=>t.veh===u).forEach(t => bars.push(barHtml(daysBetween(G0,t.d), daysBetween(G0,t.d), 'trip', t.u.replace('-0',''), `data-hire="${t.hire}"`, `${fmtD(t.d)} · ${t.dir} ${t.u} · ${t.site} · ${staff[t.drv].name}`)));
+    if(fleet[u].transport) allTrips().filter(t=>t.veh===u).forEach(t => bars.push(barHtml(daysBetween(G0,t.d), daysBetween(G0,t.d), 'trip', t.u, `data-hire="${t.hire}"`, `${fmtD(t.d)} · ${t.dir} ${t.u} · ${t.site} · ${staff[t.drv].name}`)));
     else allTrips().filter(t=>t.u===u).forEach(t => { const i = daysBetween(G0,t.d); if(i>=0 && i<GN) bars.push(`<span class="tmark" style="left:calc(var(--cw) * ${i})" title="${t.dir} ${fmtD(t.d)}${t.veh?' by '+t.veh:' (self-drive)'} · ${esc(staff[t.drv].name)}"></span>`); });
     const r = res.find(x=>x.u===u);
     const cls = fType ? (r ? (r.ok ? 'hit' : 'miss') : 'dim') : '';
@@ -1587,7 +1597,7 @@ function renderPlanner(){
       <label>To<input type="date" name="to" value="${f.to}"></label>
       <button class="btn">Check</button>${fType?'<button class="btn" type="button" data-action="find-clear">Clear</button>':''}
     </form>
-    <div class="findbar"><label style="flex:1 1 240px">Show only<input type="search" id="planQ" value="${esc(state.planQ)}" placeholder="Fleet no., model, or e.g. 50t crane"></label>
+    <div class="findbar"><label style="flex:1 1 240px">Show only<input type="search" id="planQ" value="${esc(state.planQ)}" placeholder="Plate (e.g. BPN 8918), model, or 50t crane"></label>
       <label>Family<select class="field" id="planFam"><option value="">All families</option>${FAMILIES.map(x=>`<option ${x.k===state.planFam?'selected':''}>${x.k}</option>`).join('')}</select></label>
       <button class="btn" type="button" data-action="plan-colall">${Object.keys(GROUPS).every(g=>state.planCol[g])?'Expand all':'Collapse all'}</button>
       <label style="flex-direction:row;align-items:center;gap:8px;align-self:center"><input type="checkbox" id="planCompact" ${state.planCompact?'checked':''}> Compact rows</label></div>
@@ -1654,7 +1664,7 @@ function openHire(id){
     </div></div>
     <div class="sect"><h3>Machines</h3><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Machine</th><th>Hire</th><th class="cost">Rate</th><th>Operator</th><th>On hire</th><th>Off hire</th></tr></thead><tbody>
       ${h.lines.map(l=>{ const r = rate(lineModel(l), l.k)||{}; const main = {hour:r.hr,day:r.day,week:r.week,month:r.month}[l.basis];
-        return `<tr><td>${l.u?`<b>${l.u}</b> ${esc(uName(l.u))}<br><small class="muted">${esc(uRef(l.u))}</small>${warnHtml(docIssues(l.u, l.on||l.from, lineEnd(l)).map(x=>x.msg))}`:l.src==='peer'?`<span class="pill info">Cross-hire (同行车)</span> ${esc(models[l.m].type)}<br><small class="muted">from ${esc(l.peer?.s||'—')}</small><small class="cost muted"> · cost ${RM0(l.peer?.cost||0)}${l.price?` · charged ${RM0(l.price)} · margin ${RM0(l.price-(l.peer?.cost||0))}`:''}</small>`:`<span class="pill crit">Not assigned</span><br><small class="muted">${esc(models[l.m].type)}</small>`}${l.slot&&l.slot!=='full'?`<br><small class="muted">${SLOTS[l.slot]}</small>`:''}</td>
+        return `<tr><td>${l.u?`<b>${l.u}</b> ${esc(uName(l.u))}<br><small class="muted">${[mOf(l.u).type, uRef(l.u)].filter(Boolean).map(esc).join(' · ')}</small>${warnHtml(docIssues(l.u, l.on||l.from, lineEnd(l)).map(x=>x.msg))}`:l.src==='peer'?`<span class="pill info">Cross-hire (同行车)</span> ${esc(models[l.m].type)}<br><small class="muted">from ${esc(l.peer?.s||'—')}</small><small class="cost muted"> · cost ${RM0(l.peer?.cost||0)}${l.price?` · charged ${RM0(l.price)} · margin ${RM0(l.price-(l.peer?.cost||0))}`:''}</small>`:`<span class="pill crit">Not assigned</span><br><small class="muted">${esc(models[l.m].type)}</small>`}${l.slot&&l.slot!=='full'?`<br><small class="muted">${SLOTS[l.slot]}</small>`:''}</td>
         <td>${kindLabel(l.k)}<br><small class="muted">${basisLabel[l.basis]}</small></td>
         <td class="cost num">${RM0(main||0)} / ${({hour:'h',day:'day',week:'week',month:'month'})[l.basis]}${l.basis==='month'?`<br><small class="muted">${r.mHrs} h incl., then ${RM0(r.ex)}/h</small>`:l.basis==='hour'?`<br><small class="muted">min ${r.minH} h a day</small>`:l.k==='wet'?`<br><small class="muted">OT ${RM0(r.ot)}/h</small>`:''}</td>
         <td>${l.op?esc(staff[l.op].name):'<span class="muted">Customer\'s own</span>'}</td>
@@ -1722,7 +1732,7 @@ function openNewHire(){
           <label>From<input type="date" data-nh="from" value="${n.from}"></label>
           <label>To<input type="date" data-nh="to" value="${n.to}" ${n.open?'disabled':''}></label>
         </div>
-        <div class="pick">${units.map(x=>`<label class="${x.ok?(x.warn.length?'docbad':''):'no'}"><input type="radio" name="nhu" data-nh="u" value="${x.u}" ${x.u===n.u?'checked':''} ${x.ok?'':'disabled'}><span><b>${x.u} ${esc(uName(x.u))}</b> · ${esc(uRef(x.u))} ${x.ok?'<span class="pill ok">Free</span>':'<span class="pill crit">Not free</span>'}${x.ok&&x.warn.length?' <span class="pill crit">Document issue</span>':''}<small>${x.ok?Object.entries(fleet[x.u].docs).map(([k,e])=>docPill(k,e)).join(' '):x.why.map(esc).join(' · ')}</small>${x.ok?warnHtml(x.warn):''}</span></label>`).join('')}</div>
+        <div class="pick">${units.map(x=>`<label class="${x.ok?(x.warn.length?'docbad':''):'no'}"><input type="radio" name="nhu" data-nh="u" value="${x.u}" ${x.u===n.u?'checked':''} ${x.ok?'':'disabled'}><span><b>${x.u} ${esc(uName(x.u))}</b>${uRef(x.u)?' · '+esc(uRef(x.u)):''} ${x.ok?'<span class="pill ok">Free</span>':'<span class="pill crit">Not free</span>'}${x.ok&&x.warn.length?' <span class="pill crit">Document issue</span>':''}<small>${x.ok?Object.entries(fleet[x.u].docs).map(([k,e])=>docPill(k,e)).join(' '):x.why.map(esc).join(' · ')}</small>${x.ok?warnHtml(x.warn):''}</span></label>`).join('')}</div>
         ${n.u && units.find(x=>x.u===n.u)?.warn.length ? `<div class="banner crit"><b>${n.u}: ${units.find(x=>x.u===n.u).warn.map(esc).join(' · ')}. You can still book it. The Supervisor gets a follow-up to renew it, and the hire stays marked red until it is renewed.</b></div>` : ''}
         ${!n.u?'<div class="banner crit"><b>No machine of this type is free for these dates. Save as a quotation to keep the enquiry, change the dates, or pick another size.</b></div>':''}
       </div></div>
@@ -1769,8 +1779,8 @@ function saveNewHire(as){
   const isOrder = as==='Order'; if(isOrder) as = 'Quotation';
   const id = 'H-2026-0' + (Math.max(...hires.map(h=>+h.id.slice(-4)))+1);
   const self = models[n._mk].size==='self', trips = [];
-  if(n.del) trips.push({dir:'Delivery',d:n.from,u:n.u||'—',veh:self?null:'TR-02',drv:self?(n.op||'D2'):'D2',zone:n.zone,charge:n._tc,status:'Planned',self});
-  if(n.col && !n.open) trips.push({dir:'Collection',d:addDays(n.to,1),u:n.u||'—',veh:self?null:'TR-02',drv:self?(n.op||'D2'):'D2',zone:n.zone,charge:n._tc,status:'Planned',self});
+  if(n.del) trips.push({dir:'Delivery',d:n.from,u:n.u||'—',veh:self?null:'BKT 4410',drv:self?(n.op||'D2'):'D2',zone:n.zone,charge:n._tc,status:'Planned',self});
+  if(n.col && !n.open) trips.push({dir:'Collection',d:addDays(n.to,1),u:n.u||'—',veh:self?null:'BKT 4410',drv:self?(n.op||'D2'):'D2',zone:n.zone,charge:n._tc,status:'Planned',self});
   hires.push({id,c:n.c,site:n.site,state:n.state,siteContact:n.siteContact||customers[n.c].contact,po:n.po,status:as,created:TODAY,cycle:n.basis==='month'?'Monthly in arrears':'End of hire',
     quoteValid: as==='Quotation'?addDays(TODAY,7):undefined, deposit:n._deposit||undefined, depositPaid:false,
     lines:[{u:n.u,m:n._mk,k:n.k,basis:n.basis,from:n.from,to:n.open?OPEN_END:n.to,open:n.open||undefined,op:n.k==='wet'?n.op:undefined}], order:isOrder||undefined, check:{}, checkNote:{}, track:{},
@@ -1856,9 +1866,9 @@ function renderFleet(){
   const us = Object.keys(fleet).filter(u => !state.fleetGrp || mOf(u).grp===state.fleetGrp);
   $('#v-fleet').innerHTML = `
     <div class="view-head"><h2>Fleet</h2><div class="chipbar">${['',...Object.keys(GROUPS)].map(g=>`<button class="chip" data-fleetgrp="${g}" aria-pressed="${state.fleetGrp===g}">${g?esc(GROUPS[g]):'All'}</button>`).join('')}</div></div>
-    <div class="tbl-wrap"><table><thead><tr><th>Fleet no.</th><th>Machine</th><th>Status</th><th>Where / customer</th><th>Documents</th><th class="r">Hour meter</th><th class="r boss">Revenue YTD</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table><thead><tr><th>Plate</th><th>Machine</th><th>Status</th><th>Where / customer</th><th>Documents</th><th class="r">Hour meter</th><th class="r boss">Revenue YTD</th></tr></thead><tbody>
     ${us.map(u=>{ const s = unitStatus(u), f = fleet[u], wd = worstDoc(u);
-      return `<tr class="click" data-unit="${u}"><td class="mono"><b>${u}</b></td><td><b>${esc(uName(u))}</b><br><small class="muted">${esc(mOf(u).type)} · ${esc(uRef(u))} · ${f.year}</small></td>
+      return `<tr class="click" data-unit="${u}"><td class="mono"><b>${u}</b></td><td><b>${esc(uName(u))}</b><br><small class="muted">${[mOf(u).type, uRef(u), f.year].filter(Boolean).map(esc).join(' · ')}</small></td>
       <td><span class="pill ${s.cls}">${esc(s.label)}</span>${s.k==='Available'&&s.idle!=null?`<br><small class="muted">idle ${s.idle} d</small>`:''}</td>
       <td>${s.h?`${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}${s.l&&s.k==='On hire'?' · to '+fmtD(s.l.to):''}</small>`:s.note?esc(s.note):f.transport?'Kempas yard':'Kempas yard'}</td>
       <td>${wd?docPill(wd[0],wd[1]):''}</td><td class="r num">${f.hm?num(f.hm)+' h':'—'}</td><td class="r num boss">${f.ytd?RM0(f.ytd.rev):'—'}</td></tr>`; }).join('')}
@@ -1872,7 +1882,7 @@ function openUnit(u){
     <div class="sect"><div class="facts">
       <div><span class="label">Status</span><b><span class="pill ${s.cls}">${esc(s.label)}</span></b></div>
       <div><span class="label">Type</span><b>${esc(m.type)}</b></div>
-      <div><span class="label">${f.plate?'Plate':'Serial no.'}</span><b>${esc(uRef(u))}</b></div>
+      <div><span class="label">${f.plate?'Plate':'Serial no.'}</span><b>${esc(f.plate||f.serial)}</b></div>
       <div><span class="label">Year</span><b>${f.year}</b></div>
       <div><span class="label">Hour meter</span><b class="hm">${f.hm?num(f.hm):'—'}</b></div>
       ${f.transport?'':`<div><span class="label">Utilisation since 1 Jul</span><b>${util}%</b></div>`}
@@ -1895,7 +1905,7 @@ function openUnit(u){
       ${workshop.filter(w=>w.u===u).map(w=>`<div><b class="mono">${w.job}</b> ${fmtD(w.from)}–${fmtD(w.to)} · ${esc(w.note)}</div>`).join('')}
       ${breakdowns.filter(b=>b.u===u).map(b=>`<div><b class="mono">${b.job}</b> Breakdown on hire ${fmtD(b.d)}, ${b.hrs} h lost · ${esc(b.note)}</div>`).join('')}
       <small class="muted">Opens in the workshop app; service schedule and full history are on the machine page there.</small></div></div>`:''}`;
-  openSheet(`${u} · ${esc(uName(u))}`, `<span class="mono">${esc(uRef(u))}</span>`, body, {type:'unit',id:u});
+  openSheet(`${u} · ${esc(uName(u))}`, `<span class="mono">${esc(uRef(u)||mOf(u).type)}</span>`, body, {type:'unit',id:u});
 }
 
 /* ---------- Transport ---------- */
@@ -2105,12 +2115,12 @@ function renderReports(){
       </div></div>
       <div class="panel"><div class="panel-head"><h3>Lost enquiries</h3><span class="muted">since Aug</span></div><div class="tbl-wrap" style="border:0"><table><tbody>
         ${Object.entries(lostBy).sort((a,b)=>b[1].n-a[1].n).map(([t,v])=>`<tr><td><b>${esc(t)}</b><br><small class="muted">${Object.entries(v.why).map(([w,n])=>`${n} × ${esc(w.toLowerCase())}`).join(', ')}</small></td><td class="r num"><b>${v.n}</b></td></tr>`).join('')}
-      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">Three 50 t crane jobs were lost because RC-01 was out: worth pricing a second 50 t crane or a cross-hire partner.</small></div></div>
+      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">Three 50 t crane jobs were lost because WVX 5501 was out: worth pricing a second 50 t crane or a cross-hire partner.</small></div></div>
     </div>
     <div class="panel"><div class="panel-head"><h3>Profit per machine</h3><span class="muted">workshop cost comes from workshop jobs on the machine</span></div>
       <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Machine</th><th class="r">Hire revenue</th><th class="r">Workshop cost</th><th class="r">Operator & transport</th><th class="r">Contribution</th><th class="r">Utilisation</th><th class="r">Revenue / purchase cost (yearly)</th></tr></thead><tbody>
         ${prof.map(p=>`<tr class="click" data-unit="${p.u}"><td><b>${p.u}</b> ${esc(uName(p.u))}</td><td class="r num">${RM0(p.rev)}</td><td class="r num ${p.ws/p.rev>0.25?'stock-low':''}">${RM0(p.ws)}</td><td class="r num">${RM0(p.opx)}</td><td class="r num"><b>${RM0(p.contrib)}</b></td><td class="r num">${p.util}%</td><td class="r num">${p.roc}%</td></tr>`).join('')}
-      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">TC-02 (2009) spent ${Math.round(fleet['TC-02'].ytd.ws/fleet['TC-02'].ytd.rev*100)}% of its revenue in the workshop, and its CF is due on 30 Oct. A candidate to replace.</small></div></div>`;
+      </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">BMG 8858 (2009) spent ${Math.round(fleet['BMG 8858'].ytd.ws/fleet['BMG 8858'].ytd.rev*100)}% of its revenue in the workshop, and its CF is due on 30 Oct. A candidate to replace.</small></div></div>`;
 }
 
 /* ---------- people ---------- */
@@ -2155,7 +2165,7 @@ let enquiries = [
   {id:'E-2026-0231',at:'2026-10-16 08:20',src:'WhatsApp',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Truck crane 25 t',qty:1,k:'wet',from:'2026-10-26',to:'2026-10-30',site:'Eco Botanic, Iskandar Puteri',state:'Johor',stage:'New',owner:'S2',temp:'Hot',
    notes:'Lifting precast beams, heaviest 3.2 t at 18 m radius, set 12 m high. Site needs the crane CF copy and operator DOSH card.',lift:{w:3.2,r:18,h:12},log:[{d:'2026-10-16 08:20',t:'WhatsApp from Mr. Ong: 25 t truck crane 26–30 Oct.'}]},
   {id:'E-2026-0230',at:'2026-10-15 15:30',src:'Phone',c:'C1',need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-11-02',to:'2026-11-13',site:'Senai Airport City warehouse project, Senai',state:'Johor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0160',
-   notes:'Second crane for roof steel. Our only 50 t (RC-01) is already on their site.',log:[{d:'2026-10-15 15:40',t:'Quotation H-2026-0160 started; no 50 t free.'},{d:'2026-10-15 15:30',t:'Call from Mr. Lim.'}]},
+   notes:'Second crane for roof steel. Our only 50 t (WVX 5501) is already on their site.',log:[{d:'2026-10-15 15:40',t:'Quotation H-2026-0160 started; no 50 t free.'},{d:'2026-10-15 15:30',t:'Call from Mr. Lim.'}]},
   {id:'E-2026-0229',at:'2026-10-15 11:05',src:'Phone',c:'C5',need:'Generator 150 kVA',qty:1,k:'dry',from:'2026-11-02',to:'2026-12-31',site:'Taman Daya drainage works, Johor Bahru',state:'Johor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0161',
    notes:'Site office and pumps.',log:[{d:'2026-10-16 08:50',t:'Quotation H-2026-0161 sent by WhatsApp.'}]},
   {id:'E-2026-0228',at:'2026-10-14 10:10',src:'Website form',prospect:{name:'Ikhlas Plantation Sdn Bhd',contact:'En. Hairul Nizam',phone:'013-920 1188'},need:'Excavator 20 t',qty:2,k:'dry',from:'2026-11-09',to:'2027-02-08',site:'Ladang Sungai Tiram, Ulu Tiram',state:'Johor',stage:'Site visit',owner:'S2',temp:'Hot',
@@ -2181,7 +2191,7 @@ const openStage = e => !['Won','Lost'].includes(e.stage);
 let tasks = [
   {id:1,d:'2026-10-16',time:'10:00',type:'Call',who:'S2',enq:'E-2026-0231',t:'Call Mr. Ong back: load weights, radius and site access for the 25 t truck crane'},
   {id:2,d:'2026-10-16',time:'11:30',type:'WhatsApp',who:'S2',enq:'E-2026-0227',cust:'C7',t:'Reply Mr. Ravi on the 10% discount (up to 5% without the Head Manager)'},
-  {id:3,d:'2026-10-15',time:'16:00',type:'Call',who:'S2',enq:'E-2026-0230',cust:'C1',t:'Bina Jaya 50 t: offer the free 60 t GR-600N-1 (RC-02) or a 50 t truck crane'},
+  {id:3,d:'2026-10-15',time:'16:00',type:'Call',who:'S2',enq:'E-2026-0230',cust:'C1',t:'Bina Jaya 50 t: offer the free 60 t GR-600N-1 (JYR 2138) or a 50 t truck crane'},
   {id:4,d:'2026-10-19',time:'09:30',type:'Site visit',who:'S1',enq:'E-2026-0228',t:'Site visit Ladang Sungai Tinggi with En. Hairul: ground and lowloader access'},
   {id:5,d:'2026-10-20',time:'10:00',type:'Send documents',who:'HM',enq:'E-2026-0226',t:'Send company profile, BL-01 CF and insurance for the tender'},
   {id:6,d:'2026-10-14',type:'Chase PO',who:'S2',enq:'E-2026-0225',cust:'C6',t:'Get the LOU from Lian Hup before booking',done:true,doneAt:'2026-10-14',note:'LOU received by e-mail.'},
@@ -2435,9 +2445,9 @@ let events = [
   {d:'2026-10-09',time:'08:00',type:'Company',t:'Toolbox talk: lifting near power lines'},
   {d:'2026-10-17',time:'08:00',type:'Company',t:'Monthly safety briefing, all operators and drivers (yard)'},
   {d:'2026-10-20',time:'10:30',type:'Meeting',t:'Bina Jaya site progress meeting, Senai',cust:'C1'},
-  {d:'2026-10-22',time:'10:00',type:'Inspection',t:'DOSH CF inspection: TC-02 at the yard',unit:'TC-02'},
+  {d:'2026-10-22',time:'10:00',type:'Inspection',t:'DOSH CF inspection: BMG 8858 at the yard',unit:'BMG 8858'},
   {d:'2026-10-24',time:'08:30',type:'Training',t:'CIDB green card renewal course: Azman bin Yusof'},
-  {d:'2026-10-27',time:'09:00',type:'Inspection',t:'Puspakom inspection: TR-01',unit:'TR-01'},
+  {d:'2026-10-27',time:'09:00',type:'Inspection',t:'Puspakom inspection: WPL 8812',unit:'WPL 8812'},
   {d:'2026-10-30',time:'15:00',type:'Company',t:'Month-end planning meeting: fleet, staff and billing'},
   {d:'2026-11-05',time:'14:00',type:'Meeting',t:'Kuari Ulu Choh contract renewal (EX-02 from Dec)',cust:'C2'},
 ];
@@ -2633,18 +2643,18 @@ function sampleChart(booms, maxT, K, h0, a, hook){
   return {booms, rows, h0, a, hook, maxT, cfg:'Outriggers fully extended, 360°, full counterweight, on firm level ground', verified:false, source:'Sample values for the prototype — not from the manufacturer', pdf:''};
 }
 let charts = {
-  'TC-05':{booms:[9.5, 16.5, 23.5], rows:[{"r": 3.0, "caps": [16.0, 10.0, null]}, {"r": 3.5, "caps": [13.55, 10.0, null]}, {"r": 4.0, "caps": [12.0, 10.0, null]}, {"r": 4.5, "caps": [10.75, 10.0, null]}, {"r": 5.0, "caps": [9.6, 9.6, 5.5]}, {"r": 5.5, "caps": [8.25, 8.25, 5.5]}, {"r": 6.0, "caps": [7.2, 7.2, 5.5]}, {"r": 6.5, "caps": [6.4, 6.4, 5.5]}, {"r": 7.0, "caps": [5.75, 5.75, 5.5]}, {"r": 7.4, "caps": [5.25, 5.25, 5.25]}, {"r": 8.0, "caps": [4.6, 4.6, 4.6]}, {"r": 8.5, "caps": [null, 4.2, 4.2]}, {"r": 9.0, "caps": [null, 3.8, 3.8]}, {"r": 10.0, "caps": [null, 3.25, 3.25]}, {"r": 11.0, "caps": [null, 2.75, 2.75]}, {"r": 12.0, "caps": [null, 2.4, 2.4]}, {"r": 13.0, "caps": [null, 2.0, 2.0]}, {"r": 14.0, "caps": [null, 1.8, 1.8]}, {"r": 16.0, "caps": [null, null, 1.3]}, {"r": 18.0, "caps": [null, null, 1.05]}, {"r": 20.0, "caps": [null, null, 0.75]}, {"r": 22.0, "caps": [null, null, 0.55]}], h0:1.9, a:0.5, hook:0.25, maxT:16, cfg:"Outriggers fully extended, over side and over rear", verified:false, transcribed:true, source:"Kato NK-160 rated lifting capacities (scan). Values include hook block. Hook 16 t: 250 kg. Main hook radius limit 22 m.", pdf:"KATO_NK160-B2.pdf"},
-  'TC-06':{booms:[10.2, 18.2, 26.2], rows:[{"r": 2.5, "caps": [20.0, null, null]}, {"r": 3.0, "caps": [20.0, null, null]}, {"r": 3.5, "caps": [17.5, 12.0, null]}, {"r": 4.0, "caps": [15.5, 12.0, null]}, {"r": 4.5, "caps": [13.9, 12.0, null]}, {"r": 5.0, "caps": [12.5, 12.0, 7.0]}, {"r": 5.5, "caps": [10.7, 10.5, 7.0]}, {"r": 6.0, "caps": [9.5, 9.5, 7.0]}, {"r": 6.5, "caps": [8.5, 8.6, 7.0]}, {"r": 7.0, "caps": [7.7, 7.9, 7.0]}, {"r": 7.5, "caps": [6.95, 7.25, 6.5]}, {"r": 8.0, "caps": [6.25, 6.75, 6.05]}, {"r": 8.5, "caps": [5.6, 6.25, 5.6]}, {"r": 9.0, "caps": [null, 5.75, 5.3]}, {"r": 9.5, "caps": [null, 5.35, 5.0]}, {"r": 10.0, "caps": [null, 4.9, 4.75]}, {"r": 11.0, "caps": [null, 4.15, 4.1]}, {"r": 12.0, "caps": [null, 3.55, 3.5]}, {"r": 13.0, "caps": [null, 3.1, 3.0]}, {"r": 14.0, "caps": [null, 2.7, 2.6]}, {"r": 15.0, "caps": [null, 2.3, 2.25]}, {"r": 16.0, "caps": [null, 2.0, 2.0]}, {"r": 16.5, "caps": [null, 1.85, 1.8]}, {"r": 17.0, "caps": [null, null, 1.75]}, {"r": 18.0, "caps": [null, null, 1.55]}, {"r": 19.0, "caps": [null, null, 1.35]}, {"r": 20.0, "caps": [null, null, 1.2]}, {"r": 21.0, "caps": [null, null, 1.05]}, {"r": 22.0, "caps": [null, null, 0.9]}, {"r": 23.0, "caps": [null, null, 0.8]}, {"r": 24.0, "caps": [null, null, 0.7]}, {"r": 24.5, "caps": [null, null, 0.65]}], h0:1.9, a:0.5, hook:0.23, maxT:20, cfg:"Fully extended outriggers, over side and over rear (360\u00b0 needs optional front jack)", verified:false, transcribed:true, source:"Kato NK-200E-III rated lifting capacity (1) (scan). Values include hook block. Hook 20 t: 230 kg.", pdf:"KATO_NK200E-3_LOAD_CHART.pdf"},
-  'TC-01':sampleChart([10.0,15.5,21.0,26.5,32.0], 25, 98, 2.4, 0.9, 0.30),
-  'TC-02':sampleChart([11.0,17.0,23.0,29.0,35.0,40.0], 45, 190, 2.5, 1.0, 0.45),
-  'RC-01':{booms:[10.2, 17.4, 23.6, 24.6, 31.8, 39.0], rows:[{"r": 2.9, "caps": [51.0, null, null, null, null, null]}, {"r": 3.0, "caps": [50.0, 28.0, 22.0, 20.0, null, null]}, {"r": 3.2, "caps": [45.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 3.5, "caps": [41.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 3.75, "caps": [38.9, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 4.0, "caps": [37.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 4.5, "caps": [33.5, 28.0, 22.0, 20.0, 14.0, 7.6]}, {"r": 5.0, "caps": [30.2, 28.0, 22.0, 20.0, 14.0, 7.6]}, {"r": 5.5, "caps": [27.5, 26.1, 22.0, 20.0, 14.0, 7.6]}, {"r": 6.0, "caps": [25.0, 24.4, 20.5, 20.0, 14.0, 7.6]}, {"r": 6.5, "caps": [22.7, 22.4, 19.2, 18.8, 14.0, 7.6]}, {"r": 7.0, "caps": [20.7, 20.6, 18.1, 17.7, 13.6, 7.6]}, {"r": 7.2, "caps": [11.5, 20.0, 17.7, 17.3, 13.45, 7.6]}, {"r": 7.5, "caps": [null, 18.9, 17.0, 16.6, 13.1, 7.6]}, {"r": 8.0, "caps": [null, 17.5, 16.1, 15.7, 12.6, 7.6]}, {"r": 8.5, "caps": [null, 16.2, 15.2, 14.8, 12.05, 7.6]}, {"r": 9.0, "caps": [null, 15.0, 14.4, 14.0, 11.5, 7.6]}, {"r": 9.5, "caps": [null, 14.0, 13.5, 13.2, 11.0, 7.6]}, {"r": 10.0, "caps": [null, 13.1, 12.7, 12.4, 10.5, 7.6]}, {"r": 11.0, "caps": [null, 11.1, 11.1, 11.0, 9.6, 7.1]}, {"r": 12.0, "caps": [null, 9.35, 9.3, 9.25, 8.8, 6.6]}, {"r": 13.0, "caps": [null, 7.9, 7.8, 7.75, 8.1, 6.15]}, {"r": 14.0, "caps": [null, 6.8, 6.7, 6.65, 7.5, 5.75]}, {"r": 14.4, "caps": [null, 4.0, 6.3, 6.25, 7.1, 5.6]}, {"r": 15.0, "caps": [null, null, 5.75, 5.7, 6.55, 5.35]}, {"r": 16.0, "caps": [null, null, 5.0, 4.95, 5.75, 5.0]}, {"r": 17.0, "caps": [null, null, 4.35, 4.3, 5.05, 4.7]}, {"r": 18.0, "caps": [null, null, 3.8, 3.75, 4.45, 4.4]}, {"r": 19.0, "caps": [null, null, 3.25, 3.2, 3.9, 4.2]}, {"r": 20.0, "caps": [null, null, 2.75, 2.7, 3.45, 4.0]}, {"r": 20.6, "caps": [null, null, 2.5, 2.45, 3.2, 3.8]}, {"r": 21.0, "caps": [null, null, null, 2.3, 3.05, 3.6]}, {"r": 21.6, "caps": [null, null, null, 2.1, 2.9, 3.4]}, {"r": 22.0, "caps": [null, null, null, null, 2.75, 3.25]}, {"r": 23.0, "caps": [null, null, null, null, 2.4, 2.9]}, {"r": 24.0, "caps": [null, null, null, null, 2.05, 2.6]}, {"r": 25.0, "caps": [null, null, null, null, 1.75, 2.3]}, {"r": 26.0, "caps": [null, null, null, null, 1.5, 2.05]}, {"r": 27.0, "caps": [null, null, null, null, 1.25, 1.8]}, {"r": 28.0, "caps": [null, null, null, null, 1.05, 1.55]}, {"r": 28.8, "caps": [null, null, null, null, 0.9, 1.4]}, {"r": 29.0, "caps": [null, null, null, null, null, 1.35]}, {"r": 30.0, "caps": [null, null, null, null, null, 1.15]}, {"r": 31.0, "caps": [null, null, null, null, null, 1.0]}, {"r": 32.0, "caps": [null, null, null, null, null, 0.85]}, {"r": 33.0, "caps": [null, null, null, null, null, 0.7]}, {"r": 34.0, "caps": [null, null, null, null, null, 0.55]}], h0:2.0, a:0.3, hook:0.43, maxT:51, cfg:"Outriggers in 7.4 m position, whole around (360\u00b0)", verified:false, hooks:[0.43,0.43,0.30,0.30,0.30,0.30], transcribed:true, source:"Kobelco RK500-2 p.380 (scan). Ratings include hook block. Hook 51 t: 430 kg (25 t hook 300 kg on 23.6 m+ boom).", pdf:"KOBELCO_RK500-2.pdf"},
-  'TC-03':sampleChart([11.0,17.5,24.0,30.5,37.0,43.0], 50, 215, 2.5, 1.0, 0.50),
-  'TC-04':sampleChart([11.0,17.4,23.8,30.2,36.6,43.0], 50, 212, 2.5, 1.0, 0.50),
-  'RC-02':sampleChart([10.6,17.0,23.4,29.8,36.2,42.6], 60, 260, 2.3, 0.6, 0.60),
-  'AT-01':sampleChart([10.7,17.0,23.4,29.8,36.2,42.6,48.0], 60, 270, 2.4, 0.9, 0.60),
-  'MC-01':{booms:[10.0, 16.9, 23.8, 30.7, 37.6, 41.5, 44.5], rows:[{"r": 2.5, "caps": [70.0, 32.0, 25.0, 12.5, null, null, null]}, {"r": 3.0, "caps": [61.0, 32.0, 25.0, 12.5, null, null, null]}, {"r": 3.5, "caps": [55.0, 32.0, 25.0, 12.5, 12.0, null, null]}, {"r": 4.0, "caps": [49.2, 32.0, 25.0, 12.5, 12.0, 10.0, null]}, {"r": 4.5, "caps": [44.1, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 5.0, "caps": [39.5, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 5.5, "caps": [35.7, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 6.0, "caps": [32.5, 32.0, 23.4, 12.5, 12.0, 10.0, 8.0]}, {"r": 6.5, "caps": [29.5, 29.0, 22.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 7.0, "caps": [26.8, 26.4, 20.7, 12.5, 12.0, 10.0, 8.0]}, {"r": 7.5, "caps": [null, 24.0, 19.5, 12.5, 12.0, 10.0, 8.0]}, {"r": 8.0, "caps": [null, 22.0, 18.5, 12.5, 12.0, 10.0, 8.0]}, {"r": 9.0, "caps": [null, 17.45, 16.6, 12.5, 12.0, 10.0, 8.0]}, {"r": 10.0, "caps": [null, 14.0, 13.85, 12.5, 12.0, 10.0, 8.0]}, {"r": 11.0, "caps": [null, 11.45, 11.3, 12.0, 11.1, 10.0, 8.0]}, {"r": 12.0, "caps": [null, 9.55, 9.4, 10.45, 10.2, 9.4, 8.0]}, {"r": 13.0, "caps": [null, 8.05, 7.9, 8.9, 9.4, 8.7, 8.0]}, {"r": 14.0, "caps": [null, null, 6.65, 7.65, 8.2, 8.0, 7.5]}, {"r": 15.0, "caps": [null, null, 5.6, 6.65, 7.2, 7.4, 7.0]}, {"r": 16.0, "caps": [null, null, 4.75, 5.75, 6.3, 6.55, 6.6]}, {"r": 17.0, "caps": [null, null, 4.0, 5.0, 5.55, 5.8, 5.95]}, {"r": 18.0, "caps": [null, null, 3.35, 4.3, 4.9, 5.15, 5.3]}, {"r": 19.0, "caps": [null, null, 2.8, 3.75, 4.3, 4.55, 4.75]}, {"r": 20.0, "caps": [null, null, 2.3, 3.25, 3.8, 4.0, 4.2]}, {"r": 21.0, "caps": [null, null, null, 2.8, 3.35, 3.55, 3.75]}, {"r": 22.0, "caps": [null, null, null, 2.4, 2.95, 3.15, 3.35]}, {"r": 24.0, "caps": [null, null, null, 1.75, 2.25, 2.5, 2.65]}, {"r": 26.0, "caps": [null, null, null, 1.2, 1.7, 1.9, 2.05]}, {"r": 28.0, "caps": [null, null, null, null, 1.25, 1.45, 1.6]}, {"r": 30.0, "caps": [null, null, null, null, 0.85, 1.05, 1.2]}, {"r": 32.0, "caps": [null, null, null, null, null, 0.7, 0.85]}, {"r": 33.0, "caps": [null, null, null, null, null, 0.55, 0.7]}, {"r": 34.0, "caps": [null, null, null, null, null, null, 0.55]}], h0:1.3, a:0.0, hook:0.53, maxT:70, cfg:"Outriggers fully extended (7.6 m), over side and over rear", verified:false, hooks:[0.53,0.47,0.33,0.33,0.33,0.33,0.33], transcribed:true, source:"Kato SL-700R chart p.2 (text). Values include main hook and slings. Hook 70 t: 530 kg (34 t hook 330 kg on 23.8 m+ boom).", pdf:"KATO_SL700R_LOAD_CHART.pdf"},
-  'MC-02':sampleChart([12.5,20.5,28.5,36.5,44.5,52.5,60.0], 110, 520, 2.8, 1.0, 1.10),
-  'MC-03':{booms:[11.8, 19.8, 27.88, 35.9, 44.0, 48.0, 52.0], rows:[{"r": 2.5, "caps": [70.0, null, null, null, null, null, null]}, {"r": 3.0, "caps": [70.0, 50.0, null, null, null, null, null]}, {"r": 3.5, "caps": [70.0, 50.0, null, null, null, null, null]}, {"r": 4.0, "caps": [70.0, 50.0, 35.0, null, null, null, null]}, {"r": 4.5, "caps": [70.0, 50.0, 35.0, null, null, null, null]}, {"r": 5.0, "caps": [70.0, 50.0, 35.0, 24.0, null, null, null]}, {"r": 6.0, "caps": [64.5, 50.0, 35.0, 24.0, null, null, null]}, {"r": 7.0, "caps": [54.0, 50.0, 35.0, 24.0, 17.0, 14.0, null]}, {"r": 8.0, "caps": [46.0, 46.0, 35.0, 24.0, 17.0, 14.0, 12.0]}, {"r": 9.0, "caps": [40.0, 40.0, 35.0, 24.0, 17.0, 14.0, 12.0]}, {"r": 10.0, "caps": [null, 35.5, 33.7, 24.0, 17.0, 14.0, 12.0]}, {"r": 12.0, "caps": [null, 28.5, 27.8, 23.2, 17.0, 14.0, 12.0]}, {"r": 14.0, "caps": [null, 22.0, 21.8, 20.7, 15.8, 14.0, 12.0]}, {"r": 16.0, "caps": [null, 17.2, 17.1, 18.4, 14.0, 14.0, 12.0]}, {"r": 18.0, "caps": [null, null, 13.6, 15.3, 12.6, 13.1, 12.0]}, {"r": 20.0, "caps": [null, null, 10.9, 12.5, 11.5, 11.7, 11.0]}, {"r": 22.0, "caps": [null, null, 8.8, 10.4, 10.5, 10.4, 9.8]}, {"r": 24.0, "caps": [null, null, 7.1, 8.7, 9.6, 9.3, 8.8]}, {"r": 26.0, "caps": [null, null, null, 7.3, 8.2, 8.4, 7.9]}, {"r": 28.0, "caps": [null, null, null, 6.0, 7.0, 7.3, 7.1]}, {"r": 30.0, "caps": [null, null, null, 4.8, 6.0, 6.3, 6.5]}, {"r": 32.0, "caps": [null, null, null, 3.8, 5.0, 5.4, 5.6]}, {"r": 34.0, "caps": [null, null, null, null, 4.0, 4.5, 4.8]}, {"r": 36.0, "caps": [null, null, null, null, 3.2, 3.7, 4.0]}, {"r": 38.0, "caps": [null, null, null, null, 2.5, 2.9, 3.3]}, {"r": 40.0, "caps": [null, null, null, null, 1.9, 2.3, 2.7]}, {"r": 42.0, "caps": [null, null, null, null, 1.4, 1.8, 2.1]}, {"r": 44.0, "caps": [null, null, null, null, null, 1.3, 1.6]}, {"r": 46.0, "caps": [null, null, null, null, null, null, 1.1]}], h0:2.6, a:0.5, hook:0.9, maxT:130, cfg:"A1: outriggers max (8.4 m), 360\u00b0, counterweight on. Heavy-lift attachment column (to 130 t) not included", verified:false, hooks:[0.9,0.6,0.6,0.6,0.6,0.6,0.6], transcribed:true, source:"Kato KA-1300SL p.364 A1 table (scan, Japanese). \u5b9a\u683c\u7dcf\u8377\u91cd = rated total load, includes hook. Hook 70 t: 0.9 t (50 t hook 0.6 t on 19.8 m+ boom).", pdf:"KATO_KA1300SL_LOAD_CHART.pdf"},
+  'WEH 1567':{booms:[9.5, 16.5, 23.5], rows:[{"r": 3.0, "caps": [16.0, 10.0, null]}, {"r": 3.5, "caps": [13.55, 10.0, null]}, {"r": 4.0, "caps": [12.0, 10.0, null]}, {"r": 4.5, "caps": [10.75, 10.0, null]}, {"r": 5.0, "caps": [9.6, 9.6, 5.5]}, {"r": 5.5, "caps": [8.25, 8.25, 5.5]}, {"r": 6.0, "caps": [7.2, 7.2, 5.5]}, {"r": 6.5, "caps": [6.4, 6.4, 5.5]}, {"r": 7.0, "caps": [5.75, 5.75, 5.5]}, {"r": 7.4, "caps": [5.25, 5.25, 5.25]}, {"r": 8.0, "caps": [4.6, 4.6, 4.6]}, {"r": 8.5, "caps": [null, 4.2, 4.2]}, {"r": 9.0, "caps": [null, 3.8, 3.8]}, {"r": 10.0, "caps": [null, 3.25, 3.25]}, {"r": 11.0, "caps": [null, 2.75, 2.75]}, {"r": 12.0, "caps": [null, 2.4, 2.4]}, {"r": 13.0, "caps": [null, 2.0, 2.0]}, {"r": 14.0, "caps": [null, 1.8, 1.8]}, {"r": 16.0, "caps": [null, null, 1.3]}, {"r": 18.0, "caps": [null, null, 1.05]}, {"r": 20.0, "caps": [null, null, 0.75]}, {"r": 22.0, "caps": [null, null, 0.55]}], h0:1.9, a:0.5, hook:0.25, maxT:16, cfg:"Outriggers fully extended, over side and over rear", verified:false, transcribed:true, source:"Kato NK-160 rated lifting capacities (scan). Values include hook block. Hook 16 t: 250 kg. Main hook radius limit 22 m.", pdf:"KATO_NK160-B2.pdf"},
+  'JES 4923':{booms:[10.2, 18.2, 26.2], rows:[{"r": 2.5, "caps": [20.0, null, null]}, {"r": 3.0, "caps": [20.0, null, null]}, {"r": 3.5, "caps": [17.5, 12.0, null]}, {"r": 4.0, "caps": [15.5, 12.0, null]}, {"r": 4.5, "caps": [13.9, 12.0, null]}, {"r": 5.0, "caps": [12.5, 12.0, 7.0]}, {"r": 5.5, "caps": [10.7, 10.5, 7.0]}, {"r": 6.0, "caps": [9.5, 9.5, 7.0]}, {"r": 6.5, "caps": [8.5, 8.6, 7.0]}, {"r": 7.0, "caps": [7.7, 7.9, 7.0]}, {"r": 7.5, "caps": [6.95, 7.25, 6.5]}, {"r": 8.0, "caps": [6.25, 6.75, 6.05]}, {"r": 8.5, "caps": [5.6, 6.25, 5.6]}, {"r": 9.0, "caps": [null, 5.75, 5.3]}, {"r": 9.5, "caps": [null, 5.35, 5.0]}, {"r": 10.0, "caps": [null, 4.9, 4.75]}, {"r": 11.0, "caps": [null, 4.15, 4.1]}, {"r": 12.0, "caps": [null, 3.55, 3.5]}, {"r": 13.0, "caps": [null, 3.1, 3.0]}, {"r": 14.0, "caps": [null, 2.7, 2.6]}, {"r": 15.0, "caps": [null, 2.3, 2.25]}, {"r": 16.0, "caps": [null, 2.0, 2.0]}, {"r": 16.5, "caps": [null, 1.85, 1.8]}, {"r": 17.0, "caps": [null, null, 1.75]}, {"r": 18.0, "caps": [null, null, 1.55]}, {"r": 19.0, "caps": [null, null, 1.35]}, {"r": 20.0, "caps": [null, null, 1.2]}, {"r": 21.0, "caps": [null, null, 1.05]}, {"r": 22.0, "caps": [null, null, 0.9]}, {"r": 23.0, "caps": [null, null, 0.8]}, {"r": 24.0, "caps": [null, null, 0.7]}, {"r": 24.5, "caps": [null, null, 0.65]}], h0:1.9, a:0.5, hook:0.23, maxT:20, cfg:"Fully extended outriggers, over side and over rear (360\u00b0 needs optional front jack)", verified:false, transcribed:true, source:"Kato NK-200E-III rated lifting capacity (1) (scan). Values include hook block. Hook 20 t: 230 kg.", pdf:"KATO_NK200E-3_LOAD_CHART.pdf"},
+  'JQA 5783':sampleChart([10.0,15.5,21.0,26.5,32.0], 25, 98, 2.4, 0.9, 0.30),
+  'BMG 8858':sampleChart([11.0,17.0,23.0,29.0,35.0,40.0], 45, 190, 2.5, 1.0, 0.45),
+  'WVX 5501':{booms:[10.2, 17.4, 23.6, 24.6, 31.8, 39.0], rows:[{"r": 2.9, "caps": [51.0, null, null, null, null, null]}, {"r": 3.0, "caps": [50.0, 28.0, 22.0, 20.0, null, null]}, {"r": 3.2, "caps": [45.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 3.5, "caps": [41.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 3.75, "caps": [38.9, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 4.0, "caps": [37.0, 28.0, 22.0, 20.0, 14.0, null]}, {"r": 4.5, "caps": [33.5, 28.0, 22.0, 20.0, 14.0, 7.6]}, {"r": 5.0, "caps": [30.2, 28.0, 22.0, 20.0, 14.0, 7.6]}, {"r": 5.5, "caps": [27.5, 26.1, 22.0, 20.0, 14.0, 7.6]}, {"r": 6.0, "caps": [25.0, 24.4, 20.5, 20.0, 14.0, 7.6]}, {"r": 6.5, "caps": [22.7, 22.4, 19.2, 18.8, 14.0, 7.6]}, {"r": 7.0, "caps": [20.7, 20.6, 18.1, 17.7, 13.6, 7.6]}, {"r": 7.2, "caps": [11.5, 20.0, 17.7, 17.3, 13.45, 7.6]}, {"r": 7.5, "caps": [null, 18.9, 17.0, 16.6, 13.1, 7.6]}, {"r": 8.0, "caps": [null, 17.5, 16.1, 15.7, 12.6, 7.6]}, {"r": 8.5, "caps": [null, 16.2, 15.2, 14.8, 12.05, 7.6]}, {"r": 9.0, "caps": [null, 15.0, 14.4, 14.0, 11.5, 7.6]}, {"r": 9.5, "caps": [null, 14.0, 13.5, 13.2, 11.0, 7.6]}, {"r": 10.0, "caps": [null, 13.1, 12.7, 12.4, 10.5, 7.6]}, {"r": 11.0, "caps": [null, 11.1, 11.1, 11.0, 9.6, 7.1]}, {"r": 12.0, "caps": [null, 9.35, 9.3, 9.25, 8.8, 6.6]}, {"r": 13.0, "caps": [null, 7.9, 7.8, 7.75, 8.1, 6.15]}, {"r": 14.0, "caps": [null, 6.8, 6.7, 6.65, 7.5, 5.75]}, {"r": 14.4, "caps": [null, 4.0, 6.3, 6.25, 7.1, 5.6]}, {"r": 15.0, "caps": [null, null, 5.75, 5.7, 6.55, 5.35]}, {"r": 16.0, "caps": [null, null, 5.0, 4.95, 5.75, 5.0]}, {"r": 17.0, "caps": [null, null, 4.35, 4.3, 5.05, 4.7]}, {"r": 18.0, "caps": [null, null, 3.8, 3.75, 4.45, 4.4]}, {"r": 19.0, "caps": [null, null, 3.25, 3.2, 3.9, 4.2]}, {"r": 20.0, "caps": [null, null, 2.75, 2.7, 3.45, 4.0]}, {"r": 20.6, "caps": [null, null, 2.5, 2.45, 3.2, 3.8]}, {"r": 21.0, "caps": [null, null, null, 2.3, 3.05, 3.6]}, {"r": 21.6, "caps": [null, null, null, 2.1, 2.9, 3.4]}, {"r": 22.0, "caps": [null, null, null, null, 2.75, 3.25]}, {"r": 23.0, "caps": [null, null, null, null, 2.4, 2.9]}, {"r": 24.0, "caps": [null, null, null, null, 2.05, 2.6]}, {"r": 25.0, "caps": [null, null, null, null, 1.75, 2.3]}, {"r": 26.0, "caps": [null, null, null, null, 1.5, 2.05]}, {"r": 27.0, "caps": [null, null, null, null, 1.25, 1.8]}, {"r": 28.0, "caps": [null, null, null, null, 1.05, 1.55]}, {"r": 28.8, "caps": [null, null, null, null, 0.9, 1.4]}, {"r": 29.0, "caps": [null, null, null, null, null, 1.35]}, {"r": 30.0, "caps": [null, null, null, null, null, 1.15]}, {"r": 31.0, "caps": [null, null, null, null, null, 1.0]}, {"r": 32.0, "caps": [null, null, null, null, null, 0.85]}, {"r": 33.0, "caps": [null, null, null, null, null, 0.7]}, {"r": 34.0, "caps": [null, null, null, null, null, 0.55]}], h0:2.0, a:0.3, hook:0.43, maxT:51, cfg:"Outriggers in 7.4 m position, whole around (360\u00b0)", verified:false, hooks:[0.43,0.43,0.30,0.30,0.30,0.30], transcribed:true, source:"Kobelco RK500-2 p.380 (scan). Ratings include hook block. Hook 51 t: 430 kg (25 t hook 300 kg on 23.6 m+ boom).", pdf:"KOBELCO_RK500-2.pdf"},
+  'JVY 2138':sampleChart([11.0,17.5,24.0,30.5,37.0,43.0], 50, 215, 2.5, 1.0, 0.50),
+  'VHX 8292':sampleChart([11.0,17.4,23.8,30.2,36.6,43.0], 50, 212, 2.5, 1.0, 0.50),
+  'JYR 2138':sampleChart([10.6,17.0,23.4,29.8,36.2,42.6], 60, 260, 2.3, 0.6, 0.60),
+  'BLU 8865':sampleChart([10.7,17.0,23.4,29.8,36.2,42.6,48.0], 60, 270, 2.4, 0.9, 0.60),
+  'SK 9920 F':{booms:[10.0, 16.9, 23.8, 30.7, 37.6, 41.5, 44.5], rows:[{"r": 2.5, "caps": [70.0, 32.0, 25.0, 12.5, null, null, null]}, {"r": 3.0, "caps": [61.0, 32.0, 25.0, 12.5, null, null, null]}, {"r": 3.5, "caps": [55.0, 32.0, 25.0, 12.5, 12.0, null, null]}, {"r": 4.0, "caps": [49.2, 32.0, 25.0, 12.5, 12.0, 10.0, null]}, {"r": 4.5, "caps": [44.1, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 5.0, "caps": [39.5, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 5.5, "caps": [35.7, 32.0, 25.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 6.0, "caps": [32.5, 32.0, 23.4, 12.5, 12.0, 10.0, 8.0]}, {"r": 6.5, "caps": [29.5, 29.0, 22.0, 12.5, 12.0, 10.0, 8.0]}, {"r": 7.0, "caps": [26.8, 26.4, 20.7, 12.5, 12.0, 10.0, 8.0]}, {"r": 7.5, "caps": [null, 24.0, 19.5, 12.5, 12.0, 10.0, 8.0]}, {"r": 8.0, "caps": [null, 22.0, 18.5, 12.5, 12.0, 10.0, 8.0]}, {"r": 9.0, "caps": [null, 17.45, 16.6, 12.5, 12.0, 10.0, 8.0]}, {"r": 10.0, "caps": [null, 14.0, 13.85, 12.5, 12.0, 10.0, 8.0]}, {"r": 11.0, "caps": [null, 11.45, 11.3, 12.0, 11.1, 10.0, 8.0]}, {"r": 12.0, "caps": [null, 9.55, 9.4, 10.45, 10.2, 9.4, 8.0]}, {"r": 13.0, "caps": [null, 8.05, 7.9, 8.9, 9.4, 8.7, 8.0]}, {"r": 14.0, "caps": [null, null, 6.65, 7.65, 8.2, 8.0, 7.5]}, {"r": 15.0, "caps": [null, null, 5.6, 6.65, 7.2, 7.4, 7.0]}, {"r": 16.0, "caps": [null, null, 4.75, 5.75, 6.3, 6.55, 6.6]}, {"r": 17.0, "caps": [null, null, 4.0, 5.0, 5.55, 5.8, 5.95]}, {"r": 18.0, "caps": [null, null, 3.35, 4.3, 4.9, 5.15, 5.3]}, {"r": 19.0, "caps": [null, null, 2.8, 3.75, 4.3, 4.55, 4.75]}, {"r": 20.0, "caps": [null, null, 2.3, 3.25, 3.8, 4.0, 4.2]}, {"r": 21.0, "caps": [null, null, null, 2.8, 3.35, 3.55, 3.75]}, {"r": 22.0, "caps": [null, null, null, 2.4, 2.95, 3.15, 3.35]}, {"r": 24.0, "caps": [null, null, null, 1.75, 2.25, 2.5, 2.65]}, {"r": 26.0, "caps": [null, null, null, 1.2, 1.7, 1.9, 2.05]}, {"r": 28.0, "caps": [null, null, null, null, 1.25, 1.45, 1.6]}, {"r": 30.0, "caps": [null, null, null, null, 0.85, 1.05, 1.2]}, {"r": 32.0, "caps": [null, null, null, null, null, 0.7, 0.85]}, {"r": 33.0, "caps": [null, null, null, null, null, 0.55, 0.7]}, {"r": 34.0, "caps": [null, null, null, null, null, null, 0.55]}], h0:1.3, a:0.0, hook:0.53, maxT:70, cfg:"Outriggers fully extended (7.6 m), over side and over rear", verified:false, hooks:[0.53,0.47,0.33,0.33,0.33,0.33,0.33], transcribed:true, source:"Kato SL-700R chart p.2 (text). Values include main hook and slings. Hook 70 t: 530 kg (34 t hook 330 kg on 23.8 m+ boom).", pdf:"KATO_SL700R_LOAD_CHART.pdf"},
+  'BPJ 8896':sampleChart([12.5,20.5,28.5,36.5,44.5,52.5,60.0], 110, 520, 2.8, 1.0, 1.10),
+  'VAV 5711':{booms:[11.8, 19.8, 27.88, 35.9, 44.0, 48.0, 52.0], rows:[{"r": 2.5, "caps": [70.0, null, null, null, null, null, null]}, {"r": 3.0, "caps": [70.0, 50.0, null, null, null, null, null]}, {"r": 3.5, "caps": [70.0, 50.0, null, null, null, null, null]}, {"r": 4.0, "caps": [70.0, 50.0, 35.0, null, null, null, null]}, {"r": 4.5, "caps": [70.0, 50.0, 35.0, null, null, null, null]}, {"r": 5.0, "caps": [70.0, 50.0, 35.0, 24.0, null, null, null]}, {"r": 6.0, "caps": [64.5, 50.0, 35.0, 24.0, null, null, null]}, {"r": 7.0, "caps": [54.0, 50.0, 35.0, 24.0, 17.0, 14.0, null]}, {"r": 8.0, "caps": [46.0, 46.0, 35.0, 24.0, 17.0, 14.0, 12.0]}, {"r": 9.0, "caps": [40.0, 40.0, 35.0, 24.0, 17.0, 14.0, 12.0]}, {"r": 10.0, "caps": [null, 35.5, 33.7, 24.0, 17.0, 14.0, 12.0]}, {"r": 12.0, "caps": [null, 28.5, 27.8, 23.2, 17.0, 14.0, 12.0]}, {"r": 14.0, "caps": [null, 22.0, 21.8, 20.7, 15.8, 14.0, 12.0]}, {"r": 16.0, "caps": [null, 17.2, 17.1, 18.4, 14.0, 14.0, 12.0]}, {"r": 18.0, "caps": [null, null, 13.6, 15.3, 12.6, 13.1, 12.0]}, {"r": 20.0, "caps": [null, null, 10.9, 12.5, 11.5, 11.7, 11.0]}, {"r": 22.0, "caps": [null, null, 8.8, 10.4, 10.5, 10.4, 9.8]}, {"r": 24.0, "caps": [null, null, 7.1, 8.7, 9.6, 9.3, 8.8]}, {"r": 26.0, "caps": [null, null, null, 7.3, 8.2, 8.4, 7.9]}, {"r": 28.0, "caps": [null, null, null, 6.0, 7.0, 7.3, 7.1]}, {"r": 30.0, "caps": [null, null, null, 4.8, 6.0, 6.3, 6.5]}, {"r": 32.0, "caps": [null, null, null, 3.8, 5.0, 5.4, 5.6]}, {"r": 34.0, "caps": [null, null, null, null, 4.0, 4.5, 4.8]}, {"r": 36.0, "caps": [null, null, null, null, 3.2, 3.7, 4.0]}, {"r": 38.0, "caps": [null, null, null, null, 2.5, 2.9, 3.3]}, {"r": 40.0, "caps": [null, null, null, null, 1.9, 2.3, 2.7]}, {"r": 42.0, "caps": [null, null, null, null, 1.4, 1.8, 2.1]}, {"r": 44.0, "caps": [null, null, null, null, null, 1.3, 1.6]}, {"r": 46.0, "caps": [null, null, null, null, null, null, 1.1]}], h0:2.6, a:0.5, hook:0.9, maxT:130, cfg:"A1: outriggers max (8.4 m), 360\u00b0, counterweight on. Heavy-lift attachment column (to 130 t) not included", verified:false, hooks:[0.9,0.6,0.6,0.6,0.6,0.6,0.6], transcribed:true, source:"Kato KA-1300SL p.364 A1 table (scan, Japanese). \u5b9a\u683c\u7dcf\u8377\u91cd = rated total load, includes hook. Hook 70 t: 0.9 t (50 t hook 0.6 t on 19.8 m+ boom).", pdf:"KATO_KA1300SL_LOAD_CHART.pdf"},
 };
 const LIFT_OK = 0.75, LIFT_MAX = 0.90;
 function liftCheck(u, j){
@@ -2861,7 +2871,7 @@ function renderFuel(){
     <p class="muted" style="margin:0">Normal L/h figures and the diesel price here are sample values; the real price comes from each receipt. Own-tank fills are costed at the tank's average purchase price. Fuel charged to a customer goes onto that hire's next invoice automatically.</p>`;
 }
 function openFuelAdd(pre={}){
-  const fa = state.fa = state.fa || {u:'TC-01', d:TODAY, l:'', price:DIESEL, hm:'', where:'', paid:'Fleet card', receipt:false, ...pre};
+  const fa = state.fa = state.fa || {u:'JQA 5783', d:TODAY, l:'', price:DIESEL, hm:'', where:'', paid:'Fleet card', receipt:false, ...pre};
   const last = fuel.filter(f=>f.u===fa.u && f.hm).sort((a,b)=>a.d<b.d?1:-1)[0];
   const live = hires.find(h=>LIVE.includes(h.status) && h.lines.some(l=>l.u===fa.u && (l.on||l.from)<=fa.d && lineEnd(l)>=fa.d));
   const hrs = fa.hm && last ? +fa.hm - last.hm : null, rate = hrs>0 && fa.l ? fa.l/hrs : null, norm = FUEL_RATE[fleet[fa.u].m];
@@ -3168,8 +3178,8 @@ const hhmmOf = s => s ? s.slice(11,16) : '';
     check:Object.fromEntries(PRECONFIRM.map(([k])=>[k,true])), checkNote:{safety:'Helmet, vest, boots. Induction at the guardhouse.', rigging:'2 × 3 t round slings, 2 × 4.75 t shackles (tested Jul 2026).'},
     track:{confirmed:'2026-10-13 14:00', sent:'2026-10-15 18:05', precheck:'2026-10-16 07:40', left:'2026-10-16 08:42'}, gps:{at:'2026-10-16 09:14', where:'Jalan Pasir Gudang, 3.1 km from site', speed:38, eta:'09:22'}});
   hires.push({id:'H-2026-0159', c:'C8', site:'Sinar Timur workshop, Tampoi', state:'Johor', siteContact:'Mr. Yap 012-338 7766', po:'Cash job', status:'Quotation', order:true, created:'2026-10-15', cycle:'End of hire',
-    lines:[{u:'TC-06', k:'wet', basis:'hour', from:'2026-10-17', to:'2026-10-17', op:'O5'}],
-    trips:[{dir:'Delivery', d:'2026-10-17', u:'TC-06', veh:null, drv:'O5', zone:'Johor Bahru', charge:500, status:'Planned', self:true}],
+    lines:[{u:'JES 4923', k:'wet', basis:'hour', from:'2026-10-17', to:'2026-10-17', op:'O5'}],
+    trips:[{dir:'Delivery', d:'2026-10-17', u:'JES 4923', veh:null, drv:'O5', zone:'Johor Bahru', charge:500, status:'Planned', self:true}],
     job:{type:'Loading / unloading', scope:'Unload a 3.2 t generator set from the customer\'s lorry and set it on the plinth. About 3 hours (4 hours minimum charge).', arrive:'09:00', requests:'Customer supplies the lorry; bring a spreader bar.', pay:'cash', collect:true},
     check:{safety:true, plan:true, cf:true, op:true, ground:true, requests:true}, checkNote:{},
     track:{}, log:[{d:'2026-10-15 17:40', t:'Order keyed in from Mr. Yap\'s WhatsApp. Customer knows the lift; checklist started.'}]});
@@ -3180,7 +3190,7 @@ const hhmmOf = s => s ? s.slice(11,16) : '';
 const WA_INBOX = [
   {id:1, at:'2026-10-16 09:02', from:'+60 13-508 2291', name:'Unknown number', c:null, text:'Boss, ada kren 50 tan available minggu depan? Kerja angkat tangki air di Puchong, 2 hari.', link:null},
   {id:2, at:'2026-10-16 08:47', from:'+60 12-771 4402', name:'Mr. Ong · Sri Kenari Builders', c:null, text:'Hi, can confirm the 25 t crane for 26–30 Oct at Eco Botanic? Heaviest beam 3.2 t at 18 m.', link:{enq:'E-2026-0231'}},
-  {id:3, at:'2026-10-16 07:55', from:'+60 12-655 0912', name:'Ms. Chong · Ever Bright Steel', c:'C4', text:'Crane reaching what time? Our workers ready at 9.', link:{hire:'H-2026-0155'}, auto:'Auto-reply: LC-01 is on the way, about 09:22 (GPS51).'},
+  {id:3, at:'2026-10-16 07:55', from:'+60 12-655 0912', name:'Ms. Chong · Ever Bright Steel', c:'C4', text:'Crane reaching what time? Our workers ready at 9.', link:{hire:'H-2026-0155'}, auto:'Auto-reply: NDH 3921 is on the way, about 09:22 (GPS51).'},
   {id:4, at:'2026-10-15 17:20', from:'+60 12-338 7766', name:'Mr. Yap · Sinar Timur Engineering', c:'C8', text:'Need crane tomorrow Saturday 9am to unload 3.2 ton genset at our workshop Jalan Kebun. Cash payment.', link:{hire:'H-2026-0159'}},
 ];
 
@@ -3208,7 +3218,7 @@ Object.assign(staff, {
   O16:{name:'Kamal bin Yusoff',role:'Lorry crane operator',certs:{'DOSH lorry crane operator':'2027-03-22','CIDB green card':'2027-05-05','GDL licence':'2027-07-01'},skills:['crane']},
 });
 (function dailyJobs(){
-  const pool = ['RC-04','TC-09','TC-11','TC-10','RC-05','TC-07','TC-08','RC-06','RC-03','SK-03','SK-04','LC-02','TC-05'];
+  const pool = ['VNB 2138','KEK 3118','BMK 3428','BMV 8865','VNC 2138','BPG 8362','JVY 1832','BPN 8918','JKE 5227','WJC 9971','MED 2138','JWW 3688','WEH 1567'];
   const ops = ['O10','O11','O12','O13','O14','O15','O16'];
   const SCOPE = ['Lifting steel beams','Unloading precast panels','Lifting rebar','Lifting cabin and material','Turun piling','Lifting aircond units','Machine shifting','Roof truss erection','Lifting glass panels'];
   const CUS = Object.keys(customers).filter(c=>customers[c].contact);
@@ -3240,7 +3250,7 @@ function waOperator(h){
   const lines = [
     `*JOB ORDER ${h.id}* · Super Power Crane`,
     `Date: ${fmtDW(l.from)} ${l.from.slice(0,4)}${j.arrive?`, arrive by ${j.arrive}`:''}`,
-    `Machine: ${l.u} ${uName(l.u)} (${uRef(l.u)})`,
+    `Machine: ${l.u} ${uName(l.u)}${uRef(l.u)?` (${uRef(l.u)})`:''}`,
     `Customer: ${custName(h.c)}`,
     `Site: ${h.site}`,
     `Site contact: ${h.siteContact}`,
@@ -3257,7 +3267,7 @@ function waOperator(h){
 }
 function waCustomer(h){
   const l = h.lines[0];
-  return {to:`${h.siteContact}`, text:`Super Power Crane: our ${mOf(l.u).type.toLowerCase()} ${l.u} (${uRef(l.u)}) with operator ${staff[l.op]?.name||''} has arrived at ${h.site} at ${hhmmOf(h.track.arrived)}. Job order ${h.id}.`};
+  return {to:`${h.siteContact}`, text:`Super Power Crane: our ${mOf(l.u).type.toLowerCase()} ${l.u}${uRef(l.u)?` (${uRef(l.u)})`:''} with operator ${staff[l.op]?.name||''} has arrived at ${h.site} at ${hhmmOf(h.track.arrived)}. Job order ${h.id}.`};
 }
 function trackHtml(h){
   const ss = jobSteps(h), cur = stepNow(h);
@@ -3562,7 +3572,7 @@ function openQuickQuote(){
     <div class="sect"><h3>Machine and rate</h3><div class="in form">
       <label>Machine type<select class="field" data-qq="type">${x.types.map(t=>`<option ${t===q.type?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
       <label>From<input type="date" data-qq="from" value="${q.from}"></label>${q.open?'':`<label>To<input type="date" data-qq="to" value="${q.to}"></label>`}
-      <label>Machine offered<select class="field" data-qq="u">${x.units.map(o=>`<option value="${o.u}" ${o.u===q.u?'selected':''}>${o.u} ${esc(mOf(o.u).model)} · ${esc(uRef(o.u))} · ${o.ok?(o.warn.length?'free, document issue':'free'):'NOT free'}</option>`).join('')}<option value="peer" ${q.u==='peer'?'selected':''}>Cross-hire from another company (同行车)</option></select></label>
+      <label>Machine offered<select class="field" data-qq="u">${x.units.map(o=>`<option value="${o.u}" ${o.u===q.u?'selected':''}>${o.u} ${esc(mOf(o.u).model)}${uRef(o.u)?' · '+esc(uRef(o.u)):''} · ${o.ok?(o.warn.length?'free, document issue':'free'):'NOT free'}</option>`).join('')}<option value="peer" ${q.u==='peer'?'selected':''}>Cross-hire from another company (同行车)</option></select></label>
       ${q.u==='peer'?`<label>Cross-hire from<select class="field" data-qq="peerS">${PEERS.map(p=>`<option value="${esc(p.n)}" ${p.n===q.peerS?'selected':''}>${esc(p.n)} · ${esc(p.has)}</option>`).join('')}</select></label>
       <label class="cost">Their price to us (RM a ${q.basis==='day'&&q.slot!=='full'?'half day':q.basis==='day'?'day':q.basis})<input type="number" min="0" step="50" data-qq="peerCost" value="${esc(q.peerCost)}" placeholder="e.g. 2800"></label>`:''}
       ${q.basis==='day'?`<label>Time<select class="field" data-qq="slot">${Object.entries(SLOTS).map(([k2,v])=>`<option value="${k2}" ${k2===(q.slot||'full')?'selected':''}>${k2==='full'?'Full day':k2==='am'?'Morning':'Afternoon'} · ${v}</option>`).join('')}</select></label>`:''}
@@ -3717,7 +3727,7 @@ document.addEventListener('click', e => {
     if(act==='sig-clear') return initSig();
     if(act==='insp-save'){ state.insp.checks = collectChecks(); return saveInspection(); }
     if(act==='offhire'){ h.status='Off-hire called'; h.offCalled=TODAY; h.lines.forEach(l=>{ l.off=TODAY; }); const l = h.lines[0], self = models[fleet[l.u].m].size==='self';
-      h.lines.forEach(x=>{ if(!h.trips.some(t=>t.dir==='Collection' && t.u===x.u && t.status==='Planned')) h.trips.push({dir:'Collection',d:addDays(TODAY,1),u:x.u,veh:self?null:'TR-01',drv:self?(x.op||'D1'):'D1',zone:'Johor Bahru',charge:transportCharge(fleet[x.u].m,'Johor Bahru'),status:'Planned',self}); else h.trips.find(t=>t.dir==='Collection' && t.u===x.u).d = addDays(TODAY,1); });
+      h.lines.forEach(x=>{ if(!h.trips.some(t=>t.dir==='Collection' && t.u===x.u && t.status==='Planned')) h.trips.push({dir:'Collection',d:addDays(TODAY,1),u:x.u,veh:self?null:'WPL 8812',drv:self?(x.op||'D1'):'D1',zone:'Johor Bahru',charge:transportCharge(fleet[x.u].m,'Johor Bahru'),status:'Planned',self}); else h.trips.find(t=>t.dir==='Collection' && t.u===x.u).d = addDays(TODAY,1); });
       h.log.unshift({d:TODAY+' '+nowT(),t:`Customer called off-hire from ${fmtD(TODAY)}. Collection ${fmtDW(addDays(TODAY,1))}.`}); toast('Off-hire recorded. Charges stop today; collection booked for tomorrow.'); return rerender(); }
     if(act==='breakdown'){ h.log.unshift({d:TODAY+' '+nowT(),t:'Breakdown reported. Workshop emergency job J-2026-0424 created; lost hours stop being charged.'}); toast('Workshop alerted: emergency job J-2026-0424 created'); return rerender(); }
     if(act==='extend'){ const l = h.lines[0], nt = addDays(l.to,7), av = availability(l.u, addDays(l.to,1), nt, h.id); if(!av.ok){ toast('Cannot extend: '+av.why[0]); return; } l.to = nt; h.log.unshift({d:TODAY+' '+nowT(),t:`Extended to ${fmtD(nt)}.`}); toast(`Extended to ${fmtD(nt)}`); return rerender(); }
@@ -3775,6 +3785,12 @@ document.addEventListener('submit', e => {
 });
 
 document.getElementById('roleSel').value = state.role;
+document.getElementById('plateList').innerHTML = Object.keys(fleet).map(u=>`<option value="${esc(u)}">${esc(uName(u))}</option>`).join('');
+document.getElementById('plateFind').addEventListener('submit', e => { e.preventDefault(); const inp = document.getElementById('plateIn'), q = normPlate(inp.value); if(!q) return;
+  const hits = Object.keys(fleet).filter(u => normPlate(u).includes(q) || normPlate(uRef(u)).includes(q));
+  if(hits.length===1){ inp.value = ''; inp.blur(); return openUnit(hits[0]); }
+  state.fl.q = inp.value; state.fl.st = ''; state.fl.page = 1; inp.value = ''; setView('fleet'); if(!hits.length) toast('No machine with that plate'); });
+document.getElementById('plateIn').addEventListener('change', e => { if(fleet[e.target.value]) document.getElementById('plateFind').requestSubmit(); });
 document.body.dataset.role = state.role;
 setView(state.view);
 </script>

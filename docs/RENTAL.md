@@ -686,7 +686,9 @@ One box per machine works for a dozen cranes. At 50 to 200 machines it becomes a
 
 **Machine classes.** Each machine is put in a family (cranes, forklifts, access platforms, excavators, loaders, generators) and a capacity class within it. The capacity comes from the machine type, so nobody keys it in twice. Crane classes are up to 20 t, 21–30 t, 31–60 t, 61–100 t and over 100 t. Forklift classes are up to 3 t, 3–5 t and over 5 t. The Head Manager can change the class limits in Settings.
 
-**Search the way people ask.** One search box understands "25t crane", "forklift 5t", "scissor 12m", a fleet number or a plate. A capacity means "this size or bigger". A family word narrows the family. Anything else is matched against fleet no., plate, serial, make and model. The same box is on Availability, Fleet and Planner.
+**The plate is the machine's ID.** Every screen, job order, quotation and invoice names a machine by its plate (BPN 8918), with the model (Kato SR-250V6) underneath, as in the current machinery list. Machines without a plate, such as forklifts, use their fleet no. A **Find by plate** box sits under the logo on every page: one match opens the machine, and several matches ("2138") open Fleet filtered to them. Spaces and capitals don't matter ("bpn8918").
+
+**Search the way people ask.** One search box understands a plate ("BPN 8918"), "25t crane", "forklift 5t" or "skylift 24m". A capacity means "this size or bigger". A family word narrows the family. Anything else is matched against fleet no., plate, serial, make and model. The same box is on Availability, Fleet and Planner.
 
 | Screen | How it scales |
 |---|---|
