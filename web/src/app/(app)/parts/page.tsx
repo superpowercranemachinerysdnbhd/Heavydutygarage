@@ -39,7 +39,8 @@ export default async function PartsPage({ searchParams }: { searchParams: Promis
         {can(user.role, "stock.manage") && <Link className="btn" href="/parts/categories">{t("parts.categories")}</Link>}
         {can(user.role, "po.create") && <Link className="btn" href="/purchasing/import">{t("imp.title")}</Link>}
         {can(user.role, "po.create") && lowN > 0 && <Link className="btn" href="/purchasing/new?suggest=1">{t("parts.orderLow", { n: lowN })}</Link>}
-        {can(user.role, "stock.manage") && <Link className="btn primary" href="/parts/new">{t("parts.add")}</Link>}
+        {can(user.role, "po.create") && <Link className="btn primary" href="/purchasing/record">{t("rp2.button")}</Link>}
+        {can(user.role, "stock.manage") && <Link className="btn" href="/parts/new">{t("parts.add")}</Link>}
       </div>
       <form className="filters" method="get">
         <input type="search" name="q" defaultValue={sp.q ?? ""} placeholder={t("parts.searchPh")} style={{ flex: "1 1 220px" }} aria-label={t("common.search")} />

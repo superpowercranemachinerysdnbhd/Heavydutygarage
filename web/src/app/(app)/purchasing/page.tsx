@@ -31,7 +31,8 @@ export default async function PoListPage({ searchParams }: { searchParams: Promi
     <div className="page">
       <div className="view-head"><h2>{t("po.title")}</h2>
         {low > 0 && <Link className="btn" href="/purchasing/new?suggest=1">{t("parts.orderLow", { n: low })}</Link>}
-        <Link className="btn primary" href="/purchasing/new">{t("po.new")}</Link></div>
+        <Link className="btn primary" href="/purchasing/record">{t("rp2.button")}</Link>
+        <Link className="btn" href="/purchasing/new">{t("po.new")}</Link></div>
       <PurchasingTabs t={t} active="po" />
       <Notice error={sp.error} ok={sp.ok} />
       <div className="chipbar">{FILTERS.map((k) => <Link key={k} className="chip" href={`/purchasing?status=${k}`} aria-pressed={f === k} style={{ textDecoration: "none" }}>{t(k === "open" ? "po.fOpen" : k === "all" ? "po.fAll" : (`postatus.${k}` as MessageKey))}</Link>)}</div>

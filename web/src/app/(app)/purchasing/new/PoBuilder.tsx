@@ -64,6 +64,7 @@ export default function PoBuilder({ parts: initialParts, suppliers: initialSuppl
   };
   const saveNewPart = () => start(async () => {
     if (!np) return;
+    if (!np.description.trim()) { setError(t("qp.err.desc")); return; }
     const r = await quickPart({ ...np, categoryId: Number(np.categoryId) });
     if ("error" in r) { setError(r.error); return; }
     const bp: BuilderPart = { ...r, onHand: 0, onOrder: 0, minLevel: 0, oem: null, bin: null, models: [], prices: [] };
@@ -148,11 +149,11 @@ export default function PoBuilder({ parts: initialParts, suppliers: initialSuppl
                 <label style={{ gridColumn: "span 2" }}>{t("bl.desc")}<input value={np.description} onChange={(e) => setNp({ ...np, description: e.target.value })} required maxLength={200} autoFocus /></label>
                 <label>{t("parts.uom")}<input value={np.uom} onChange={(e) => setNp({ ...np, uom: e.target.value })} list="uoms-po" /></label>
                 <datalist id="uoms-po"><option>pc</option><option>set</option><option>kit</option><option>m</option><option>L</option><option>pail</option><option>drum</option><option>kg</option><option>box</option><option>roll</option></datalist>
-                <label>{t("parts.category")}<select className="field" value={np.categoryId} onChange={(e) => setNp({ ...np, categoryId: e.target.value })}><option value="">{t("common.choose")}</option>{categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+                <label>{t("parts.category")}<select className="field" value={np.categoryId} onChange={(e) => setNp({ ...np, categoryId: e.target.value })}><option value="">{t("rp2.noCat")}</option>{categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
                 <label className="set-check" style={{ alignSelf: "end" }}><input type="checkbox" checked={np.bulk} onChange={(e) => setNp({ ...np, bulk: e.target.checked })} /> {t("bulk.badge")}</label>
               </div>
               <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                <button type="button" className="btn small primary" disabled={pending || !np.description.trim() || !np.categoryId} onClick={saveNewPart}>{t("qp.save")}</button>
+                <button type="button" className="btn small primary" disabled={pending} onClick={saveNewPart}>{t("qp.save")}</button>
                 <button type="button" className="btn small" onClick={() => { setNp(null); setError(""); }}>{t("common.cancel")}</button>
               </div>
               {error && <div className="notice err" style={{ marginTop: 8 }}>{error}</div>}

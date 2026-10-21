@@ -7,7 +7,8 @@ import { db, schema } from "@/db";
 import { requirePermission, type CurrentUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { addDays, today } from "@/lib/format";
-import { receiveStock, recordPrice } from "@/lib/inventory";
+import { createQuickPart, issueToJob, receiveStock, recordPrice } from "@/lib/inventory";
+import { supplierByName } from "@/lib/purchasing";
 import { needsApproval, nextPoNo, poStatusAfterReceive } from "@/lib/stock";
 import { addActivity } from "@/lib/queries";
 import { translator, type MessageKey, type Vars } from "@/i18n";
@@ -122,3 +123,57 @@ export async function receivePo(form: FormData) {
   back(user, id, "ok", diffs ? "ok.receivedDiff" : "ok.received", { n: diffs });
 }
 
+
+export type RecordedLine = { partId?: number; newPart?: { sku: string; description: string; uom: string; categoryId: number; bulk: boolean }; qty: number; price: number };
+
+/** Parts already bought (invoice in hand): one step instead of raise → approve → receive. New items are added to the
+ *  parts list on the way. It is kept as a purchase order that is already received (history, prices, average cost).
+ *  With a work order and `useOnJob`, everything is issued to that work order straight away. */
+export async function recordPurchase(input: { supplierName: string; invoiceNo: string; date: string; jobId?: number | null; useOnJob?: boolean; lines: RecordedLine[] }):
+  Promise<{ error: string } | { id: number; no: string }> {
+  const user = await requirePermission("po.create");
+  const t = translator(user.locale);
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(input.date) && input.date <= today() ? input.date : today();
+  const lines = input.lines.filter((l) => (l.partId || l.newPart) && l.qty > 0);
+  if (!lines.length) return { error: t("err.poNoLines") };
+  if (lines.some((l) => !(l.price >= 0) || !Number.isFinite(l.price))) return { error: t("err.price") };
+  if (lines.some((l) => l.newPart && !l.newPart.description.trim())) return { error: t("rp2.err.newPart") };
+  const sup = await supplierByName(input.supplierName);
+  if (!sup) return { error: t("rp2.err.supplier") };
+  const invoiceNo = input.invoiceNo.trim().slice(0, 60) || null;
+  let job: { id: number; status: string } | undefined;
+  if (input.jobId) [job] = await db.select({ id: schema.jobs.id, status: schema.jobs.status }).from(schema.jobs).where(eq(schema.jobs.id, input.jobId));
+  const year = Number(d.slice(0, 4));
+  const res = await db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(4202)`);
+    const ids: number[] = [];
+    for (const l of lines) {
+      if (l.partId) { ids.push(l.partId); continue; }
+      const p = await createQuickPart(tx, l.newPart!);
+      if (!p) return { error: t("err.skuUsed", { sku: l.newPart!.sku.trim() }) };
+      ids.push(p.id);
+    }
+    const existing = (await tx.select({ no: purchaseOrders.poNo }).from(purchaseOrders)).map((r) => r.no);
+    const poNo = nextPoNo(year, existing);
+    const at = new Date(`${d}T12:00:00+08:00`);
+    const [po] = await tx.insert(purchaseOrders).values({ poNo, supplierId: sup.id, status: "received", jobId: job?.id ?? null, orderDate: d, notes: t("rp2.note"),
+      createdBy: user.id, approvedBy: user.id, approvedAt: new Date() }).returning({ id: purchaseOrders.id });
+    const [r] = await tx.insert(schema.receipts).values({ poId: po.id, invoiceNo, receivedBy: user.id, receivedAt: at }).returning({ id: schema.receipts.id });
+    for (const [i, l] of lines.entries()) {
+      const partId = ids[i];
+      const [line] = await tx.insert(poLines).values({ poId: po.id, partId, qty: l.qty.toFixed(2), unitPrice: l.price.toFixed(2), receivedQty: l.qty.toFixed(2) }).returning({ id: poLines.id });
+      await tx.insert(schema.receiptLines).values({ receiptId: r.id, poLineId: line.id, qty: l.qty.toFixed(2), poPrice: l.price.toFixed(2), invoicePrice: l.price.toFixed(2) });
+      await receiveStock(tx, { partId, qty: l.qty, unitCost: l.price, poId: po.id, staffId: user.id, note: invoiceNo ? `Invoice ${invoiceNo}` : undefined });
+      await recordPrice(tx, { partId, supplierId: sup.id, price: l.price, source: "invoice", ref: invoiceNo ?? poNo, staffId: user.id, date: d });
+      if (job && input.useOnJob && job.status !== "closed") await issueToJob(tx, { partId, qty: l.qty, jobId: job.id, staffId: user.id });
+    }
+    return { id: po.id, no: poNo };
+  });
+  if ("error" in res) return res;
+  const total = lines.reduce((a, l) => a + l.qty * l.price, 0);
+  if (job) await addActivity(job.id, user.id, input.useOnJob ? "act.recordedUsed" : "act.poRaised", { po: res.no, name: user.name });
+  if (!can(user.role, "po.approve")) await notifyRoles(["boss"], { key: "nt.purchaseRecorded", vars: { name: user.name, supplier: sup.name, total: total.toFixed(2) }, url: `/purchasing/${res.id}` }, user.id);
+  revalidatePath("/purchasing");
+  revalidatePath("/parts");
+  return res;
+}

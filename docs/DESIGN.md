@@ -757,3 +757,15 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 
 ### 47. Work order cards use the machine's profile photo (Oct 2026)
 - The picture on each work order card is the machine's profile photo (Machinery → machine → photo). Before / during / after photos uploaded on the work order stay on the work order and the service report only. A machine with no profile photo shows "No photo". `coverPhotos` was removed.
+
+### 48. Record parts bought, in one step (Oct 2026)
+- Purchasing / Parts → **+ Record parts bought** (`/purchasing/record`). Enter the supplier (typed or picked; a new name becomes a supplier), invoice no., date bought and, optionally, a work order. Then add items from the parts list, or a **new item** typed in the same search box (part no. optional → ITEM-0001…, description, unit, category, Bulk), each with qty and unit price. Line and invoice totals are worked out.
+- Saving (`recordPurchase`, one transaction): creates the new parts and a purchase order already **received** (approved by the person recording, order date = date bought, note "Recorded after purchase"). It also writes a receipt with the invoice no. and puts the stock in (weighted average and last cost). Each price goes into the supplier's price history as an invoice price.
+- With a work order and "All of these were used on this work order", every line is also issued to that work order.
+- No approval step: the parts are already bought. When a Supervisor records one, the Head Manager gets a notification with the supplier and total.
+- The full raise → approve → receive purchase order flow is unchanged for ordering ahead.
+
+### 49. Part search on iPad; record many new items (Oct 2026)
+- Fix: on iPad / Safari a tapped button does not take focus, so the part search list closed (blur) before the tap landed. Tapping a result or "+ Add new item" then did nothing. The list and its buttons now prevent the mousedown default, so the search box keeps focus and the tap goes through. This affects work orders, new purchase orders and Record parts bought.
+- Record parts bought: a "+ New item" button adds an empty new-item row (for an invoice of all new items). Save is never greyed out: it says what is missing (supplier, a description for new items, qty and unit price).
+- The category of a new item is optional. Without one, the item goes into "Uncategorised" (created when first needed) to sort out later on the part page. Same in the purchase order "+ Add new item".

@@ -1,10 +1,10 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, desc, eq, or, sql } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requirePermission } from "@/lib/auth";
-import { recordPrice } from "@/lib/inventory";
+import { UNCATEGORISED, createQuickPart, recordPrice } from "@/lib/inventory";
 import { isBigPriceChange, parsePriceCsv, priceChangePct } from "@/lib/stock";
 import { translator } from "@/i18n";
 
@@ -80,20 +80,10 @@ export async function quickPart(input: { sku: string; description: string; uom: 
   const user = await requirePermission("po.create");
   const t = translator(user.locale);
   const description = input.description.trim().slice(0, 200);
-  let sku = input.sku.trim().slice(0, 60);
   if (!description) return { error: t("qp.err.desc") };
-  const [cat] = await db.select({ id: schema.partCategories.id, name: schema.partCategories.name }).from(schema.partCategories).where(eq(schema.partCategories.id, input.categoryId));
-  if (!cat) return { error: t("err.partCategory") };
-  if (sku) {
-    const [dupe] = await db.select({ id: parts.id }).from(parts).where(sql`lower(${parts.sku}) = lower(${sku})`);
-    if (dupe) return { error: t("err.skuUsed", { sku }) };
-  } else {
-    // No part no. on hand: a workshop number such as ITEM-0012.
-    const [{ n }] = await db.select({ n: sql<number>`coalesce(max(substring(${parts.sku} from '^ITEM-(\\d+)$')::int), 0)` }).from(parts);
-    sku = `ITEM-${String(Number(n) + 1).padStart(4, "0")}`;
-  }
-  const [row] = await db.insert(parts).values({ sku, oemPartNo: input.sku.trim() || null, description, uom: input.uom.trim().slice(0, 20) || "pc", categoryId: cat.id, fitsAll: true, bulk: input.bulk })
-    .returning({ id: parts.id, sku: parts.sku, description: parts.description, uom: parts.uom, bulk: parts.bulk });
+  const [cat] = input.categoryId ? await db.select({ name: schema.partCategories.name }).from(schema.partCategories).where(eq(schema.partCategories.id, input.categoryId)) : [];
+  const row = await createQuickPart(db, { ...input, description, categoryId: cat ? input.categoryId : 0 });
+  if (!row) return { error: t("err.skuUsed", { sku: input.sku.trim() }) };
   revalidatePath("/parts");
-  return { ...row, category: cat.name };
+  return { ...row, category: cat?.name ?? UNCATEGORISED };
 }
