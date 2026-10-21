@@ -230,16 +230,54 @@ Operators and riggers also get **site allowances** and **overtime** for payroll 
 - **Lines:** hire per machine and period, excess / overtime hours, Sunday and public holiday hours, standby, *less* breakdown credit, operator allowance, transport, fuel, cleaning, damages, *less* deposit applied.
 - **Credit notes** for disputes and corrections. An issued invoice is never edited.
 - **Statement of account** and **ageing** (current, 30, 60, 90+ days) per customer. A customer over their credit limit or 60+ days overdue is flagged at booking.
-- **Accounting export** to AutoCount / SQL Accounting / Xero (same as the workshop), so nothing is typed twice.
+- **Accounting:** invoices go to Bukku (section 24), so nothing is typed twice. Your quotation and invoice PDFs look like they come from Bukku. If so, the invoice number is Bukku's own and Bukku also handles the e-invoice.
+
+### 9.1a Invoice format (copied from IV- 01158 2026)
+
+**Header and top of the invoice**
+- **Header:** logo, then the company name with Reg No, Sales Tax ID, Service Tax ID, TIN C6860756030, MSIC Code 43907, address, contact and website.
+- **Title:** INVOICE.
+- **BILL TO:** the customer's name and full address, so the customer record needs a billing address.
+- **On the right:** NO., DATE, PAYMENT TERM and DUE DATE. The payment term is NET30 (the customer's credit days) or COD.
+- **Numbering:** `IV- 01158 2026`, five digits plus the year.
+
+**Lines: one per signed work order**
+- **Columns:** NO., DESCRIPTION, QTY, UOM, U/PRICE, AMT, TAX AMT.
+- **Daily wet hire:** each work order becomes its own line. It shows:
+  - `DAILY RENTAL OF 80T MOBILE CRANE WITH OPERATOR @ AT PONTIAN`;
+  - the date (20.10.2026);
+  - `work order no.: plate` (167948: JRM 79);
+  - the working times from the work order (8:00 - 12:00,13:00 - 17:00).
+- **Overtime and Sunday:** each goes on its own line under that day, with the work order no. and how many hours after 5 pm.
+- **Hourly hire:** one line per work order. It shows the minimum (3.5 h or 7.5 h) when that is what was charged.
+- **Monthly hire:** one line per month with the date range, then an EXCESS HOURS line if needed.
+- **Other lines:**
+  - transport (mobilisation, or lowloader delivery / collection) with date and zone;
+  - diesel supplied;
+  - LESS: BREAKDOWN with the date and terms clause 18;
+  - damage repair.
+- **Totals:** SUBTOTAL, SERVICE TAX (6%), TOTAL.
+
+**Bottom of the invoice**
+- **The 5 standard notes:**
+  - objections within 14 days;
+  - interest of 1.5% a month;
+  - bound by the terms;
+  - crossed cheques, with the bank accounts (Public Bank 3112434006, RHB Bank 20129160014550);
+  - the 2% tax exemption note dated 23 Jan 2026.
+- **Signatures:** Authorised By and Received By.
+- **e-Invoice QR:** if the customer has a TIN, the invoice is validated and the QR links to MyInvois. If not, the footer says "Not validated by LHDN. Scan within same month to convert into e-invoice."
+
+**Work order numbers** are 6 digits, from the operator's work order. Each work order is used on one invoice line only, so it can't be billed twice.
 
 ### 9.2 Malaysian tax and e-invoicing
 
 | Item | Design |
 |---|---|
 | **SST** | Rental and leasing of machinery became a taxable service at **8%** from 1 July 2025 for registered businesses above the RM 1 million threshold. Our quotation QT-01094 charges **6%** service tax on every line, including wet hire. The prototype follows the quotation and keeps the rate as a setting. **Ask the tax agent which rate applies to dry hire and to hire with an operator.** Our service tax ID goes on every invoice. Each charge type (hire, transport, fuel, damages) has its own *taxable / not taxable* setting and rate, because not every line may be taxable. **The tax agent should confirm these settings before go-live.** |
-| **LHDN e-Invoice (MyInvois)** | Every invoice and credit note is submitted to MyInvois, either directly through the API or through the accounting software if it already does this. The validated **UUID and QR code** are printed on the PDF. Status is shown per invoice: Pending, Validated, Rejected (with reason), Cancelled (within 72 hours). |
-| **Buyer details needed** | Customer SSM registration no. (BRN), **TIN**, SST no. (if any), address and contact. A customer without a TIN cannot be invoiced, so the TIN is asked for at booking, not at billing. |
-| **Our details** | Super Power Crane Machinery Sdn Bhd, Reg No 199401026255 / 311936-K, Sales Tax ID J31-2507-32000161, Service Tax ID J31-2507-39000112, Lot 3013, Jalan Belati, Off Jalan Kempas Lama, Kawasan Perindustrian Maju Jaya, 81300 Johor Bahru, Johor; +60 19-728 0435, accounting@superpowercrane.com. TIN and **MSIC code** (77300: renting of other machinery, equipment) still to confirm. All of these are set in Settings. |
+| **LHDN e-Invoice (MyInvois)** | Every invoice and credit note is submitted to MyInvois, either directly through the API or through the accounting software if it already does this. The validated **UUID and QR code** are printed on the PDF. Status is shown per invoice: Pending, Validated, **Not validated** (customer has no TIN; they scan the QR this month, otherwise it goes into the month's consolidated e-invoice; to confirm with Bukku), Rejected (with reason), Cancelled (within 72 hours). |
+| **Buyer details needed** | Customer SSM registration no. (BRN), **TIN**, SST no. (if any), address and contact. A customer without a TIN can still be invoiced, as IV- 01158 2026 shows, but the invoice is not an e-invoice until they scan the QR. The TIN is asked for at booking, so most invoices are validated directly. |
+| **Our details** | Super Power Crane Machinery Sdn Bhd, Reg No 199401026255 / 311936-K, Sales Tax ID J31-2507-32000161, Service Tax ID J31-2507-39000112, Lot 3013, Jalan Belati, Off Jalan Kempas Lama, Kawasan Perindustrian Maju Jaya, 81300 Johor Bahru, Johor; +60 19-728 0435, accounting@superpowercrane.com. TIN C6860756030, **MSIC code 43907** (from invoice IV- 01158 2026), bank accounts Public Bank 3112434006 and RHB Bank 20129160014550. All of these are set in Settings. |
 | **Deposits** | Recorded as a receipt and applied to the final invoice (an e-invoice is issued for the deposit only if the tax agent advises it). |
 
 ---
@@ -665,6 +703,17 @@ One box per machine works for a dozen cranes. At 50 to 200 machines it becomes a
 | `models` (added) | family, capacity, capacity_unit (filled from the type, can be overridden) |
 
 ## 29. Open questions for the owner
+
+**From invoice IV- 01158 2026:**
+
+- **Two machines on IV- 01158 2026.** Should they be in the fleet list?
+  - the 80 t mobile crane, plate JRM 79;
+  - the lorry crane with 40 ft cargo, plate JWW 3688.
+  The fleet list you gave has no 80 t crane. Please also send the plate number of every machine, so work orders and invoices print them.
+- **Day rates.** The invoice charges RM 7,000 a day for the 80 t and RM 2,500 for the lorry crane, much more than the monthly rate ÷ 26. The prototype now uses RM 2,500 for the lorry crane. The other day rates are still sample figures until the rate card arrives.
+- **Note 5** ("2% Tax exempted under seksyen 34(3)(a) and 34(4)"). Does it go on every invoice, or only on some customers' invoices?
+- **Note 3** says "as started herein". Should it be "stated"?
+- **Work order numbers** (173961, 167948). Do they come from a printed work order book? If they do, the operator types the number into the app. If not, the app numbers them.
 
 **From quotation QT-01094:**
 

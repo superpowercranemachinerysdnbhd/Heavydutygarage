@@ -679,6 +679,19 @@ button.g-group small{font-weight:400;opacity:.75;margin-left:6px}
 .qd-sign>div{display:flex;flex-direction:column;gap:3px}
 .qd-sign .sline{height:64px;border-bottom:1px solid #1a1f26}
 @media (max-width:640px){ .qd-head{grid-template-columns:64px minmax(0,1fr)} .qd-head img{width:64px;height:64px} .qd-meta{grid-column:1/-1} .qd-meta h3{text-align:left} }
+
+.ivdoc .iv-head{grid-template-columns:96px minmax(0,1fr);border-bottom:1.5px solid #1a1f26}
+.iv-title{font-size:20px;letter-spacing:.02em;margin-bottom:-8px}
+.iv-top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.iv-meta{display:grid;grid-template-columns:auto auto;gap:2px 18px;margin:0;font-size:11.5px;align-self:flex-start}
+.iv-meta dt{color:#5a6471}.iv-meta dd{margin:0}
+.ivdoc .iv-t th{background:none;color:#1a1f26;border-top:1.5px solid #1a1f26;border-bottom:1.5px solid #1a1f26;font-family:var(--f-body);font-weight:600;font-size:11.5px;letter-spacing:0;text-transform:none}
+.ivdoc .iv-t td{border-bottom:0;vertical-align:top;padding-top:7px;padding-bottom:7px;white-space:normal}
+.ivdoc .iv-t td:nth-child(2){min-width:230px}
+.ivdoc .iv-t tbody tr:last-child td{border-bottom:1.5px solid #1a1f26}
+.iv-tot{display:grid;grid-template-columns:auto auto;gap:4px 28px;margin-left:auto;min-width:260px;text-align:right;font-variant-numeric:tabular-nums;font-size:12px}
+.iv-tot span{color:#5a6471}
+.iv-tot .t{color:#1a1f26;font-weight:700;border-top:1px solid #1a1f26;border-bottom:3px double #1a1f26;padding:3px 0}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -789,8 +802,8 @@ function ph(label, hue){
 
 /* ---------- settings ---------- */
 const TODAY = '2026-10-16', G0 = '2026-09-28', GN = 42;
-const CO = {name:'Super Power Crane Machinery Sdn Bhd', reg:'199401026255 / 311936-K', ssm:'199401026255 (311936-K)', tin:'(set in Settings)', salesTax:'J31-2507-32000161', sst:'J31-2507-39000112', msic:'77300 Renting of other machinery and equipment',
-  addr:['Lot 3013, Jalan Belati, Off Jalan Kempas Lama','Kawasan Perindustrian Maju Jaya','81300 Johor Bahru, Johor','Malaysia'], phone:'+60 19-728 0435', email:'accounting@superpowercrane.com', web:'www.superpowercrane.com'};
+const CO = {name:'Super Power Crane Machinery Sdn Bhd', reg:'199401026255 / 311936-K', ssm:'199401026255 (311936-K)', tin:'C6860756030', salesTax:'J31-2507-32000161', sst:'J31-2507-39000112', msic:'43907',
+  addr:['Lot 3013, Jalan Belati, Off Jalan Kempas Lama','Kawasan Perindustrian Maju Jaya','81300 Johor Bahru, Johor','Malaysia'], phone:'+60 19-728 0435', email:'accounting@superpowercrane.com', web:'www.superpowercrane.com', bank:'Public Bank: 3112434006 / RHB Bank: 20129160014550'};
 const LOGO = 'data:image/png;base64,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';
 const RULES = {dayHrs:8, minH:3.5, minHBig:7.5, mHrs:200, sunX:1.5, standbyPct:50, bdGrace:4, sst:6, allowance:80, lateInt:1.5, creditDays:90, valid:30};
 const GROUPS = {crane:'Mobile cranes', lift:'Lifting & access', earth:'Earthmoving', power:'Power', transport:'Our transport'};
@@ -843,13 +856,13 @@ const staff = {
   D2:{name:'Hafiz bin Rahman',role:'Lowloader driver',certs:{'GDL licence':'2026-10-28'}},
 };
 const customers = {
-  C1:{name:'Bina Jaya Construction Sdn Bhd',brn:'201501012345',tin:'C23456789010',sst:'B16-1809-32000881',terms:30,limit:250000,contact:'Mr. Lim Chee Keong',phone:'012-338 1290'},
-  C2:{name:'Kuari Ulu Choh Sdn Bhd',brn:'199801004567',tin:'C10234567020',sst:'',terms:30,limit:80000,contact:'Pn. Rohana Ismail',phone:'019-271 5530'},
-  C3:{name:'Teguh Piling Sdn Bhd',brn:'200801033221',tin:'C20987654030',sst:'',terms:30,limit:120000,contact:'Mr. Gan Boon Huat',phone:'016-330 2218'},
-  C4:{name:'Ever Bright Steel Structure Sdn Bhd',brn:'201201019876',tin:'',sst:'',terms:30,limit:40000,contact:'Ms. Chong Mei Ling',phone:'012-655 0912'},
-  C5:{name:'Mega Bumi Engineering Sdn Bhd',brn:'201001007788',tin:'C24681357040',sst:'',terms:45,limit:100000,contact:'En. Kamarul Ariffin',phone:'013-388 4410'},
-  C6:{name:'Lian Hup Builders Sdn Bhd',brn:'202301045512',tin:'C29876501050',sst:'',terms:0,limit:0,contact:'Mr. Wong Kar Fai',phone:'017-202 8817',isNew:true},
-  C7:{name:'Pasir Gudang Logistics Sdn Bhd',brn:'199601012233',tin:'C11223344060',sst:'B16-1702-31000233',terms:30,limit:60000,contact:'Mr. Ravi Shankar',phone:'012-388 7701'},
+  C1:{name:'Bina Jaya Construction Sdn Bhd',brn:'201501012345',tin:'C23456789010',sst:'B16-1809-32000881',terms:30,limit:250000,contact:'Mr. Lim Chee Keong',phone:'012-338 1290',addr:'No. 12, Jalan Seelong Jaya 3|Taman Seelong Jaya|81400 Senai, Johor'},
+  C2:{name:'Kuari Ulu Choh Sdn Bhd',brn:'199801004567',tin:'C10234567020',sst:'',terms:30,limit:80000,contact:'Pn. Rohana Ismail',phone:'019-271 5530',addr:'Lot 2201, Jalan Ulu Choh|81300 Skudai, Johor'},
+  C3:{name:'Teguh Piling Sdn Bhd',brn:'200801033221',tin:'C20987654030',sst:'',terms:30,limit:120000,contact:'Mr. Gan Boon Huat',phone:'016-330 2218',addr:'23, Jalan Permas 10/2|Bandar Baru Permas Jaya|81750 Masai, Johor'},
+  C4:{name:'Ever Bright Steel Structure Sdn Bhd',brn:'201201019876',tin:'',sst:'',terms:30,limit:40000,contact:'Ms. Chong Mei Ling',phone:'012-655 0912',addr:'PLO 45, Jalan Tebrau|81100 Johor Bahru, Johor'},
+  C5:{name:'Mega Bumi Engineering Sdn Bhd',brn:'201001007788',tin:'C24681357040',sst:'',terms:45,limit:100000,contact:'En. Kamarul Ariffin',phone:'013-388 4410',addr:'8, Jalan Indah 15/2|Taman Bukit Indah|81200 Johor Bahru, Johor'},
+  C6:{name:'Lian Hup Builders Sdn Bhd',brn:'202301045512',tin:'C29876501050',sst:'',terms:0,limit:0,contact:'Mr. Wong Kar Fai',phone:'017-202 8817',isNew:true,addr:'5, Jalan Kulai Besar|81000 Kulai, Johor'},
+  C7:{name:'Pasir Gudang Logistics Sdn Bhd',brn:'199601012233',tin:'C11223344060',sst:'B16-1702-31000233',terms:30,limit:60000,contact:'Mr. Ravi Shankar',phone:'012-388 7701',addr:'PLO 112, Jalan Keluli|Kawasan Perindustrian Pasir Gudang|81700 Pasir Gudang, Johor'},
 };
 let rates = {
   'RK500/wet':{hr:450,minH:4,day:3200,month:58000,mHrs:200,ex:300,ot:450},
@@ -913,13 +926,15 @@ Object.assign(rates, {
   'SL1300/wet':{hr:1250,minH:4,day:9000,month:160000,mHrs:200,ex:830,ot:1250},
 });
 /* Wet crane rates calibrated to quotation QT-01094 (19 Oct 2026): 25 t RM 18,500 and 50 t RM 28,000 a month with operator, without diesel,
-   with their overtime, Sunday / public holiday and Sunday overtime rates. Other sizes are scaled to match until the owner's rate card is keyed in. */
+   with their overtime, Sunday / public holiday and Sunday overtime rates. Other monthly rates are scaled to match until the owner's rate card is keyed in. */
 (function calibrateWet(){
   const REAL = {NK250:{month:18500, ot:104.35, sun:1100, sunOt:147}, RK500:{month:28000, ot:157.95, sun:1600, sunOt:214}};
   Object.keys(rates).forEach(key => { const [mk,k] = key.split('/'), r = rates[key], md = models[mk];
     if(k!=='wet' || md.grp!=='crane') return;
     const f = REAL[mk] && r.month ? REAL[mk].month / r.month : 0.5, rd = (v, st) => Math.round(v*f/st)*st;
-    if(r.hr) r.hr = rd(r.hr,5); if(r.day) r.day = rd(r.day,50); if(r.month) r.month = REAL[mk]?.month || rd(r.month,500); if(r.ex) r.ex = rd(r.ex,5);
+    // Day and hour rates are kept: invoice IV- 01158 2026 shows day rates well above month ÷ 26 (80 t RM 7,000, lorry crane with cargo RM 2,500).
+    if(r.month) r.month = REAL[mk]?.month || rd(r.month,500); if(r.ex) r.ex = rd(r.ex,5);
+    if(mk==='UNIC') r.day = 2500;
     const base = r.month || r.day*22;
     r.ot = REAL[mk]?.ot ?? Math.round(base/177.3*100)/100;
     r.sun = REAL[mk]?.sun ?? Math.round(base/17/50)*50;
@@ -1117,6 +1132,7 @@ function operatorFree(o, from, to, ignoreHire){
 }
 
 /* ---------- charges ---------- */
+const qtName = type => { const m = type.match(/^(.*?)\s+(\d+(?:\.\d+)?)\s*t$/i); return (m ? `${m[2]}T ${m[1]}` : type).toUpperCase(); };
 function meterUsage(l, s, e){
   const r = (l.hm||[]).slice().sort((a,b)=>a.d<b.d?-1:1);
   const a = r.filter(x=>x.d<=s).pop() || r.find(x=>x.d>=s), b = r.filter(x=>x.d<=e).pop();
@@ -1127,38 +1143,38 @@ function lineCharges(h, l, from, to){
   const s = maxD(l.on, from), e = minD(l.off || to, to);
   if(s > e) return [];
   const r = rate(fleet[l.u].m, l.k), days = daysBetween(s,e)+1, name = `${l.u} ${uName(l.u)}`;
+  const what = `${qtName(mOf(l.u).type)} ${l.k==='wet'?'WITH OPERATOR':'WITHOUT OPERATOR'} @ AT ${siteTown(h.site)}`, tag = `${l.u}: ${fleet[l.u].plate||fleet[l.u].serial||''}`;
   const ts = sheets.filter(t => t.hire===h.id && t.u===l.u && t.d>=s && t.d<=e);
   const out = []; let hourly = r.hr || r.day/RULES.dayHrs;
   if(l.basis==='month'){
     const m = dim(s), frac = days/m, allow = Math.round(r.mHrs*frac);
     hourly = r.month/r.mHrs;
-    out.push({kind:'hire',desc:`${name}, ${kindLabel(l.k).toLowerCase()} monthly, ${fmtD(s)}–${fmtD(e)}${days<m?` (${days} of ${m} days)`:''}`,qty:+frac.toFixed(4),unit:'month',rate:r.month,amt:r.month*frac});
+    out.push({kind:'hire',desc:`MONTHLY RENTAL OF ${what}`,det:[`${dotD(s)} - ${dotD(e)}${days<m?` (${days} of ${m} days)`:''}`, tag],qty:+frac.toFixed(4),unit:'month',rate:r.month,amt:r.month*frac});
     const used = l.k==='wet' ? sum(ts.map(t=>t.work)) : meterUsage(l, s, e);
-    if(used!=null && used > allow) out.push({kind:'excess',desc:`Excess hours: ${num(used)} h used, ${allow} h included`,qty:used-allow,unit:'h',rate:r.ex,amt:(used-allow)*r.ex});
+    if(used!=null && used > allow) out.push({kind:'excess',desc:'EXCESS HOURS',det:[`${num(used)} h used, ${allow} h included`, tag],qty:used-allow,unit:'h',rate:r.ex,amt:(used-allow)*r.ex});
   } else if(l.basis==='week'){
     const w = Math.floor(days/7), rem = days%7;
-    if(w) out.push({kind:'hire',desc:`${name}, dry hire weekly from ${fmtD(s)}`,qty:w,unit:'week',rate:r.week,amt:w*r.week});
-    if(rem) out.push({kind:'hire',desc:`${name}, ${rem} more day${rem>1?'s':''} to ${fmtD(e)}${rem*r.day>r.week?' (capped at one week)':''}`,qty:rem,unit:'day',rate:r.day,amt:Math.min(rem*r.day, r.week)});
+    if(w) out.push({kind:'hire',desc:`WEEKLY RENTAL OF ${what}`,det:[`from ${dotD(s)}`, tag],qty:w,unit:'week',rate:r.week,amt:w*r.week});
+    if(rem) out.push({kind:'hire',desc:`DAILY RENTAL OF ${what}`,det:[`${rem} more day${rem>1?'s':''} to ${dotD(e)}${rem*r.day>r.week?' (capped at one week)':''}`, tag],qty:rem,unit:'day',rate:r.day,amt:Math.min(rem*r.day, r.week)});
   } else if(l.basis==='day'){
     if(l.k==='wet'){
-      const wd = ts.filter(t=>dow(t.d)!==0), sun = ts.filter(t=>dow(t.d)===0);
-      if(wd.length) out.push({kind:'hire',desc:`${name}, wet hire daily (8 h, operator ${staff[l.op].name.split(' ')[0]})`,qty:wd.length,unit:'day',rate:r.day,amt:wd.length*r.day});
-      if(sun.length){ const sr = r.sun || r.day*RULES.sunX; out.push({kind:'sunday',desc:r.sun?'Sunday / public holiday':`Sunday / public holiday (×${RULES.sunX})`,qty:sun.length,unit:'day',rate:sr,amt:sun.length*sr}); }
-      const ot = sum(ts.map(t=>Math.max(0, t.work+t.standby+t.bd-RULES.dayHrs)));
-      if(ot) out.push({kind:'ot',desc:'Overtime above 8 h a day',qty:ot,unit:'h',rate:r.ot,amt:ot*r.ot});
+      ts.slice().sort((a,b)=>a.d<b.d?-1:1).forEach(t => { const sun = dow(t.d)===0, dr = sun ? (r.sun || r.day*RULES.sunX) : r.day, det = [dotD(t.d), `${woOf(t)}: ${fleet[l.u].plate||l.u}`, workTimes(t)];
+        out.push({kind:sun?'sunday':'hire', desc:`${sun?'SUNDAY / P.HOLIDAY':'DAILY'} RENTAL OF ${what}`, det, qty:1, unit:'day', rate:dr, amt:dr, wo:woOf(t)});
+        const ot = Math.max(0, t.work+t.standby+t.bd-RULES.dayHrs), or = sun ? (r.sunOt || r.ot*RULES.sunX) : r.ot;
+        if(ot) out.push({kind:'ot', desc:sun?'OVERTIME SUNDAY / P.HOLIDAY':'OVERTIME', det:[dotD(t.d), `${woOf(t)}: ${num(ot)} h after ${hm0(hhmm(toH(t.start)+RULES.dayHrs+t.brk/60))}`], qty:ot, unit:'h', rate:or, amt:ot*or}); });
     } else out.push({kind:'hire',desc:`${name}, dry hire daily`,qty:days,unit:'day',rate:r.day,amt:days*r.day});
   } else if(l.basis==='hour'){
     const hrs = sum(ts.map(t=>Math.max(t.work, r.minH))), sb = sum(ts.map(t=>t.standby));
-    if(hrs) out.push({kind:'hire',desc:`${name}, wet hire hourly (min ${r.minH} h a day)`,qty:hrs,unit:'h',rate:r.hr,amt:hrs*r.hr});
-    if(sb) out.push({kind:'standby',desc:`Standby (${RULES.standbyPct}% rate)`,qty:sb,unit:'h',rate:r.hr*RULES.standbyPct/100,amt:sb*r.hr*RULES.standbyPct/100});
+    ts.slice().sort((a,b)=>a.d<b.d?-1:1).forEach(t => { const q = Math.max(t.work, r.minH); out.push({kind:'hire',desc:`HOURLY RENTAL OF ${what}`,det:[dotD(t.d), `${woOf(t)}: ${fleet[l.u].plate||l.u}`, workTimes(t)+(t.work<r.minH?` (minimum ${r.minH} h)`:'')],qty:q,unit:'h',rate:r.hr,amt:q*r.hr,wo:woOf(t)}); });
+    if(sb) out.push({kind:'standby',desc:`STANDBY (${RULES.standbyPct}% OF HOURLY RATE)`,qty:sb,unit:'h',rate:r.hr*RULES.standbyPct/100,amt:sb*r.hr*RULES.standbyPct/100});
   }
-  ts.filter(t=>t.bd>RULES.bdGrace).forEach(t => { const q = t.bd-RULES.bdGrace; out.push({kind:'credit',desc:`Breakdown credit ${fmtD(t.d)}: ${t.bd} h lost, first ${RULES.bdGrace} h not credited`,qty:-q,unit:'h',rate:hourly,amt:-q*hourly}); });
+  ts.filter(t=>t.bd>RULES.bdGrace).forEach(t => { const q = t.bd-RULES.bdGrace; out.push({kind:'credit',desc:'LESS: BREAKDOWN',det:[`${dotD(t.d)}: ${t.bd} h down, first ${RULES.bdGrace} h not deducted (terms clause 18)`],qty:-q,unit:'h',rate:hourly,amt:-q*hourly}); });
   return out;
 }
 function charges(h, from, to){
   const out = h.lines.flatMap(l => lineCharges(h, l, from, to));
-  if(h.fuel==='charged'){ const fs = fuel.filter(f=>f.hire===h.id && f.d>=from && f.d<=to); if(fs.length){ const L = sum(fs.map(f=>f.l)), cost = sum(fs.map(f=>f.l*f.price)); out.push({kind:'fuel',desc:`Diesel supplied: ${num(L)} L at cost + 10%`,qty:L,unit:'L',rate:+(cost/L*1.1).toFixed(3),amt:cost*1.1}); } }
-  h.trips.filter(t => t.status==='Done' && t.d>=from && t.d<=to).forEach(t => out.push({kind:'transport',desc:`${t.self?'Mobilisation (self-drive)':'Transport by lowloader'}: ${t.dir.toLowerCase()}, ${t.u}, ${t.zone}`,qty:1,unit:'trip',rate:t.charge,amt:t.charge}));
+  if(h.fuel==='charged'){ const fs = fuel.filter(f=>f.hire===h.id && f.d>=from && f.d<=to); if(fs.length){ const L = sum(fs.map(f=>f.l)), cost = sum(fs.map(f=>f.l*f.price)); out.push({kind:'fuel',desc:'DIESEL SUPPLIED',det:[`${num(L)} L at cost + 10%`],qty:L,unit:'L',rate:+(cost/L*1.1).toFixed(3),amt:cost*1.1}); } }
+  h.trips.filter(t => t.status==='Done' && t.d>=from && t.d<=to).forEach(t => out.push({kind:'transport',desc:`${t.self?'MOBILISATION':'LOWLOADER TRANSPORT'} - ${t.dir.toUpperCase()}`,det:[dotD(t.d), `${t.u}: ${fleet[t.u]?.plate||fleet[t.u]?.serial||''}`, t.zone],qty:1,unit:'trip',rate:t.charge,amt:t.charge}));
   return out;
 }
 const totals = lines => { const sub = sum(lines.map(l=>l.amt)), sst = sub*RULES.sst/100; return {sub, sst, total:sub+sst}; };
@@ -1207,25 +1223,41 @@ const fuelFlag = f => f.hours && FUEL_RATE[fleet[f.u].m] ? fuelRate(f) > FUEL_RA
 
 /* ---------- invoices ---------- */
 let invoices = [];
+/* Numbers as in the company's own documents: invoice "IV- 01158 2026", work order 6 digits (173961). */
+let IV_SEQ = 1100, WO_SEQ = 173900;
+const ivNo = n => `IV- ${String(n).padStart(5,'0')} 2026`;
+const woOf = t => t.wo || (t.wo = ++WO_SEQ);
+const dotD = d => `${d.slice(8)}.${d.slice(5,7)}.${d.slice(0,4)}`;
+const hm0 = t => t.replace(/^0(\d)/,'$1');
+const workTimes = t => t.brk>=60 && toH(t.start)<12 && toH(t.finish)>13 ? `${hm0(t.start)} - 12:00,13:00 - ${hm0(t.finish)}` : `${hm0(t.start)} - ${hm0(t.finish)}${t.brk?` (break ${t.brk} min)`:''}`;
+const siteTown = site => (site.includes(',') ? site.split(',').pop() : site).trim().toUpperCase();
+const INVOICE_NOTES = [
+  'Any objections must be made within fourteen (14) days from the date of this invoice.',
+  'You shall be liable to pay interest at the rate of 1.5% per month on the total outstanding sum from the due date until the full payment.',
+  'Notwithstanding the above, you shall be strictly bound by all the terms and conditions as started herein and any other documents issued by us.',
+  'All cheques should be crossed and made payable to SUPER POWER CRANE MACHINERY SDN BHD|Our bank account details are as follows:|'+CO.bank,
+  '2% Tax exempted under seksyen 34(3)(a) and 34(4). Dated:23 Jan 2026',
+];
 const UUIDCH = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
 const uuidOf = s => Array.from({length:26},(_,i)=>UUIDCH[Math.floor(rnd(s+i)*UUIDCH.length)]).join('');
 (function buildInvoices(){
-  let n = 612;
   const PAID = {C2:'2026-10-14',C7:'2026-10-12'};
   hires.forEach(h => {
     const lines = charges(h, '2026-09-01', '2026-09-30'); if(!lines.length) return;
-    const t = totals(lines), no = `INV-2026-0${n++}`, cu = customers[h.c];
+    const t = totals(lines), no = ivNo(++IV_SEQ), cu = customers[h.c];
     invoices.push({no, c:h.c, hire:h.id, period:'Sep 2026', from:'2026-09-01', to:'2026-09-30', issued:'2026-10-01', due:addDays('2026-10-01', cu.terms), lines, ...t,
-      status: !cu.tin ? 'Draft' : PAID[h.c] ? 'Paid' : 'Sent', paid:PAID[h.c] || null,
-      einv: !cu.tin ? 'Rejected' : 'Validated', einvNote: !cu.tin ? 'Buyer TIN missing' : '', uuid: cu.tin ? uuidOf(no) : ''});
+      status: PAID[h.c] ? 'Paid' : 'Sent', paid:PAID[h.c] || null,
+      einv: !cu.tin ? 'Not validated' : 'Validated', einvNote: '', uuid: cu.tin ? uuidOf(no) : ''});
   });
-  invoices.push({no:'INV-2026-0571',c:'C3',hire:'H-2026-0127',period:'Aug 2026',issued:'2026-09-01',due:'2026-10-01',sub:19888.89,sst:1591.11,total:21480,status:'Sent',einv:'Validated',uuid:uuidOf('0571'),lines:[]});
-  invoices.push({no:'INV-2026-0566',c:'C1',hire:'H-2026-0119',period:'Aug 2026',issued:'2026-09-01',due:'2026-10-01',sub:42500,sst:3400,total:45900,status:'Paid',paid:'2026-09-29',einv:'Validated',uuid:uuidOf('0566'),lines:[]});
-  invoices.push({no:'INV-2026-0549',c:'C5',hire:'H-2026-0112',period:'Jul 2026',issued:'2026-08-01',due:'2026-09-15',sub:9259.26,sst:740.74,total:10000,status:'Sent',einv:'Validated',uuid:uuidOf('0549'),lines:[]});
+  /* One invoice MyInvois rejected, to show the fix-and-resubmit step. */
+  const rj = invoices.find(i=>i.c==='C5' && i.einv==='Validated'); if(rj){ Object.assign(rj, {einv:'Rejected', einvNote:'Buyer TIN does not match the SSM no. at LHDN', uuid:'', status:'Draft'}); }
+  invoices.push({no:ivNo(1071),c:'C3',hire:'H-2026-0127',period:'Aug 2026',issued:'2026-09-01',due:'2026-10-01',sub:19888.89,sst:1591.11,total:21480,status:'Sent',einv:'Validated',uuid:uuidOf('1071'),lines:[]});
+  invoices.push({no:ivNo(1068),c:'C1',hire:'H-2026-0119',period:'Aug 2026',issued:'2026-09-01',due:'2026-10-01',sub:42500,sst:3400,total:45900,status:'Paid',paid:'2026-09-29',einv:'Validated',uuid:uuidOf('1068'),lines:[]});
+  invoices.push({no:ivNo(1043),c:'C5',hire:'H-2026-0112',period:'Jul 2026',issued:'2026-08-01',due:'2026-09-15',sub:9259.26,sst:740.74,total:10000,status:'Sent',einv:'Validated',uuid:uuidOf('1043'),lines:[]});
 })();
 const invStatus = i => i.status==='Paid' ? 'Paid' : i.status==='Draft' ? 'Draft' : i.due < TODAY ? 'Overdue' : 'Sent';
 const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Paid:'ok',Draft:'mute',Overdue:'crit',Sent:'info'})[s]}">${s}${s==='Overdue'?' '+daysBetween(i.due,TODAY)+' d':''}</span>`; };
-const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
+const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn','Not validated':'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
 
 /* ---------- larger example fleet: shows the screens working at 60+ machines ---------- */
 Object.assign(models, {
@@ -1236,8 +1268,8 @@ Object.assign(models, {
   DCA60:{make:'Denyo',model:'DCA-60ESI',type:'Generator 60 kVA',grp:'power',size:'small'},
 });
 Object.assign(rates, {
-  'GR250/wet':{hr:150,minH:3.5,day:1050,month:18000,mHrs:200,ex:100,ot:101.52,sun:1050,sunOt:139}, 'GR250/dry':{day:1500,week:8000,month:26000,mHrs:200,ex:140},
-  'ATF100/wet':{hr:400,minH:7.5,day:2900,month:52500,mHrs:200,ex:260,ot:296.11,sun:3100,sunOt:406},
+  'GR250/wet':{hr:300,minH:3.5,day:2100,month:18000,mHrs:200,ex:100,ot:101.52,sun:1050,sunOt:139}, 'GR250/dry':{day:1500,week:8000,month:26000,mHrs:200,ex:140},
+  'ATF100/wet':{hr:800,minH:7.5,day:5800,month:52500,mHrs:200,ex:260,ot:296.11,sun:3100,sunOt:406},
   'NK250/dry':{day:1400,week:7500,month:24000,mHrs:200,ex:130}, 'RK500/dry':{day:2300,week:12500,month:40000,mHrs:200,ex:210},
   'SS500/dry':{day:2200,week:12000,month:38000,mHrs:200,ex:200}, 'UNIC/dry':{day:900,week:4800,month:15000,mHrs:200,ex:80},
   'FD70/dry':{day:380,week:1900,month:6200,mHrs:200,ex:30}, 'GS4047/dry':{day:220,week:1100,month:3200,mHrs:200,ex:20},
@@ -1452,6 +1484,7 @@ function attention(){
   hires.filter(h=>h.status==='Off-hire called').forEach(h => items.push({sev:'info',t:`Off-hire: ${h.lines.map(l=>l.u).join(', ')} from ${fmtD(h.lines[0].off)}`,s:`${custName(h.c)} · collection ${fmtDW(h.trips.find(t=>t.dir==='Collection')?.d)}`,a:`data-hire="${h.id}"`}));
   hires.filter(h=>h.status==='Quotation' && h.lines.some(l=>!l.u)).forEach(h => items.push({sev:'warn',t:`No machine free for quotation ${h.id}`,s:`${models[h.lines[0].m].type}, ${fmtD(h.lines[0].from)}–${fmtD(h.lines[0].to)} · ${custName(h.c)}`,a:`data-hire="${h.id}"`}));
   hires.filter(h=>h.status==='Returned' && h.damage).forEach(h => items.push({sev:'info',t:`Damage to charge: ${h.id} (${h.damage.job})`,s:`${h.damage.note} Estimate ${RM0(h.damage.est)}`,a:`data-hire="${h.id}"`,cost:true}));
+  { const nv = invoices.filter(i=>i.einv==='Not validated' && i.issued.slice(0,7)===TODAY.slice(0,7)); if(nv.length) items.push({sev:'info',t:`${nv.length} invoice${nv.length>1?'s':''} not yet e-invoices`,s:`Customer scans the QR before month end, or it goes into the consolidated e-invoice · ${nv.map(i=>custName(i.c).replace(/ Sdn Bhd$/,'')).join(', ')}`,a:`data-inv="${nv[0].no}"`,cost:true}); }
   invoices.filter(i=>i.einv==='Rejected').forEach(i => items.push({sev:'crit',t:`e-Invoice rejected: ${i.no}`,s:`${i.einvNote} · ${custName(i.c)}`,a:`data-inv="${i.no}"`,cost:true}));
   invoices.filter(i=>invStatus(i)==='Overdue').forEach(i => items.push({sev:'warn',t:`Invoice overdue ${daysBetween(i.due,TODAY)} d: ${i.no}`,s:`${custName(i.c)} · ${RM(i.total)}`,a:`data-inv="${i.no}"`,cost:true}));
   return items;
@@ -1680,7 +1713,7 @@ function openNewHire(){
         <label>State (for public holidays)<select class="field" data-nh="state">${STATES.map(s=>`<option ${s===n.state?'selected':''}>${s}</option>`).join('')}</select></label>
         <label>Site contact<input type="text" data-nh="siteContact" value="${esc(n.siteContact)}" placeholder="Name and phone"></label>
         <label>Customer PO / LOU<input type="text" data-nh="po" value="${esc(n.po)}" placeholder="Needed to confirm"></label>
-        ${!cu.tin?'<label class="full" style="color:var(--crit)">This customer has no TIN on file. Ask for it now: an e-invoice cannot be issued without it.</label>':''}
+        ${!cu.tin?'<label class="full" style="color:var(--crit)">This customer has no TIN on file. Invoices will carry a QR for them to scan each month; ask for the TIN so e-invoices are issued directly.</label>':''}
         ${cu.isNew?`<label class="full" style="color:var(--warn)">New customer: deposit ${RM0(deposit)} before delivery.</label>`:''}
       </div></div>
       <div class="sect"><h3>Machine and dates</h3><div class="in">
@@ -2001,27 +2034,31 @@ function renderBilling(){
       </tbody></table></div></div>`;
 }
 function openInvoice(no){
-  const i = invoices.find(x=>x.no===no), cu = customers[i.c], h = hire(i.hire);
+  const i = invoices.find(x=>x.no===no), cu = customers[i.c], h = hire(i.hire), u = uOM => ({day:'DAY',h:'HRS',month:'MONTH',week:'WEEK',trip:'TRIP',L:'LITRE',lot:'LOT'})[uOM] || uOM.toUpperCase();
+  const scanText = 'Not validated by LHDN. Scan within same month to convert into e-invoice.';
   const body = `
     ${i.einv==='Rejected'?`<div class="banner crit"><b>MyInvois rejected this invoice: ${esc(i.einvNote)}.</b></div>
-      <form class="docbar" data-form="tin" data-no="${no}"><label class="label" for="tinIn">Customer TIN (from the customer's e-invoice details or the LHDN TIN search)</label><div class="btnrow"><input type="text" id="tinIn" placeholder="e.g. C21234567890" style="flex:1"><button class="btn primary">Save TIN and resubmit</button></div></form>`:''}
-    <div class="doc">
-      <div class="doc-head"><div><div class="doc-brand">${esc(CO.name)}</div><small>${CO.addr.map(esc).join(', ')}<br>Tel ${esc(CO.phone)} · Reg No ${esc(CO.reg)}<br>Service Tax ID ${esc(CO.sst)} · TIN ${esc(CO.tin)}</small></div>
-        <div class="doc-meta"><b>Tax invoice</b><span>${i.no}</span><span>Date ${fmtDY(i.issued)}</span><span>Due ${fmtDY(i.due)}</span></div></div>
-      <div class="doc-grid">
-        <div><h4>Bill to</h4><dl><dt>Customer</dt><dd>${esc(cu.name)}</dd><dt>SSM</dt><dd>${esc(cu.brn)}</dd><dt>TIN</dt><dd>${cu.tin?esc(cu.tin):'<span class="no">Missing</span>'}</dd>${cu.sst?`<dt>SST</dt><dd>${esc(cu.sst)}</dd>`:''}<dt>Attn</dt><dd>${esc(cu.contact)}</dd></dl></div>
-        <div><h4>Hire</h4><dl><dt>Hire no.</dt><dd>${esc(i.hire)}</dd>${h?`<dt>Site</dt><dd>${esc(h.site)}</dd><dt>PO / LOU</dt><dd>${esc(h.po)}</dd>`:''}<dt>Period</dt><dd>${esc(i.period)}</dd></dl></div>
-      </div>
-      ${i.lines.length?`<div class="dt"><table><thead><tr><th>Description</th><th class="r">Qty</th><th class="r">Rate (RM)</th><th class="r">Amount (RM)</th></tr></thead><tbody>
-        ${i.lines.map(x=>`<tr><td>${esc(x.desc)}</td><td class="r">${num(+x.qty.toFixed(2))} ${x.unit}</td><td class="r">${num(+x.rate.toFixed(2))}</td><td class="r">${(+x.amt).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('')}
+      <form class="docbar" data-form="tin" data-no="${no}"><label class="label" for="tinIn">Correct customer TIN (from the customer's e-invoice details or the LHDN TIN search)</label><div class="btnrow"><input type="text" id="tinIn" placeholder="e.g. C21234567890" style="flex:1"><button class="btn primary">Save TIN and resubmit</button></div></form>`:''}
+    ${i.einv==='Not validated'?`<div class="banner"><b>Not an e-invoice yet. ${esc(custName(i.c))} has no TIN on file: they scan the QR on the invoice this month to get an e-invoice, or it goes into the month's consolidated e-invoice.</b></div>`:''}
+    <div class="doc qdoc ivdoc">
+      <div class="qd-head iv-head"><img src="${LOGO}" alt="Super Power logo" width="96" height="96">
+        <div class="qd-co"><b>${esc(CO.name.toUpperCase())} <small>(${esc(CO.reg)})</small></b><small>Sales Tax ID: ${esc(CO.salesTax)}<br>Service Tax ID: ${esc(CO.sst)}<br>TIN: ${esc(CO.tin)}<br>MSIC Code: ${esc(CO.msic)}</small>
+          <span>${CO.addr.map(esc).join('<br>')}</span><span>Contact: ${esc(CO.phone)} / ${esc(CO.email)}<br>Website: http://${esc(CO.web)}</span></div></div>
+      <div class="iv-title">INVOICE</div>
+      <div class="iv-top"><div class="qd-to"><small>BILL TO</small><b>${esc(cu.name.toUpperCase())}</b>${(cu.addr||'').split('|').filter(Boolean).map(x=>`<span>${esc(x.toUpperCase())}</span>`).join('')}<span>Malaysia</span>${cu.tin?`<small>TIN: ${esc(cu.tin)}</small>`:''}</div>
+        <dl class="iv-meta"><dt>NO.</dt><dd>${i.no}</dd><dt>DATE</dt><dd>${dmy(i.issued)}</dd><dt>PAYMENT TERM</dt><dd>${payTerm(i.c)}</dd><dt>DUE DATE</dt><dd>${dmy(i.due)}</dd>${h?.po?`<dt>YOUR PO</dt><dd>${esc(h.po)}</dd>`:''}</dl></div>
+      ${i.lines.length?`<div class="dt"><table class="iv-t"><thead><tr><th>NO.</th><th>DESCRIPTION</th><th class="r">QTY</th><th>UOM</th><th class="r">U/PRICE</th><th class="r">AMT</th><th class="r">TAX AMT</th></tr></thead><tbody>
+        ${i.lines.map((x,k)=>`<tr><td>${k+1}</td><td>${esc(x.desc)}${(x.det||[]).map(d=>`<br>${esc(d)}`).join('')}</td><td class="r">${num(+x.qty.toFixed(2))}</td><td>${u(x.unit)}</td><td class="r">${money(x.rate)}</td><td class="r">${money(x.amt)}</td><td class="r">${money(x.amt*RULES.sst/100)}</td></tr>`).join('')}
       </tbody></table></div>`:'<p><small>Lines from the earlier billing period.</small></p>'}
-      <div class="tot"><span>Subtotal</span><b>${RM(i.sub)}</b><span>Service tax (SST) ${RULES.sst}%</span><b>${RM(i.sst)}</b><span><b>Total payable</b></span><b>${RM(i.total)}</b></div>
-      <div class="einv">${i.uuid?`<div class="qr" id="einvQr"></div><div><b>e-Invoice validated by LHDN MyInvois</b><br><small>UUID ${esc(i.uuid)}<br>Validated ${fmtDY(i.issued)} 09:14</small></div>`:'<small class="no">Not yet validated by MyInvois. Do not send this invoice to the customer.</small>'}</div>
-      <div class="doc-foot">Payment to Maybank 5123 4567 8901 (${esc(CO.name)}). Hire charges are based on signed timesheets / hour-meter readings and the hire agreement. Overdue accounts may be charged late payment interest as agreed.</div>
+      <div class="iv-tot"><span>SUBTOTAL</span><b>RM${money(i.sub)}</b><span>SERVICE TAX (${RULES.sst}%)</span><b>RM${money(i.sst)}</b><span class="t">TOTAL</span><b class="t">RM${money(i.total)}</b></div>
+      <div class="qd-terms"><small>NOTES</small><ol>${INVOICE_NOTES.map(n=>`<li>${n.split('|').map(esc).join('<br>')}</li>`).join('')}</ol></div>
+      <div class="qd-sign"><div><small>AUTHORISED SIGNATURE</small><div class="sline"></div><span>Authorised By</span></div><div><small>&nbsp;</small><div class="sline"></div><span>Received By</span></div></div>
+      <div class="einv">${i.einv==='Rejected'?'<small class="no">Rejected by MyInvois. Do not send this invoice until it is resubmitted.</small>':`<div class="qr" id="einvQr"></div><div>${i.uuid?`<b>Validated by LHDN</b><br><small>UUID ${esc(i.uuid)} · ${dmy(i.issued)} 09:14</small>`:`<small><b>Not validated</b> by LHDN. Scan within same month to convert into e-invoice.</small>`}</div>`}</div>
     </div>
-    <div class="btnrow">${i.uuid?`<button class="btn primary" data-action="inv-wa" data-no="${no}">Send by WhatsApp</button>`:''}${invStatus(i)!=='Paid'&&i.uuid?`<button class="btn" data-action="inv-paid" data-no="${no}">Record payment</button>`:''}<button class="btn" data-action="inv-cn" data-no="${no}">Credit note</button></div>`;
+    <div class="btnrow">${i.einv!=='Rejected'?`<button class="btn primary" data-action="inv-wa" data-no="${no}">Send by WhatsApp</button>`:''}${invStatus(i)!=='Paid'&&i.einv!=='Rejected'?`<button class="btn" data-action="inv-paid" data-no="${no}">Record payment</button>`:''}<button class="btn" data-action="inv-cn" data-no="${no}">Credit note</button></div>`;
   openSheet(`Invoice ${i.no}`, `${invPill(i)} ${einvPill(i)}`, body, {type:'inv',id:no});
-  const q = $('#einvQr'); if(q){ if(window.QRCode) new QRCode(q, {text:`https://myinvois.hasil.gov.my/${i.uuid}/share/${i.no}`, width:96, height:96, correctLevel:QRCode.CorrectLevel.M}); else q.textContent = 'QR'; }
+  const q = $('#einvQr'); if(q){ const text = i.uuid ? `https://myinvois.hasil.gov.my/${i.uuid}/share/${encodeURIComponent(i.no)}` : `https://superpowercrane.com/e-invoice/${encodeURIComponent(i.no)}`;
+    if(window.QRCode) new QRCode(q, {text, width:96, height:96, correctLevel:QRCode.CorrectLevel.M}); else q.textContent = 'QR'; }
 }
 
 /* ---------- Rates ---------- */
@@ -2369,7 +2406,7 @@ function openCustomer(k){
       <div><span class="label">Customer since</span><b>${c.since||'—'}</b></div>
       <div><span class="label">Salesperson</span><b>${esc(staff[c.sales||'S2'].name)}</b></div>
       <div><span class="label">SSM no.</span><b>${esc(c.brn||'Missing')}</b></div>
-      <div><span class="label">TIN</span><b>${c.tin?esc(c.tin):'<span style="color:var(--crit)">Missing: needed for e-invoice</span>'}</b></div>
+      <div><span class="label">TIN</span><b>${c.tin?esc(c.tin):'<span style="color:var(--warn)">Missing: customer scans the QR on each invoice</span>'}</b></div>
       <div><span class="label">SST no.</span><b>${esc(c.sst||'—')}</b></div>
       <div class="cost"><span class="label">Credit</span><b>${c.terms?c.terms+' days, limit '+RM0(c.limit):'Cash / deposit'}</b></div>
       <div class="cost"><span class="label">Balance owing</span><b>${RM0(bal)}</b>${c.limit?`<small class="muted">${Math.round(bal/c.limit*100)}% of limit</small>`:''}</div>
@@ -2877,7 +2914,8 @@ const BUKKU_MAP = [
   ['Diesel recharged to customers','4120 Fuel recharge income'],['Damage repairs charged','4130 Damage recovery income'],['Fuel bought','6210 Fuel – diesel'],['Customer deposits','2300 Customer deposits']];
 let bukkuSeq = 1180;
 function bukkuOf(i){
-  if(!i.bukku || (i.bukku.st==='Waiting' && i.uuid)) i.bukku = i.uuid ? {st:'Synced', no:'IV-0'+(bukkuSeq++), at:i.issued} : {st:'Waiting'};
+  /* The invoice number is Bukku's own (IV- 01158 2026), so the same number appears in both systems. */
+  if(!i.bukku || (i.bukku.st==='Waiting' && i.einv!=='Rejected')) i.bukku = i.einv!=='Rejected' ? {st:'Synced', no:i.no, at:i.issued} : {st:'Waiting'};
   return i.bukku;
 }
 const bukkuPill = i => { const b = bukkuOf(i); return b.st==='Synced' ? `<span class="pill ok" title="Bukku ${b.no}">${b.no}</span>` : '<span class="pill warn" title="Sent once the e-invoice is fixed">Waiting</span>'; };
@@ -3377,8 +3415,7 @@ const DISC_LIMIT = {sales:5, supervisor:10, boss:100};
 const RIGGER_DAY = 250;
 const qtNo = n => 'QT-' + String(n).padStart(5,'0');
 const dmy = d => `${d.slice(8)}/${d.slice(5,7)}/${d.slice(0,4)}`;
-const payTerm = c => customers[c]?.terms ? `${customers[c].terms} DAYS` : 'COD';
-const qtName = type => { const m = type.match(/^(.*?)\s+(\d+(?:\.\d+)?)\s*t$/i); return (m ? `${m[2]}T ${m[1]}` : type).toUpperCase(); };
+const payTerm = c => customers[c]?.terms ? `NET${customers[c].terms}` : 'COD';
 const QT_BASIS = {hour:'HOURLY',day:'DAILY',week:'WEEKLY',month:'MONTHLY'}, QT_UOM = {hour:'HRS',day:'DAY',week:'WEEKLY',month:'MONTHLY'};
 const r2 = v => Math.round(v*100)/100;
 function qtLine(desc, qty, uom, rate, discPct, sub, sched){
@@ -3594,9 +3631,9 @@ document.addEventListener('click', e => {
       h.log.unshift({d:TODAY+' '+nowT(),t:`Customer called off-hire from ${fmtD(TODAY)}. Collection ${fmtDW(addDays(TODAY,1))}.`}); toast('Off-hire recorded. Charges stop today; collection booked for tomorrow.'); return rerender(); }
     if(act==='breakdown'){ h.log.unshift({d:TODAY+' '+nowT(),t:'Breakdown reported. Workshop emergency job J-2026-0424 created; lost hours stop being charged.'}); toast('Workshop alerted: emergency job J-2026-0424 created'); return rerender(); }
     if(act==='extend'){ const l = h.lines[0], nt = addDays(l.to,7), av = availability(l.u, addDays(l.to,1), nt, h.id); if(!av.ok){ toast('Cannot extend: '+av.why[0]); return; } l.to = nt; h.log.unshift({d:TODAY+' '+nowT(),t:`Extended to ${fmtD(nt)}.`}); toast(`Extended to ${fmtD(nt)}`); return rerender(); }
-    if(act==='final-inv'){ const lines = charges(h, '2026-10-01', h.lines[0].off||TODAY); if(h.damage) lines.push({kind:'damage',desc:`Damage repair, workshop job ${h.damage.job} (${h.damage.done?'final':'estimate'})`,qty:1,unit:'lot',rate:h.damage.est,amt:h.damage.est});
-      const t = totals(lines), no = 'INV-2026-0'+(Math.max(...invoices.map(i=>+i.no.slice(-3)))+1), cu = customers[h.c];
-      invoices.push({no,c:h.c,hire:h.id,period:`${fmtD('2026-10-01')}–${fmtD(h.lines[0].off||TODAY)} 2026 (final)`,issued:TODAY,due:addDays(TODAY,cu.terms),lines,...t,status:cu.tin?'Sent':'Draft',einv:cu.tin?'Validated':'Rejected',einvNote:cu.tin?'':'Buyer TIN missing',uuid:cu.tin?uuidOf(no):''});
+    if(act==='final-inv'){ const lines = charges(h, '2026-10-01', h.lines[0].off||TODAY); if(h.damage) lines.push({kind:'damage',desc:'DAMAGE REPAIR',det:[`Workshop job ${h.damage.job} (${h.damage.done?'final':'estimate'})`],qty:1,unit:'lot',rate:h.damage.est,amt:h.damage.est});
+      const t = totals(lines), no = ivNo(++IV_SEQ), cu = customers[h.c];
+      invoices.push({no,c:h.c,hire:h.id,period:`${fmtD('2026-10-01')}–${fmtD(h.lines[0].off||TODAY)} 2026 (final)`,issued:TODAY,due:addDays(TODAY,cu.terms),lines,...t,status:'Sent',einv:cu.tin?'Validated':'Not validated',einvNote:'',uuid:cu.tin?uuidOf(no):''});
       h.status='Closed'; h.log.unshift({d:TODAY+' '+nowT(),t:`Final invoice ${no} issued.`}); render(); return openInvoice(no); }
     if(act==='ts-wa'){ toast(`Timesheet sent to ${esc(sheets.find(s=>s.id===d.id).signer)} by WhatsApp to approve with one tap`); return; }
     if(act==='op-bd'){ toast('Workshop and rental desk alerted. Emergency job J-2026-0424 created.'); return; }
