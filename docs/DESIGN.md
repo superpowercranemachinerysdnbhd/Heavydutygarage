@@ -797,3 +797,7 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 ### 54. Edit or remove parts on a work order (Oct 2026)
 - Parts issued from stock: **Edit** (Supervisor / Head Manager, also after completion for those who may edit details). Change the quantity (lower → the difference goes back in stock; higher → more is taken, same rules as issuing), or **Remove: return all to stock**. `changeIssuedQty` in `lib/inventory.ts` writes return / issue stock movements with a note (e.g. "J-2026-0003: 4 → 1"). A return never puts back more than the work order actually took off the shelf (bulk parts stop at 0 when issued).
 - Parts bought for the work order and outside work: **Edit** (part no., description, qty, unit price, invoice no.) as well as Remove (with a confirmation).
+
+### 55. Edit or remove tasks on a work order (Oct 2026)
+- Each task has **Edit** (wording, and for Supervisor / Head Manager who it is assigned to) and **Remove task** (with a confirmation). The activity log records the change.
+- Supervisor / Head Manager can change any task; crew only the tasks assigned to them. Open work orders only (reopen a completed one to change its tasks).

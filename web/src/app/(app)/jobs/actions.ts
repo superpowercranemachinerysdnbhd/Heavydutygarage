@@ -338,6 +338,37 @@ export async function toggleTask(form: FormData) {
   back(user, jobId);
 }
 
+/** A task the user may change: Supervisor / Head Manager any task; crew the tasks assigned to them. Open work orders only. */
+async function editableTask(user: CurrentUser, form: FormData) {
+  const jobId = num(form, "jobId"), taskId = num(form, "taskId");
+  const { job } = await access(jobId, user);
+  if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
+  const [task] = await db.select().from(schema.jobTasks).where(and(eq(schema.jobTasks.id, taskId), eq(schema.jobTasks.jobId, jobId)));
+  if (!task) back(user, jobId, { error: "err.taskNotFound" });
+  if (!can(user.role, "job.assign") && task.assigneeId !== user.id) back(user, jobId, { error: "err.notOnJob" });
+  return { job, task };
+}
+
+export async function updateTask(form: FormData) {
+  const user = await requireUser();
+  const { job, task } = await editableTask(user, form);
+  const description = str(form, "description");
+  if (!description) back(user, job.id, { error: "err.taskDesc" });
+  const assigneeId = can(user.role, "job.assign") ? num(form, "assigneeId") || null : task.assigneeId;
+  await db.update(schema.jobTasks).set({ description, assigneeId }).where(eq(schema.jobTasks.id, task.id));
+  if (assigneeId && assigneeId !== task.assigneeId) await ensureOnTeam(job.id, assigneeId, job.leadId);
+  if (description !== task.description) await addActivity(job.id, user.id, "act.taskEdited", { from: task.description, task: description, name: user.name });
+  back(user, job.id, { ok: "task.saved" });
+}
+
+export async function removeTask(form: FormData) {
+  const user = await requireUser();
+  const { job, task } = await editableTask(user, form);
+  await db.delete(schema.jobTasks).where(eq(schema.jobTasks.id, task.id));
+  await addActivity(job.id, user.id, "act.taskRemoved", { task: task.description, name: user.name });
+  back(user, job.id, { ok: "task.removed" });
+}
+
 export async function toggleQc(form: FormData) {
   const user = await requirePermission("job.qc");
   const jobId = num(form, "jobId"), qcId = num(form, "qcId");

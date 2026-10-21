@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 const STAGES = ["before", "during", "after", "qc"] as const;
 const subtle = { fontFamily: "var(--f-body)", fontSize: ".8rem", textTransform: "none", letterSpacing: 0 } as const;
 
-export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string; labour?: string; short?: string; part?: string; bought?: string }> }) {
+export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string; labour?: string; short?: string; part?: string; bought?: string; task?: string }> }) {
   const user = await requireUser();
   const { t, locale } = await getI18n();
   const id = Number((await params).id);
@@ -178,11 +178,25 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {tasks.length === 0 && <span className="muted">{t("job.noTasks")}</span>}
             {tasks.map((x) => {
               const who = [lead, ...team].find((p) => p && p.id === x.assigneeId);
+              const mayEdit = open && (can(user.role, "job.assign") || x.assigneeId === user.id);
+              if (mayEdit && sp.task === String(x.id)) return (
+                <div key={x.id} className="task-edit">
+                  <form action={A.updateTask} className="filters">
+                    {hidden("jobId", job.id)}{hidden("taskId", x.id)}
+                    <input name="description" defaultValue={x.description} required aria-label={t("job.tasks")} style={{ flex: "1 1 220px" }} autoFocus />
+                    {sup && <select className="field" name="assigneeId" defaultValue={x.assigneeId ?? ""} aria-label={t("job.assignTo")}><option value="">{t("common.anyone")}</option>{crew.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select>}
+                    <SubmitButton className="btn small primary">{t("common.save")}</SubmitButton>
+                    <Link className="btn small" href={`/jobs/${job.id}`}>{t("common.cancel")}</Link>
+                  </form>
+                  <form action={A.removeTask}>{hidden("jobId", job.id)}{hidden("taskId", x.id)}<SubmitButton className="linkbtn muted" confirm={t("task.removeConfirm", { task: x.description })}>{t("task.remove")}</SubmitButton></form>
+                </div>
+              );
               return (
                 <form key={x.id} action={A.toggleTask} className={`task ${x.doneAt ? "done" : ""}`}>
                   {hidden("jobId", job.id)}{hidden("taskId", x.id)}
                   <button className="tick" disabled={!open} aria-label={x.doneAt ? t("job.markNotDone", { task: x.description }) : t("job.markDone", { task: x.description })}>{x.doneAt ? "✓" : ""}</button>
                   <span>{x.description}</span><span className="who">{who && <Avatar name={who.name} />}</span>
+                  {mayEdit && <Link className="task-edit-link plain muted" href={`/jobs/${job.id}?task=${x.id}`} aria-label={`${t("lab.edit")}: ${x.description}`}>{t("lab.edit")}</Link>}
                 </form>
               );
             })}
