@@ -793,3 +793,7 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Team → person → **Pay** (Head Manager): the history (from, salary, hours, normal / OT / Sunday hourly rates, "Now" and "Upcoming" tags) and **Change pay** (new pay from a date, salary + hours or an hourly rate, note). Work before the date keeps the old rate. A back-dated change (e.g. 1 Oct entered on 21 Oct) re-costs the work since that date. A change entered by mistake can be removed; the first entry stays.
 - `staff.pay_rate` / `monthly_salary` mirror the pay in force today. "Edit details" no longer changes pay; adding a person still takes their starting pay.
 - Migration 0024: everyone's current pay becomes their first entry "from the start" (2000-01-01). Merging staff keeps the kept person's history.
+
+### 54. Edit or remove parts on a work order (Oct 2026)
+- Parts issued from stock: **Edit** (Supervisor / Head Manager, also after completion for those who may edit details). Change the quantity (lower → the difference goes back in stock; higher → more is taken, same rules as issuing), or **Remove: return all to stock**. `changeIssuedQty` in `lib/inventory.ts` writes return / issue stock movements with a note (e.g. "J-2026-0003: 4 → 1"). A return never puts back more than the work order actually took off the shelf (bulk parts stop at 0 when issued).
+- Parts bought for the work order and outside work: **Edit** (part no., description, qty, unit price, invoice no.) as well as Remove (with a confirmation).

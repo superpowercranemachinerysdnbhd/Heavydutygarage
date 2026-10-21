@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 const STAGES = ["before", "during", "after", "qc"] as const;
 const subtle = { fontFamily: "var(--f-body)", fontSize: ".8rem", textTransform: "none", letterSpacing: 0 } as const;
 
-export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string; labour?: string; short?: string }> }) {
+export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string; labour?: string; short?: string; part?: string; bought?: string }> }) {
   const user = await requireUser();
   const { t, locale } = await getI18n();
   const id = Number((await params).id);
@@ -68,6 +68,9 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const short = shortPart && Number(shortBits[1]) > 0 ? { part: shortPart, qty: Number(shortBits[1]), requestId: Number(shortBits[2]) || 0 } : null;
   const pickParts = stockParts.map((p) => ({ id: p.id, sku: p.sku, oem: p.oemPartNo, description: p.description, category: p.category, bin: p.bin, onHand: p.onHand, uom: p.uom, fits: p.fits, models: p.models, bulk: p.bulk }));
   const recIdeas = recommendationIdeas(d, t, locale);
+  const canFixParts = can(user.role, "stock.manage") && (open || can(user.role, "job.editDetails"));
+  const editPart = canFixParts ? issued.find((x) => String(x.id) === sp.part) : undefined;
+  const editBought = bought.find((x) => String(x.id) === sp.bought);
   const canLines = can(user.role, "stock.manage") && (open || can(user.role, "job.editDetails"));
   const canOutside = canLines;
   const pendingInvoice = invoicePending({ ...job, outsideLines: bought.filter((x) => x.kind === "service").length });
@@ -264,9 +267,24 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               <span className="label">{t("jp.internal")}</span>
               {issued.length > 0 ? (
                 <div className="tbl-wrap"><table>
-                  <thead><tr><th>{t("jp.issued")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.selling") && <th className="r">{t("parts.sell")}</th>}{can(user.role, "money.cost") && <th className="r">{t("parts.costCol")}</th>}</tr></thead>
-                  <tbody>{issued.map((x) => <tr key={x.id}><td><span className="mono">{x.sku}</span> {x.description}<br /><small className="muted">{fmtDateTime(x.issuedAt, locale)}</small></td><td className="r num">{q2(x.qty)} {x.uom}</td>
-                    {can(user.role, "money.selling") && <td className="r num">{rm(x.qty * x.unitPrice)}</td>}{can(user.role, "money.cost") && <td className="r num">{rm(x.qty * x.unitCost)}</td>}</tr>)}</tbody>
+                  <thead><tr><th>{t("jp.issued")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.cost") && <th className="r">{t("parts.costCol")}</th>}{canFixParts && <th />}</tr></thead>
+                  <tbody>{issued.map((x) => editPart?.id === x.id ? (
+                    <tr key={x.id} className="row-sel"><td colSpan={can(user.role, "money.cost") ? 4 : 3}>
+                      <span className="mono">{x.sku}</span> {x.description}
+                      <div className="filters" style={{ marginTop: 6 }}>
+                        <form action={A.updateIssuedPart} className="filters">{hidden("jobId", job.id)}{hidden("jobPartId", x.id)}
+                          <label className="label" htmlFor={`q-${x.id}`}>{t("po.qty")}</label>
+                          <input id={`q-${x.id}`} type="number" name="qty" min="0.01" step="any" defaultValue={x.qty} style={{ width: 100 }} required /> <span className="muted">{x.uom}</span>
+                          <SubmitButton className="btn small primary">{t("common.save")}</SubmitButton></form>
+                        <form action={A.updateIssuedPart}>{hidden("jobId", job.id)}{hidden("jobPartId", x.id)}{hidden("remove", "1")}
+                          <SubmitButton className="btn small" confirm={t("jp.returnConfirm", { qty: q2(x.qty), uom: x.uom, part: x.description })}>{t("jp.returnAll")}</SubmitButton></form>
+                        <Link className="btn small" href={`/jobs/${job.id}#parts`}>{t("common.cancel")}</Link>
+                      </div>
+                      <small className="muted">{t("jp.editHelp")}</small>
+                    </td></tr>
+                  ) : <tr key={x.id}><td><span className="mono">{x.sku}</span> {x.description}<br /><small className="muted">{fmtDateTime(x.issuedAt, locale)}</small></td><td className="r num">{q2(x.qty)} {x.uom}</td>
+                    {can(user.role, "money.cost") && <td className="r num">{rm(x.qty * x.unitCost)}</td>}
+                    {canFixParts && <td className="r"><Link className="btn small" href={`/jobs/${job.id}?part=${x.id}#parts`}>{t("lab.edit")}</Link></td>}</tr>)}</tbody>
                 </table></div>
               ) : <small className="muted">—</small>}
               {requests.map((r) => (
@@ -308,10 +326,24 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               {bought.length > 0 ? (
                 <div className="tbl-wrap"><table>
                   <thead><tr><th>{t("jp.partNo")}</th><th>{t("bl.desc")}</th><th className="r">{t("po.qty")}</th>{can(user.role, "money.cost") && <><th className="r">{t("bl.unitPrice")}</th><th className="r">{t("bl.total")}</th></>}{canLines && <th />}</tr></thead>
-                  <tbody>{bought.map((x) => <tr key={x.id}><td className="mono">{x.partNo ?? "—"}</td><td>{x.kind === "service" && <><span className="pill out">{t("out.line")}</span> </>}{x.description}<br /><small className="muted">{fmtDate(x.purchasedAt, false, locale)}{x.supplier ? ` · ${t("jp.from", { s: x.supplier })}` : ""}{x.ref ? ` · ${x.ref}` : ""}</small></td>
+                  <tbody>{bought.map((x) => editBought?.id === x.id ? (
+                    <tr key={x.id} className="row-sel"><td colSpan={can(user.role, "money.cost") ? 6 : 4}>
+                      <form action={A.updateJobPurchase} className="filters">{hidden("jobId", job.id)}{hidden("purchaseId", x.id)}
+                        <input name="partNo" defaultValue={x.partNo ?? ""} placeholder={t("jp.partNo")} aria-label={t("jp.partNo")} style={{ width: 120 }} />
+                        <input name="description" defaultValue={x.description} required aria-label={t("bl.desc")} style={{ flex: "1 1 200px" }} />
+                        {x.kind !== "service" && <input type="number" name="qty" min="0.01" step="any" defaultValue={x.qty} required aria-label={t("po.qty")} style={{ width: 80 }} />}
+                        <input type="number" name="unitCost" min="0" step="0.01" defaultValue={x.unitCost} required aria-label={t("bl.unitPrice")} style={{ width: 110 }} />
+                        <input name="ref" defaultValue={x.ref ?? ""} placeholder={t("jp.ref")} aria-label={t("jp.ref")} style={{ width: 120 }} />
+                        <SubmitButton className="btn small primary">{t("common.save")}</SubmitButton>
+                        <Link className="btn small" href={`/jobs/${job.id}#parts`}>{t("common.cancel")}</Link>
+                      </form>
+                    </td></tr>
+                  ) : <tr key={x.id}><td className="mono">{x.partNo ?? "—"}</td><td>{x.kind === "service" && <><span className="pill out">{t("out.line")}</span> </>}{x.description}<br /><small className="muted">{fmtDate(x.purchasedAt, false, locale)}{x.supplier ? ` · ${t("jp.from", { s: x.supplier })}` : ""}{x.ref ? ` · ${x.ref}` : ""}</small></td>
                     <td className="r num">{q2(x.qty)} {x.uom}</td>
                     {can(user.role, "money.cost") && <><td className="r num">{rm(x.unitCost)}</td><td className="r num">{rm(x.qty * x.unitCost)}</td></>}
-                    {canLines && <td className="r">{(open || x.kind === "service") && <form action={A.removeJobPurchase}>{hidden("jobId", job.id)}{hidden("purchaseId", x.id)}<button className="linkbtn muted">{t("jp.remove")}</button></form>}</td>}</tr>)}</tbody>
+                    {canLines && <td className="r">{(open || x.kind === "service") && <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center" }}>
+                      <Link className="btn small" href={`/jobs/${job.id}?bought=${x.id}#parts`}>{t("lab.edit")}</Link>
+                      <form action={A.removeJobPurchase}>{hidden("jobId", job.id)}{hidden("purchaseId", x.id)}<SubmitButton className="linkbtn muted" confirm={t("jp.removeConfirm")}>{t("jp.remove")}</SubmitButton></form></div>}</td>}</tr>)}</tbody>
                 </table></div>
               ) : <small className="muted">{t("jp.noBought")}</small>}
               {open && can(user.role, "stock.manage") && (

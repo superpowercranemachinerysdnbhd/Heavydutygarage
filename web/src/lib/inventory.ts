@@ -162,3 +162,30 @@ export async function createQuickPart(tx: Tx | typeof db, v: { sku: string; desc
     categoryId, fitsAll: true, bulk: v.bulk }).returning({ id: parts.id, sku: parts.sku, description: parts.description, uom: parts.uom, bulk: parts.bulk });
   return row;
 }
+
+/** Change the quantity of a part issued to a work order: less (or 0 = remove) puts the difference back on the shelf,
+ *  more takes it off the shelf (same rules as issuing: bulk always, otherwise only what is in stock). Returns false if not enough. */
+export async function changeIssuedQty(tx: Tx, v: { jobPartId: number; jobId: number; qty: number; staffId: number; note: string }): Promise<boolean> {
+  const [jp] = await tx.select().from(jobParts).where(and(eq(jobParts.id, v.jobPartId), eq(jobParts.jobId, v.jobId)));
+  if (!jp) return true;
+  const [p] = await tx.select().from(parts).where(eq(parts.id, jp.partId)).for("update");
+  const was = n(jp.qty), diff = Math.round((v.qty - was) * 100) / 100, onHand = n(p.onHand);
+  if (diff === 0) return true;
+  if (diff < 0) {
+    // Never put back more than this work order actually took off the shelf (a bulk part's count stops at 0 when issued).
+    const [{ taken }] = await tx.select({ taken: sql<string>`coalesce(-sum(${stockMovements.qty}), 0)` }).from(stockMovements)
+      .where(and(eq(stockMovements.jobId, v.jobId), eq(stockMovements.partId, p.id), inArray(stockMovements.type, ["issue", "return"])));
+    const back = Math.max(0, Math.min(-diff, n(taken)));
+    const after = onHand + back;
+    await tx.update(parts).set({ onHand: after.toFixed(2) }).where(eq(parts.id, p.id));
+    if (back > 0) await tx.insert(stockMovements).values({ partId: p.id, type: "return", qty: back.toFixed(2), unitCost: jp.unitCost, balanceAfter: after.toFixed(2), jobId: v.jobId, staffId: v.staffId, note: v.note });
+  } else {
+    const after = stockAfterIssue(onHand, diff, p.bulk);
+    if (after === null) return false;
+    await tx.update(parts).set({ onHand: after.toFixed(2) }).where(eq(parts.id, p.id));
+    await tx.insert(stockMovements).values({ partId: p.id, type: "issue", qty: (after - onHand).toFixed(2), unitCost: jp.unitCost, balanceAfter: after.toFixed(2), jobId: v.jobId, staffId: v.staffId, note: v.note });
+  }
+  if (v.qty > 0) await tx.update(jobParts).set({ qty: v.qty.toFixed(2) }).where(eq(jobParts.id, jp.id));
+  else await tx.delete(jobParts).where(eq(jobParts.id, jp.id));
+  return true;
+}

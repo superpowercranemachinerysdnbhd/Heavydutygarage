@@ -10,7 +10,7 @@ import { today } from "@/lib/format";
 import { addActivity } from "@/lib/queries";
 import { jobMachine, notifyRoles, notifyStaff } from "@/lib/notify";
 import { ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES, deleteStoredFile, saveFile } from "@/lib/storage";
-import { issueToJob } from "@/lib/inventory";
+import { changeIssuedQty, issueToJob } from "@/lib/inventory";
 import { supplierByName } from "@/lib/purchasing";
 import { saveMachine } from "@/lib/machines";
 import { bayCodes, findItem, isCategory, itemLabel, qcSuggestions, settings } from "@/lib/lists";
@@ -562,6 +562,41 @@ export async function issueDirect(form: FormData) {
   if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
   if (!(qty > 0)) back(user, jobId, { error: "err.qty" });
   await issue(user, jobId, partId, qty, undefined, undefined, form.get("force") === "1");
+}
+
+/** Change the quantity of a part issued from stock, or remove it (qty 0): the difference goes back on the shelf.
+ *  Supervisor / Head Manager, while the work order is open (and after completion for those who may edit details). */
+export async function updateIssuedPart(form: FormData) {
+  const user = await requirePermission("stock.manage");
+  const jobId = num(form, "jobId"), id = num(form, "jobPartId");
+  const { job } = await access(jobId, user);
+  if (job.status === "closed" && !can(user.role, "job.editDetails")) back(user, jobId, { error: "tr.closed", hash: "parts" });
+  const qty = form.get("remove") === "1" ? 0 : num(form, "qty");
+  if (!(qty >= 0)) back(user, jobId, { error: "err.qty", hash: "parts" });
+  const [jp] = await db.select({ qty: schema.jobParts.qty, description: schema.parts.description, uom: schema.parts.uom, onHand: schema.parts.onHand })
+    .from(schema.jobParts).innerJoin(schema.parts, eq(schema.jobParts.partId, schema.parts.id)).where(and(eq(schema.jobParts.id, id), eq(schema.jobParts.jobId, jobId)));
+  if (!jp) back(user, jobId, { hash: "parts" });
+  const ok = await db.transaction((tx) => changeIssuedQty(tx, { jobPartId: id, jobId, qty, staffId: user.id, note: `${job.jobNo}: ${Number(jp.qty)} → ${qty}` }));
+  if (!ok) back(user, jobId, { error: "err.notEnoughStock", vars: { n: Number(jp.onHand), uom: jp.uom }, hash: "parts" });
+  await addActivity(jobId, user.id, qty ? "act.partChanged" : "act.partReturned", { part: jp.description, from: Number(jp.qty), qty, uom: jp.uom, name: user.name });
+  revalidatePath("/parts");
+  back(user, jobId, { ok: qty ? "jp.changed" : "jp.returned", hash: "parts" });
+}
+
+/** Correct a line bought for the work order (part no., description, qty, unit price). */
+export async function updateJobPurchase(form: FormData) {
+  const user = await requirePermission("stock.manage");
+  const jobId = num(form, "jobId"), id = num(form, "purchaseId");
+  const { job } = await access(jobId, user);
+  const P = schema.jobPurchases;
+  const [line] = await db.select().from(P).where(and(eq(P.id, id), eq(P.jobId, jobId)));
+  if (!line) back(user, jobId, { hash: "parts" });
+  if (job.status === "closed" && !(line.kind === "service" && can(user.role, "job.editDetails"))) back(user, jobId, { error: "tr.closed", hash: "parts" });
+  const qty = line.kind === "service" ? 1 : num(form, "qty"), cost = num(form, "unitCost"), description = str(form, "description").slice(0, 200) || str(form, "partNo");
+  if (!description || !(qty > 0) || !(cost >= 0)) back(user, jobId, { error: "bl.err", hash: "parts" });
+  await db.update(P).set({ description, partNo: str(form, "partNo").slice(0, 60) || null, qty: String(qty), unitCost: cost.toFixed(2), unitPrice: cost.toFixed(2), ref: str(form, "ref").slice(0, 60) || null }).where(eq(P.id, id));
+  await addActivity(jobId, user.id, "act.boughtEdited", { what: description, name: user.name });
+  back(user, jobId, { ok: "jp.changed", hash: "parts" });
 }
 
 export async function rejectRequest(form: FormData) {
