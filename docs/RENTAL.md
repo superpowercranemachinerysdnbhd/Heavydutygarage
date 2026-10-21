@@ -214,7 +214,7 @@ Operators and riggers also get **site allowances** and **overtime** for payroll 
 
 - **Our transport vehicles** (prime movers, lowloaders, lorry cranes) are fleet machines marked *transport*. They are scheduled, not hired out.
 - A **trip** has a direction (delivery / collection / transfer between sites), date and time window, vehicle, driver, machine(s), from and to (with map pin), and a charge.
-- Charges by **zone** (Klang Valley, Negeri Sembilan, Perak, Johor…) or distance band, set per machine size (up to 10 t, 10–30 t, over 30 t). Self-drive cranes are charged **mobilisation / demobilisation**.
+- Charges by **zone** from the Kempas yard (Johor Bahru; Senai / Kulai / Pasir Gudang; rest of Johor; Melaka / Negeri Sembilan) or distance band, set per machine size (up to 10 t, 10–30 t, over 30 t). Self-drive cranes are charged **mobilisation / demobilisation**.
 - **Permits:** oversize loads need a JPJ special permit and sometimes a police escort. The trip shows the permit number and escort booking, and the charge is passed on.
 - The driver's phone shows today's trips, the site contact and the pin, and records departure, arrival and the delivery/return inspection.
 - Vehicle documents tracked: road tax, insurance, Puspakom inspection, APAD operator licence, and the driver's GDL licence.
@@ -236,10 +236,10 @@ Operators and riggers also get **site allowances** and **overtime** for payroll 
 
 | Item | Design |
 |---|---|
-| **SST** | Rental and leasing of machinery became a taxable service at **8%** from 1 July 2025 for registered businesses above the RM 1 million threshold. Our SST registration number goes on every invoice. Each charge type (hire, transport, fuel, damages) has its own *taxable / not taxable* setting and rate, because not every line may be taxable. **The tax agent should confirm these settings before go-live.** |
+| **SST** | Rental and leasing of machinery became a taxable service at **8%** from 1 July 2025 for registered businesses above the RM 1 million threshold. Our quotation QT-01094 charges **6%** service tax on every line, including wet hire. The prototype follows the quotation and keeps the rate as a setting. **Ask the tax agent which rate applies to dry hire and to hire with an operator.** Our service tax ID goes on every invoice. Each charge type (hire, transport, fuel, damages) has its own *taxable / not taxable* setting and rate, because not every line may be taxable. **The tax agent should confirm these settings before go-live.** |
 | **LHDN e-Invoice (MyInvois)** | Every invoice and credit note is submitted to MyInvois, either directly through the API or through the accounting software if it already does this. The validated **UUID and QR code** are printed on the PDF. Status is shown per invoice: Pending, Validated, Rejected (with reason), Cancelled (within 72 hours). |
 | **Buyer details needed** | Customer SSM registration no. (BRN), **TIN**, SST no. (if any), address and contact. A customer without a TIN cannot be invoiced, so the TIN is asked for at booking, not at billing. |
-| **Our details** | Company name, SSM no., TIN, SST no., **MSIC code** (77300: renting of other machinery, equipment), set in Settings. |
+| **Our details** | Super Power Crane Machinery Sdn Bhd, Reg No 199401026255 / 311936-K, Sales Tax ID J31-2507-32000161, Service Tax ID J31-2507-39000112, Lot 3013, Jalan Belati, Off Jalan Kempas Lama, Kawasan Perindustrian Maju Jaya, 81300 Johor Bahru, Johor; +60 19-728 0435, accounting@superpowercrane.com. TIN and **MSIC code** (77300: renting of other machinery, equipment) still to confirm. All of these are set in Settings. |
 | **Deposits** | Recorded as a receipt and applied to the final invoice (an e-invoice is issued for the deposit only if the tax agent advises it). |
 
 ---
@@ -600,13 +600,40 @@ GPS51: left site ──► back in yard ──► ready to invoice
 
 Every free machine has **Quote this machine**.
 
-**Quick quotation** (one screen; from Availability, the Dashboard or an enquiry's *Make quotation*):
+**Quick quotation** (one screen; from Availability, the Dashboard or an enquiry's *Make quotation*). It produces the company's own quotation layout (see *Quotation format* below):
 
 1. Customer: pick an existing one, or type the company, contact and phone (the customer record is created when the quotation is issued).
 2. Site, machine type, dates. The free machine is picked automatically (one without a document issue first), and its availability is shown.
 3. Rate: taken from the rate card for the basis (hour / day / week / month, guessed from the dates); discount % within the salesperson's limit (Sales 5%, Supervisor 10%; above that the quotation waits for the Head Manager); transport / mobilisation by zone; optional rigger / signalman.
-4. Remarks: the standard remarks are ticked by default (rates exclude 8% SST, what wet hire includes, 4-hour minimum, overtime rate, mobilisation and permits, customer's ground and site duties, standby, cancellation, payment terms, validity) and can be unticked, plus a free-text remark and the validity in days.
-5. **Issue quotation**: quotation number `Q-YYYY-NNNN`, the formatted quotation (company header, customer, site, numbered items with quantity, rate and amount, subtotal, SST, total, terms and remarks, signature and customer acceptance block), **Send by WhatsApp** (summary text plus the PDF) and a follow-up call in 2 days.
+4. More machines: **Add another machine** puts a second (third…) machine type on the same quotation with the same dates, terms and discount, as on QT-01094 (50 t rough terrain and 25 t mobile crane).
+5. Options: diesel included or not, and monthly "until the customer stops" (no end date).
+6. Remark under the lines and the validity (30 days by default, terms clause 20).
+7. **Issue quotation**: the next number in the company's series (`QT-01095` after `QT-01094`), the formatted quotation, **Send by WhatsApp** (the summary text plus the PDF) and a follow-up call in 2 days.
+
+**Quotation format** (copied from QT-01094):
+
+- **Header:** logo; company name, Reg No, Sales Tax ID and Service Tax ID; address, contact and website. On the right: QUOTATION, No., Date (dd/mm/yyyy) and Payment Term (COD for cash customers, otherwise "30 DAYS" etc. from the customer's credit terms).
+- **Quote To:** company, attention person, phone.
+- **Table:** No., Description, Qty, UOM, Unit Price, Disc, Tax Amt, Net Amt. Tax is worked out per line.
+- **Description in capitals,** built from the rate card: `MONTHLY RENTAL OF 50T ROUGH TERRAIN CRANE WITH OPERATOR WITHOUT DIESEL`. A small grey line under it gives the model, fleet no. and dates.
+- **Rate schedule:** each wet-hire rental line is followed by its rates at qty 1: OVERTIME (HRS), SUNDAY / P.HOLIDAY (DAY) and OVERTIME SUNDAY / P.HOLIDAY (HRS). They come from three new rate-card fields per model: OT / h, Sun / PH day, Sun OT / h. Dry monthly hire adds EXCESS HOURS. These lines are price information, so the system leaves them out of the estimated value used for the sales pipeline.
+- **Grand total:** none is printed, as on QT-01094.
+- **Below the table:** `FOR PROJECT AT <SITE>` and any remark.
+- **Terms and conditions:** the company's 27 clauses under their headings (Rental Rates, Insurance, Conditions of Rental, Safety & Risk, Acts of God and Equipment Failure, Payment, General). The Head Manager edits them in Settings.
+- **Signatures:** Authorised By and Received By. The signature image is uploaded once per authorised person.
+
+**The terms drive the charging rules** (Rates → Charging rules):
+
+| Terms clause | Rule |
+|---|---|
+| 3, 4 | Normal hours 8 am to 5 pm, Monday to Saturday. 5 pm to 11:59 pm is overtime. Midnight to 7:59 am is double overtime. |
+| 5 | Sunday and public holidays use each machine's own day rate and overtime rate. |
+| 6 | Day, week and month rates include diesel unless the line says WITHOUT DIESEL. |
+| 7 | Single trip minimum is 3.5 h, or 7.5 h for bigger cranes (above 60 t in the prototype; to confirm). Extra hours or part hours are charged as overtime. |
+| 8 | A confirmed monthly hire withdrawn early is charged the full month. |
+| 18 | Breakdown: no deduction under 4 h of downtime in total; above that, deducted by the hour. |
+| 20 | Quotations are valid for 30 days. |
+| 21, 22, 24, 25 | Late payment interest is 1.5% a month. Credit customers are stopped at their credit limit or 90 days. Cash customers pay on completion, or within 5 working days of the cash invoice. |
 
 When the customer accepts, **Customer accepted: make order** turns the quotation into an order and opens the job details and checklist (section 26).
 
@@ -638,6 +665,22 @@ One box per machine works for a dozen cranes. At 50 to 200 machines it becomes a
 | `models` (added) | family, capacity, capacity_unit (filled from the type, can be overridden) |
 
 ## 29. Open questions for the owner
+
+**From quotation QT-01094:**
+
+- **Service tax.** QT-01094 charges 6%. Is that right for both wet and dry hire? (See the SST row in section 9.)
+- **Rates for other sizes.** The 25 t and 50 t rates come from QT-01094: RM 18,500 and RM 28,000 a month with operator, without diesel, plus their overtime and Sunday rates. Every other size is scaled from these. Please send the full rate card.
+- **Minimum hours.** Which crane sizes have the 3.5-hour minimum and which have 7.5 hours (clause 7)?
+- **Line 7 unit.** On QT-01094, line 7 (Sunday / P.Holiday, RM 1,100) says UOM "HRS". Line 3 for the 50 t says "DAY". Should line 7 also be DAY?
+- **Typing errors in the terms.** These could be fixed when the terms go into Settings:
+  - the heading "TERM & CONDTIONS";
+  - "crosses cheque" (crossed);
+  - "sum owned" (owed);
+  - "shall the right" (shall have the right);
+  - "unground" (underground);
+  - "is not comply with" (complied).
+- **Where quotations are made today.** QT-01094 appears to come from your accounting software. Should the rental system create quotations in Bukku through the API, so the QT numbers stay in one series? Or should it take over the quotation numbers?
+
 
 1. How many machines are in the hire fleet, and do we cross-hire machines in from other companies when we run short?
 2. Which machines are only wet hire (cranes?) and which are only dry hire?

@@ -656,6 +656,29 @@ button.g-group small{font-weight:400;opacity:.75;margin-left:6px}
 .gantt.compact .g-lab small{display:none}
 .gantt.compact .bar{top:3px;height:20px;font-size:.68rem}
 .gantt.compact .bd{height:20px}
+
+.qdoc{gap:14px;font-size:12px;color:#1a1f26}
+.qd-head{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:14px;align-items:start;border-bottom:1.5px solid #1d3f8f;padding-bottom:12px}
+.qd-head img{width:96px;height:96px;object-fit:contain}
+.qd-co{display:flex;flex-direction:column;gap:5px;line-height:1.35}
+.qd-co b{font-size:14px;font-weight:600;letter-spacing:.01em}
+.qd-co small{font-size:10.5px}
+.qd-meta h3{font-family:var(--f-body);font-weight:400;font-size:22px;letter-spacing:.04em;margin:0 0 6px;color:#26303b;text-align:right}
+.qd-meta dl{grid-template-columns:auto auto;font-size:11px;gap:1px 14px}
+.qd-to{display:flex;flex-direction:column;gap:1px}
+.qd-to b{font-weight:600}
+.qdoc .qd-t th{background:#1d3f8f;color:#fff;border:0;font-family:var(--f-body);text-transform:none;letter-spacing:0;font-size:11.5px;font-weight:600}
+.qdoc .qd-t td{border-bottom:0;vertical-align:top;padding-top:7px;padding-bottom:7px}
+.qdoc .qd-t td small{font-size:10.5px}
+.qdoc .qd-t td:nth-child(2){min-width:230px}
+.qdoc .qd-t td,.qdoc .qd-t th{white-space:normal}
+.qd-proj{border-bottom:1.5px solid #1d3f8f;padding-bottom:8px;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}
+.qd-terms ol{margin:4px 0 0;padding-left:26px;font-size:11px;line-height:1.45;display:flex;flex-direction:column;gap:2px}
+.qd-h{display:block;text-decoration:underline;margin-top:2px}
+.qd-sign{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:40px;margin-top:8px}
+.qd-sign>div{display:flex;flex-direction:column;gap:3px}
+.qd-sign .sline{height:64px;border-bottom:1px solid #1a1f26}
+@media (max-width:640px){ .qd-head{grid-template-columns:64px minmax(0,1fr)} .qd-head img{width:64px;height:64px} .qd-meta{grid-column:1/-1} .qd-meta h3{text-align:left} }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -766,9 +789,10 @@ function ph(label, hue){
 
 /* ---------- settings ---------- */
 const TODAY = '2026-10-16', G0 = '2026-09-28', GN = 42;
-const CO = {name:'Super Power Crane Machinery Sdn Bhd', ssm:'(sample) 2020XXXXXXXX', tin:'(sample) C2XXXXXXXXX', sst:'(sample) W10-XXXX-XXXXXXXX', msic:'77300 Renting of other machinery and equipment',
-  addr:'Company address (set in Settings)', phone:'Office phone (set in Settings)'};
-const RULES = {dayHrs:8, minH:4, mHrs:200, sunX:1.5, standbyPct:50, bdGrace:2, sst:8, allowance:80};
+const CO = {name:'Super Power Crane Machinery Sdn Bhd', reg:'199401026255 / 311936-K', ssm:'199401026255 (311936-K)', tin:'(set in Settings)', salesTax:'J31-2507-32000161', sst:'J31-2507-39000112', msic:'77300 Renting of other machinery and equipment',
+  addr:['Lot 3013, Jalan Belati, Off Jalan Kempas Lama','Kawasan Perindustrian Maju Jaya','81300 Johor Bahru, Johor','Malaysia'], phone:'+60 19-728 0435', email:'accounting@superpowercrane.com', web:'www.superpowercrane.com'};
+const LOGO = 'data:image/png;base64,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';
+const RULES = {dayHrs:8, minH:3.5, minHBig:7.5, mHrs:200, sunX:1.5, standbyPct:50, bdGrace:4, sst:6, allowance:80, lateInt:1.5, creditDays:90, valid:30};
 const GROUPS = {crane:'Mobile cranes', lift:'Lifting & access', earth:'Earthmoving', power:'Power', transport:'Our transport'};
 const models = {
   RK500:{make:'Kobelco',model:'RK500-2',type:'Rough terrain crane 50 t',grp:'crane',size:'self'},
@@ -820,12 +844,12 @@ const staff = {
 };
 const customers = {
   C1:{name:'Bina Jaya Construction Sdn Bhd',brn:'201501012345',tin:'C23456789010',sst:'B16-1809-32000881',terms:30,limit:250000,contact:'Mr. Lim Chee Keong',phone:'012-338 1290'},
-  C2:{name:'Kuari Semenyih Sdn Bhd',brn:'199801004567',tin:'C10234567020',sst:'',terms:30,limit:80000,contact:'Pn. Rohana Ismail',phone:'019-271 5530'},
+  C2:{name:'Kuari Ulu Choh Sdn Bhd',brn:'199801004567',tin:'C10234567020',sst:'',terms:30,limit:80000,contact:'Pn. Rohana Ismail',phone:'019-271 5530'},
   C3:{name:'Teguh Piling Sdn Bhd',brn:'200801033221',tin:'C20987654030',sst:'',terms:30,limit:120000,contact:'Mr. Gan Boon Huat',phone:'016-330 2218'},
   C4:{name:'Ever Bright Steel Structure Sdn Bhd',brn:'201201019876',tin:'',sst:'',terms:30,limit:40000,contact:'Ms. Chong Mei Ling',phone:'012-655 0912'},
   C5:{name:'Mega Bumi Engineering Sdn Bhd',brn:'201001007788',tin:'C24681357040',sst:'',terms:45,limit:100000,contact:'En. Kamarul Ariffin',phone:'013-388 4410'},
   C6:{name:'Lian Hup Builders Sdn Bhd',brn:'202301045512',tin:'C29876501050',sst:'',terms:0,limit:0,contact:'Mr. Wong Kar Fai',phone:'017-202 8817',isNew:true},
-  C7:{name:'Port Klang Logistics Sdn Bhd',brn:'199601012233',tin:'C11223344060',sst:'B16-1702-31000233',terms:30,limit:60000,contact:'Mr. Ravi Shankar',phone:'012-388 7701'},
+  C7:{name:'Pasir Gudang Logistics Sdn Bhd',brn:'199601012233',tin:'C11223344060',sst:'B16-1702-31000233',terms:30,limit:60000,contact:'Mr. Ravi Shankar',phone:'012-388 7701'},
 };
 let rates = {
   'RK500/wet':{hr:450,minH:4,day:3200,month:58000,mHrs:200,ex:300,ot:450},
@@ -844,12 +868,12 @@ let rates = {
   'DCA150/dry':{day:350,week:2000,month:6500,mHrs:300,ex:20},
 };
 let zones = [
-  {z:'Klang Valley',self:500,small:450,mid:1200},
-  {z:'Negeri Sembilan',self:900,small:700,mid:1800},
-  {z:'Perak',self:1500,small:1100,mid:2600},
-  {z:'Johor',self:2200,small:1500,mid:3400},
+  {z:'Johor Bahru',self:500,small:450,mid:1200},
+  {z:'Senai / Kulai / Pasir Gudang',self:700,small:600,mid:1500},
+  {z:'Rest of Johor',self:1500,small:1100,mid:2600},
+  {z:'Melaka / Negeri Sembilan',self:2200,small:1500,mid:3400},
 ];
-const STATES = ['Selangor','Kuala Lumpur','Putrajaya','Negeri Sembilan','Melaka','Johor','Perak','Pahang','Penang','Kedah','Terengganu','Kelantan','Perlis'];
+const STATES = ['Johor','Melaka','Negeri Sembilan','Selangor','Kuala Lumpur','Putrajaya','Perak','Pahang','Penang','Kedah','Terengganu','Kelantan','Perlis'];
 
 /* The company's crane fleet. Types and capacity classes come from the model names; confirm each with the owner. */
 Object.assign(models, {
@@ -888,78 +912,93 @@ Object.assign(rates, {
   'NK200/wet':{hr:250,minH:4,day:1750,month:30000,mHrs:200,ex:170,ot:250},
   'SL1300/wet':{hr:1250,minH:4,day:9000,month:160000,mHrs:200,ex:830,ot:1250},
 });
+/* Wet crane rates calibrated to quotation QT-01094 (19 Oct 2026): 25 t RM 18,500 and 50 t RM 28,000 a month with operator, without diesel,
+   with their overtime, Sunday / public holiday and Sunday overtime rates. Other sizes are scaled to match until the owner's rate card is keyed in. */
+(function calibrateWet(){
+  const REAL = {NK250:{month:18500, ot:104.35, sun:1100, sunOt:147}, RK500:{month:28000, ot:157.95, sun:1600, sunOt:214}};
+  Object.keys(rates).forEach(key => { const [mk,k] = key.split('/'), r = rates[key], md = models[mk];
+    if(k!=='wet' || md.grp!=='crane') return;
+    const f = REAL[mk] && r.month ? REAL[mk].month / r.month : 0.5, rd = (v, st) => Math.round(v*f/st)*st;
+    if(r.hr) r.hr = rd(r.hr,5); if(r.day) r.day = rd(r.day,50); if(r.month) r.month = REAL[mk]?.month || rd(r.month,500); if(r.ex) r.ex = rd(r.ex,5);
+    const base = r.month || r.day*22;
+    r.ot = REAL[mk]?.ot ?? Math.round(base/177.3*100)/100;
+    r.sun = REAL[mk]?.sun ?? Math.round(base/17/50)*50;
+    r.sunOt = REAL[mk]?.sunOt ?? Math.round(r.ot*1.37);
+    r.minH = (+(md.type.match(/(\d+)\s*t\b/)||[])[1] || 0) > 60 ? RULES.minHBig : RULES.minH;
+  });
+})();
 
 /* ---------- hires ---------- */
 let hires = [
-  {id:'H-2026-0109',c:'C7',site:'Westport warehouse 2, Pulau Indah',state:'Selangor',siteContact:'Mr. Ravi Shankar 012-388 7701',po:'PKL-PO-26-0418',status:'Closed',created:'2026-08-01',cycle:'Monthly in arrears',
+  {id:'H-2026-0109',c:'C7',site:'Pasir Gudang port warehouse 2',state:'Johor',siteContact:'Mr. Ravi Shankar 012-388 7701',po:'PKL-PO-26-0418',status:'Closed',created:'2026-08-01',cycle:'Monthly in arrears',
    lines:[{u:'GS-01',k:'dry',basis:'month',from:'2026-08-06',to:'2026-09-05',on:'2026-08-06',off:'2026-09-05',hm:[{d:'2026-08-06',v:12160},{d:'2026-08-31',v:12620},{d:'2026-09-05',v:12840}]}],
-   trips:[{dir:'Delivery',d:'2026-08-06',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-05',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'}],
+   trips:[{dir:'Delivery',d:'2026-08-06',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-05',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'}],
    log:[{d:'2026-09-05 15:10',t:'Returned, no damage. Hire closed.'}]},
-  {id:'H-2026-0118',c:'C2',site:'Quarry pit 3, Semenyih',state:'Selangor',siteContact:'En. Shahril (quarry manager) 019-330 1172',po:'KS/LT/2026/02',status:'On hire',created:'2026-05-20',cycle:'Monthly in arrears',contract:'6-month contract, Jun–Nov 2026 · 200 h a month',
+  {id:'H-2026-0118',c:'C2',site:'Quarry pit 3, Ulu Choh',state:'Johor',siteContact:'En. Shahril (quarry manager) 019-330 1172',po:'KS/LT/2026/02',status:'On hire',created:'2026-05-20',cycle:'Monthly in arrears',contract:'6-month contract, Jun–Nov 2026 · 200 h a month',
    lines:[{u:'EX-02',k:'dry',basis:'month',from:'2026-06-01',to:'2026-11-30',on:'2026-06-01',hm:[{d:'2026-08-31',v:14988},{d:'2026-09-30',v:15230},{d:'2026-10-15',v:15362}]}],
-   trips:[{dir:'Delivery',d:'2026-06-01',u:'EX-02',veh:'TR-01',drv:'D1',zone:'Klang Valley',charge:1200,status:'Done'}],
+   trips:[{dir:'Delivery',d:'2026-06-01',u:'EX-02',veh:'TR-01',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'}],
    log:[{d:'2026-10-15 17:20',t:'Hour meter 15,362 h read by Suresh (photo).'},{d:'2026-10-01 09:00',t:'September invoiced: 242 h used, 42 h over the 200 h allowance.'},{d:'2026-06-01 11:30',t:'Delivered. Delivery inspection signed by En. Shahril.'}]},
-  {id:'H-2026-0130',c:'C5',site:'Bukit Beruntung housing phase 4',state:'Selangor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0726',status:'Returned',created:'2026-08-05',cycle:'Monthly in arrears',
+  {id:'H-2026-0130',c:'C5',site:'Bandar Seri Alam housing phase 4',state:'Johor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0726',status:'Returned',created:'2026-08-05',cycle:'Monthly in arrears',
    lines:[{u:'EX-01',k:'dry',basis:'month',from:'2026-08-10',to:'2026-10-09',on:'2026-08-10',off:'2026-10-09',hm:[{d:'2026-08-10',v:9120},{d:'2026-08-31',v:9268},{d:'2026-09-30',v:9471},{d:'2026-10-09',v:9530}]}],
-   trips:[{dir:'Delivery',d:'2026-08-10',u:'EX-01',veh:'TR-01',drv:'D1',zone:'Klang Valley',charge:1200,status:'Done'},{dir:'Collection',d:'2026-10-09',u:'EX-01',veh:'TR-01',drv:'D1',zone:'Klang Valley',charge:1200,status:'Done'}],
+   trips:[{dir:'Delivery',d:'2026-08-10',u:'EX-01',veh:'TR-01',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'},{dir:'Collection',d:'2026-10-09',u:'EX-01',veh:'TR-01',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'}],
    damage:{job:'J-2026-0414',note:'Bucket cylinder hose torn, left side cutter cracked. Not on the delivery photos.',est:2850,done:false},
    log:[{d:'2026-10-10 09:30',t:'Workshop job J-2026-0414 opened for return damage (chargeable to this hire).'},{d:'2026-10-09 16:45',t:'Return inspection: damage found on bucket cylinder hose and side cutter. Photos taken. Customer rep. signed.'}]},
-  {id:'H-2026-0138',c:'C4',site:'Bukit Raja factory extension, Klang',state:'Selangor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2215',status:'Closed',created:'2026-08-28',cycle:'Monthly in arrears',
+  {id:'H-2026-0138',c:'C4',site:'Tebrau factory extension, Johor Bahru',state:'Johor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2215',status:'Closed',created:'2026-08-28',cycle:'Monthly in arrears',
    lines:[{u:'FL-02',k:'dry',basis:'month',from:'2026-09-01',to:'2026-09-30',on:'2026-09-01',off:'2026-09-30',hm:[{d:'2026-09-01',v:6120},{d:'2026-09-30',v:6305}]}],
-   trips:[{dir:'Delivery',d:'2026-09-01',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-30',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'}],
+   trips:[{dir:'Delivery',d:'2026-09-01',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'},{dir:'Collection',d:'2026-09-30',u:'FL-02',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'}],
    log:[{d:'2026-09-30 16:00',t:'Returned, no damage.'}]},
-  {id:'H-2026-0124',c:'C1',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',siteContact:'En. Rosli (site supervisor) 013-202 4471',po:'BJ/PO/26/0744',status:'On hire',created:'2026-08-10',cycle:'Monthly in arrears',
+  {id:'H-2026-0124',c:'C1',site:'Senai Airport City warehouse project, Senai',state:'Johor',siteContact:'En. Rosli (site supervisor) 013-202 4471',po:'BJ/PO/26/0744',status:'On hire',created:'2026-08-10',cycle:'Monthly in arrears',
    lines:[{u:'MC-02',k:'wet',basis:'month',from:'2026-08-17',to:'2026-12-15',on:'2026-08-17',op:'O6'}],
-   trips:[{dir:'Delivery',d:'2026-08-17',u:'MC-02',veh:null,drv:'O6',zone:'Klang Valley',charge:500,status:'Done',self:true}],
+   trips:[{dir:'Delivery',d:'2026-08-17',u:'MC-02',veh:null,drv:'O6',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
    log:[{d:'2026-08-17 10:00',t:'On hire for the roof truss lifts. Delivery inspection signed by En. Rosli.'}]},
-  {id:'H-2026-0144',c:'C3',site:'Port Klang Free Zone, pier 3',state:'Selangor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-277',status:'On hire',created:'2026-09-02',cycle:'Monthly in arrears',
+  {id:'H-2026-0144',c:'C3',site:'Pasir Gudang free zone, pier 3',state:'Johor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-277',status:'On hire',created:'2026-09-02',cycle:'Monthly in arrears',
    lines:[{u:'AT-01',k:'wet',basis:'month',from:'2026-09-07',to:'2026-11-30',on:'2026-09-07',op:'O7'}],
-   trips:[{dir:'Delivery',d:'2026-09-07',u:'AT-01',veh:null,drv:'O7',zone:'Klang Valley',charge:500,status:'Done',self:true}],
+   trips:[{dir:'Delivery',d:'2026-09-07',u:'AT-01',veh:null,drv:'O7',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
    log:[{d:'2026-09-07 09:40',t:'On hire.'}]},
-  {id:'H-2026-0147',c:'C4',site:'Bukit Raja steel warehouse, Klang',state:'Selangor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2241',status:'On hire',created:'2026-09-22',cycle:'Monthly in arrears',
+  {id:'H-2026-0147',c:'C4',site:'Tebrau steel warehouse, Johor Bahru',state:'Johor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2241',status:'On hire',created:'2026-09-22',cycle:'Monthly in arrears',
    lines:[{u:'MC-01',k:'wet',basis:'month',from:'2026-09-28',to:'2026-12-27',on:'2026-09-28',op:'O9'}],
-   trips:[{dir:'Delivery',d:'2026-09-28',u:'MC-01',veh:null,drv:'O9',zone:'Klang Valley',charge:500,status:'Done',self:true}],
+   trips:[{dir:'Delivery',d:'2026-09-28',u:'MC-01',veh:null,drv:'O9',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
    log:[{d:'2026-09-28 10:20',t:'On hire.'}]},
-  {id:'H-2026-0150',c:'C5',site:'Rawang interchange bridge works',state:'Selangor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0802',status:'On hire',created:'2026-09-25',cycle:'End of hire',
+  {id:'H-2026-0150',c:'C5',site:'Kulai interchange bridge works',state:'Johor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0802',status:'On hire',created:'2026-09-25',cycle:'End of hire',
    lines:[{u:'TC-03',k:'wet',basis:'day',from:'2026-10-01',to:'2026-10-22',on:'2026-10-01',op:'O8'}],
-   trips:[{dir:'Delivery',d:'2026-10-01',u:'TC-03',veh:null,drv:'O8',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-23',u:'TC-03',veh:null,drv:'O8',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   trips:[{dir:'Delivery',d:'2026-10-01',u:'TC-03',veh:null,drv:'O8',zone:'Johor Bahru',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-23',u:'TC-03',veh:null,drv:'O8',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-01 09:00',t:'On hire.'}]},
-  {id:'H-2026-0141',c:'C1',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',siteContact:'En. Rosli (site supervisor) 013-202 4471',po:'BJ/PO/26/0912',status:'On hire',created:'2026-08-25',cycle:'Monthly in arrears',
+  {id:'H-2026-0141',c:'C1',site:'Senai Airport City warehouse project, Senai',state:'Johor',siteContact:'En. Rosli (site supervisor) 013-202 4471',po:'BJ/PO/26/0912',status:'On hire',created:'2026-08-25',cycle:'Monthly in arrears',
    lines:[{u:'RC-01',k:'wet',basis:'month',from:'2026-09-01',to:'2026-11-30',on:'2026-09-01',op:'O1'}],
-   trips:[{dir:'Delivery',d:'2026-09-01',u:'RC-01',veh:null,drv:'O1',zone:'Klang Valley',charge:500,status:'Done',self:true}],
+   trips:[{dir:'Delivery',d:'2026-09-01',u:'RC-01',veh:null,drv:'O1',zone:'Johor Bahru',charge:500,status:'Done',self:true}],
    log:[{d:'2026-10-01 09:00',t:'September invoiced.'},{d:'2026-09-01 10:15',t:'On hire. Delivery inspection signed by En. Rosli.'}]},
-  {id:'H-2026-0149',c:'C7',site:'Westport warehouse 4, Pulau Indah',state:'Selangor',siteContact:'Mr. Ravi Shankar 012-388 7701',po:'PKL-PO-26-0533',status:'On hire',created:'2026-09-24',cycle:'Monthly in arrears',
+  {id:'H-2026-0149',c:'C7',site:'Pasir Gudang port warehouse 4',state:'Johor',siteContact:'Mr. Ravi Shankar 012-388 7701',po:'PKL-PO-26-0533',status:'On hire',created:'2026-09-24',cycle:'Monthly in arrears',
    lines:[{u:'FL-01',k:'dry',basis:'month',from:'2026-10-01',to:'2026-12-31',on:'2026-10-01',hm:[{d:'2026-10-01',v:4410},{d:'2026-10-15',v:4502}]}],
-   trips:[{dir:'Delivery',d:'2026-10-01',u:'FL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'}],
+   trips:[{dir:'Delivery',d:'2026-10-01',u:'FL-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'}],
    log:[{d:'2026-10-01 11:00',t:'On hire. Delivery inspection signed by Mr. Ravi.'}]},
-  {id:'H-2026-0152',c:'C3',site:'Jalan Kapar piling site, Klang',state:'Selangor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-311',status:'On hire',created:'2026-09-29',cycle:'End of hire',
+  {id:'H-2026-0152',c:'C3',site:'Jalan Pasir Gudang piling site, Masai',state:'Johor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-311',status:'On hire',created:'2026-09-29',cycle:'End of hire',
    lines:[{u:'TC-01',k:'wet',basis:'day',from:'2026-10-05',to:'2026-10-24',on:'2026-10-05',op:'O2'}],
-   trips:[{dir:'Delivery',d:'2026-10-05',u:'TC-01',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-24',u:'TC-01',veh:null,drv:'O2',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   trips:[{dir:'Delivery',d:'2026-10-05',u:'TC-01',veh:null,drv:'O2',zone:'Johor Bahru',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-24',u:'TC-01',veh:null,drv:'O2',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-13 11:40',t:'Breakdown: telescope circuit hose burst at 08:30. Workshop job J-2026-0417. Fixed on site 11:30 (3 h lost).'},{d:'2026-10-05 09:00',t:'On hire.'}]},
-  {id:'H-2026-0153',c:'C3',site:'Pulau Indah jetty extension',state:'Selangor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-298',status:'Off-hire called',created:'2026-09-15',cycle:'Monthly in arrears',offCalled:'2026-10-14',
+  {id:'H-2026-0153',c:'C3',site:'Tanjung Langsat jetty extension',state:'Johor',siteContact:'Mr. Gan 016-330 2218',po:'TP-2026-298',status:'Off-hire called',created:'2026-09-15',cycle:'Monthly in arrears',offCalled:'2026-10-14',
    lines:[{u:'TC-02',k:'wet',basis:'day',from:'2026-09-21',to:'2026-10-31',on:'2026-09-21',off:'2026-10-15',op:'O5'}],
-   trips:[{dir:'Delivery',d:'2026-09-21',u:'TC-02',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-16',u:'TC-02',veh:null,drv:'O5',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   trips:[{dir:'Delivery',d:'2026-09-21',u:'TC-02',veh:null,drv:'O5',zone:'Johor Bahru',charge:500,status:'Done',self:true},{dir:'Collection',d:'2026-10-16',u:'TC-02',veh:null,drv:'O5',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-14 16:20',t:'Mr. Gan called off-hire from 15 Oct (WhatsApp). Crane drives back on 16 Oct.'},{d:'2026-09-21 10:00',t:'On hire.'}]},
-  {id:'H-2026-0155',c:'C4',site:'Lot 88 Jalan Haji Sirat, Klang',state:'Selangor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2290',status:'Booked',created:'2026-10-13',cycle:'End of hire',note:'Lifting roof trusses, about 6 hours.',
+  {id:'H-2026-0155',c:'C4',site:'Lot 88 Jalan Kempas Lama, Johor Bahru',state:'Johor',siteContact:'Ms. Chong 012-655 0912',po:'EB-PO-2290',status:'Booked',created:'2026-10-13',cycle:'End of hire',note:'Lifting roof trusses, about 6 hours.',
    lines:[{u:'LC-01',k:'wet',basis:'hour',from:'2026-10-16',to:'2026-10-16',op:'O3'}],
-   trips:[{dir:'Delivery',d:'2026-10-16',u:'LC-01',veh:null,drv:'O3',zone:'Klang Valley',charge:500,status:'Planned',self:true}],
+   trips:[{dir:'Delivery',d:'2026-10-16',u:'LC-01',veh:null,drv:'O3',zone:'Johor Bahru',charge:500,status:'Planned',self:true}],
    log:[{d:'2026-10-13 14:00',t:'Booked by phone. PO received by e-mail.'}]},
-  {id:'H-2026-0156',c:'C5',site:'Taman Desa drainage works, Rawang',state:'Selangor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0811',status:'On hire',created:'2026-10-08',cycle:'End of hire',
+  {id:'H-2026-0156',c:'C5',site:'Taman Daya drainage works, Johor Bahru',state:'Johor',siteContact:'En. Kamarul 013-388 4410',po:'MB-0811',status:'On hire',created:'2026-10-08',cycle:'End of hire',
    lines:[{u:'EX-03',k:'dry',basis:'week',from:'2026-10-12',to:'2026-10-25',on:'2026-10-12'},{u:'WL-01',k:'dry',basis:'week',from:'2026-10-12',to:'2026-10-25',on:'2026-10-12'}],
-   trips:[{dir:'Delivery',d:'2026-10-12',u:'EX-03',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Done'},{dir:'Delivery',d:'2026-10-12',u:'WL-01',veh:'TR-01',drv:'D1',zone:'Klang Valley',charge:1200,status:'Done'},
-          {dir:'Collection',d:'2026-10-26',u:'EX-03',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Planned'},{dir:'Collection',d:'2026-10-26',u:'WL-01',veh:'TR-01',drv:'D1',zone:'Klang Valley',charge:1200,status:'Planned'}],
+   trips:[{dir:'Delivery',d:'2026-10-12',u:'EX-03',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Done'},{dir:'Delivery',d:'2026-10-12',u:'WL-01',veh:'TR-01',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Done'},
+          {dir:'Collection',d:'2026-10-26',u:'EX-03',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Planned'},{dir:'Collection',d:'2026-10-26',u:'WL-01',veh:'TR-01',drv:'D1',zone:'Johor Bahru',charge:1200,status:'Planned'}],
    log:[{d:'2026-10-12 13:00',t:'Both machines delivered and signed for.'}]},
-  {id:'H-2026-0157',c:'C6',site:'Jalan Ampang condominium, Kuala Lumpur',state:'Kuala Lumpur',siteContact:'Mr. Wong 017-202 8817',po:'LOU dated 14 Oct',status:'Booked',created:'2026-10-14',cycle:'End of hire',deposit:3000,depositPaid:false,
+  {id:'H-2026-0157',c:'C6',site:'Jalan Tebrau condominium, Johor Bahru',state:'Kuala Lumpur',siteContact:'Mr. Wong 017-202 8817',po:'LOU dated 14 Oct',status:'Booked',created:'2026-10-14',cycle:'End of hire',deposit:3000,depositPaid:false,
    lines:[{u:'BL-01',k:'dry',basis:'week',from:'2026-10-19',to:'2026-10-30'}],
-   trips:[{dir:'Delivery',d:'2026-10-19',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:1200,status:'Planned'},{dir:'Collection',d:'2026-10-31',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:1200,status:'Planned'}],
+   trips:[{dir:'Delivery',d:'2026-10-19',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:1200,status:'Planned'},{dir:'Collection',d:'2026-10-31',u:'BL-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:1200,status:'Planned'}],
    log:[{d:'2026-10-14 10:30',t:'New customer: deposit RM 3,000 required before delivery.'}]},
-  {id:'H-2026-0160',c:'C1',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',siteContact:'En. Rosli 013-202 4471',po:'',status:'Quotation',created:'2026-10-15',cycle:'Monthly in arrears',quoteValid:'2026-10-22',
+  {id:'H-2026-0160',c:'C1',site:'Senai Airport City warehouse project, Senai',state:'Johor',siteContact:'En. Rosli 013-202 4471',po:'',status:'Quotation',created:'2026-10-15',cycle:'Monthly in arrears',quoteValid:'2026-10-22',
    note:'Second 50 t crane for roof steel. No 50 t free (RC-01 is on this site to 30 Nov). Options: the 60 t GR-600-1 (RC-02) or a 50 t truck crane (TC-03, TC-04) is free; run Lift check to confirm.',
    lines:[{u:null,m:'RK500',k:'wet',basis:'day',from:'2026-11-02',to:'2026-11-13'}], trips:[],
    log:[{d:'2026-10-15 15:40',t:'Enquiry by Mr. Lim. Quotation started.'}]},
-  {id:'H-2026-0161',c:'C5',site:'Taman Desa drainage works, Rawang',state:'Selangor',siteContact:'En. Kamarul 013-388 4410',po:'',status:'Quotation',created:'2026-10-16',cycle:'Monthly in arrears',quoteValid:'2026-10-30',
+  {id:'H-2026-0161',c:'C5',site:'Taman Daya drainage works, Johor Bahru',state:'Johor',siteContact:'En. Kamarul 013-388 4410',po:'',status:'Quotation',created:'2026-10-16',cycle:'Monthly in arrears',quoteValid:'2026-10-30',
    lines:[{u:'GS-01',k:'dry',basis:'month',from:'2026-11-02',to:'2026-12-31'}],
-   trips:[{dir:'Delivery',d:'2026-11-02',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Klang Valley',charge:450,status:'Planned'}],
+   trips:[{dir:'Delivery',d:'2026-11-02',u:'GS-01',veh:'TR-02',drv:'D2',zone:'Johor Bahru',charge:450,status:'Planned'}],
    log:[{d:'2026-10-16 08:50',t:'Quotation sent by WhatsApp.'}]},
 ];
 const workshop = [
@@ -973,7 +1012,7 @@ const lost = [
   {d:'2026-09-18',c:'Teguh Piling',type:'Rough terrain crane 50 t',why:'No machine free'},
   {d:'2026-09-11',c:'Mega Bumi Engineering',type:'Excavator 20 t',why:'No machine free'},
   {d:'2026-09-03',c:'Lian Hup Builders',type:'Boom lift 20 m',why:'Price'},
-  {d:'2026-08-20',c:'Port Klang Logistics',type:'Forklift 5 t',why:'Went elsewhere'},
+  {d:'2026-08-20',c:'Pasir Gudang Logistics',type:'Forklift 5 t',why:'Went elsewhere'},
 ];
 const LIVE = ['Booked','On hire','Off-hire called'];
 const HSTEPS = ['Quotation','Booked','On hire','Off-hire called','Returned','Closed'];
@@ -1104,7 +1143,7 @@ function lineCharges(h, l, from, to){
     if(l.k==='wet'){
       const wd = ts.filter(t=>dow(t.d)!==0), sun = ts.filter(t=>dow(t.d)===0);
       if(wd.length) out.push({kind:'hire',desc:`${name}, wet hire daily (8 h, operator ${staff[l.op].name.split(' ')[0]})`,qty:wd.length,unit:'day',rate:r.day,amt:wd.length*r.day});
-      if(sun.length) out.push({kind:'sunday',desc:`Sunday / public holiday (×${RULES.sunX})`,qty:sun.length,unit:'day',rate:r.day*RULES.sunX,amt:sun.length*r.day*RULES.sunX});
+      if(sun.length){ const sr = r.sun || r.day*RULES.sunX; out.push({kind:'sunday',desc:r.sun?'Sunday / public holiday':`Sunday / public holiday (×${RULES.sunX})`,qty:sun.length,unit:'day',rate:sr,amt:sun.length*sr}); }
       const ot = sum(ts.map(t=>Math.max(0, t.work+t.standby+t.bd-RULES.dayHrs)));
       if(ot) out.push({kind:'ot',desc:'Overtime above 8 h a day',qty:ot,unit:'h',rate:r.ot,amt:ot*r.ot});
     } else out.push({kind:'hire',desc:`${name}, dry hire daily`,qty:days,unit:'day',rate:r.day,amt:days*r.day});
@@ -1138,7 +1177,7 @@ function transportCharge(mk, zone){ const z = zones.find(x=>x.z===zone) || zones
 const FUEL_RATE = {NK160:7, NK200:8, NK250:9, TL450:12, RK500:13, SS500:12.5, TL500:12.5, GR600:14, ATF60:16, SL700:15, SA1100:19, SL1300:21, UNIC:6};
 const DIESEL = 3.15;   // sample pump price, RM per litre: the actual price is taken from each receipt
 const FUEL_FLAG = 1.2; // flag a fill when use is 20% above the machine's normal L/h
-const STATIONS = {C1:'Shell Persiaran Kerjaya, Shah Alam', C3:'Petron Jalan Kapar, Klang'};
+const STATIONS = {C1:'Shell Jalan Kempas Lama, Johor Bahru', C3:'Petron Jalan Pasir Gudang, Masai'};
 const FUEL_PAID = ['Fleet card','Petty cash','Own tank (yard)','Supplied by customer'];
 hires.forEach(h => { h.fuel = h.lines.some(l=>l.k==='wet') ? 'included' : 'customer'; });
 hire('H-2026-0141').fuel = 'charged'; hire('H-2026-0153').fuel = 'charged';
@@ -1160,8 +1199,8 @@ let fuel = [];
     });
   }));
   fuel.push({id:id++, d:'2026-10-16', u:'LC-01', l:60, price:2.98, hm:fleet['LC-01'].hm, hours:null, hire:'H-2026-0155', where:'Own tank (yard)', by:'O3', paid:'Own tank (yard)', receipt:false});
-  fuel.push({id:id++, d:'2026-10-02', u:'TR-01', l:310, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Bukit Raja, Klang', by:'D1', paid:'Fleet card', receipt:true});
-  fuel.push({id:id++, d:'2026-10-12', u:'TR-02', l:240, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Bukit Raja, Klang', by:'D2', paid:'Fleet card', receipt:true});
+  fuel.push({id:id++, d:'2026-10-02', u:'TR-01', l:310, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Jalan Kempas, Johor Bahru', by:'D1', paid:'Fleet card', receipt:true});
+  fuel.push({id:id++, d:'2026-10-12', u:'TR-02', l:240, price:DIESEL, hm:null, hours:null, hire:null, where:'Petronas Jalan Kempas, Johor Bahru', by:'D2', paid:'Fleet card', receipt:true});
 })();
 const fuelRate = f => f.hours ? f.l/f.hours : null;
 const fuelFlag = f => f.hours && FUEL_RATE[fleet[f.u].m] ? fuelRate(f) > FUEL_RATE[fleet[f.u].m]*FUEL_FLAG : false;
@@ -1197,8 +1236,8 @@ Object.assign(models, {
   DCA60:{make:'Denyo',model:'DCA-60ESI',type:'Generator 60 kVA',grp:'power',size:'small'},
 });
 Object.assign(rates, {
-  'GR250/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300}, 'GR250/dry':{day:1500,week:8000,month:26000,mHrs:200,ex:140},
-  'ATF100/wet':{hr:800,minH:4,day:5800,month:105000,mHrs:200,ex:520,ot:800},
+  'GR250/wet':{hr:150,minH:3.5,day:1050,month:18000,mHrs:200,ex:100,ot:101.52,sun:1050,sunOt:139}, 'GR250/dry':{day:1500,week:8000,month:26000,mHrs:200,ex:140},
+  'ATF100/wet':{hr:400,minH:7.5,day:2900,month:52500,mHrs:200,ex:260,ot:296.11,sun:3100,sunOt:406},
   'NK250/dry':{day:1400,week:7500,month:24000,mHrs:200,ex:130}, 'RK500/dry':{day:2300,week:12500,month:40000,mHrs:200,ex:210},
   'SS500/dry':{day:2200,week:12000,month:38000,mHrs:200,ex:200}, 'UNIC/dry':{day:900,week:4800,month:15000,mHrs:200,ex:80},
   'FD70/dry':{day:380,week:1900,month:6200,mHrs:200,ex:30}, 'GS4047/dry':{day:220,week:1100,month:3200,mHrs:200,ex:20},
@@ -1207,7 +1246,7 @@ Object.assign(rates, {
 (function bigFleet(){
   const EXTRA = [['TC','NK250',3,7],['RC','GR250',3,3],['RC','RK500',2,6],['TC','SS500',1,10],['AT','ATF100',1,2],['LC','UNIC',3,2],['FL','FD30',6,3],['FL','FD50',3,9],['FL','FD70',2,12],
     ['BL','S65',3,2],['SL','GS4047',4,1],['EX','PC200',4,4],['EX','ZX70',3,8],['WL','W950',2,2],['GS','DCA150',3,2],['GS','DCA60',2,5]];
-  const SITES = {C1:'Seksyen 13 warehouse project, Shah Alam',C2:'Quarry pit 2, Semenyih',C3:'Westport berth 9 piling, Pulau Indah',C4:'Bukit Raja steel warehouse, Klang',C5:'Rawang interchange bridge works',C7:'Westport warehouse 6, Pulau Indah'};
+  const SITES = {C1:'Senai Airport City warehouse project, Senai',C2:'Quarry pit 2, Ulu Choh',C3:'Pasir Gudang berth 9 piling',C4:'Tebrau steel warehouse, Johor Bahru',C5:'Kulai interchange bridge works',C7:'Pasir Gudang port warehouse 6'};
   const CUS = Object.keys(SITES), L = 'ABCDEFGHJKLMNPQRSTUVWXY';
   const pad = n => String(n).padStart(2,'0');
   let hn = 170;
@@ -1231,9 +1270,9 @@ Object.assign(rates, {
     const fromOk = from > TODAY && !booked ? addDays(TODAY,-3) : from, open = r('o') < 0.4;
     const to = open ? '2099-12-31' : addDays(maxD(fromOk, TODAY), 30 + Math.floor(r('t')*90));
     const id = 'H-2026-0' + (hn++);
-    hires.push({id, c, site:SITES[c], state:'Selangor', siteContact:customers[c].contact+' '+customers[c].phone, po:`PO-${id.slice(-4)}`, status: booked ? 'Booked' : 'On hire', created: addDays(fromOk,-5), cycle:'Monthly in arrears',
+    hires.push({id, c, site:SITES[c], state:'Johor', siteContact:customers[c].contact+' '+customers[c].phone, po:`PO-${id.slice(-4)}`, status: booked ? 'Booked' : 'On hire', created: addDays(fromOk,-5), cycle:'Monthly in arrears',
       lines:[{u, k, basis:'month', from:fromOk, to, on: booked ? undefined : fromOk, open: open || undefined, hm: booked ? [] : (()=>{ const end = fleet[u].hm, perDay = 4 + r('hm')*5, mk = d => ({d, v: Math.round(end - perDay*daysBetween(d, addDays(TODAY,-1)))}); return [...new Set([fromOk, maxD(fromOk,'2026-09-30'), addDays(TODAY,-1)])].map(mk); })()}],
-      trips: booked ? [{dir:'Delivery', d:fromOk, u, veh: models[m].size==='self' ? null : 'TR-02', drv: models[m].size==='self' ? 'O4' : 'D2', zone:'Klang Valley', charge:transportCharge(m,'Klang Valley'), status:'Planned', self: models[m].size==='self'}] : [],
+      trips: booked ? [{dir:'Delivery', d:fromOk, u, veh: models[m].size==='self' ? null : 'TR-02', drv: models[m].size==='self' ? 'O4' : 'D2', zone:'Johor Bahru', charge:transportCharge(m,'Johor Bahru'), status:'Planned', self: models[m].size==='self'}] : [],
       log:[{d:addDays(fromOk,-5)+' 10:00', t: booked ? 'Booked.' : 'On hire (monthly).'}]});
   } });
 })();
@@ -1336,7 +1375,7 @@ function renderFleet2(){
     ${shown.map(({u,s,cls,di})=>{ const fl = fleet[u], wd = worstDoc(u);
       return `<tr class="click" data-unit="${u}"><td class="mono"><b>${u}</b></td><td><b>${esc(uName(u))}</b><br><small class="muted">${esc(uRef(u))} · ${fl.year}</small></td><td><small>${esc(cls.label)}</small></td>
       <td><span class="pill ${s.cls}">${esc(s.label)}</span>${s.k==='Available'&&s.idle!=null?`<br><small class="muted">idle ${s.idle} d</small>`:''}</td>
-      <td>${s.h?`${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site.split(',')[0])}${s.l&&s.k==='On hire'?' · to '+fmtD(s.l.to):''}</small>`:s.note?esc(s.note):'Klang yard'}</td>
+      <td>${s.h?`${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site.split(',')[0])}${s.l&&s.k==='On hire'?' · to '+fmtD(s.l.to):''}</small>`:s.note?esc(s.note):'Kempas yard'}</td>
       <td>${wd?docPill(wd[0],wd[1]):''}${di.length?'<br><span class="docwarn" style="display:inline">⚠ due in 60 days</span>':''}</td><td class="r num boss">${fl.ytd?RM0(fl.ytd.rev):'—'}</td></tr>`; }).join('') || '<tr><td colspan="7" class="muted">No machine matches.</td></tr>'}
     </tbody></table></div>
     ${us.length>shown.length?`<div class="btnrow"><button class="btn" data-action="fleet-more">Show ${Math.min(PAGE, us.length-shown.length)} more (${shown.length} of ${us.length})</button></div>`:`<small class="muted">${us.length} shown</small>`}`;
@@ -1377,7 +1416,7 @@ document.addEventListener('submit', e => {
 });
 
 /* ---------- state ---------- */
-const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Truck crane 25 t', grp:'', start:'2026-10-16', q:'25t crane', fam:'', freeOnly:false, more:{}, open:{}}, fl:{q:'', fam:'', st:'', sort:'cls', page:1}, planQ:'', planFam:'', planCol:{}, planCompact:true, qq:null, qSeq:240, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
+const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Truck crane 25 t', grp:'', start:'2026-10-16', q:'25t crane', fam:'', freeOnly:false, more:{}, open:{}}, fl:{q:'', fam:'', st:'', sort:'cls', page:1}, planQ:'', planFam:'', planCol:{}, planCompact:true, qq:null, qSeq:1094, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
 try{ const v = localStorage.getItem('spc-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
@@ -1613,7 +1652,7 @@ function openHire(id){
 
 /* ---------- New hire ---------- */
 function newHireDefaults(pre={}){
-  return {c:'C1', site:'', state:'Selangor', siteContact:'', po:'', k:'wet', basis:'day', type:'Truck crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Klang Valley', del:true, col:true, jobType:'Lifting', jobScope:'', arrive:'08:30', requests:'', pay:'credit', collect:false, open:false, ...pre};
+  return {c:'C1', site:'', state:'Johor', siteContact:'', po:'', k:'wet', basis:'day', type:'Truck crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Johor Bahru', del:true, col:true, jobType:'Lifting', jobScope:'', arrive:'08:30', requests:'', pay:'credit', collect:false, open:false, ...pre};
 }
 function openNewHire(){
   const n = state.nh, types = [...new Set(hireUnits().map(u=>mOf(u).type))];
@@ -1637,7 +1676,7 @@ function openNewHire(){
     <form class="stack" data-form="nh">
       <div class="sect"><h3>Customer and site</h3><div class="in form">
         <label>Customer<select class="field" data-nh="c">${Object.entries(customers).map(([k,c])=>`<option value="${k}" ${k===n.c?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
-        <label>Site<input type="text" data-nh="site" value="${esc(n.site)}" placeholder="e.g. Lot 5, Jalan Kebun, Klang"></label>
+        <label>Site<input type="text" data-nh="site" value="${esc(n.site)}" placeholder="e.g. Lot 5, Jalan Seelong, Senai"></label>
         <label>State (for public holidays)<select class="field" data-nh="state">${STATES.map(s=>`<option ${s===n.state?'selected':''}>${s}</option>`).join('')}</select></label>
         <label>Site contact<input type="text" data-nh="siteContact" value="${esc(n.siteContact)}" placeholder="Name and phone"></label>
         <label>Customer PO / LOU<input type="text" data-nh="po" value="${esc(n.po)}" placeholder="Needed to confirm"></label>
@@ -1788,7 +1827,7 @@ function renderFleet(){
     ${us.map(u=>{ const s = unitStatus(u), f = fleet[u], wd = worstDoc(u);
       return `<tr class="click" data-unit="${u}"><td class="mono"><b>${u}</b></td><td><b>${esc(uName(u))}</b><br><small class="muted">${esc(mOf(u).type)} · ${esc(uRef(u))} · ${f.year}</small></td>
       <td><span class="pill ${s.cls}">${esc(s.label)}</span>${s.k==='Available'&&s.idle!=null?`<br><small class="muted">idle ${s.idle} d</small>`:''}</td>
-      <td>${s.h?`${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}${s.l&&s.k==='On hire'?' · to '+fmtD(s.l.to):''}</small>`:s.note?esc(s.note):f.transport?'Klang yard':'Klang yard'}</td>
+      <td>${s.h?`${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}${s.l&&s.k==='On hire'?' · to '+fmtD(s.l.to):''}</small>`:s.note?esc(s.note):f.transport?'Kempas yard':'Kempas yard'}</td>
       <td>${wd?docPill(wd[0],wd[1]):''}</td><td class="r num">${f.hm?num(f.hm)+' h':'—'}</td><td class="r num boss">${f.ytd?RM0(f.ytd.rev):'—'}</td></tr>`; }).join('')}
     </tbody></table></div>`;
 }
@@ -1967,7 +2006,7 @@ function openInvoice(no){
     ${i.einv==='Rejected'?`<div class="banner crit"><b>MyInvois rejected this invoice: ${esc(i.einvNote)}.</b></div>
       <form class="docbar" data-form="tin" data-no="${no}"><label class="label" for="tinIn">Customer TIN (from the customer's e-invoice details or the LHDN TIN search)</label><div class="btnrow"><input type="text" id="tinIn" placeholder="e.g. C21234567890" style="flex:1"><button class="btn primary">Save TIN and resubmit</button></div></form>`:''}
     <div class="doc">
-      <div class="doc-head"><div><div class="doc-brand">${esc(CO.name)}</div><small>${esc(CO.addr)}<br>Tel ${esc(CO.phone)} · SSM ${esc(CO.ssm)}<br>TIN ${esc(CO.tin)} · SST ${esc(CO.sst)}</small></div>
+      <div class="doc-head"><div><div class="doc-brand">${esc(CO.name)}</div><small>${CO.addr.map(esc).join(', ')}<br>Tel ${esc(CO.phone)} · Reg No ${esc(CO.reg)}<br>Service Tax ID ${esc(CO.sst)} · TIN ${esc(CO.tin)}</small></div>
         <div class="doc-meta"><b>Tax invoice</b><span>${i.no}</span><span>Date ${fmtDY(i.issued)}</span><span>Due ${fmtDY(i.due)}</span></div></div>
       <div class="doc-grid">
         <div><h4>Bill to</h4><dl><dt>Customer</dt><dd>${esc(cu.name)}</dd><dt>SSM</dt><dd>${esc(cu.brn)}</dd><dt>TIN</dt><dd>${cu.tin?esc(cu.tin):'<span class="no">Missing</span>'}</dd>${cu.sst?`<dt>SST</dt><dd>${esc(cu.sst)}</dd>`:''}<dt>Attn</dt><dd>${esc(cu.contact)}</dd></dl></div>
@@ -1988,26 +2027,29 @@ function openInvoice(no){
 /* ---------- Rates ---------- */
 function renderRates(){
   const ed = boss();
-  const cell = (key, f) => { const v = rates[key][f]; return ed && v!=null ? `<input class="ratein" type="number" data-rate="${key}" data-f="${f}" value="${v}">` : v!=null ? RM0(v) : '<span class="muted">—</span>'; };
+  const cell = (key, f) => { const v = rates[key][f]; return ed && v!=null ? `<input class="ratein" type="number" data-rate="${key}" data-f="${f}" step="0.01" value="${v}">` : v!=null ? (v%1 ? RM(v) : RM0(v)) : '<span class="muted">—</span>'; };
   $('#v-rates').innerHTML = `
     <div class="view-head"><h2>Rates</h2>${ed?'<span class="muted">Changes apply to new quotations and bookings. Running hires keep the rates they were booked at.</span>':'<span class="muted">Only the Head Manager can change rates.</span>'}</div>
-    <div class="tbl-wrap"><table><thead><tr><th>Model</th><th>Kind</th><th class="r">Hour</th><th class="r">Min h</th><th class="r">Day (8 h)</th><th class="r">Week</th><th class="r">Month</th><th class="r">Month h</th><th class="r">Excess / h</th><th class="r">OT / h</th></tr></thead><tbody>
-      ${Object.keys(rates).map(key=>{ const [mk,k] = key.split('/'); return `<tr><td><b>${esc(mName(mk))}</b><br><small class="muted">${esc(models[mk].type)}</small></td><td>${kindLabel(k)}</td><td class="r">${cell(key,'hr')}</td><td class="r">${rates[key].minH??'—'}</td><td class="r">${cell(key,'day')}</td><td class="r">${cell(key,'week')}</td><td class="r">${cell(key,'month')}</td><td class="r">${rates[key].mHrs??'—'}</td><td class="r">${cell(key,'ex')}</td><td class="r">${cell(key,'ot')}</td></tr>`; }).join('')}
+    <div class="tbl-wrap"><table><thead><tr><th>Model</th><th>Kind</th><th class="r">Hour</th><th class="r">Min h</th><th class="r">Day (8 h)</th><th class="r">Week</th><th class="r">Month</th><th class="r">Month h</th><th class="r">Excess / h</th><th class="r">OT / h</th><th class="r">Sun / PH day</th><th class="r">Sun OT / h</th></tr></thead><tbody>
+      ${Object.keys(rates).map(key=>{ const [mk,k] = key.split('/'); return `<tr><td><b>${esc(mName(mk))}</b><br><small class="muted">${esc(models[mk].type)}</small></td><td>${kindLabel(k)}</td><td class="r">${cell(key,'hr')}</td><td class="r">${rates[key].minH??'—'}</td><td class="r">${cell(key,'day')}</td><td class="r">${cell(key,'week')}</td><td class="r">${cell(key,'month')}</td><td class="r">${rates[key].mHrs??'—'}</td><td class="r">${cell(key,'ex')}</td><td class="r">${cell(key,'ot')}</td><td class="r">${cell(key,'sun')}</td><td class="r">${cell(key,'sunOt')}</td></tr>`; }).join('')}
     </tbody></table></div>
     <div class="two">
       <div class="panel"><div class="panel-head"><h3>Transport by zone</h3></div><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Zone</th><th class="r">Self-drive mobilisation</th><th class="r">Lowloader up to 10 t</th><th class="r">Lowloader 10–30 t</th></tr></thead><tbody>
         ${zones.map(z=>`<tr><td>${esc(z.z)}</td><td class="r">${RM0(z.self)}</td><td class="r">${RM0(z.small)}</td><td class="r">${RM0(z.mid)}</td></tr>`).join('')}
       </tbody></table></div><div class="in" style="padding:10px 14px"><small class="muted">Oversize loads: JPJ permit and police escort charged at cost.</small></div></div>
       <div class="panel"><div class="panel-head"><h3>Charging rules</h3></div><div class="tbl-wrap" style="border:0"><table><tbody>
-        <tr><td>Working day</td><td>${RULES.dayHrs} h, Mon–Sat. Hours above are overtime (wet hire)</td></tr>
-        <tr><td>Hourly hire minimum</td><td>${RULES.minH} h a day</td></tr>
-        <tr><td>Monthly hire</td><td>Covers ${RULES.mHrs} h; part months by calendar days</td></tr>
-        <tr><td>Sunday / public holiday</td><td>×${RULES.sunX} day rate; holidays by the site's state</td></tr>
+        <tr><td>Working day</td><td>8 am – 5 pm, Mon–Sat, with tea breaks 10:00–10:15 and 3:00–3:15. Weekly and monthly rates cover Mon–Sat</td></tr>
+        <tr><td>Overtime</td><td>5 pm – 11:59 pm at the machine's OT rate; 12 am – 7:59 am at double the OT rate</td></tr>
+        <tr><td>Single trip minimum</td><td>${RULES.minH} h (half day) for cranes up to 60 t, ${RULES.minHBig} h above; then OT by the hour or part of it</td></tr>
+        <tr><td>Sunday / public holiday</td><td>The machine's own Sunday / PH day rate and Sunday OT rate; holidays by the site's state</td></tr>
+        <tr><td>Monthly hire</td><td>Covers ${RULES.mHrs} h. Withdrawing early after confirming: the full month is charged</td></tr>
+        <tr><td>Diesel</td><td>Included in day, week and month rates unless the quotation says "without diesel"</td></tr>
         <tr><td>Standby (rain, site not ready)</td><td>${RULES.standbyPct}% of hourly rate on hourly hire; part of the day on day and month hire</td></tr>
-        <tr><td>Breakdown credit</td><td>Lost hours after the first ${RULES.bdGrace} h of a day</td></tr>
-        <tr><td>Operator outstation allowance</td><td>${RM0(RULES.allowance)} a night outside Klang Valley</td></tr>
-        <tr><td>Deposit</td><td>One month's hire (or 4 weeks) for new customers</td></tr>
-        <tr><td>SST</td><td>${RULES.sst}% on rental of machinery; taxable per charge type (to confirm with tax agent)</td></tr>
+        <tr><td>Breakdown</td><td>No deduction if the total downtime is under ${RULES.bdGrace} h; above that, deducted by the hour</td></tr>
+        <tr><td>Operator outstation allowance</td><td>${RM0(RULES.allowance)} a night outside Johor Bahru</td></tr>
+        <tr><td>Payment</td><td>Cash terms: pay on completion, or within 5 working days of the cash invoice. Credit: stop at the credit limit or ${RULES.creditDays} days. Late payment ${RULES.lateInt}% a month</td></tr>
+        <tr><td>Quotation</td><td>Valid ${RULES.valid} days</td></tr>
+        <tr><td>Service tax</td><td>${RULES.sst}% per line, as on quotation QT-01094 (confirm the rate for dry and wet hire with the tax agent)</td></tr>
       </tbody></table></div></div>
     </div>`;
 }
@@ -2050,13 +2092,13 @@ const ROLE_VIEWS = {
 };
 let leave = [
   {id:1,s:'O2',type:'Annual leave',from:'2026-10-22',to:'2026-10-23',status:'Pending',note:'Family wedding in Ipoh'},
-  {id:2,s:'D2',type:'Medical leave (MC)',from:'2026-10-15',to:'2026-10-16',status:'Approved',note:'MC from Klinik Kesihatan Klang'},
+  {id:2,s:'D2',type:'Medical leave (MC)',from:'2026-10-15',to:'2026-10-16',status:'Approved',note:'MC from Klinik Kesihatan Kempas'},
   {id:3,s:'O4',type:'Annual leave',from:'2026-10-29',to:'2026-10-30',status:'Pending',note:''},
   {id:4,s:'S2',type:'Annual leave',from:'2026-11-09',to:'2026-11-09',status:'Approved',note:''},
 ];
 const LTYPES = ['Annual leave','Medical leave (MC)','Emergency leave','Unpaid leave','Replacement leave'];
 const leaveBal = {O6:9,O7:5,O8:12,O9:7,HM:14,S1:10,S2:12,S3:9,O1:8,O2:3,O3:11,O4:6,O5:9,D1:7,D2:4};
-const CLOCK = {O6:'07:41 · Seksyen 13 site',O7:'07:50 · Pulau Indah',O8:'07:57 · Rawang site',O9:'07:48 · Bukit Raja site',O1:'07:46 · Seksyen 13 site',O2:'07:58 · Jalan Kapar site',O3:'07:30 · yard',O5:'08:05 · Pulau Indah',D1:'07:40 · yard',S1:'08:30 · office',S2:'08:41 · office',S3:'08:52 · office',HM:'08:15 · office'};
+const CLOCK = {O6:'07:41 · Senai site',O7:'07:50 · Pasir Gudang',O8:'07:57 · Kulai site',O9:'07:48 · Tebrau site',O1:'07:46 · Senai site',O2:'07:58 · Pasir Gudang site',O3:'07:30 · yard',O5:'08:05 · Pulau Indah',D1:'07:40 · yard',S1:'08:30 · office',S2:'08:41 · office',S3:'08:52 · office',HM:'08:15 · office'};
 
 /* ---------- customers, enquiries, follow-ups ---------- */
 customers.C8 = {name:'Sinar Timur Engineering Sdn Bhd',brn:'201101034455',tin:'C22334455070',sst:'',terms:30,limit:50000,contact:'Mr. Yap Kok Leong',phone:'012-338 7766'};
@@ -2073,22 +2115,22 @@ const SOURCES = ['Phone','WhatsApp','Email','Website form','Walk-in','Referral',
 const LOST_WHY = ['No machine free','Price','Went elsewhere','Project postponed','No reply'];
 const HIST = {won:31, lost:19};
 let enquiries = [
-  {id:'E-2026-0231',at:'2026-10-16 08:20',src:'WhatsApp',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Truck crane 25 t',qty:1,k:'wet',from:'2026-10-26',to:'2026-10-30',site:'Bandar Rimbayu, Kota Kemuning',state:'Selangor',stage:'New',owner:'S2',temp:'Hot',
+  {id:'E-2026-0231',at:'2026-10-16 08:20',src:'WhatsApp',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Truck crane 25 t',qty:1,k:'wet',from:'2026-10-26',to:'2026-10-30',site:'Eco Botanic, Iskandar Puteri',state:'Johor',stage:'New',owner:'S2',temp:'Hot',
    notes:'Lifting precast beams, heaviest 3.2 t at 18 m radius, set 12 m high. Site needs the crane CF copy and operator DOSH card.',lift:{w:3.2,r:18,h:12},log:[{d:'2026-10-16 08:20',t:'WhatsApp from Mr. Ong: 25 t truck crane 26–30 Oct.'}]},
-  {id:'E-2026-0230',at:'2026-10-15 15:30',src:'Phone',c:'C1',need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-11-02',to:'2026-11-13',site:'Seksyen 13 warehouse project, Shah Alam',state:'Selangor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0160',
+  {id:'E-2026-0230',at:'2026-10-15 15:30',src:'Phone',c:'C1',need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-11-02',to:'2026-11-13',site:'Senai Airport City warehouse project, Senai',state:'Johor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0160',
    notes:'Second crane for roof steel. Our only 50 t (RC-01) is already on their site.',log:[{d:'2026-10-15 15:40',t:'Quotation H-2026-0160 started; no 50 t free.'},{d:'2026-10-15 15:30',t:'Call from Mr. Lim.'}]},
-  {id:'E-2026-0229',at:'2026-10-15 11:05',src:'Phone',c:'C5',need:'Generator 150 kVA',qty:1,k:'dry',from:'2026-11-02',to:'2026-12-31',site:'Taman Desa drainage works, Rawang',state:'Selangor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0161',
+  {id:'E-2026-0229',at:'2026-10-15 11:05',src:'Phone',c:'C5',need:'Generator 150 kVA',qty:1,k:'dry',from:'2026-11-02',to:'2026-12-31',site:'Taman Daya drainage works, Johor Bahru',state:'Johor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0161',
    notes:'Site office and pumps.',log:[{d:'2026-10-16 08:50',t:'Quotation H-2026-0161 sent by WhatsApp.'}]},
-  {id:'E-2026-0228',at:'2026-10-14 10:10',src:'Website form',prospect:{name:'Ikhlas Plantation Sdn Bhd',contact:'En. Hairul Nizam',phone:'013-920 1188'},need:'Excavator 20 t',qty:2,k:'dry',from:'2026-11-09',to:'2027-02-08',site:'Ladang Sungai Tinggi, Kuala Selangor',state:'Selangor',stage:'Site visit',owner:'S2',temp:'Hot',
+  {id:'E-2026-0228',at:'2026-10-14 10:10',src:'Website form',prospect:{name:'Ikhlas Plantation Sdn Bhd',contact:'En. Hairul Nizam',phone:'013-920 1188'},need:'Excavator 20 t',qty:2,k:'dry',from:'2026-11-09',to:'2027-02-08',site:'Ladang Sungai Tiram, Ulu Tiram',state:'Johor',stage:'Site visit',owner:'S2',temp:'Hot',
    notes:'Drainage and estate road works. 2 units for 3 months. Soft ground: ask about mats and swamp shoes.',log:[{d:'2026-10-15 09:00',t:'Called En. Hairul. Site visit fixed for Mon 19 Oct.'},{d:'2026-10-14 10:10',t:'Website form received.'}]},
-  {id:'E-2026-0227',at:'2026-10-13 09:40',src:'Email',c:'C7',need:'Forklift 5 t',qty:1,k:'dry',from:'2026-10-26',to:'2026-11-08',site:'Westport warehouse 4, Pulau Indah',state:'Selangor',stage:'Negotiating',owner:'S2',temp:'Warm',
+  {id:'E-2026-0227',at:'2026-10-13 09:40',src:'Email',c:'C7',need:'Forklift 5 t',qty:1,k:'dry',from:'2026-10-26',to:'2026-11-08',site:'Pasir Gudang port warehouse 4',state:'Johor',stage:'Negotiating',owner:'S2',temp:'Warm',
    notes:'Peak season at the port. Asked for 10% off the weekly rate.',log:[{d:'2026-10-14 15:00',t:'Sent price: RM 1,300 a week. Customer asked for 10% off.'},{d:'2026-10-13 09:40',t:'E-mail from Mr. Ravi.'}]},
-  {id:'E-2026-0226',at:'2026-10-12 14:00',src:'Tender',prospect:{name:'Lebuh Raya Utama Contractors Sdn Bhd',contact:'Ir. Kumaran',phone:'03-7880 2210'},need:'Boom lift 20 m',qty:1,k:'dry',from:'2026-12-01',to:'2027-05-31',site:'Overhead sign gantries, Seremban',state:'Negeri Sembilan',stage:'Contacted',owner:'HM',temp:'Cold',
+  {id:'E-2026-0226',at:'2026-10-12 14:00',src:'Tender',prospect:{name:'Lebuh Raya Utama Contractors Sdn Bhd',contact:'Ir. Kumaran',phone:'03-7880 2210'},need:'Boom lift 20 m',qty:1,k:'dry',from:'2026-12-01',to:'2027-05-31',site:'Overhead sign gantries, Iskandar Puteri',state:'Negeri Sembilan',stage:'Contacted',owner:'HM',temp:'Cold',
    notes:'Tender closes 30 Oct. Needs company profile, CF and insurance copies.',log:[{d:'2026-10-13 10:00',t:'Tender documents downloaded.'}]},
-  {id:'E-2026-0225',at:'2026-10-13 16:20',src:'Referral',c:'C6',need:'Boom lift 20 m',qty:1,k:'dry',from:'2026-10-19',to:'2026-10-30',site:'Jalan Ampang condominium, Kuala Lumpur',stage:'Won',owner:'S2',temp:'Hot',hire:'H-2026-0157',notes:'Referred by Bina Jaya.',log:[{d:'2026-10-14 10:30',t:'Booked as H-2026-0157.'}]},
-  {id:'E-2026-0224',at:'2026-10-13 11:00',src:'Phone',c:'C4',need:'Lorry crane 10 t',qty:1,k:'wet',from:'2026-10-16',to:'2026-10-16',site:'Lot 88 Jalan Haji Sirat, Klang',stage:'Won',owner:'S2',temp:'Warm',hire:'H-2026-0155',notes:'',log:[{d:'2026-10-13 14:00',t:'Booked as H-2026-0155.'}]},
-  {id:'E-2026-0221',at:'2026-10-02 10:00',src:'Phone',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-10-05',to:'2026-10-16',site:'Bandar Rimbayu',stage:'Lost',lostWhy:'No machine free',owner:'S2',temp:'Hot',notes:'',log:[{d:'2026-10-02 11:00',t:'Lost: no 50 t free.'}]},
-  {id:'E-2026-0219',at:'2026-09-28 09:15',src:'Phone',c:'C3',need:'Excavator 20 t',qty:1,k:'dry',from:'2026-10-05',to:'2026-11-04',site:'Jalan Kapar, Klang',stage:'Lost',lostWhy:'Price',owner:'S2',temp:'Warm',notes:'',log:[{d:'2026-09-30 16:00',t:'Lost on price (competitor RM 12,800 a month).'}]},
+  {id:'E-2026-0225',at:'2026-10-13 16:20',src:'Referral',c:'C6',need:'Boom lift 20 m',qty:1,k:'dry',from:'2026-10-19',to:'2026-10-30',site:'Jalan Tebrau condominium, Johor Bahru',stage:'Won',owner:'S2',temp:'Hot',hire:'H-2026-0157',notes:'Referred by Bina Jaya.',log:[{d:'2026-10-14 10:30',t:'Booked as H-2026-0157.'}]},
+  {id:'E-2026-0224',at:'2026-10-13 11:00',src:'Phone',c:'C4',need:'Lorry crane 10 t',qty:1,k:'wet',from:'2026-10-16',to:'2026-10-16',site:'Lot 88 Jalan Kempas Lama, Johor Bahru',stage:'Won',owner:'S2',temp:'Warm',hire:'H-2026-0155',notes:'',log:[{d:'2026-10-13 14:00',t:'Booked as H-2026-0155.'}]},
+  {id:'E-2026-0221',at:'2026-10-02 10:00',src:'Phone',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-10-05',to:'2026-10-16',site:'Eco Botanic',stage:'Lost',lostWhy:'No machine free',owner:'S2',temp:'Hot',notes:'',log:[{d:'2026-10-02 11:00',t:'Lost: no 50 t free.'}]},
+  {id:'E-2026-0219',at:'2026-09-28 09:15',src:'Phone',c:'C3',need:'Excavator 20 t',qty:1,k:'dry',from:'2026-10-05',to:'2026-11-04',site:'Jalan Pasir Gudang, Masai',stage:'Lost',lostWhy:'Price',owner:'S2',temp:'Warm',notes:'',log:[{d:'2026-09-30 16:00',t:'Lost on price (competitor RM 12,800 a month).'}]},
 ];
 const modelOfType = type => Object.keys(models).find(k=>models[k].type===type);
 const guessBasis = (mk,k,from,to) => { const n = daysBetween(from,to)+1, r = rate(mk,k)||{}; const order = n>=28?['month','week','day','hour']:n>=7?['week','day','month','hour']:['day','hour','week','month']; return order.find(b=>r[{hour:'hr',day:'day',week:'week',month:'month'}[b]]) || 'day'; };
@@ -2180,7 +2222,7 @@ function renderEnquiries(){
       <div class="kpi warn"><b>${noFu}</b><span>Open, no follow-up set</span></div>
     </div>${tab==='board'?waInboxHtml():''}${body}`;
 }
-function neDefaults(pre={}){ return {src:'Phone', c:'', pname:'', pcontact:'', pphone:'', need:'Excavator 20 t', qty:1, k:'dry', from:addDays(TODAY,7), to:addDays(TODAY,20), site:'', state:'Selangor', notes:'', owner:OFFICE.includes(meStaff())?meStaff():'S2', fu:TODAY, fuT:'Call back with price and availability', temp:'Warm', ...pre}; }
+function neDefaults(pre={}){ return {src:'Phone', c:'', pname:'', pcontact:'', pphone:'', need:'Excavator 20 t', qty:1, k:'dry', from:addDays(TODAY,7), to:addDays(TODAY,20), site:'', state:'Johor', notes:'', owner:OFFICE.includes(meStaff())?meStaff():'S2', fu:TODAY, fuT:'Call back with price and availability', temp:'Warm', ...pre}; }
 function openNewEnquiry(){
   const n = state.ne, types = [...new Set(hireUnits().map(u=>mOf(u).type))], mk = modelOfType(n.need);
   const kinds = ['dry','wet'].filter(k=>rate(mk,k)); if(!kinds.includes(n.k)) n.k = kinds[0];
@@ -2355,12 +2397,12 @@ const ETYPES = {Transport:'var(--warn)','Follow-up':'var(--info)','Site visit':'
 let events = [
   {d:'2026-10-09',time:'08:00',type:'Company',t:'Toolbox talk: lifting near power lines'},
   {d:'2026-10-17',time:'08:00',type:'Company',t:'Monthly safety briefing, all operators and drivers (yard)'},
-  {d:'2026-10-20',time:'10:30',type:'Meeting',t:'Bina Jaya site progress meeting, Shah Alam',cust:'C1'},
+  {d:'2026-10-20',time:'10:30',type:'Meeting',t:'Bina Jaya site progress meeting, Senai',cust:'C1'},
   {d:'2026-10-22',time:'10:00',type:'Inspection',t:'DOSH CF inspection: TC-02 at the yard',unit:'TC-02'},
   {d:'2026-10-24',time:'08:30',type:'Training',t:'CIDB green card renewal course: Azman bin Yusof'},
   {d:'2026-10-27',time:'09:00',type:'Inspection',t:'Puspakom inspection: TR-01',unit:'TR-01'},
   {d:'2026-10-30',time:'15:00',type:'Company',t:'Month-end planning meeting: fleet, staff and billing'},
-  {d:'2026-11-05',time:'14:00',type:'Meeting',t:'Kuari Semenyih contract renewal (EX-02 from Dec)',cust:'C2'},
+  {d:'2026-11-05',time:'14:00',type:'Meeting',t:'Kuari Ulu Choh contract renewal (EX-02 from Dec)',cust:'C2'},
 ];
 function calEvents(from, to){
   const out = [], inR = d => d>=from && d<=to;
@@ -2793,7 +2835,7 @@ function openFuelAdd(pre={}){
       <label>Litres<input type="number" min="1" step="1" data-fa="l" value="${fa.l}" placeholder="e.g. 220"></label>
       <label>Price per litre (RM)<input type="number" min="0" step="0.01" data-fa="price" value="${fa.price}"></label>
       <label>Hour meter now<input type="number" data-fa="hm" value="${fa.hm}" placeholder="${last?'last fill '+num(last.hm):''}"></label>
-      <label>Station / tank<input type="text" data-fa="where" value="${esc(fa.where)}" placeholder="e.g. Petron Jalan Kapar"></label>
+      <label>Station / tank<input type="text" data-fa="where" value="${esc(fa.where)}" placeholder="e.g. Petron Jalan Pasir Gudang"></label>
       <label>Paid by<select class="field" data-fa="paid">${FUEL_PAID.map(p=>`<option ${p===fa.paid?'selected':''}>${p}</option>`).join('')}</select></label>
       <label>Receipt photo<button type="button" class="slot ${fa.receipt?'done':''}" data-action="fuel-snap" style="aspect-ratio:auto;height:44px">${fa.receipt?'Receipt attached':'＋ Take photo'}</button></label>
     </div></div>
@@ -3065,10 +3107,10 @@ const hhmmOf = s => s ? s.slice(11,16) : '';
   const h = hire('H-2026-0155');
   Object.assign(h, {job:{type:'Lifting', scope:'Lift and place 12 steel roof trusses (heaviest 1.8 t) onto the column heads, gridlines A–D. About 6 hours.', arrive:'09:30', requests:'Bring 2 tag lines. Site works 8 am to 6 pm only.', pay:'credit', collect:false},
     check:Object.fromEntries(PRECONFIRM.map(([k])=>[k,true])), checkNote:{safety:'Helmet, vest, boots. Induction at the guardhouse.', rigging:'2 × 3 t round slings, 2 × 4.75 t shackles (tested Jul 2026).'},
-    track:{confirmed:'2026-10-13 14:00', sent:'2026-10-15 18:05', precheck:'2026-10-16 07:40', left:'2026-10-16 08:42'}, gps:{at:'2026-10-16 09:14', where:'Jalan Kapar, 3.1 km from site', speed:38, eta:'09:22'}});
-  hires.push({id:'H-2026-0159', c:'C8', site:'Sinar Timur workshop, Jalan Kebun, Klang', state:'Selangor', siteContact:'Mr. Yap 012-338 7766', po:'Cash job', status:'Quotation', order:true, created:'2026-10-15', cycle:'End of hire',
+    track:{confirmed:'2026-10-13 14:00', sent:'2026-10-15 18:05', precheck:'2026-10-16 07:40', left:'2026-10-16 08:42'}, gps:{at:'2026-10-16 09:14', where:'Jalan Pasir Gudang, 3.1 km from site', speed:38, eta:'09:22'}});
+  hires.push({id:'H-2026-0159', c:'C8', site:'Sinar Timur workshop, Tampoi', state:'Johor', siteContact:'Mr. Yap 012-338 7766', po:'Cash job', status:'Quotation', order:true, created:'2026-10-15', cycle:'End of hire',
     lines:[{u:'TC-06', k:'wet', basis:'hour', from:'2026-10-17', to:'2026-10-17', op:'O5'}],
-    trips:[{dir:'Delivery', d:'2026-10-17', u:'TC-06', veh:null, drv:'O5', zone:'Klang Valley', charge:500, status:'Planned', self:true}],
+    trips:[{dir:'Delivery', d:'2026-10-17', u:'TC-06', veh:null, drv:'O5', zone:'Johor Bahru', charge:500, status:'Planned', self:true}],
     job:{type:'Loading / unloading', scope:'Unload a 3.2 t generator set from the customer\'s lorry and set it on the plinth. About 3 hours (4 hours minimum charge).', arrive:'09:00', requests:'Customer supplies the lorry; bring a spreader bar.', pay:'cash', collect:true},
     check:{safety:true, plan:true, cf:true, op:true, ground:true, requests:true}, checkNote:{},
     track:{}, log:[{d:'2026-10-15 17:40', t:'Order keyed in from Mr. Yap\'s WhatsApp. Customer knows the lift; checklist started.'}]});
@@ -3078,7 +3120,7 @@ const hhmmOf = s => s ? s.slice(11,16) : '';
 })();
 const WA_INBOX = [
   {id:1, at:'2026-10-16 09:02', from:'+60 13-508 2291', name:'Unknown number', c:null, text:'Boss, ada kren 50 tan available minggu depan? Kerja angkat tangki air di Puchong, 2 hari.', link:null},
-  {id:2, at:'2026-10-16 08:47', from:'+60 12-771 4402', name:'Mr. Ong · Sri Kenari Builders', c:null, text:'Hi, can confirm the 25 t crane for 26–30 Oct at Bandar Rimbayu? Heaviest beam 3.2 t at 18 m.', link:{enq:'E-2026-0231'}},
+  {id:2, at:'2026-10-16 08:47', from:'+60 12-771 4402', name:'Mr. Ong · Sri Kenari Builders', c:null, text:'Hi, can confirm the 25 t crane for 26–30 Oct at Eco Botanic? Heaviest beam 3.2 t at 18 m.', link:{enq:'E-2026-0231'}},
   {id:3, at:'2026-10-16 07:55', from:'+60 12-655 0912', name:'Ms. Chong · Ever Bright Steel', c:'C4', text:'Crane reaching what time? Our workers ready at 9.', link:{hire:'H-2026-0155'}, auto:'Auto-reply: LC-01 is on the way, about 09:22 (GPS51).'},
   {id:4, at:'2026-10-15 17:20', from:'+60 12-338 7766', name:'Mr. Yap · Sinar Timur Engineering', c:'C8', text:'Need crane tomorrow Saturday 9am to unload 3.2 ton genset at our workshop Jalan Kebun. Cash payment.', link:{hire:'H-2026-0159'}},
 ];
@@ -3180,8 +3222,8 @@ function gpsLive(u){
   const s = unitStatus(u), h = s.h, l = s.l;
   if(h && h.track && h.track.left && !h.track.arrived) return {state:'Moving', where:h.gps?.where||'On the road', speed:h.gps?.speed||40, at:hhmmOf(h.gps?.at)||'09:14', cls:'warn'};
   if(s.k==='On hire' || s.k==='Off-hire called') return {state: rnd('ig'+u) > 0.25 ? 'At site · engine on' : 'At site · parked', where:h.site.split(',')[0], speed:0, at:'09:1'+Math.floor(rnd('t'+u)*6), cls:'ok'};
-  if(s.k==='In workshop') return {state:'Workshop', where:'Klang yard', speed:0, at:'08:55', cls:'mute'};
-  return {state:'Yard', where:'Klang yard', speed:0, at:'09:0'+Math.floor(rnd('y'+u)*9), cls:'mute'};
+  if(s.k==='In workshop') return {state:'Workshop', where:'Kempas yard', speed:0, at:'08:55', cls:'mute'};
+  return {state:'Yard', where:'Kempas yard', speed:0, at:'09:0'+Math.floor(rnd('y'+u)*9), cls:'mute'};
 }
 function renderDispatch(){
   const jobs = hires.filter(h => h.job && ['Quotation','Booked','On hire','Returned'].includes(h.status) && !(isMonthly(h) && stepNow(h)>=5 && h.lines[0].on<TODAY)).sort((a,b)=>a.lines[0].from<b.lines[0].from?-1:1);
@@ -3301,24 +3343,71 @@ function renderAvail(){
 }
 
 /* ---------- Quick quotation ---------- */
-const QUOTE_REMARKS = [
-  'All rates are in Ringgit Malaysia and exclude 8% SST.',
-  'Wet hire includes the operator. Daily hire covers 8 working hours, Monday to Saturday.',
-  'Hourly hire: minimum 4 hours per call, counted from arrival at site to release.',
-  'Overtime, Sundays and public holidays are charged at the overtime / holiday rates shown.',
-  'Mobilisation and demobilisation as stated. Lowloader permits and police escort, if needed, at cost.',
-  'Customer to provide firm level ground, safe access, site permits and a competent rigger / signalman unless requested from us.',
-  'Standby due to rain or site not ready is chargeable.',
-  'Cancellation less than 24 hours before mobilisation is charged at 4 hours.',
-  'Payment: 30 days for approved credit customers; otherwise cash on completion. PO / LOU required to confirm.',
-  'This quotation is valid for 7 days and is subject to machine availability when confirmed.',
+/* Standard terms and conditions, as printed on quotation QT-01094. The Head Manager edits them in Settings. */
+const TERMS = [
+  [null,'All hiring are subject to the availability of equipment at time of confirmation of order.'],
+  [null,'All hiring of equipment supplied by SUPER POWER CRANE to the Hirer or at the request of the Hirer shall be subject to these general terms and conditions, which the Hirer accepts as binding on them.'],
+  ['Rental Rates','The basic rental rates are based on standard working hours from 08:00 am to 05:00 pm, which include designated tea breaks from 10:00 AM to 10:15 AM and 03:00 PM to 03:15 PM. Work after 05:00 pm and up to 11:59 pm, shall be deemed as overtime work with the overtime rate stipulated in the quotation. All work carried out after 11:59pm and up to 07:59am on the next day shall be charged at double the overtime rate or otherwise stated.'],
+  [null,'The Weekly and Monthly rental charges are based on standard working hours from Monday to Saturday or otherwise stated.'],
+  [null,'Work on Sunday and Public Holidays will be quoted separately upon request.'],
+  [null,'The price quoted for Daily, Weekly and Monthly rental charges include diesel supply or otherwise stated.'],
+  [null,'All single trip rates are based on minimum of 3.5 hours (Half-Day) or 7.5 hours depending on crane tonnage mentioned on our quotation and subsequent hour or part thereof shall be charged as overtime according to the price schedule.'],
+  [null,'Upon order confirmation for monthly rental, If the lessee request to withdraw earlier full months rental will be charge.'],
+  ['Insurance','The Hirer shall insure the equipment and operator for the duration of each rental, not limited to all risk insurance on goods being handled, third party and public liability, machinery, all other risks and workmen compensation.'],
+  ['Conditions of Rental','The prices quoted are based on equipment leased for use on firm and solid ground conditions. The equipment shall not be used onboard any barge, vessel or floating platform, unless otherwise stated and agreed upon by SUPER POWER CRANE in advance.'],
+  [null,'The Hirer is required to submit and declare all request in writing to SUPER POWER CRANE at least two (2) days before hiring begins, failing which, SUPER POWER CRANE shall not be held responsible for any delay due to non compliance with this condition.'],
+  [null,'If the cargo or load differs from the agreed declaration, SUPER POWER CRANE reserves all rights to abort the operation, claim full costs from the Hirer.'],
+  [null,'Upon the completion of the rental, SUPER POWER CRANE reserves the right to conduct an "off-hire" survey of the equipment and shall the right to require the Hirer to compensate SUPER POWER CRANE for any damage caused to the equipment used during the rental period and to reimburse SUPER POWER CRANE for any cost of repair and replacement.'],
+  ['Safety & Risk','For the purpose of the use of the equipment hired from SUPER POWER CRANE, the Hirer shall at his own expense: (a) obtain all necessary consents, licenses, approval and/or permits from every competent authority; (b) compensate SUPER POWER CRANE in full on demand for all liability resulting from any failure by the Hirer to comply with any obligation under this clause.'],
+  [null,'It is the Hirer\'s responsibility to supervise and direct SUPER POWER CRANE Employees, servants during the course of work, including the equipment operator, if any, and to provide a safe working environment at site, including but not limited to safe access and/or egress of the lifting equipment as well as firm and level ground for lifting works free of all hazards, unground or otherwise.'],
+  [null,'The Hirer shall provide all crew required by any regulatory agency for safe lifting works at site, including but not limited to lifting supervisor, signalman and rigger man.'],
+  [null,'All works carried out by SUPER POWER CRANE\'s equipment and/or operator shall be at the Hirer\'s risk. All fines and/or penalties imposed as a result of such work shall be borne by the Hirer and in the event such fines and/or penalties are imposed on SUPER POWER CRANE, the Hirer shall indemnify SUPER POWER CRANE for the same.'],
+  ['Acts of God and Equipment Failure','In the event of SUPER POWER CRANE\'s equipment breakdown during the rental period, SUPER POWER CRANE will make arrangements to repair the equipment within a reasonable time. No deduction of the rental rate will be allowed if the total downtime is less than 4 hours. If it exceeds 4 hours, the rental rate shall be reduced based on hourly-rated basis.'],
+  [null,'If either party hereto is prevented in the performance of any act required hereunder by reason of act of God, fire, flood, or other natural disaster, health epidemic, malicious injury, strikes, lock-outs, or other labour troubles, riots, insurrection, war or other reason of like nature not the fault of the party in performing under this agreement, Super Power Crane reserves the option to continue or terminate operations without liability and/or compensation to any party.'],
+  ['Payment','All quotations provided by Super Power Crane are valid for 30 days from the date of quotation.'],
+  [null,'If the Hirer fails to make payment to Super Power Crane on or before due date, Super Power Crane may charge interest at 1.5% per month or part thereof on the outstanding sum owned.'],
+  [null,'Super Power Crane may consider and grant a credit limit to the Hirer. Upon reaching the credit limit or 90 days payment terms, whichever occurs earlier, the Hirer should make the payment due to Super Power Crane. Super Power Crane reserves the right to stop working immediately if this term is not complied with, and claim for the balance outstanding.'],
+  [null,'All payments shall be made in the form of a crosses cheque made payable to "SUPER POWER CRANE MACHINERY SDN BHD" and/or via online bank transfer payment.'],
+  [null,'For payment on Cash Terms customers, payment has to be tendered on or before completion of the work. Super Power Crane reserves the right to stop work immediately if this term is not comply with.'],
+  [null,'After the issuance of Super Power Crane\'s cash terms invoice, payment has to be made within five (5) working days upon receipt of the invoice. Super Power Crane reserves the right to stop the new crane order if this term is not complied with.'],
+  ['General','In the event that the Hirer does not sign the quotation, the Hirer\'s acceptance of equipment delivered shall be deemed as the Hirer\'s full confirmation and acceptance of Super Power Crane\'s rates, terms and conditions stipulated in the quotation and these general terms and conditions.'],
+  [null,'All terms and conditions stipulated in this agreement are valid unless they superseded by any specific exception clauses in the quotation.'],
 ];
 const DISC_LIMIT = {sales:5, supervisor:10, boss:100};
 const RIGGER_DAY = 250;
+const qtNo = n => 'QT-' + String(n).padStart(5,'0');
+const dmy = d => `${d.slice(8)}/${d.slice(5,7)}/${d.slice(0,4)}`;
+const payTerm = c => customers[c]?.terms ? `${customers[c].terms} DAYS` : 'COD';
+const qtName = type => { const m = type.match(/^(.*?)\s+(\d+(?:\.\d+)?)\s*t$/i); return (m ? `${m[2]}T ${m[1]}` : type).toUpperCase(); };
+const QT_BASIS = {hour:'HOURLY',day:'DAILY',week:'WEEKLY',month:'MONTHLY'}, QT_UOM = {hour:'HRS',day:'DAY',week:'WEEKLY',month:'MONTHLY'};
+const r2 = v => Math.round(v*100)/100;
+function qtLine(desc, qty, uom, rate, discPct, sub, sched){
+  const gross = qty*rate, disc = r2(gross*discPct/100), amt = r2(gross-disc), tax = r2(amt*RULES.sst/100);
+  return {desc, sub:sub||'', qty, uom, unit:uom.toLowerCase(), rate, disc, amt, tax, net:r2(amt+tax), sched:!!sched};
+}
+/* Lines in the company's quotation format: the rental line first, then its rate schedule (OT, Sunday / PH, Sunday OT) at qty 1. */
+function qtItems(q, mk, k, r){
+  const base = r[{hour:'hr',day:'day',week:'week',month:'month'}[q.basis]] || 0, d = q.disc || 0;
+  const to = q.open ? addDays(q.from, 29) : q.to, est = estimate(mk, k, q.basis, q.from, to, +q.hrs||8);
+  const qty = q.open && q.basis==='month' ? 1 : base ? Math.max(q.basis==='month'?1:0, +((est?.amt||0)/base).toFixed(2)) : 0;
+  const items = [qtLine(`${QT_BASIS[q.basis]} RENTAL OF ${qtName(models[mk].type)} ${k==='wet'?'WITH OPERATOR':'WITHOUT OPERATOR (DRY HIRE)'} ${q.diesel?'WITH DIESEL':'WITHOUT DIESEL'}`,
+    qty, QT_UOM[q.basis], base, d, `${models[mk].make} ${models[mk].model}${q.u?' · '+q.u:''} · ${fmtD(q.from)} ${q.open?'until the customer stops':'– '+fmtD(q.to)+' '+q.to.slice(0,4)}`)];
+  if(k==='wet' && r.ot){
+    items.push(qtLine('OVERTIME', 1, 'HRS', r.ot, d, '5 pm – 11:59 pm; double after midnight', true));
+    if(r.sun) items.push(qtLine('SUNDAY / P.HOLIDAY', 1, 'DAY', r.sun, d, '', true));
+    if(r.sunOt) items.push(qtLine('OVERTIME SUNDAY / P.HOLIDAY', 1, 'HRS', r.sunOt, d, '', true));
+  }
+  if(k==='dry' && q.basis==='month' && r.ex) items.push(qtLine(`EXCESS HOURS ABOVE ${r.mHrs||RULES.mHrs} H A MONTH`, 1, 'HRS', r.ex, d, 'by hour meter', true));
+  const tc = transportCharge(mk, q.zone);
+  if(q.mob && tc) items.push(qtLine(models[mk].size==='self' ? 'MOBILISATION & DEMOBILISATION' : 'LOWLOADER DELIVERY & COLLECTION', 2, 'TRIP', tc, 0, q.zone));
+  if(q.rigger){ let work = 0; for(let x=q.from; x<=to; x=addDays(x,1)) if(dow(x)!==0) work++; items.push(qtLine('RIGGER / SIGNALMAN', Math.max(1,work), 'DAY', RIGGER_DAY, 0)); }
+  return items;
+}
+const qtSums = items => { const main = items.filter(i=>!i.sched), sub = r2(sum(main.map(i=>i.amt))), sst = r2(sum(main.map(i=>i.tax))); return {sub, sst, total:r2(sub+sst)}; };
 function qqDefaults(pre={}){
   const from = state.av?.from || addDays(TODAY,1), to = state.av?.to || from, type = state.av?.type || 'Truck crane 25 t';
-  return {c:'', name:'', contact:'', phone:'', site:'', type, u:null, from, to, k:'wet', basis:'', hrs:8, disc:0, zone:'Klang Valley', mob:true, rigger:false, valid:7,
-    remarks:QUOTE_REMARKS.map(()=>true), extra:'', enq:null, ...pre};
+  return {c:'', name:'', contact:'', phone:'', site:'', type, u:null, from, to, k:'wet', basis:'', hrs:8, disc:0, zone:'Johor Bahru', mob:true, rigger:false, diesel:false, open:false, valid:RULES.valid,
+    extra:'', more:[], enq:null, ...pre};
 }
 function qqCalc(q){
   const types = [...new Set(hireUnits().map(u=>mOf(u).type))];
@@ -3328,100 +3417,100 @@ function qqCalc(q){
   const mk = q.u ? fleet[q.u].m : modelOfType(q.type), k = kindFor(mk, q.k); q.k = k;
   const r = rate(mk, k) || {}, bases = ['hour','day','week','month'].filter(b=>r[{hour:'hr',day:'day',week:'week',month:'month'}[b]]);
   if(!bases.includes(q.basis)) q.basis = guessBasis(mk, k, q.from, q.to);
-  const base = r[{hour:'hr',day:'day',week:'week',month:'month'}[q.basis]] || 0, unitRate = Math.round(base*(1-q.disc/100)*100)/100;
-  const est = estimate(mk, k, q.basis, q.from, q.to, +q.hrs), qty = base ? +((est?.amt||0)/base).toFixed(2) : 0;
-  const uLabel = {hour:'hour',day:'day',week:'week',month:'month'}[q.basis];
-  let work = 0; for(let d=q.from; d<=q.to; d=addDays(d,1)) if(dow(d)!==0) work++;
-  const items = [{desc:`${q.type} (${models[mk].make} ${models[mk].model}${q.u?', '+uRef(q.u):''}), ${kindLabel(k).toLowerCase()}${k==='wet'?' with operator':''}, ${basisLabel[q.basis].toLowerCase()} · ${fmtD(q.from)}${q.to!==q.from?' – '+fmtD(q.to):''} ${q.from.slice(0,4)}`, qty, unit:uLabel+(qty===1?'':'s'), rate:unitRate, amt:qty*unitRate}];
-  const tc = transportCharge(mk, q.zone);
-  if(q.mob && tc) items.push({desc:`${models[mk].size==='self'?'Mobilisation and demobilisation (self-drive)':'Lowloader delivery and collection'}, ${q.zone}`, qty:2, unit:'trips', rate:tc, amt:2*tc});
-  if(q.rigger) items.push({desc:'Rigger / signalman', qty:Math.max(1,work), unit:'days', rate:RIGGER_DAY, amt:Math.max(1,work)*RIGGER_DAY});
-  const sub = sum(items.map(i=>i.amt)), sst = sub*RULES.sst/100;
-  const limit = DISC_LIMIT[role()] ?? 0;
-  return {types, units, mk, k, r, bases, base, unitRate, items, sub, sst, total:sub+sst, overLimit:q.disc>limit, limit};
+  if(q.basis!=='month') q.open = false;
+  const items = qtItems(q, mk, k, r);
+  const more = (q.more||[]).map(m => { const mk2 = modelOfType(m.type), k2 = kindFor(mk2, q.k), r2 = rate(mk2, k2) || {};
+    const b2 = r2[{hour:'hr',day:'day',week:'week',month:'month'}[q.basis]] ? q.basis : guessBasis(mk2, k2, q.from, q.to);
+    const its = qtItems({...q, type:m.type, u:null, basis:b2, open:q.open && b2==='month', rigger:false}, mk2, k2, r2); items.push(...its); return {mk:mk2, k:k2, basis:b2}; });
+  const t = qtSums(items), limit = DISC_LIMIT[role()] ?? 0;
+  return {types, units, mk, k, r, bases, items, more, ...t, overLimit:q.disc>limit, limit};
 }
+const money = v => (+v).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
 function openQuickQuote(){
   const q = state.qq, x = qqCalc(q), cu = q.c ? customers[q.c] : null;
   const body = `<form class="stack" data-form="qq">
     <div class="sect"><h3>Customer</h3><div class="in form">
       <label>Customer<select class="field" data-qq="c"><option value="">New customer</option>${Object.entries(customers).map(([k,c])=>`<option value="${k}" ${k===q.c?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
-      ${cu ? `<label>Attention<input type="text" value="${esc(cu.contact)} · ${esc(cu.phone)}" readonly></label>` : `
+      ${cu ? `<label>Attention<input type="text" value="${esc(cu.contact)} · ${esc(cu.phone)}" readonly></label><label>Payment term<input type="text" value="${payTerm(q.c)}" readonly></label>` : `
       <label>Company name<input type="text" data-qq="name" value="${esc(q.name)}" placeholder="e.g. Kenanga Hartanah Sdn Bhd"></label>
       <label>Contact person<input type="text" data-qq="contact" value="${esc(q.contact)}"></label>
-      <label>Phone / WhatsApp<input type="text" data-qq="phone" value="${esc(q.phone)}" placeholder="012-345 6789"></label>`}
-      <label class="full">Site<input type="text" data-qq="site" value="${esc(q.site)}" placeholder="Site address or project"></label>
+      <label>Phone / WhatsApp<input type="text" data-qq="phone" value="${esc(q.phone)}" placeholder="012-345 6789"></label>
+      <label>Payment term<input type="text" value="COD (new customer)" readonly></label>`}
+      <label class="full">Project / site<input type="text" data-qq="site" value="${esc(q.site)}" placeholder="e.g. Senai, or Lot 12 Jalan Seelong, Senai"></label>
     </div></div>
     <div class="sect"><h3>Machine and rate</h3><div class="in form">
       <label>Machine type<select class="field" data-qq="type">${x.types.map(t=>`<option ${t===q.type?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
-      <label>From<input type="date" data-qq="from" value="${q.from}"></label><label>To<input type="date" data-qq="to" value="${q.to}"></label>
+      <label>From<input type="date" data-qq="from" value="${q.from}"></label>${q.open?'':`<label>To<input type="date" data-qq="to" value="${q.to}"></label>`}
       <label>Machine offered<select class="field" data-qq="u">${x.units.map(o=>`<option value="${o.u}" ${o.u===q.u?'selected':''}>${o.u} ${esc(mOf(o.u).model)} · ${o.ok?(o.warn.length?'free, document issue':'free'):'NOT free'}</option>`).join('')}</select></label>
       <label>Charged by<select class="field" data-qq="basis">${x.bases.map(b=>`<option value="${b}" ${b===q.basis?'selected':''}>${basisLabel[b]} · ${RM0(x.r[{hour:'hr',day:'day',week:'week',month:'month'}[b]])}</option>`).join('')}</select></label>
       ${q.basis==='hour'?`<label>Expected hours a day<input type="number" min="1" step="0.5" data-qq="hrs" value="${q.hrs}"></label>`:''}
       <label>Discount %<input type="number" min="0" max="50" step="1" data-qq="disc" value="${q.disc}"></label>
       <label>Transport zone<select class="field" data-qq="zone">${zones.map(z=>`<option ${z.z===q.zone?'selected':''}>${z.z}</option>`).join('')}</select></label>
+      <div class="full qq-more">${(q.more||[]).map((m,i)=>`<div class="btnrow"><label style="flex:1">Also quote<select class="field" data-qqm="${i}">${x.types.map(t=>`<option ${t===m.type?'selected':''}>${esc(t)}</option>`).join('')}</select></label><button class="btn small" type="button" data-action="qq-delm" data-i="${i}" style="align-self:flex-end">Remove</button></div>`).join('')}
+        <button class="btn small" type="button" data-action="qq-addm">+ Add another machine</button> <small class="muted">Same dates, terms and discount. The machine is picked when the order is confirmed.</small></div>
+      ${q.basis==='month'?`<label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="open" ${q.open?'checked':''}> Monthly until the customer stops (no end date)</label>`:''}
+      <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="diesel" ${q.diesel?'checked':''}> Rate includes diesel</label>
       <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="mob" ${q.mob?'checked':''}> Include mobilisation / transport</label>
       <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="rigger" ${q.rigger?'checked':''}> Add rigger / signalman (${RM0(RIGGER_DAY)} a day)</label>
       ${!x.units.find(o=>o.u===q.u)?.ok?`<label class="full" style="color:var(--crit);font-weight:600">${q.u} is not free on these dates. You can still quote, but check Availability first.</label>`:''}
       ${x.units.find(o=>o.u===q.u)?.warn.length?`<label class="full">${warnHtml(x.units.find(o=>o.u===q.u).warn)}</label>`:''}
       ${x.overLimit?`<label class="full" style="color:var(--crit);font-weight:600">Discount above your ${x.limit}% limit: the Head Manager must approve before it is issued.</label>`:''}
     </div></div>
-    <div class="sect cost"><h3>Price</h3><div class="in est">${x.items.map(i=>`<span>${esc(i.desc)}<br><small class="muted">${num(i.qty)} ${i.unit} × ${RM(i.rate)}</small></span><b>${RM(i.amt)}</b>`).join('')}
-      <hr><span>Subtotal</span><b>${RM(x.sub)}</b><span>SST ${RULES.sst}%</span><b>${RM(x.sst)}</b><span class="tot">Total</span><b class="tot">${RM(x.total)}</b></div></div>
-    <div class="sect"><h3>Remarks on the quotation</h3><div class="in checks" style="grid-template-columns:1fr">
-      ${QUOTE_REMARKS.map((t,i)=>`<label><input type="checkbox" data-qqrem="${i}" ${q.remarks[i]?'checked':''}> ${esc(i===9?t.replace('7 days', q.valid+' days'):t)}</label>`).join('')}
-      <label style="flex-direction:column;align-items:stretch">Extra remark<input type="text" data-qq="extra" value="${esc(q.extra)}" placeholder="e.g. Rate includes 2 tag lines; site works 8 am – 6 pm"></label>
-      <label style="flex-direction:column;align-items:stretch">Valid for (days)<input type="number" min="1" max="60" data-qq="valid" value="${q.valid}" style="max-width:120px"></label>
+    <div class="sect cost"><h3>Lines on the quotation</h3><div class="in est">${x.items.map(i=>`<span>${esc(i.desc)}${i.sched?' <small class="muted">(rate)</small>':''}<br><small class="muted">${num(i.qty)} ${i.uom} × ${RM(i.rate)}${i.disc?` − ${RM(i.disc)} disc`:''} + ${RM(i.tax)} tax</small></span><b>${RM(i.net)}</b>`).join('')}
+      <hr><span>Estimated value (rental, transport and crew, before tax)</span><b>${RM(x.sub)}</b><span>Service tax ${RULES.sst}%</span><b>${RM(x.sst)}</b><span class="tot">Estimated total</span><b class="tot">${RM(x.total)}</b></div>
+      <div class="in" style="padding:0 14px 10px"><small class="muted">The overtime and Sunday lines are rates at qty 1, as on your quotation. They are not added to the estimate; the invoice charges what the work order shows.</small></div></div>
+    <div class="sect"><h3>Remarks and terms</h3><div class="in form">
+      <label class="full">Remark under the lines<input type="text" data-qq="extra" value="${esc(q.extra)}" placeholder="e.g. Rate includes 2 tag lines; site works 8 am – 6 pm"></label>
+      <label>Valid for (days)<input type="number" min="1" max="60" data-qq="valid" value="${q.valid}" style="max-width:120px"></label>
+      <details class="full"><summary class="muted" style="cursor:pointer">Standard terms and conditions (${TERMS.length} clauses, printed on every quotation)</summary><ol class="qrem" style="margin-top:8px">${TERMS.map(([h,t])=>`<li>${h?`<b>${esc(h)}.</b> `:''}${esc(t)}</li>`).join('')}</ol></details>
     </div></div>
     <div class="btnrow"><button class="btn primary" type="button" data-action="qq-issue" ${x.overLimit&&!boss()?'disabled':''}>Issue quotation</button>${x.overLimit&&!boss()?'<button class="btn" type="button" data-action="qq-approval">Ask Head Manager to approve</button>':''}</div>
   </form>`;
-  openSheet('Quick quotation', `<span class="mono">Q-2026-0${state.qSeq+1}</span>`, body, {type:'qq'});
+  openSheet('Quick quotation', `<span class="mono">${qtNo(state.qSeq+1)}</span>`, body, {type:'qq'});
 }
 function issueQuote(){
   const q = state.qq;
   if(!q.c && !q.name.trim()){ toast('Enter the customer name'); return; }
-  if(!q.site.trim()){ toast('Enter the site'); return; }
+  if(!q.site.trim()){ toast('Enter the project or site'); return; }
   const x = qqCalc(q);
   let c = q.c;
   if(!c){ c = 'C' + (Math.max(...Object.keys(customers).map(k=>+k.slice(1)))+1); customers[c] = {name:q.name.trim(), contact:q.contact, phone:q.phone, brn:'', tin:'', sst:'', terms:0, limit:0, isNew:true, ind:'', sales:meStaff(), since:2026, last:TODAY, notes:[]}; }
-  const id = 'H-2026-0' + (Math.max(...hires.map(h=>+h.id.slice(-4)))+1), no = 'Q-2026-0' + (++state.qSeq);
-  const remarks = QUOTE_REMARKS.map((t,i)=>q.remarks[i] ? (i===9 ? t.replace('7 days', q.valid+' days') : t) : null).filter(Boolean).concat(q.extra.trim() ? [q.extra.trim()] : []);
-  if(x.r.ot && x.k==='wet'){ const gi = remarks.indexOf(QUOTE_REMARKS[3]); const ot = `Overtime ${RM(x.r.ot*(1-q.disc/100))} per hour after 8 hours; Sundays and public holidays ×${RULES.sunX}.`; if(gi>=0) remarks[gi] = ot; else remarks.splice(Math.min(3, remarks.length), 0, ot); }
-  hires.push({id, c, site:q.site, state:'Selangor', siteContact:customers[c].contact+' '+customers[c].phone, po:'', status:'Quotation', created:TODAY, cycle:q.basis==='month'?'Monthly in arrears':'End of hire', quoteValid:addDays(TODAY, +q.valid),
-    lines:[{u:q.u, m:x.mk, k:x.k, basis:q.basis, from:q.from, to:q.to, op:undefined, disc:q.disc}], trips:[], check:{}, checkNote:{}, track:{},
-    quote:{no, issued:TODAY, valid:addDays(TODAY,+q.valid), items:x.items, sub:x.sub, sst:x.sst, total:x.total, remarks, by:meStaff(), disc:q.disc},
-    log:[{d:TODAY+' '+nowT(), t:`Quotation ${no} issued by ${staff[meStaff()].name}: ${RM(x.total)}.`}]});
+  const id = 'H-2026-0' + (Math.max(...hires.map(h=>+h.id.slice(-4)))+1), no = qtNo(++state.qSeq);
+  const remarks = q.extra.trim() ? [q.extra.trim()] : [];
+  hires.push({id, c, site:q.site, state:'Johor', siteContact:customers[c].contact+' '+customers[c].phone, po:'', status:'Quotation', created:TODAY, cycle:q.basis==='month'?'Monthly in arrears':'End of hire', quoteValid:addDays(TODAY, +q.valid),
+    lines:[{u:q.u, m:x.mk, k:x.k, basis:q.basis, from:q.from, to:q.open?OPEN_END:q.to, open:q.open||undefined, op:undefined, disc:q.disc},
+      ...x.more.map(m=>({u:null, m:m.mk, k:m.k, basis:m.basis, from:q.from, to:q.open&&m.basis==='month'?OPEN_END:q.to, open:(q.open&&m.basis==='month')||undefined, disc:q.disc}))], trips:[], check:{}, checkNote:{}, track:{},
+    quote:{no, issued:TODAY, valid:addDays(TODAY,+q.valid), items:x.items, sub:x.sub, sst:x.sst, total:x.total, remarks, by:meStaff(), disc:q.disc, diesel:q.diesel},
+    log:[{d:TODAY+' '+nowT(), t:`Quotation ${no} issued by ${staff[meStaff()].name}: ${RM(x.total)} estimated.`}]});
   if(q.enq){ const e = enq(q.enq); e.hire = id; e.c = e.c || c; e.stage = 'Quoted'; e.log.unshift({d:TODAY+' '+nowT(), t:`Quotation ${no} issued (${RM(x.total)}).`}); }
   tasks.push({id:++taskSeq, d:addDays(TODAY,2), type:'Call', who:meStaff(), hire:id, enq:q.enq||undefined, cust:c, t:`Follow up quotation ${no} with ${customers[c].contact||customers[c].name}`, rule:'Quotation sent 2 days ago', done:false});
   state.qq = null; render(); openQuoteDoc(id);
 }
 function quoteOf(h){
   if(h.quote) return h.quote;
-  const l = h.lines[0], mk = lineModel(l), est = estimate(mk, l.k, l.basis, l.from, minD(lineEnd(l), addDays(l.from,29)), 8), r = rate(mk,l.k)||{}, base = r[{hour:'hr',day:'day',week:'week',month:'month'}[l.basis]]||0;
-  const items = [{desc:`${models[mk].type} (${models[mk].make} ${models[mk].model}${l.u?', '+uRef(l.u):''}), ${kindLabel(l.k).toLowerCase()}, ${basisLabel[l.basis].toLowerCase()} · ${fmtD(l.from)} – ${fmtD(lineEnd(l))}`, qty:base?+((est?.amt||0)/base).toFixed(2):0, unit:l.basis+'s', rate:base, amt:est?.amt||0}, ...h.trips.map(t=>({desc:`${t.self?'Mobilisation':'Transport'}: ${t.dir.toLowerCase()}, ${t.zone}`, qty:1, unit:'trip', rate:t.charge, amt:t.charge}))];
-  const sub = sum(items.map(i=>i.amt));
-  return h.quote = {no:'Q-2026-0'+(++state.qSeq), issued:h.created, valid:h.quoteValid||addDays(h.created,7), items, sub, sst:sub*RULES.sst/100, total:sub*(1+RULES.sst/100), remarks:QUOTE_REMARKS.slice(), by:'S2', disc:0};
+  const l = h.lines[0], mk = lineModel(l), r = rate(mk,l.k)||{}, t0 = h.trips[0];
+  const items = qtItems({type:models[mk].type, u:l.u, basis:l.basis, from:l.from, to:minD(lineEnd(l), addDays(l.from,29)), open:!!l.open, diesel:false, disc:l.disc||0, hrs:8, mob:!!t0, zone:t0?.zone||'Johor Bahru'}, mk, l.k, r);
+  return h.quote = {no:qtNo(++state.qSeq), issued:h.created, valid:h.quoteValid||addDays(h.created,RULES.valid), items, ...qtSums(items), remarks:[], by:'S2', disc:l.disc||0};
 }
 function quoteWaText(h){
   const qt = quoteOf(h), cu = customers[h.c];
-  return `Super Power Crane Machinery Sdn Bhd\nQuotation ${qt.no} for ${cu.name}\n${qt.items.map(i=>`• ${i.desc}: ${RM(i.amt)}`).join('\n')}\nTotal ${RM(qt.total)} incl. SST. Valid until ${fmtDY(qt.valid)}.\nThe PDF is attached. Reply "OK" or send your PO / LOU to confirm.`;
+  return `${CO.name}\nQuotation ${qt.no} for ${cu.name}\nProject: ${h.site}\n${qt.items.map(i=>`• ${i.desc}: ${RM(i.rate)} / ${i.uom.toLowerCase()}`).join('\n')}\nPrices before ${RULES.sst}% service tax. Payment term ${payTerm(h.c)}. Valid until ${fmtDY(qt.valid)}.\nThe PDF is attached. Reply "OK" or send your PO / LOU to confirm.`;
 }
 function openQuoteDoc(id){
   const h = hire(id), qt = quoteOf(h), cu = customers[h.c], by = staff[qt.by] || staff.S2;
   const body = `
-    <div class="doc">
-      <div class="doc-head"><div><div class="doc-brand">${esc(CO.name)}</div><small>${esc(CO.addr)}<br>${esc(CO.phone)} · SSM ${esc(CO.ssm)}<br>SST ${esc(CO.sst)}</small></div>
-        <div class="doc-meta"><b>Quotation</b><span>${qt.no}</span><span>Date ${fmtDY(qt.issued)}</span><span>Valid until ${fmtDY(qt.valid)}</span></div></div>
-      <div class="doc-grid">
-        <div><h4>To</h4><dl><dt>Customer</dt><dd>${esc(cu.name)}</dd><dt>Attn</dt><dd>${esc(cu.contact||'—')}</dd><dt>Phone</dt><dd>${esc(cu.phone||'—')}</dd></dl></div>
-        <div><h4>Job</h4><dl><dt>Site</dt><dd>${esc(h.site)}</dd><dt>Our ref.</dt><dd>${h.id}</dd><dt>Prepared by</dt><dd>${esc(by.name)} · ${esc(by.phone||'')}</dd></dl></div>
-      </div>
-      <div class="dt"><table><thead><tr><th>No.</th><th>Description</th><th class="r">Qty</th><th class="r">Rate (RM)</th><th class="r">Amount (RM)</th></tr></thead><tbody>
-        ${qt.items.map((i,k)=>`<tr><td>${k+1}</td><td>${esc(i.desc)}</td><td class="r">${num(i.qty)} ${esc(i.unit)}</td><td class="r">${(+i.rate).toLocaleString('en-MY',{minimumFractionDigits:2})}</td><td class="r">${(+i.amt).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('')}
+    <div class="doc qdoc">
+      <div class="qd-head"><img src="${LOGO}" alt="Super Power logo" width="96" height="96">
+        <div class="qd-co"><b>${esc(CO.name.toUpperCase())}</b><small>Reg No: ${esc(CO.reg)}<br>Sales Tax ID: ${esc(CO.salesTax)}<br>Service Tax ID: ${esc(CO.sst)}</small>
+          <span>${CO.addr.map(esc).join('<br>')}</span><span>Contact: ${esc(CO.phone)} / ${esc(CO.email)}<br>Website: http://${esc(CO.web)}</span></div>
+        <div class="qd-meta"><h3>QUOTATION</h3><dl><dt>No.</dt><dd>${qt.no}</dd><dt>Date</dt><dd>${dmy(qt.issued)}</dd><dt>Payment Term</dt><dd>${payTerm(h.c)}</dd></dl></div></div>
+      <div class="qd-to"><small>Quote To</small><b>${esc(cu.name.toUpperCase())}</b><span>${esc((cu.contact||'').toUpperCase())}</span><span><small>Phone No.</small> ${esc(cu.phone||'—')}</span></div>
+      <div class="dt"><table class="qd-t"><thead><tr><th>No.</th><th>Description</th><th class="r">Qty</th><th>UOM</th><th class="r">Unit Price</th><th class="r">Disc</th><th class="r">Tax Amt</th><th class="r">Net Amt</th></tr></thead><tbody>
+        ${qt.items.map((i,k)=>`<tr><td>${k+1}</td><td>${esc(i.desc)}${i.sub?`<br><small>${esc(i.sub)}</small>`:''}</td><td class="r">${num(i.qty)}</td><td>${esc(i.uom||i.unit||'')}</td><td class="r">${money(i.rate)}</td><td class="r">${money(i.disc||0)}</td><td class="r">${money(i.tax??0)}</td><td class="r">${money(i.net??i.amt)}</td></tr>`).join('')}
       </tbody></table></div>
-      <div class="tot"><span>Subtotal</span><b>${RM(qt.sub)}</b><span>SST ${RULES.sst}%</span><b>${RM(qt.sst)}</b><span><b>Total</b></span><b>${RM(qt.total)}</b></div>
-      <div><h4>Terms and remarks</h4><ol class="qrem">${qt.remarks.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>
-      <div class="sign"><div><div class="sline"></div><small>For ${esc(CO.name)}<br>${esc(by.name)}</small></div><div><div class="sline"></div><small>Accepted by customer: name, signature, company chop and date</small></div></div>
-      <div class="doc-foot">Quantities are estimates; the invoice follows signed work orders and timesheets.</div>
+      <div class="qd-proj"><b>FOR PROJECT AT ${esc(h.site.toUpperCase())}</b>${qt.remarks.map(r=>`<br>${esc(r)}`).join('')}</div>
+      <div class="qd-terms"><small>TERMS &amp; CONDITIONS</small><ol>${TERMS.map(([hd,t],n)=>`<li value="${n+1}">${hd?`<b class="qd-h">${esc(hd)}</b>`:''}${esc(n===19 && qt.valid && daysBetween(qt.issued, qt.valid)!==30 ? t.replace('30 days', daysBetween(qt.issued, qt.valid)+' days') : t)}</li>`).join('')}</ol></div>
+      <div class="qd-sign"><div><small>AUTHORISED SIGNATURE</small><div class="sline"></div><span>Authorised By</span><small>${esc(by.name)}${by.phone?' · '+esc(by.phone):''}</small></div><div><small>&nbsp;</small><div class="sline"></div><span>Received By</span><small>Name, company chop and date</small></div></div>
     </div>
     <div class="btnrow"><button class="btn primary" data-action="qd-wa" data-id="${id}">Send by WhatsApp</button><button class="btn" data-action="qd-copy" data-id="${id}">Copy WhatsApp text</button>${h.status==='Quotation'&&!h.order?`<button class="btn" data-action="qd-accept" data-id="${id}">Customer accepted: make order</button>`:''}<button class="btn" data-hire="${id}">Open ${id}</button></div>`;
   openSheet(`Quotation ${qt.no}`, `<span class="mono">${id}</span> ${hireStatusPill(h)}`, body, {type:'qdoc', id});
@@ -3436,6 +3525,8 @@ document.addEventListener('click', e => {
   if(d.avgrp!=null){ state.av.grp = d.avgrp; return render(); }
   if(d.action==='qq-new'){ state.qq = qqDefaults(d.u ? {u:d.u, type:mOf(d.u).type} : {}); return openQuickQuote(); }
   if(d.action==='qq-issue') return issueQuote();
+  if(d.action==='qq-addm'){ const q = state.qq; q.more = q.more||[]; const ts = [...new Set(hireUnits().map(u=>mOf(u).type))]; q.more.push({type: ts.find(t=>t!==q.type && !q.more.some(m=>m.type===t)) || ts[0]}); return openQuickQuote(); }
+  if(d.action==='qq-delm'){ state.qq.more.splice(+d.i,1); return openQuickQuote(); }
   if(d.action==='qd-open') return openQuoteDoc(d.id);
   if(d.action==='qq-approval'){ toast('Sent to the Head Manager to approve the discount'); return; }
   const h = d.id ? hire(d.id) : null;
@@ -3447,10 +3538,10 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target;
+  if(t.dataset.qqm!=null){ state.qq.more[+t.dataset.qqm].type = t.value; return openQuickQuote(); }
   if(t.dataset.qq){ const f = t.dataset.qq; state.qq[f] = t.type==='checkbox' ? t.checked : (t.type==='number' ? +t.value : t.value);
     if(f==='type'){ state.qq.u = null; state.qq.basis = ''; } if((f==='from'||f==='to') && state.qq.to < state.qq.from) state.qq.to = state.qq.from; if(f==='from'||f==='to') state.qq.basis = '';
     if(t.type==='text') return; return openQuickQuote(); }
-  if(t.dataset.qqrem){ state.qq.remarks[+t.dataset.qqrem] = t.checked; return; }
 });
 document.addEventListener('input', e => { const t = e.target; if(t.dataset.qq && t.type==='text') state.qq[t.dataset.qq] = t.value; });
 document.addEventListener('submit', e => {
@@ -3499,7 +3590,7 @@ document.addEventListener('click', e => {
     if(act==='sig-clear') return initSig();
     if(act==='insp-save'){ state.insp.checks = collectChecks(); return saveInspection(); }
     if(act==='offhire'){ h.status='Off-hire called'; h.offCalled=TODAY; h.lines.forEach(l=>{ l.off=TODAY; }); const l = h.lines[0], self = models[fleet[l.u].m].size==='self';
-      h.lines.forEach(x=>{ if(!h.trips.some(t=>t.dir==='Collection' && t.u===x.u && t.status==='Planned')) h.trips.push({dir:'Collection',d:addDays(TODAY,1),u:x.u,veh:self?null:'TR-01',drv:self?(x.op||'D1'):'D1',zone:'Klang Valley',charge:transportCharge(fleet[x.u].m,'Klang Valley'),status:'Planned',self}); else h.trips.find(t=>t.dir==='Collection' && t.u===x.u).d = addDays(TODAY,1); });
+      h.lines.forEach(x=>{ if(!h.trips.some(t=>t.dir==='Collection' && t.u===x.u && t.status==='Planned')) h.trips.push({dir:'Collection',d:addDays(TODAY,1),u:x.u,veh:self?null:'TR-01',drv:self?(x.op||'D1'):'D1',zone:'Johor Bahru',charge:transportCharge(fleet[x.u].m,'Johor Bahru'),status:'Planned',self}); else h.trips.find(t=>t.dir==='Collection' && t.u===x.u).d = addDays(TODAY,1); });
       h.log.unshift({d:TODAY+' '+nowT(),t:`Customer called off-hire from ${fmtD(TODAY)}. Collection ${fmtDW(addDays(TODAY,1))}.`}); toast('Off-hire recorded. Charges stop today; collection booked for tomorrow.'); return rerender(); }
     if(act==='breakdown'){ h.log.unshift({d:TODAY+' '+nowT(),t:'Breakdown reported. Workshop emergency job J-2026-0424 created; lost hours stop being charged.'}); toast('Workshop alerted: emergency job J-2026-0424 created'); return rerender(); }
     if(act==='extend'){ const l = h.lines[0], nt = addDays(l.to,7), av = availability(l.u, addDays(l.to,1), nt, h.id); if(!av.ok){ toast('Cannot extend: '+av.why[0]); return; } l.to = nt; h.log.unshift({d:TODAY+' '+nowT(),t:`Extended to ${fmtD(nt)}.`}); toast(`Extended to ${fmtD(nt)}`); return rerender(); }
