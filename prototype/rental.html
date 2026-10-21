@@ -637,6 +637,25 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
   .side-foot label,.side-foot small{display:none}
 }
 @media (min-width:901px){.side-top{display:contents}.side nav.tabs{order:2}.side-foot{order:3}}
+
+.avgroup{padding:0;overflow:hidden}
+.avgroup summary{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;list-style:none;flex-wrap:wrap}
+.avgroup summary::-webkit-details-marker{display:none}
+.avgroup summary::before{content:'▸';color:var(--muted);transition:transform .15s}
+.avgroup[open] summary::before{transform:rotate(90deg)}
+.avgroup[open] summary{border-bottom:1px solid var(--line)}
+.minibar{margin-left:auto;width:120px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.minibar i{display:block;height:100%;background:var(--ok)}
+.avt{width:100%}.avt td{vertical-align:top}
+.avt tr.busy td{opacity:.62}
+.avc.sel-d{outline:2px solid var(--accent);outline-offset:-2px}
+button.g-group{width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);cursor:pointer;font-family:inherit;display:block}
+button.g-group small{font-weight:400;opacity:.75;margin-left:6px}
+.gantt.compact .g-row:not(.g-head){min-height:26px}
+.gantt.compact .g-lab{flex-direction:row;align-items:center;justify-content:flex-start;gap:6px;padding:2px 10px}
+.gantt.compact .g-lab small{display:none}
+.gantt.compact .bar{top:3px;height:20px;font-size:.68rem}
+.gantt.compact .bd{height:20px}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -1169,8 +1188,196 @@ const invStatus = i => i.status==='Paid' ? 'Paid' : i.status==='Draft' ? 'Draft'
 const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Paid:'ok',Draft:'mute',Overdue:'crit',Sent:'info'})[s]}">${s}${s==='Overdue'?' '+daysBetween(i.due,TODAY)+' d':''}</span>`; };
 const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
 
+/* ---------- larger example fleet: shows the screens working at 60+ machines ---------- */
+Object.assign(models, {
+  GR250:{make:'Tadano',model:'GR-250N',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
+  ATF100:{make:'Tadano',model:'ATF 100G-4',type:'All terrain crane 100 t',grp:'crane',size:'self'},
+  FD70:{make:'Toyota',model:'8FD70',type:'Forklift 7 t',grp:'lift',size:'small'},
+  GS4047:{make:'Genie',model:'GS-4047',type:'Scissor lift 12 m',grp:'lift',size:'small'},
+  DCA60:{make:'Denyo',model:'DCA-60ESI',type:'Generator 60 kVA',grp:'power',size:'small'},
+});
+Object.assign(rates, {
+  'GR250/wet':{hr:300,minH:4,day:2100,month:36000,mHrs:200,ex:200,ot:300}, 'GR250/dry':{day:1500,week:8000,month:26000,mHrs:200,ex:140},
+  'ATF100/wet':{hr:800,minH:4,day:5800,month:105000,mHrs:200,ex:520,ot:800},
+  'NK250/dry':{day:1400,week:7500,month:24000,mHrs:200,ex:130}, 'RK500/dry':{day:2300,week:12500,month:40000,mHrs:200,ex:210},
+  'SS500/dry':{day:2200,week:12000,month:38000,mHrs:200,ex:200}, 'UNIC/dry':{day:900,week:4800,month:15000,mHrs:200,ex:80},
+  'FD70/dry':{day:380,week:1900,month:6200,mHrs:200,ex:30}, 'GS4047/dry':{day:220,week:1100,month:3200,mHrs:200,ex:20},
+  'DCA60/dry':{day:180,week:1000,month:3300,mHrs:300,ex:12},
+});
+(function bigFleet(){
+  const EXTRA = [['TC','NK250',3,7],['RC','GR250',3,3],['RC','RK500',2,6],['TC','SS500',1,10],['AT','ATF100',1,2],['LC','UNIC',3,2],['FL','FD30',6,3],['FL','FD50',3,9],['FL','FD70',2,12],
+    ['BL','S65',3,2],['SL','GS4047',4,1],['EX','PC200',4,4],['EX','ZX70',3,8],['WL','W950',2,2],['GS','DCA150',3,2],['GS','DCA60',2,5]];
+  const SITES = {C1:'Seksyen 13 warehouse project, Shah Alam',C2:'Quarry pit 2, Semenyih',C3:'Westport berth 9 piling, Pulau Indah',C4:'Bukit Raja steel warehouse, Klang',C5:'Rawang interchange bridge works',C7:'Westport warehouse 6, Pulau Indah'};
+  const CUS = Object.keys(SITES), L = 'ABCDEFGHJKLMNPQRSTUVWXY';
+  const pad = n => String(n).padStart(2,'0');
+  let hn = 170;
+  EXTRA.forEach(([pre, m, n, start]) => { for(let i=0;i<n;i++){
+    const u = `${pre}-${pad(start+i)}`, r = k => rnd(u+k), crane = models[m].grp==='crane';
+    const exp = k => r(k) < 0.07 ? `2026-12-${pad(5+Math.floor(r(k+'d')*20))}` : `2027-${pad(1+Math.floor(r(k)*9))}-${pad(1+Math.floor(r(k+'d')*27))}`;
+    const docs = crane ? {cf:exp('cf'), road:exp('rd'), ins:exp('rd')} : {cpm:exp('cp'), ins:exp('in')};
+    if(pre==='LC') docs.pusp = exp('pu');
+    const rt = rate(m,'dry') || rate(m,'wet'), util = 40 + Math.floor(r('u')*50);
+    fleet[u] = {m, plate: crane ? `${'WBV'[Math.floor(r('p')*3)]}${L[Math.floor(r('p1')*L.length)]}${L[Math.floor(r('p2')*L.length)]} ${1000+Math.floor(r('p3')*8999)}` : undefined,
+      serial: crane ? undefined : `${models[m].model.replace(/[^A-Z0-9]/gi,'')}-${10000+Math.floor(r('s')*89999)}`,
+      year: 2010 + Math.floor(r('y')*14), hm: 2000 + Math.floor(r('h')*20000), docs, cost: Math.round((rt.month||rt.day*26)*30/1000)*1000,
+      ytd:{rev:Math.round((rt.month||rt.day*26)*9*util/100), ws:Math.round((rt.month||rt.day*26)*0.9*util/100), opx:Math.round((rt.month||rt.day*26)*0.3*util/100), util}};
+    const pick = r('hire');
+    if(pick < 0.05){ workshop.push({u, from:addDays(TODAY,-2), to:addDays(TODAY,3+Math.floor(r('w')*6)), job:`J-2026-04${30+Math.floor(r('j')*60)}`, note:'Scheduled service'}); continue; }
+    if(pick > 0.68) continue;
+    const c = CUS[Math.floor(r('c')*CUS.length)], k = rate(m,'dry') ? 'dry' : 'wet';
+    if(k==='wet') continue;
+    const booked = pick > 0.6;
+    const from = booked ? addDays(TODAY, 3+Math.floor(r('f')*14)) : `2026-${pad(7+Math.floor(r('fm')*4))}-${pad(1+Math.floor(r('fd')*14))}`;
+    const fromOk = from > TODAY && !booked ? addDays(TODAY,-3) : from, open = r('o') < 0.4;
+    const to = open ? '2099-12-31' : addDays(maxD(fromOk, TODAY), 30 + Math.floor(r('t')*90));
+    const id = 'H-2026-0' + (hn++);
+    hires.push({id, c, site:SITES[c], state:'Selangor', siteContact:customers[c].contact+' '+customers[c].phone, po:`PO-${id.slice(-4)}`, status: booked ? 'Booked' : 'On hire', created: addDays(fromOk,-5), cycle:'Monthly in arrears',
+      lines:[{u, k, basis:'month', from:fromOk, to, on: booked ? undefined : fromOk, open: open || undefined, hm: booked ? [] : (()=>{ const end = fleet[u].hm, perDay = 4 + r('hm')*5, mk = d => ({d, v: Math.round(end - perDay*daysBetween(d, addDays(TODAY,-1)))}); return [...new Set([fromOk, maxD(fromOk,'2026-09-30'), addDays(TODAY,-1)])].map(mk); })()}],
+      trips: booked ? [{dir:'Delivery', d:fromOk, u, veh: models[m].size==='self' ? null : 'TR-02', drv: models[m].size==='self' ? 'O4' : 'D2', zone:'Klang Valley', charge:transportCharge(m,'Klang Valley'), status:'Planned', self: models[m].size==='self'}] : [],
+      log:[{d:addDays(fromOk,-5)+' 10:00', t: booked ? 'Booked.' : 'On hire (monthly).'}]});
+  } });
+})();
+
+
+/* ---------- working with a large fleet: families, capacity classes, search ---------- */
+const FAMILIES = [
+  {k:'Cranes', re:/crane/i, buckets:[[20,'up to 20 t'],[30,'21–30 t'],[60,'31–60 t'],[100,'61–100 t'],[1e9,'over 100 t']]},
+  {k:'Forklifts', re:/forklift/i, buckets:[[3,'up to 3 t'],[5,'3–5 t'],[1e9,'over 5 t']]},
+  {k:'Access platforms', re:/boom lift|scissor/i, buckets:[[12,'up to 12 m'],[1e9,'over 12 m']]},
+  {k:'Excavators', re:/excavator/i, buckets:[[8,'up to 8 t'],[1e9,'over 8 t']]},
+  {k:'Loaders', re:/loader/i, buckets:[[1e9,'all']]},
+  {k:'Generators', re:/generator/i, buckets:[[100,'up to 100 kVA'],[1e9,'over 100 kVA']]},
+];
+const capOf = u => { const m = mOf(u).type.match(/(\d+(?:\.\d+)?)\s*(t|m³|m|kVA)\b/); return m ? {n:+m[1], unit:m[2]} : {n:0, unit:''}; };
+function classOf(u){
+  const t = mOf(u).type, fi = FAMILIES.findIndex(f=>f.re.test(t)), fam = FAMILIES[fi] || {k:'Other', buckets:[[1e9,'']]}, cap = capOf(u);
+  const bi = fam.buckets.findIndex(([max])=>cap.n<=max);
+  return {fam:fam.k, label:`${fam.k}${fam.buckets[bi][1]&&fam.buckets[bi][1]!=='all'?' · '+fam.buckets[bi][1]:''}`, order:(fi<0?99:fi)*10+bi};
+}
+const FAM_WORDS = [[/crane|kren/i,'Cranes'],[/forklift/i,'Forklifts'],[/boom|scissor|skylift|access|platform/i,'Access platforms'],[/excavator|digger|jentolak/i,'Excavators'],[/loader/i,'Loaders'],[/genset|generator/i,'Generators']];
+function parseNeed(q){
+  q = (q||'').trim(); if(!q) return {};
+  const fam = FAM_WORDS.find(([re])=>re.test(q))?.[1];
+  const m = q.match(/(\d+(?:\.\d+)?)\s*(t|ton|tons|tan|tonne|m|meter|metre|kva)\b/i);
+  const cap = m ? {n:+m[1], unit:/^m/i.test(m[2]) ? 'm' : /kva/i.test(m[2]) ? 'kVA' : 't'} : null;
+  const rest = q.replace(m?.[0]||'','').replace(/crane|kren|forklift|boom|scissor|lift|excavator|loader|generator|genset|ton|tan/gi,'').trim();
+  return {fam, cap, text: !fam && !cap ? q.toLowerCase() : (rest.length>=3 ? rest.toLowerCase() : '')};
+}
+const textHit = (u, t) => !t || [u, fleet[u].plate, fleet[u].serial, mOf(u).make, mOf(u).model, mOf(u).type].filter(Boolean).join(' ').toLowerCase().includes(t);
+
+/* ---------- Availability for a large fleet ---------- */
+function renderAvail2(){
+  const a = state.av, need = parseNeed(a.q), fam = a.fam || need.fam || '';
+  const days = [...Array(14)].map((_,i)=>addDays(a.start,i));
+  let rows = hireUnits().filter(u => (!fam || classOf(u).fam===fam) && (!need.cap || (capOf(u).unit===need.cap.unit && capOf(u).n>=need.cap.n)) && textHit(u, need.text))
+    .map(u => ({u, cls:classOf(u), cap:capOf(u), av:availability(u,a.from,a.to), tent:tentativeFor(mOf(u).type,a.from,a.to).filter(t=>t.u===u)}));
+  const all = rows.length, free = rows.filter(r=>r.av.ok), docIss = free.filter(r=>r.av.warn.length);
+  if(a.freeOnly) rows = rows.filter(r=>r.av.ok);
+  rows.sort((x,y)=>x.cls.order-y.cls.order || (y.av.ok-x.av.ok) || (!!x.av.warn.length-!!y.av.warn.length) || x.cap.n-y.cap.n || (x.u<y.u?-1:1));
+  const groups = [...new Map(rows.map(r=>[r.cls.label, r.cls])).values()].sort((x,y)=>x.order-y.order);
+  const best = need.cap ? rows.filter(r=>r.av.ok && !r.tent.length).sort((x,y)=>x.cap.n-y.cap.n || (!!x.av.warn.length-!!y.av.warn.length))[0] : null;
+  const asked = cls => { const types = [...new Set(hireUnits().filter(u=>classOf(u).label===cls).map(u=>mOf(u).type))]; return types.flatMap(t=>tentativeFor(t,a.from,a.to)).filter(t=>t.kind==='enq'); };
+  const famList = FAMILIES.map(f=>f.k).filter(k=>hireUnits().some(u=>classOf(u).fam===k));
+  const gridRows = [...new Map(hireUnits().filter(u=>!fam || classOf(u).fam===fam).map(u=>[classOf(u).label, classOf(u)])).values()].sort((x,y)=>x.order-y.order);
+  const cell = (cl, d) => { const us = hireUnits().filter(u=>classOf(u).label===cl), f = us.filter(u=>availability(u,d,d).ok).length;
+    const tq = sum([...new Set(us.map(u=>mOf(u).type))].map(t=>sum(tentativeFor(t,d,d).map(x=>x.qty||1))));
+    const c = f===0 ? 'none' : (f - tq <= 0 && tq) ? 'tight' : f===us.length ? 'all' : 'some';
+    return `<button class="avc ${c} ${d>=a.from&&d<=a.to?'sel-d':''}" data-avcls="${esc(cl)}|${d}" title="${esc(cl)} ${fmtDW(d)}: ${f} of ${us.length} free${tq?`, ${tq} asked`:''}">${f}<small>/${us.length}</small>${tq?`<i>+${tq}</i>`:''}</button>`; };
+  const rowHtml = r => `<tr class="${r.av.ok?'':'busy'}"><td class="mono"><b>${r.u}</b></td><td>${esc(uName(r.u))}<br><small class="muted">${esc(mOf(r.u).type)} · ${esc(uRef(r.u))}</small></td>
+    <td>${r.av.ok?`<span class="pill ok">Free</span>${r.av.warn.length?' <span class="pill crit">Document issue</span>':''}`:'<span class="pill crit">Not free</span>'}${r.tent.length?' <span class="pill warn">Quoted to someone else</span>':''}
+      <br><small class="muted">${r.av.ok ? (r.av.warn.length ? esc(r.av.warn[0]) : 'Nothing booked') : esc(r.av.why[0])}</small></td>
+    <td class="r">${r.av.ok?`<button class="btn small primary" data-action="qq-new" data-u="${r.u}">Quote</button>`:''}</td></tr>`;
+  const LIMIT = 8;
+  $('#v-avail').innerHTML = `
+    <div class="view-head"><h2>Availability</h2><button class="btn primary" data-action="qq-new">Quick quotation</button></div>
+    <form class="findbar" data-form="av2">
+      <label style="flex:1 1 260px">What do you need?<input type="search" id="avQ" name="q" value="${esc(a.q)}" placeholder="e.g. 25t crane, forklift 5t, scissor 12m, WVX 5501"></label>
+      <label>From<input type="date" name="from" value="${a.from}"></label><label>To<input type="date" name="to" value="${a.to}"></label>
+      <label>Family<select class="field" name="fam"><option value="">${need.fam?'From search: '+need.fam:'All families'}</option>${famList.map(f=>`<option ${f===a.fam?'selected':''}>${f}</option>`).join('')}</select></label>
+      <label style="flex-direction:row;align-items:center;gap:8px;align-self:center"><input type="checkbox" name="freeOnly" ${a.freeOnly?'checked':''}> Free only</label>
+      <button class="btn">Search</button>
+    </form>
+    <div class="kpis"><div class="kpi"><b>${all}</b><span>Machines matching${need.cap?` (${need.cap.n} ${need.cap.unit} or more)`:''}</span></div><div class="kpi"><b style="color:var(--ok)">${free.length}</b><span>Free ${fmtD(a.from)}${a.to!==a.from?'–'+fmtD(a.to):''}</span></div><div class="kpi"><b>${all-free.length}</b><span>Booked, on hire or workshop</span></div><div class="kpi ${docIss.length?'alert':''}"><b>${docIss.length}</b><span>Free but with a document issue</span></div></div>
+    ${best?`<div class="banner" style="border-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--surface))"><b>Closest fit: ${best.u} ${esc(uName(best.u))} (${best.cap.n} ${best.cap.unit}), free and not quoted to anyone else.</b><button class="btn small primary" data-action="qq-new" data-u="${best.u}">Quote it</button></div>`:''}
+    ${groups.map(g => { const rs = rows.filter(r=>r.cls.label===g.label), fr = rs.filter(r=>r.av.ok).length, ask = asked(g.label), more = state.av.more[g.label], shown = more ? rs : rs.slice(0,LIMIT);
+      return `<details class="avgroup panel" ${(fr && groups.length<=4) || state.av.open[g.label] ? 'open' : ''} data-avgroup="${esc(g.label)}"><summary><b>${esc(g.label)}</b><span class="muted">${fr} of ${rs.length} free${ask.length?` · ${ask.length} enquiring`:''}</span><span class="minibar"><i style="width:${rs.length?fr/rs.length*100:0}%"></i></span></summary>
+        ${ask.length?`<div class="in" style="padding:6px 14px"><div class="tchips">${ask.map(tentChip).join('')}</div></div>`:''}
+        <div class="tbl-wrap" style="border:0;border-radius:0"><table class="avt"><tbody>${shown.map(rowHtml).join('')}</tbody></table></div>
+        ${rs.length>LIMIT?`<div class="in" style="padding:8px 14px"><button class="btn small" data-avmore="${esc(g.label)}">${more?'Show fewer':`Show all ${rs.length}`}</button></div>`:''}</details>`; }).join('') || '<p class="muted">No machine matches. Clear the search or change the family.</p>'}
+    <div class="panel"><div class="panel-head"><h3>Next 14 days by class</h3><span class="muted">${hireUnits().length} machines in ${gridRows.length} classes</span></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table class="avgrid"><thead><tr><th>Class</th>${days.map(d=>`<th class="${dow(d)===0?'sun':''} ${d===TODAY?'today':''}">${DOW[dow(d)].slice(0,2)}<br>${+d.slice(8)}</th>`).join('')}</tr></thead><tbody>
+        ${gridRows.map(c=>`<tr><td><b>${esc(c.label)}</b></td>${days.map(d=>`<td>${cell(c.label,d)}</td>`).join('')}</tr>`).join('')}
+      </tbody></table></div>
+      <div class="in" style="padding:10px 14px"><div class="g-legend"><span><i class="avc all" style="width:22px;height:18px"></i>All free</span><span><i class="avc some" style="width:22px;height:18px"></i>Some free</span><span><i class="avc tight" style="width:22px;height:18px"></i>Free but others are asking</span><span><i class="avc none" style="width:22px;height:18px"></i>None free</span><span class="muted">Tap a box to search that class and day</span></div></div></div>`;
+}
+
+/* ---------- Fleet list with search, filters and sorting ---------- */
+const FLEET_ST = {'':'All', onhire:'On hire', free:'Available', booked:'Booked', ws:'Workshop', docs:'Document issue'};
+function renderFleet2(){
+  const f = state.fl, need = parseNeed(f.q);
+  let us = Object.keys(fleet).map(u=>({u, s:unitStatus(u), cls:classOf(u), cap:capOf(u), di:docIssues(u, TODAY, addDays(TODAY,60))}));
+  const counts = Object.fromEntries(Object.keys(FLEET_ST).map(k=>[k,0]));
+  const stOf = x => x.s.k==='On hire'||x.s.k==='Off-hire called' ? 'onhire' : x.s.k==='Available' ? 'free' : x.s.k==='Booked'||x.s.k==='Going out' ? 'booked' : x.s.k==='In workshop' ? 'ws' : '';
+  us = us.filter(x => (!f.fam || x.cls.fam===f.fam) && (!need.fam || x.cls.fam===need.fam) && (!need.cap || (x.cap.unit===need.cap.unit && x.cap.n>=need.cap.n)) && textHit(x.u, need.text));
+  us.forEach(x=>{ counts['']++; const k = stOf(x); if(k) counts[k]++; if(x.di.length) counts.docs++; });
+  if(f.st) us = us.filter(x => f.st==='docs' ? x.di.length : stOf(x)===f.st);
+  const sorters = {no:(a,b)=>a.u<b.u?-1:1, cls:(a,b)=>a.cls.order-b.cls.order || a.cap.n-b.cap.n || (a.u<b.u?-1:1), idle:(a,b)=>(b.s.idle||0)-(a.s.idle||0), end:(a,b)=>(a.s.l?.to||'9')<(b.s.l?.to||'9')?-1:1};
+  us.sort(sorters[f.sort]);
+  const PAGE = 25, shown = us.slice(0, f.page*PAGE);
+  $('#v-fleet').innerHTML = `
+    <div class="view-head"><h2>Fleet</h2><span class="muted">${Object.keys(fleet).length} machines</span></div>
+    <div class="findbar">
+      <label style="flex:1 1 240px">Search<input type="search" id="fleetQ" value="${esc(f.q)}" placeholder="Fleet no., plate, model, or e.g. 50t crane"></label>
+      <label>Family<select class="field" id="fleetFam"><option value="">All families</option>${FAMILIES.map(x=>`<option ${x.k===f.fam?'selected':''}>${x.k}</option>`).join('')}</select></label>
+      <label>Sort by<select class="field" id="fleetSort">${Object.entries({cls:'Class and size',no:'Fleet no.',idle:'Idle longest',end:'Hire ends soonest'}).map(([k,v])=>`<option value="${k}" ${k===f.sort?'selected':''}>${v}</option>`).join('')}</select></label>
+    </div>
+    <div class="seg" style="align-self:flex-start;flex-wrap:wrap">${Object.entries(FLEET_ST).map(([k,v])=>`<button data-flst="${k}" aria-pressed="${f.st===k}">${v} <span class="muted num">${counts[k]}</span></button>`).join('')}</div>
+    <div class="tbl-wrap"><table><thead><tr><th>Fleet no.</th><th>Machine</th><th>Class</th><th>Status</th><th>Where / customer</th><th>Documents</th><th class="r boss">Revenue YTD</th></tr></thead><tbody>
+    ${shown.map(({u,s,cls,di})=>{ const fl = fleet[u], wd = worstDoc(u);
+      return `<tr class="click" data-unit="${u}"><td class="mono"><b>${u}</b></td><td><b>${esc(uName(u))}</b><br><small class="muted">${esc(uRef(u))} · ${fl.year}</small></td><td><small>${esc(cls.label)}</small></td>
+      <td><span class="pill ${s.cls}">${esc(s.label)}</span>${s.k==='Available'&&s.idle!=null?`<br><small class="muted">idle ${s.idle} d</small>`:''}</td>
+      <td>${s.h?`${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site.split(',')[0])}${s.l&&s.k==='On hire'?' · to '+fmtD(s.l.to):''}</small>`:s.note?esc(s.note):'Klang yard'}</td>
+      <td>${wd?docPill(wd[0],wd[1]):''}${di.length?'<br><span class="docwarn" style="display:inline">⚠ due in 60 days</span>':''}</td><td class="r num boss">${fl.ytd?RM0(fl.ytd.rev):'—'}</td></tr>`; }).join('') || '<tr><td colspan="7" class="muted">No machine matches.</td></tr>'}
+    </tbody></table></div>
+    ${us.length>shown.length?`<div class="btnrow"><button class="btn" data-action="fleet-more">Show ${Math.min(PAGE, us.length-shown.length)} more (${shown.length} of ${us.length})</button></div>`:`<small class="muted">${us.length} shown</small>`}`;
+}
+
+document.addEventListener('click', e => {
+  if(e.target.closest('input,select,textarea,canvas')) return;
+  const a = e.target.closest('[data-avcls],[data-avmore],[data-flst],[data-action="fleet-more"],[data-action="plan-colall"],[data-plancol],[data-allview]');
+  if(!a) return;
+  const d = a.dataset;
+  if(d.avcls){ const [cl, day] = d.avcls.split('|'); const fam = FAMILIES.find(f=>cl.startsWith(f.k))?.k || ''; const ex = hireUnits().find(u=>classOf(u).label===cl), cap = ex ? capOf(ex) : null;
+    const lo = cap && FAMILIES.find(f=>f.k===fam) ? (FAMILIES.find(f=>f.k===fam).buckets.slice().reverse().find(([max])=>max < cap.n)?.[0] ?? 0) : 0;
+    Object.assign(state.av, {from:day, to:day, fam, q: cap && lo ? `${Math.floor(lo)+1} ${cap.unit}` : '', open:{...state.av.open, [cl]:true}}); return render(); }
+  if(d.avmore){ state.av.more[d.avmore] = !state.av.more[d.avmore]; state.av.open[d.avmore] = true; return render(); }
+  if(d.flst!=null){ state.fl.st = d.flst; state.fl.page = 1; return render(); }
+  if(d.action==='fleet-more'){ state.fl.page++; return render(); }
+  if(d.action==='plan-colall'){ const all = Object.keys(GROUPS).every(g=>state.planCol[g]); Object.keys(GROUPS).forEach(g=>state.planCol[g]=!all); return render(); }
+  if(d.plancol){ const g = d.plancol; state.planCol[g] = !state.planCol[g]; return render(); }
+  if(d.allview){ const [v, st] = d.allview.split('|'); if(v==='fleet'){ state.fl.st = st; state.fl.page = 1; } return setView(v); }
+});
+document.addEventListener('toggle', e => { const t = e.target; if(t.matches && t.matches('details[data-avgroup]')) state.av.open[t.dataset.avgroup] = t.open; }, true);
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.id==='fleetFam'){ state.fl.fam = t.value; state.fl.page = 1; return render(); }
+  if(t.id==='fleetSort'){ state.fl.sort = t.value; return render(); }
+  if(t.id==='planCompact'){ state.planCompact = t.checked; return render(); }
+  if(t.id==='planFam'){ state.planFam = t.value; return render(); }
+});
+document.addEventListener('input', e => {
+  const t = e.target, keep = id => { const q = $('#'+id); if(q){ q.focus(); q.setSelectionRange(q.value.length, q.value.length); } };
+  if(t.id==='fleetQ'){ state.fl.q = t.value; state.fl.page = 1; renderFleet2(); keep('fleetQ'); }
+  if(t.id==='planQ'){ state.planQ = t.value; renderPlanner(); keep('planQ'); }
+});
+document.addEventListener('submit', e => {
+  const f = e.target;
+  if(f.dataset.form==='av2'){ e.preventDefault(); const fd = new FormData(f);
+    Object.assign(state.av, {q:fd.get('q')||'', from:fd.get('from'), to:fd.get('to')<fd.get('from')?fd.get('from'):fd.get('to'), fam:fd.get('fam')||'', freeOnly:!!fd.get('freeOnly'), more:{}, open:{}}); return render(); }
+});
+
 /* ---------- state ---------- */
-const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Truck crane 25 t', grp:'', start:'2026-10-16'}, qq:null, qSeq:240, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
+const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Truck crane 25 t', grp:'', start:'2026-10-16', q:'25t crane', fam:'', freeOnly:false, more:{}, open:{}}, fl:{q:'', fam:'', st:'', sort:'cls', page:1}, planQ:'', planFam:'', planCol:{}, planCompact:true, qq:null, qSeq:240, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
 try{ const v = localStorage.getItem('spc-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
@@ -1184,7 +1391,7 @@ function setView(v){
   try{ localStorage.setItem('spc-view', v); }catch(e){}
   render();
 }
-function render(){ ({dashboard:renderDashboard,avail:renderAvail,dispatch:renderDispatch,today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
+function render(){ ({dashboard:renderDashboard,avail:renderAvail2,dispatch:renderDispatch,today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet2,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
 function rerender(){ render(); refreshSheet(); }
 
 /* ---------- Today ---------- */
@@ -1251,7 +1458,7 @@ function renderToday(){
           </tbody></table></div></div>
         <div class="panel"><div class="panel-head"><h3>On hire now</h3><span class="muted">${onHire} machines</span></div>
           <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Machine</th><th>Customer · site</th><th>Hire</th><th>Since</th><th>Until</th></tr></thead><tbody>
-          ${st.filter(([,s])=>['On hire','Off-hire called'].includes(s.k)).map(([u,s])=>`<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(uRef(u))}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${kindLabel(s.l.k)}<br><small class="muted">${basisLabel[s.l.basis]}${s.l.op?' · '+esc(staff[s.l.op].name):''}</small></td><td class="num">${fmtD(s.l.on)}</td><td class="num">${s.k==='Off-hire called'?'<span class="pill warn">Off-hire '+fmtD(s.l.off)+'</span>':fmtD(s.l.to)}</td></tr>`).join('')}
+          ${st.filter(([,s])=>['On hire','Off-hire called'].includes(s.k)).sort((a,b)=>(a[1].k==='Off-hire called'?-1:0)-(b[1].k==='Off-hire called'?-1:0) || ((a[1].l.off||a[1].l.to)<(b[1].l.off||b[1].l.to)?-1:1)).slice(0,10).map(([u,s])=>`<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(uRef(u))}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${kindLabel(s.l.k)}<br><small class="muted">${basisLabel[s.l.basis]}${s.l.op?' · '+esc(staff[s.l.op].name):''}</small></td><td class="num">${fmtD(s.l.on)}</td><td class="num">${s.k==='Off-hire called'?'<span class="pill warn">Off-hire '+fmtD(s.l.off)+'</span>':fmtD(s.l.to)}</td></tr>`).join('')}
           </tbody></table></div></div>
       </div>
       <div class="rail">
@@ -1281,7 +1488,7 @@ function renderPlanner(){
   const f = state.find, fType = f.type;
   const res = fType ? hireUnits().filter(u=>mOf(u).type===fType).map(u=>({u,...availability(u,f.from,f.to)})) : [];
   const sunCols = days.map((d,i)=>dow(d)===0?`<i class="g-sun" style="left:calc(var(--cw) * ${i})"></i>`:'').join('');
-  const groups = Object.keys(GROUPS).filter(g => !state.planGrp || state.planGrp===g);
+  const groups = Object.keys(GROUPS).filter(g => !state.planGrp || state.planGrp===g), pNeed = parseNeed(state.planQ);
   const rowFor = u => {
     const bars = [];
     hires.forEach(h => { if(['Lost'].includes(h.status)) return; h.lines.forEach(l => { if(l.u!==u) return;
@@ -1308,14 +1515,18 @@ function renderPlanner(){
       <label>To<input type="date" name="to" value="${f.to}"></label>
       <button class="btn">Check</button>${fType?'<button class="btn" type="button" data-action="find-clear">Clear</button>':''}
     </form>
+    <div class="findbar"><label style="flex:1 1 240px">Show only<input type="search" id="planQ" value="${esc(state.planQ)}" placeholder="Fleet no., model, or e.g. 50t crane"></label>
+      <label>Family<select class="field" id="planFam"><option value="">All families</option>${FAMILIES.map(x=>`<option ${x.k===state.planFam?'selected':''}>${x.k}</option>`).join('')}</select></label>
+      <button class="btn" type="button" data-action="plan-colall">${Object.keys(GROUPS).every(g=>state.planCol[g])?'Expand all':'Collapse all'}</button>
+      <label style="flex-direction:row;align-items:center;gap:8px;align-self:center"><input type="checkbox" id="planCompact" ${state.planCompact?'checked':''}> Compact rows</label></div>
     ${fType ? `<div class="panel"><div class="panel-head"><h3>${esc(fType)} · ${fmtD(f.from)}–${fmtD(f.to)}</h3><span class="muted">${res.filter(r=>r.ok).length} of ${res.length} free</span></div><div class="findres">
       ${res.map(r=>`<div class="fr"><div><b>${r.u} ${esc(uName(r.u))}</b> <span class="pill ${r.ok?'ok':'crit'}">${r.ok?'Free':'Not free'}</span>${r.ok&&r.warn.length?' <span class="pill crit">Document issue</span>':''}<small>${r.ok?(r.warn.length?'Can still be booked.':'No bookings, workshop jobs or document expiries in these dates.'):r.why.map(esc).join(' · ')}</small>${r.ok?warnHtml(r.warn):''}</div>${r.ok?`<button class="btn small primary" data-action="book-unit" data-u="${r.u}">Book</button>`:''}</div>`).join('')}
       ${!res.some(r=>r.ok)?`<div class="fr"><div><b>Nothing free.</b><small>Offer another size, other dates, or cross-hire from another company. The enquiry is kept as lost (no machine free) for the fleet report.</small></div></div>`:''}
     </div></div>` : ''}
     <div class="g-legend"><span><i class="sw" style="background:var(--k-wet)"></i>Wet hire</span><span><i class="sw" style="background:var(--k-dry)"></i>Dry hire</span><span><i class="sw bar booked dry" style="position:static;height:12px;width:22px;padding:0"></i>Booked</span><span><i class="sw" style="outline:1.5px dashed var(--k-quote);outline-offset:-1.5px"></i>Quotation</span><span><i class="sw bar ws" style="position:static;height:12px;width:22px;padding:0"></i>Workshop</span><span><i class="sw" style="background:var(--crit);width:5px"></i>Breakdown</span><span><i class="sw" style="width:0;height:0;border-radius:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid var(--warn)"></i>Delivery / collection</span><span class="muted">Shaded = Sunday · orange line = today</span></div>
-    <div class="gantt-wrap"><div class="gantt">
+    <div class="gantt-wrap"><div class="gantt ${state.planCompact?'compact':''}">
       <div class="g-row g-head"><div class="g-lab">Machine</div><div class="g-track">${days.map((d,i)=>`<div class="g-day ${dow(d)===0?'sun':''} ${d===TODAY?'today':''}"><i>${+d.slice(8)===1||i===0?MON[+d.slice(5,7)-1]:''}</i><b>${+d.slice(8)}</b></div>`).join('')}</div></div>
-      ${groups.map(g => { const us = Object.keys(fleet).filter(u=>mOf(u).grp===g); return us.length ? `<div class="g-group"><span>${esc(GROUPS[g])}</span></div>${us.map(rowFor).join('')}` : ''; }).join('')}
+      ${groups.map(g => { const us = Object.keys(fleet).filter(u=>mOf(u).grp===g && (!state.planFam || classOf(u).fam===state.planFam) && (!pNeed.fam || classOf(u).fam===pNeed.fam) && (!pNeed.cap || (capOf(u).unit===pNeed.cap.unit && capOf(u).n>=pNeed.cap.n)) && textHit(u, pNeed.text)).sort((a,b)=>classOf(a).order-classOf(b).order || capOf(a).n-capOf(b).n || (a<b?-1:1)); const col = state.planCol[g]; return us.length ? `<button class="g-group" data-plancol="${g}" aria-expanded="${!col}"><span>${col?'▸':'▾'} ${esc(GROUPS[g])} <small>${us.length} · ${us.filter(u=>onHireOn(u,TODAY)).length} on hire</small></span></button>${col?'':us.map(rowFor).join('')}` : ''; }).join('') || '<div class="g-group"><span>No machine matches the search.</span></div>'}
     </div></div>`;
   $('#v-planner').insertAdjacentHTML('beforeend', demandHtml());
 }
@@ -2786,9 +2997,9 @@ function renderDashboard(){
         <div class="slegend" style="padding:0">${att3.map(c=>`<div><i style="background:${c.c}"></i>${c.label}<b>${c.n}</b></div>`).join('')}<div><i class="none-sw"></i>Not clocked in<b>${none.length}</b></div></div>
         ${none.length||late.length?`<div class="mini">${none.map(a=>`<div><span class="pill warn">! Not in</span> ${esc(staff[a.s].name)} <small class="muted">· ${esc(a.what)}</small></div>`).join('')}${late.map(a=>`<div><span class="pill mute">Late ${a.time}</span> ${esc(staff[a.s].name)} <small class="muted">· ${esc(a.where)}</small></div>`).join('')}</div>`:''}
       </div></div>
-      <div class="panel span2"><div class="panel-head"><h3>Machinery on rental</h3><button class="btn small" data-view="planner">Planner</button></div>
+      <div class="panel span2"><div class="panel-head"><h3>Machinery on rental <small class="muted">${Math.min(8,rented.length)} ending soonest of ${rented.length}</small></h3><div class="btnrow"><button class="btn small" data-allview="fleet|onhire">View all ${rented.length}</button><button class="btn small" data-view="planner">Planner</button></div></div>
         <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Machine</th><th>Customer · site</th><th>Hire</th><th class="r">Days on hire</th><th>Until</th></tr></thead><tbody>
-        ${rented.map(([u,s])=>{ const left = daysBetween(TODAY, s.l.to); return `<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(mOf(u).type)}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${kindLabel(s.l.k)} · ${basisLabel[s.l.basis].toLowerCase()}${s.l.op?`<br><small class="muted">${esc(staff[s.l.op].name)}</small>`:''}</td><td class="r num">${daysBetween(s.l.on,TODAY)+1}</td>
+        ${rented.slice().sort((a,b)=>(a[1].l.off||a[1].l.to)<(b[1].l.off||b[1].l.to)?-1:1).slice(0,8).map(([u,s])=>{ const left = daysBetween(TODAY, s.l.to); return `<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(mOf(u).type)}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${kindLabel(s.l.k)} · ${basisLabel[s.l.basis].toLowerCase()}${s.l.op?`<br><small class="muted">${esc(staff[s.l.op].name)}</small>`:''}</td><td class="r num">${daysBetween(s.l.on,TODAY)+1}</td>
           <td>${s.k==='Off-hire called'?`<span class="pill warn">Off-hire ${fmtD(s.l.off)}</span>`:`${fmtD(s.l.to)} ${left<=7?`<span class="pill warn">${left} d left</span>`:''}`}</td></tr>`; }).join('')}
         </tbody></table></div></div>
       <div class="panel"><div class="panel-head"><h3>Utilisation by type</h3><span class="muted">Oct to date</span></div><div class="rbars">

@@ -615,7 +615,29 @@ When the customer accepts, **Customer accepted: make order** turns the quotation
 | `quotations` | quote_no, hire_id, customer_id, issued, valid_until, items (jsonb), subtotal, sst, total, discount_pct, remarks, prepared_by, approved_by, sent_at, accepted_at |
 | `quote_remarks` | text, default_on, sort (edited by the Head Manager in Settings) |
 
-## 28. Open questions for the owner
+## 28. Working with a large fleet (50 machines and more)
+
+One box per machine works for a dozen cranes. At 50 to 200 machines it becomes a wall of boxes. Each screen therefore starts from a search and a short summary, and shows single machines only when asked.
+
+**Machine classes.** Each machine is put in a family (cranes, forklifts, access platforms, excavators, loaders, generators) and a capacity class within it. The capacity comes from the machine type, so nobody keys it in twice. Crane classes are up to 20 t, 21–30 t, 31–60 t, 61–100 t and over 100 t. Forklift classes are up to 3 t, 3–5 t and over 5 t. The Head Manager can change the class limits in Settings.
+
+**Search the way people ask.** One search box understands "25t crane", "forklift 5t", "scissor 12m", a fleet number or a plate. A capacity means "this size or bigger". A family word narrows the family. Anything else is matched against fleet no., plate, serial, make and model. The same box is on Availability, Fleet and Planner.
+
+| Screen | How it scales |
+|---|---|
+| Availability | Results are grouped by class. Each group is one line: "3 of 7 free · 1 enquiring", with a bar. Groups open on a tap. Each group shows 8 machines first (free ones first, then free with a document issue, then busy), with "Show all". A **Closest fit** line names the smallest free machine that meets the size and is not quoted to anyone else. "Free only" hides the rest. The 14-day grid has one row per class, not per machine: "4/7" free, plus how many are being asked for. Tapping a box searches that class and day. |
+| Fleet | A table, not cards. It has search, family filter, and status tabs with counts (All, On hire, Available, Booked, Workshop, Document issue). It can be sorted by class and size, fleet no., idle longest, or hire ends soonest. It shows 25 rows at a time, with "Show more". |
+| Planner | "Show only" search and a family filter. Each group can be collapsed, with a count of machines and how many are on hire. Compact rows (on by default) fit about 25 machines on one screen. Sorting within a group is by class and size. |
+| Dashboard and Today | Lists show the 8 to 10 hires ending soonest, with **View all**, which opens Fleet filtered to On hire. Counts and utilisation stay for the whole fleet. |
+
+**Speed.** With 200 machines and a few thousand hires a year, the server works out availability for a date range in one query. It uses an index on (unit_id, from, to) for hire lines, workshop jobs and document expiry dates. The browser gets the answer per class, and machine rows only for groups that are open. The prototype does this in the page, with 68 example machines.
+
+| Table | Key fields |
+|---|---|
+| `machine_classes` | family, label, cap_min, cap_max, unit (t, m, kVA), sort |
+| `models` (added) | family, capacity, capacity_unit (filled from the type, can be overridden) |
+
+## 29. Open questions for the owner
 
 1. How many machines are in the hire fleet, and do we cross-hire machines in from other companies when we run short?
 2. Which machines are only wet hire (cranes?) and which are only dry hire?
