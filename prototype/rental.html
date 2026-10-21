@@ -513,6 +513,35 @@ td.r.num{white-space:nowrap}
 .docwarn{display:block;color:var(--crit);font-weight:600;font-size:.8rem;margin-top:3px}
 .pick label.docbad{border-color:var(--crit);background:color-mix(in srgb,var(--crit) 6%,var(--surface))}
 .pick label.docbad:has(input:checked){border-color:var(--crit);background:color-mix(in srgb,var(--crit) 12%,var(--surface))}
+ol.track{list-style:none;margin:0 0 6px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:6px}
+ol.track li{border-top:3px solid var(--line);padding-top:6px;font-size:.78rem;display:flex;flex-direction:column;gap:2px;color:var(--muted)}
+ol.track li b{color:var(--ink);font-weight:600;font-size:.8rem}
+ol.track li.done{border-top-color:var(--ok)}
+ol.track li.next{border-top-color:var(--accent)}
+ol.track li.next b{color:var(--accent)}
+.jobcard .panel-head{align-items:flex-start;flex-wrap:wrap}
+.jobcard .panel-head h3{margin-top:4px}
+.wamsg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;padding:10px 14px;border-bottom:1px solid var(--line);align-items:start}
+.wamsg:last-child{border-bottom:0}
+.wamsg .wa{max-width:none;padding:8px 12px;font-size:.86rem}
+@media (max-width:640px){.wamsg{grid-template-columns:minmax(0,1fr)}}
+.avgrid th{text-align:center;font-size:.62rem;padding:6px 2px;line-height:1.3}
+.avgrid th:first-child{text-align:left;padding-left:12px}
+.avgrid th.sun{color:var(--crit)} .avgrid th.today{color:var(--accent)}
+.avgrid td{padding:4px 2px;text-align:center;border-bottom:1px solid var(--line)}
+.avgrid td:first-child{text-align:left;padding-left:12px;white-space:nowrap;font-size:.84rem}
+.avc{width:40px;height:32px;border-radius:7px;border:0;cursor:pointer;font:600 .86rem var(--f-mono);display:inline-flex;align-items:center;justify-content:center;gap:1px;position:relative;color:var(--ink);vertical-align:middle}
+.avc small{font-size:.62rem;color:var(--muted);font-weight:500}
+.avc i{position:absolute;top:-6px;right:-6px;font:700 .58rem var(--f-body);background:var(--warn);color:var(--surface);border-radius:999px;padding:1px 4px;font-style:normal}
+.avc.all{background:color-mix(in srgb,var(--ok) 24%,var(--surface))}
+.avc.some{background:color-mix(in srgb,var(--ok) 10%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ok) 45%,transparent)}
+.avc.tight{background:color-mix(in srgb,var(--warn) 22%,var(--surface))}
+.avc.none{background:color-mix(in srgb,var(--crit) 18%,var(--surface));color:var(--crit)}
+.avc.sel{box-shadow:0 0 0 2px var(--accent)}
+.tchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.tchip{border:1px dashed var(--warn);background:color-mix(in srgb,var(--warn) 8%,var(--surface));color:var(--ink);border-radius:999px;font-size:.74rem;padding:2px 9px;cursor:pointer;font-family:inherit}
+.tchip.order{border-style:solid}
+.doc ol.qrem{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
 .grp-h{padding:7px 14px;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
 button.step{background:none;border-left:0;border-right:0;border-bottom:0;cursor:pointer;font-family:inherit}
 button.step:disabled{cursor:default}
@@ -623,7 +652,7 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
         <option value="boss">Head Manager</option>
         <option value="supervisor">Supervisor · Rental desk</option>
         <option value="sales">Sales · Aisyah binti Karim</option>
-        <option value="operator">Operator · Azman bin Yusof</option>
+        <option value="operator">Operator (phone screen)</option>
       </select>
       <small>Each role sees a different set of pages and prices.</small>
     </div>
@@ -636,9 +665,11 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
     <div class="navg"><span class="navh">Sell</span>
       <button data-view="enquiries">Enquiries</button>
       <button data-view="customers">Customers</button>
+      <button data-view="avail">Availability</button>
     </div>
     <div class="navg"><span class="navh">Plan</span>
       <button data-view="hires">Hires</button>
+      <button data-view="dispatch">Dispatch</button>
       <button data-view="planner">Planner</button>
       <button data-view="lift">Lift check</button>
       <button data-view="calendar">Calendar</button>
@@ -670,6 +701,8 @@ tbody tr.click:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surf
   <section class="view" id="v-calendar" hidden></section>
   <section class="view" id="v-staff" hidden></section>
   <section class="view" id="v-planner" hidden></section>
+  <section class="view" id="v-avail" hidden></section>
+  <section class="view" id="v-dispatch" hidden></section>
   <section class="view" id="v-fuel" hidden></section>
   <section class="view" id="v-connect" hidden></section>
   <section class="view" id="v-lift" hidden></section>
@@ -696,8 +729,8 @@ const daysBetween = (a,b) => Math.round((pd(b)-pd(a))/864e5);
 const dow = s => pd(s).getUTCDay();
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const fmtD = s => s ? `${+s.slice(8)} ${MON[+s.slice(5,7)-1]}` : '—';
-const fmtDY = s => s ? `${fmtD(s)} ${s.slice(0,4)}` : '—';
+const fmtD = s => s ? (s==='2099-12-31' ? 'until stopped' : `${+s.slice(8)} ${MON[+s.slice(5,7)-1]}`) : '—';
+const fmtDY = s => s ? (s==='2099-12-31' ? 'Until the customer stops' : `${fmtD(s)} ${s.slice(0,4)}`) : '—';
 const fmtDW = s => s ? `${DOW[dow(s)]} ${fmtD(s)}` : '—';
 const RM = n => 'RM '+(+n).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
 const RM0 = n => 'RM '+Math.round(n).toLocaleString('en-MY');
@@ -1137,7 +1170,7 @@ const invPill = i => { const s = invStatus(i); return `<span class="pill ${({Pai
 const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pending:'warn'})[i.einv]||'mute'}">${esc(i.einv)}${i.einvNote?': '+esc(i.einvNote):''}</span>`;
 
 /* ---------- state ---------- */
-const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
+const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Truck crane 25 t', grp:'', start:'2026-10-16'}, qq:null, qSeq:240, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'TC-01', week:'2026-10-12', sheet:null, lastSheet:null};
 try{ const v = localStorage.getItem('spc-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
@@ -1151,7 +1184,7 @@ function setView(v){
   try{ localStorage.setItem('spc-view', v); }catch(e){}
   render();
 }
-function render(){ ({dashboard:renderDashboard,today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
+function render(){ ({dashboard:renderDashboard,avail:renderAvail,dispatch:renderDispatch,today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
 function rerender(){ render(); refreshSheet(); }
 
 /* ---------- Today ---------- */
@@ -1167,6 +1200,8 @@ function attention(){
     }
   });
   hires.filter(h=>LIVE.includes(h.status)).forEach(h => h.lines.forEach(l => { if(l.u) docIssues(l.u, maxD(TODAY, l.on||l.from), lineEnd(l)).forEach(x => items.push({sev:'crit', t:`${l.u}: ${x.msg}`, s:`${h.id} · ${custName(h.c)} · hire to ${fmtD(lineEnd(l))}`, a:`data-hire="${h.id}"`})); }));
+  hires.filter(h=>h.status==='Quotation' && h.order && !checkOk(h)).forEach(h => items.push({sev:h.lines[0].from<=addDays(TODAY,1)?'crit':'warn', t:`Checklist not complete: ${h.id} (${checkDone(h)}/${PRECONFIRM.length})`, s:`${custName(h.c)} · ${fmtDW(h.lines[0].from)}${h.job?.arrive?' '+h.job.arrive:''}`, a:`data-hire="${h.id}"`}));
+  hires.filter(h=>h.status==='Booked' && h.job && !h.track?.sent).forEach(h => items.push({sev:'crit', t:`Job order not sent to operator: ${h.id}`, s:`${staff[h.lines[0].op]?.name||''} · ${fmtDW(h.lines[0].from)}`, a:`data-hire="${h.id}"`}));
   hires.filter(h=>h.status==='Booked' && h.deposit && !h.depositPaid).forEach(h => items.push({sev:'warn',t:`Deposit ${RM0(h.deposit)} not received: ${h.id}`,s:`${custName(h.c)} · delivery ${fmtDW(h.lines[0].from)}`,a:`data-hire="${h.id}"`}));
   hires.filter(h=>h.status==='Off-hire called').forEach(h => items.push({sev:'info',t:`Off-hire: ${h.lines.map(l=>l.u).join(', ')} from ${fmtD(h.lines[0].off)}`,s:`${custName(h.c)} · collection ${fmtDW(h.trips.find(t=>t.dir==='Collection')?.d)}`,a:`data-hire="${h.id}"`}));
   hires.filter(h=>h.status==='Quotation' && h.lines.some(l=>!l.u)).forEach(h => items.push({sev:'warn',t:`No machine free for quotation ${h.id}`,s:`${models[h.lines[0].m].type}, ${fmtD(h.lines[0].from)}–${fmtD(h.lines[0].to)} · ${custName(h.c)}`,a:`data-hire="${h.id}"`}));
@@ -1299,7 +1334,7 @@ function renderHires(){
       <td>${h.lines.map(l=>l.u?`<b>${l.u}</b> ${esc(mOf(l.u).model)}`:`<span class="pill crit">No machine</span> ${esc(models[l.m].type)}`).join('<br>')}</td>
       <td>${[...new Set(h.lines.map(l=>kindLabel(l.k)))].join(', ')}<br><small class="muted">${[...new Set(h.lines.map(l=>basisLabel[l.basis]))].join(', ')}</small></td>
       <td class="num">${fmtD(h.lines[0].on||h.lines[0].from)} – ${fmtD(lineEnd(h.lines[0]))}${h.contract?'<br><small class="muted">Long-term contract</small>':''}</td>
-      <td>${statusPill(h.status)}${h.deposit&&!h.depositPaid&&h.status==='Booked'?'<br><small class="muted">Deposit due</small>':''}</td>
+      <td>${hireStatusPill(h)}${h.deposit&&!h.depositPaid&&h.status==='Booked'?'<br><small class="muted">Deposit due</small>':''}</td>
       <td class="r num cost">${h.status==='Quotation'?'<span class="muted">—</span>':RM0(hireValue(h))}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No hires here.</td></tr>'}
     </tbody></table></div>`;
 }
@@ -1310,7 +1345,8 @@ function openHire(id){
   const lines = charges(h, '2026-10-01', TODAY), t = totals(lines);
   const tsRows = sheets.filter(s=>s.hire===h.id).sort((a,b)=>a.d<b.d?1:-1).slice(0,8);
   const actions = [];
-  if(h.status==='Quotation'){ actions.push(`<button class="btn" data-action="send-quote" data-id="${id}">Send quotation by WhatsApp</button>`); if(h.lines.every(l=>l.u)) actions.push(`<button class="btn primary" data-action="confirm" data-id="${id}">Confirm booking</button>`); actions.push(`<button class="btn" data-action="lose" data-id="${id}">Mark lost</button>`); }
+  if(h.status==='Quotation'){ actions.push(`<button class="btn" data-action="qd-open" data-id="${id}">Quotation document</button>`); actions.push(`<button class="btn" data-action="send-quote" data-id="${id}">Send quotation by WhatsApp</button>`); if(h.lines.every(l=>l.u)) actions.push(`<button class="btn primary" data-action="confirm" data-id="${id}" ${checkOk(h)?'':'title="Complete the checklist first"'}>${h.order?'Confirm order':'Confirm booking'}${checkOk(h)?'':` (${checkDone(h)}/${PRECONFIRM.length})`}</button>`); actions.push(`<button class="btn" data-action="lose" data-id="${id}">Mark lost</button>`); }
+  if(h.status==='Booked' && h.job){ actions.push(h.track?.sent ? `<button class="btn" data-action="wa-open" data-id="${id}">Job order (sent)</button>` : `<button class="btn primary" data-action="wa-open" data-id="${id}">Send job order to operator</button>`); if(h.track?.sent && !h.track?.precheck) actions.push(`<button class="btn" data-action="pre-open" data-id="${id}">Pre-dispatch check</button>`); actions.push(`<button class="btn" data-view="dispatch">Dispatch</button>`); }
   if(h.status==='Booked'){ if(h.deposit && !h.depositPaid) actions.push(`<button class="btn" data-action="deposit" data-id="${id}">Deposit received</button>`); actions.push(`<button class="btn primary" data-action="insp" data-id="${id}" data-kind="delivery">Delivery inspection</button>`); actions.push(`<button class="btn" data-action="cancel" data-id="${id}">Cancel booking</button>`); }
   if(h.status==='On hire'){ actions.push(`<button class="btn primary" data-action="offhire" data-id="${id}">Customer called off-hire</button>`); actions.push(`<button class="btn" data-action="breakdown" data-id="${id}">Report breakdown</button>`); actions.push(`<button class="btn" data-action="extend" data-id="${id}">Extend 7 days</button>`); }
   if(h.status==='Off-hire called') actions.push(`<button class="btn primary" data-action="insp" data-id="${id}" data-kind="return">Return inspection</button>`);
@@ -1320,6 +1356,7 @@ function openHire(id){
     ${h.note?`<div class="banner"><b>${esc(h.note)}</b></div>`:''}
     ${h.status==='Booked'&&h.deposit&&!h.depositPaid?`<div class="banner crit"><b>New customer: deposit ${RM0(h.deposit)} must be received before delivery on ${fmtDW(h.lines[0].from)}.</b></div>`:''}
     ${actions.length?`<div class="btnrow office">${actions.join('')}</div>`:''}
+    ${jobSectionsHtml(h)}
     <div class="sect"><h3>Customer and site</h3><div class="facts">
       <div><span class="label">Customer</span><b>${esc(cu.name)}</b></div>
       <div><span class="label">Contact</span><b>${esc(cu.contact)} · ${esc(cu.phone)}</b></div>
@@ -1360,16 +1397,16 @@ function openHire(id){
       ${h.trips.map(x=>`<tr><td class="num">${fmtDW(x.d)}</td><td>${x.dir} · ${x.u}</td><td>${x.veh?esc(x.veh)+' · ':'Self-drive · '}${esc(staff[x.drv].name)}</td><td class="r num cost">${RM0(x.charge)}</td><td><span class="pill ${x.status==='Done'?'ok':'warn'}">${x.status}</span></td></tr>`).join('')}
     </tbody></table></div></div>`:''}
     <div class="sect"><h3>Activity</h3><div class="in"><ul class="log">${h.log.map(x=>`<li><time>${esc(x.d)}</time><span>${esc(x.t)}</span></li>`).join('')}</ul></div></div>`;
-  openSheet(`${esc(custName(h.c))}`, `<span class="mono">${h.id}</span> ${statusPill(h.status)}`, body, {type:'hire',id});
+  openSheet(`${esc(custName(h.c))}`, `<span class="mono">${h.id}</span> ${hireStatusPill(h)}`, body, {type:'hire',id});
 }
 
 /* ---------- New hire ---------- */
 function newHireDefaults(pre={}){
-  return {c:'C1', site:'', state:'Selangor', siteContact:'', po:'', k:'wet', basis:'day', type:'Truck crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Klang Valley', del:true, col:true, ...pre};
+  return {c:'C1', site:'', state:'Selangor', siteContact:'', po:'', k:'wet', basis:'day', type:'Truck crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Klang Valley', del:true, col:true, jobType:'Lifting', jobScope:'', arrive:'08:30', requests:'', pay:'credit', collect:false, open:false, ...pre};
 }
 function openNewHire(){
   const n = state.nh, types = [...new Set(hireUnits().map(u=>mOf(u).type))];
-  const units = hireUnits().filter(u=>mOf(u).type===n.type).map(u=>({u,...availability(u,n.from,n.to)}));
+  const units = hireUnits().filter(u=>mOf(u).type===n.type).map(u=>({u,...availability(u,n.from,n.open ? addDays(n.from,90) : n.to)}));
   if(n.u && !units.some(x=>x.u===n.u && x.ok)) n.u = null;
   if(!n.u){ const f = units.find(x=>x.ok && !x.warn.length) || units.find(x=>x.ok); n.u = f ? f.u : null; }
   const mk = n.u ? fleet[n.u].m : Object.values(fleet).find(f=>models[f.m].type===n.type)?.m;
@@ -1380,7 +1417,8 @@ function openNewHire(){
   if(!bases.includes(n.basis)) n.basis = bases[0];
   const ops = Object.entries(staff).filter(([,s])=>s.skills && s.skills.includes(models[mk].grp==='crane'?'crane':'earth'));
   if(n.k==='wet' && (!n.op || !operatorFree(n.op,n.from,n.to))) n.op = (ops.find(([o])=>operatorFree(o,n.from,n.to))||[])[0] || null;
-  const est = estimate(mk, n.k, n.basis, n.from, n.to, +n.hrs);
+  if(n.basis!=='month') n.open = false;
+  const est = estimate(mk, n.k, n.basis, n.from, n.open ? addDays(n.from,29) : n.to, +n.hrs);
   const tc = transportCharge(mk, n.zone), trips = (n.del?1:0)+(n.col?1:0), cu = customers[n.c];
   const deposit = cu.isNew || !cu.terms ? Math.round((r.month || (r.week||r.day*7)*4)/100)*100 : 0;
   const sub = (est?.amt||0) + trips*tc;
@@ -1399,7 +1437,7 @@ function openNewHire(){
         <div class="form">
           <label>Machine type<select class="field" data-nh="type">${types.map(t=>`<option ${t===n.type?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
           <label>From<input type="date" data-nh="from" value="${n.from}"></label>
-          <label>To<input type="date" data-nh="to" value="${n.to}"></label>
+          <label>To<input type="date" data-nh="to" value="${n.to}" ${n.open?'disabled':''}></label>
         </div>
         <div class="pick">${units.map(x=>`<label class="${x.ok?(x.warn.length?'docbad':''):'no'}"><input type="radio" name="nhu" data-nh="u" value="${x.u}" ${x.u===n.u?'checked':''} ${x.ok?'':'disabled'}><span><b>${x.u} ${esc(uName(x.u))}</b> · ${esc(uRef(x.u))} ${x.ok?'<span class="pill ok">Free</span>':'<span class="pill crit">Not free</span>'}${x.ok&&x.warn.length?' <span class="pill crit">Document issue</span>':''}<small>${x.ok?Object.entries(fleet[x.u].docs).map(([k,e])=>docPill(k,e)).join(' '):x.why.map(esc).join(' · ')}</small>${x.ok?warnHtml(x.warn):''}</span></label>`).join('')}</div>
         ${n.u && units.find(x=>x.u===n.u)?.warn.length ? `<div class="banner crit"><b>${n.u}: ${units.find(x=>x.u===n.u).warn.map(esc).join(' · ')}. You can still book it. The Supervisor gets a follow-up to renew it, and the hire stays marked red until it is renewed.</b></div>` : ''}
@@ -1414,6 +1452,15 @@ function openNewHire(){
         </div>
         <small class="muted cost">Rate card: ${[r.hr&&`${RM0(r.hr)}/h (min ${r.minH} h)`, r.day&&`${RM0(r.day)}/day`, r.week&&`${RM0(r.week)}/week`, r.month&&`${RM0(r.month)}/month for ${r.mHrs} h`].filter(Boolean).join(' · ')}${r.ot?` · OT ${RM0(r.ot)}/h`:''}${r.ex?` · excess ${RM0(r.ex)}/h`:''}</small>
       </div></div>
+      <div class="sect"><h3>Job</h3><div class="in form">
+        <label>Job type<select class="field" data-nh="jobType">${JOB_TYPES.map(t=>`<option ${t===n.jobType?'selected':''}>${t}</option>`).join('')}</select></label>
+        <label>Arrive by<input type="time" data-nh="arrive" value="${n.arrive}"></label>
+        <label>Payment<select class="field" data-nh="pay"><option value="credit" ${n.pay==='credit'?'selected':''}>Credit (PO / LOU)</option><option value="cash" ${n.pay==='cash'?'selected':''}>Cash</option></select></label>
+        ${n.pay==='cash'?`<label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-nh="collect" ${n.collect?'checked':''}> Operator collects the cash on site</label>`:''}
+        <label class="full">Job scope<textarea rows="2" data-nh="jobScope" placeholder="What to lift, weight, where it goes, how long">${esc(n.jobScope)}</textarea></label>
+        <label class="full">Customer requests<input type="text" data-nh="requests" value="${esc(n.requests)}" placeholder="e.g. extra rigger, tag lines, work only after 9 am"></label>
+        ${n.basis==='month'?`<label class="full" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-nh="open" ${n.open?'checked':''}> No end date: monthly rental until the customer says stop</label>`:''}
+      </div></div>
       <div class="sect"><h3>Transport</h3><div class="in form">
         <label>Zone<select class="field" data-nh="zone">${zones.map(z=>`<option ${z.z===n.zone?'selected':''}>${z.z}</option>`).join('')}</select></label>
         <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-nh="del" ${n.del?'checked':''}> ${models[mk].size==='self'?'Mobilisation (self-drive)':'Lowloader delivery'}</label>
@@ -1427,7 +1474,7 @@ function openNewHire(){
         ${deposit?`<span>Deposit before delivery</span><b>${RM(deposit)}</b>`:''}
         <small class="muted" style="grid-column:1/-1">Final charges come from signed timesheets and hour-meter readings${n.k==='wet'?'; overtime, Sundays and public holidays are added, breakdown hours credited':''}.</small>
       </div></div>
-      <div class="btnrow"><button class="btn" type="button" data-action="nh-save" data-as="Quotation">Save as quotation</button><button class="btn primary" type="button" data-action="nh-save" data-as="Booked" ${n.u?'':'disabled'}>Confirm booking</button></div>
+      <div class="btnrow"><button class="btn" type="button" data-action="nh-save" data-as="Quotation">Save as quotation</button><button class="btn primary" type="button" data-action="nh-save" data-as="Order" ${n.u?'':'disabled'}>Save order and do the checklist</button></div>
     </form>`;
   n._mk = mk; n._deposit = deposit; n._tc = tc;
   openSheet('New hire / quotation', '<span class="mono">H-2026-0162</span>', body, {type:'nh'});
@@ -1435,21 +1482,23 @@ function openNewHire(){
 function saveNewHire(as){
   const n = state.nh;
   if(!n.site.trim()){ toast('Enter the site'); return; }
-  if(as==='Booked' && !n.u){ toast('No machine free: save as a quotation'); return; }
+  if(as!=='Quotation' && !n.u){ toast('No machine free: save as a quotation'); return; }
+  const isOrder = as==='Order'; if(isOrder) as = 'Quotation';
   const id = 'H-2026-0' + (Math.max(...hires.map(h=>+h.id.slice(-4)))+1);
   const self = models[n._mk].size==='self', trips = [];
   if(n.del) trips.push({dir:'Delivery',d:n.from,u:n.u||'—',veh:self?null:'TR-02',drv:self?(n.op||'D2'):'D2',zone:n.zone,charge:n._tc,status:'Planned',self});
-  if(n.col) trips.push({dir:'Collection',d:addDays(n.to,1),u:n.u||'—',veh:self?null:'TR-02',drv:self?(n.op||'D2'):'D2',zone:n.zone,charge:n._tc,status:'Planned',self});
+  if(n.col && !n.open) trips.push({dir:'Collection',d:addDays(n.to,1),u:n.u||'—',veh:self?null:'TR-02',drv:self?(n.op||'D2'):'D2',zone:n.zone,charge:n._tc,status:'Planned',self});
   hires.push({id,c:n.c,site:n.site,state:n.state,siteContact:n.siteContact||customers[n.c].contact,po:n.po,status:as,created:TODAY,cycle:n.basis==='month'?'Monthly in arrears':'End of hire',
     quoteValid: as==='Quotation'?addDays(TODAY,7):undefined, deposit:n._deposit||undefined, depositPaid:false,
-    lines:[{u:n.u,m:n._mk,k:n.k,basis:n.basis,from:n.from,to:n.to,op:n.k==='wet'?n.op:undefined}], trips: n.u ? trips : [],
+    lines:[{u:n.u,m:n._mk,k:n.k,basis:n.basis,from:n.from,to:n.open?OPEN_END:n.to,open:n.open||undefined,op:n.k==='wet'?n.op:undefined}], order:isOrder||undefined, check:{}, checkNote:{}, track:{},
+    job:{type:n.jobType, scope:n.jobScope, arrive:n.arrive, requests:n.requests, pay:n.pay, collect:n.pay==='cash' && !!n.collect}, trips: n.u ? trips : [],
     log:[{d:TODAY+' '+nowT(),t:`${as==='Booked'?'Booked':'Quotation created'} by ${staff[meStaff()].name}.`}]});
-  linkEnquiry(n, id, as);
+  linkEnquiry(n, id, isOrder ? 'Booked' : as);
   const di = n.u ? docIssues(n.u, n.from, n.to) : [];
   if(di.length){ const h = hire(id);
     di.forEach(x => { h.log.unshift({d:TODAY+' '+nowT(), t:`Booked with a document issue: ${n.u} ${x.msg}.`});
       tasks.push({id:++taskSeq, d: x.expired ? TODAY : maxD(TODAY, addDays(x.exp,-14)), type:'Renew document', who:'S1', hire:id, cust:n.c, t:`Renew ${DOCS[x.k]} for ${n.u} (${x.expired?'expired':'expires'} ${fmtD(x.exp)}) before ${x.expired?'delivery on '+fmtD(n.from):fmtD(x.exp)}`, rule:'Booked with a document issue', done:false}); }); }
-  toast((as==='Booked' ? `${id} booked. ${n.u} reserved on the planner.` : `${id} saved as quotation.`) + (di.length ? ` Note: ${di.map(x=>DOCS[x.k]).join(' and ')} needs renewing.` : ''));
+  toast((isOrder ? `${id} order saved and ${n.u} reserved. Complete the checklist to confirm it.` : `${id} saved as quotation.`) + (di.length ? ` Note: ${di.map(x=>DOCS[x.k]).join(' and ')} needs renewing.` : ''));
   state.nh = null; render(); openHire(id);
 }
 const nowT = () => '09:'+String(10+Math.floor(Math.random()*40)).padStart(2,'0');
@@ -1557,7 +1606,7 @@ function openUnit(u){
       <div><span class="label">Revenue / cost (yearly)</span><b>${Math.round(f.ytd.rev/9*12/f.cost*100)}%</b></div>
     </div></div>`:''}
     ${hs.length?`<div class="sect"><h3>Hires</h3><div class="tbl-wrap" style="border:0"><table><tbody>
-      ${hs.map(h=>{ const l = h.lines.find(x=>x.u===u); return `<tr class="click" data-hire="${h.id}"><td class="mono">${h.id}</td><td>${esc(custName(h.c))}<br><small class="muted">${kindLabel(l.k)} · ${basisLabel[l.basis]}</small></td><td class="num">${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))}</td><td>${statusPill(h.status)}</td></tr>`; }).join('')}
+      ${hs.map(h=>{ const l = h.lines.find(x=>x.u===u); return `<tr class="click" data-hire="${h.id}"><td class="mono">${h.id}</td><td>${esc(custName(h.c))}<br><small class="muted">${kindLabel(l.k)} · ${basisLabel[l.basis]}</small></td><td class="num">${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))}</td><td>${hireStatusPill(h)}</td></tr>`; }).join('')}
     </tbody></table></div></div>`:''}
     ${workshop.some(w=>w.u===u)||breakdowns.some(b=>b.u===u)?`<div class="sect"><h3>Workshop</h3><div class="in">
       ${workshop.filter(w=>w.u===u).map(w=>`<div><b class="mono">${w.job}</b> ${fmtD(w.from)}–${fmtD(w.to)} · ${esc(w.note)}</div>`).join('')}
@@ -1620,10 +1669,11 @@ function renderOperator(){
   const work = Math.max(0, toH(ts.finish)-toH(ts.start)-ts.brk/60-(+ts.standby)-(+ts.bd));
   const hist = cur ? sheets.filter(s=>s.u===cur.l.u).sort((a,b)=>a.d<b.d?1:-1).slice(0,6) : [];
   $('#v-timesheets').innerHTML = `<div class="phone">
-    <div class="view-head"><h2>Hi, ${esc(op.name.split(' ')[0])}</h2></div>
+    <div class="view-head"><h2>Hi, ${esc(op.name.split(' ')[0])}</h2><div class="seg">${['O1','O3','O5'].map(o=>`<button data-opme="${o}" aria-pressed="${o===me}">${esc(staff[o].name.split(' ')[0])}</button>`).join('')}</div></div>
+    ${jobCardOpHtml()}
     ${cur?`<div class="panel"><div class="panel-head"><div><span class="label">Today's job</span><h3>${cur.l.u} ${esc(uName(cur.l.u))}</h3></div></div><div class="in" style="padding:10px 14px;display:flex;flex-direction:column;gap:4px">
       <b>${esc(custName(cur.h.c))}</b><span>${esc(cur.h.site)}</span><small class="muted">Site contact: ${esc(cur.h.siteContact)}</small>
-      <div class="btnrow" style="margin-top:6px"><button class="btn small" data-action="op-bd">Report breakdown</button><button class="btn small" data-action="op-map">Open map</button></div></div></div>`:'<p class="muted">No hire assigned today.</p>'}
+      <div class="btnrow" style="margin-top:6px"><button class="btn small" data-action="op-bd">Report breakdown</button><button class="btn small" data-action="op-map">Open map</button></div></div></div>`:(jobCardOpHtml()?'':'<p class="muted">No hire or job assigned today.</p>')}
     ${missing.length && ts.d!==missing[0]?`<div class="banner crit"><b>${fmtDW(missing[0])} has no timesheet.</b><button class="btn small" data-action="op-day" data-d="${missing[0]}">Fill in now</button></div>`:''}
     ${cur?`<form class="sect" data-form="ts"><h3>Timesheet · ${fmtDW(ts.d)}${ts.d!==TODAY?` <button class="btn small" type="button" data-action="op-day" data-d="${TODAY}">Today</button>`:''}</h3><div class="in">
       <div class="form">
@@ -1782,9 +1832,9 @@ Object.entries({HM:'012-300 1001',S1:'012-388 2201',S2:'012-660 3317',S3:'016-22
 const OFFICE = ['HM','S1','S2','S3'], FIELD = ['O1','O2','O3','O4','O5','O6','O7','O8','O9','D1','D2'];
 const meStaff = () => ({boss:'HM',supervisor:'S1',sales:'S2'})[role()] || state.me;
 const ROLE_VIEWS = {
-  boss:['dashboard','today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates','reports','connect'],
-  supervisor:['dashboard','today','enquiries','customers','hires','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates'],
-  sales:['dashboard','today','enquiries','customers','hires','planner','lift','calendar','fleet','rates'],
+  boss:['dashboard','today','enquiries','customers','avail','hires','dispatch','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates','reports','connect'],
+  supervisor:['dashboard','today','enquiries','customers','avail','hires','dispatch','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates'],
+  sales:['dashboard','today','enquiries','customers','avail','hires','dispatch','planner','lift','calendar','fleet','rates'],
   operator:['timesheets'],
 };
 let leave = [
@@ -1917,7 +1967,7 @@ function renderEnquiries(){
       <div class="kpi"><b>41 min</b><span>Average first reply (Oct)</span></div>
       <div class="kpi alert"><b>${overdue}</b><span>Follow-ups overdue</span></div>
       <div class="kpi warn"><b>${noFu}</b><span>Open, no follow-up set</span></div>
-    </div>${body}`;
+    </div>${tab==='board'?waInboxHtml():''}${body}`;
 }
 function neDefaults(pre={}){ return {src:'Phone', c:'', pname:'', pcontact:'', pphone:'', need:'Excavator 20 t', qty:1, k:'dry', from:addDays(TODAY,7), to:addDays(TODAY,20), site:'', state:'Selangor', notes:'', owner:OFFICE.includes(meStaff())?meStaff():'S2', fu:TODAY, fuT:'Call back with price and availability', temp:'Warm', ...pre}; }
 function openNewEnquiry(){
@@ -2235,7 +2285,8 @@ document.addEventListener('click', e => {
     if(act==='enq-stage'){ const x = enq(d.id); if(d.s==='Won' && !x.hire){ toast('Make the quotation and confirm the booking first'); return; } if(d.s==='Quoted' && !x.hire){ toast('Use "Make quotation": the quotation is built from the rate card'); return; } x.stage = d.s; x.log.unshift({d:`${TODAY} ${nowT()}`,t:`Moved to ${d.s}.`}); return rerender(); }
     if(act==='enq-cust'){ enqToCustomer(enq(d.id)); toast('Added as a customer'); return rerender(); }
     if(act==='enq-quote'){ const x = enq(d.id), c = enqToCustomer(x), mk = modelOfType(x.need), k = kindFor(mk,x.k);
-      state.nh = newHireDefaults({c, type:x.need, from:x.from, to:x.to, k, basis:guessBasis(mk,k,x.from,x.to), site:x.site||'', state:x.state||'Selangor', u:null, enq:x.id}); return openNewHire(); }
+      state.qq = qqDefaults({c, type:x.need, from:x.from, to:x.to, k, site:x.site||'', enq:x.id}); return openQuickQuote(); }
+    if(act==='confirm' && hire(d.id).status!=='Booked') return;
     if(act==='confirm' || act==='lose'){ const x = enquiries.find(y=>y.hire===d.id); if(x){ x.stage = act==='confirm' ? 'Won' : 'Lost'; if(act==='lose') x.lostWhy = hire(d.id).lines.some(l=>!l.u)?'No machine free':'Price'; rerender(); } return; }
     if(act==='leave-ok' || act==='leave-no'){ const l = leave.find(x=>x.id===+d.id), r = reliefFor(l); l.status = act==='leave-ok'?'Approved':'Rejected';
       toast(act==='leave-ok' ? (r ? `Approved. ${r.line.u} needs a relief operator: ${r.free[0]?staff[r.free[0]].name+' is free':'none free, ask the customer'}` : 'Leave approved') : 'Leave rejected'); return rerender(); }
@@ -2718,7 +2769,7 @@ function renderDashboard(){
   const delta = (a,b) => { const d = a-b; return `<small class="${d>=0?'up':'down'}">${d>=0?'▲':'▼'} ${Math.abs(d)} pts vs Sep</small>`; };
   $('#v-dashboard').innerHTML = `
     <div class="view-head"><div><h2>Dashboard</h2><span class="muted">${esc(CO.name)} · ${fmtDW(TODAY)} 2026, 9:15 am</span></div>
-      <div class="btnrow"><button class="btn" data-action="new-enq">New enquiry</button><button class="btn primary" data-action="new-hire">New hire / quotation</button></div></div>
+      <div class="btnrow"><button class="btn" data-action="new-enq">New enquiry</button><button class="btn" data-view="avail">Availability</button><button class="btn" data-action="qq-new">Quick quotation</button><button class="btn primary" data-action="new-hire">New order</button></div></div>
     <div class="kpis dk">
       <button class="kpi" data-view="fleet"><span class="label">Machinery on rental</span><b>${rented.length}<small class="muted"> / ${units.length}</small></b><span>${units.length-rented.length} in yard, booked or in workshop</span></button>
       <button class="kpi" data-view="reports"><span class="label">Utilisation rate</span><b>${uNow}%</b><span>Oct to date ${delta(uNow,uPrev)}</span></button>
@@ -2763,6 +2814,440 @@ function renderDashboard(){
   document.addEventListener('scroll', () => tip.hidden = true, true);
 })();
 
+/* ---------- Jobs: details, checklist before confirming, dispatch and tracking ---------- */
+const OPEN_END = '2099-12-31';
+const JOB_TYPES = ['Lifting','Hoisting / installation','Loading / unloading','Piling support','Standby on site','Monthly rental'];
+const PRECONFIRM = [
+  ['safety','Site safety requirements','PPE, permit to work, safety induction, CIDB green card'],
+  ['plan','Lifting plan / risk assessment','Prepared, or confirmed not needed for this lift'],
+  ['cf','Crane DOSH CF copy','In the cab, and sent to the customer if asked'],
+  ['op','Operator licences valid','DOSH competency, CIDB green card, GDL'],
+  ['rigging','Rigging gear and certificates','Slings, shackles, spreader bar: within test date, certificates in the cab'],
+  ['ground','Site access and ground','Road access, outrigger space, ground bearing, overhead lines'],
+  ['arrival','Arrival time agreed','Confirmed with the site contact'],
+  ['requests','Customer requests noted','e.g. extra rigger, tag lines, working hours'],
+  ['payment','Payment term confirmed','Credit with PO / LOU, or cash and who collects it'],
+];
+const PREDISPATCH = ['Engine oil, coolant and hydraulic oil levels','No leaks','Tyres and wheel nuts','Lights, horn, beacon and reverse alarm','LMI / ALI tested','Hook, safety latch and wire rope','Outrigger pads on board','Rigging gear on board with certificates','Fire extinguisher and first-aid kit','Documents in cab: DOSH CF, road tax, insurance','Fuel level checked'];
+const STEPS = [
+  {k:'confirmed', label:'Order confirmed', src:'Office'},
+  {k:'sent', label:'Job order sent to operator', src:'WhatsApp'},
+  {k:'precheck', label:'Pre-dispatch check', src:'Operator app'},
+  {k:'left', label:'Left yard', src:'GPS51'},
+  {k:'arrived', label:'Arrived · customer told', src:'GPS51 + WhatsApp'},
+  {k:'working', label:'Working', src:'Operator app'},
+  {k:'done', label:'Work order signed', src:'Operator app'},
+  {k:'leftsite', label:'Left site', src:'GPS51'},
+  {k:'yard', label:'Back in yard', src:'GPS51'},
+];
+const isMonthly = h => h.lines.some(l=>l.basis==='month');
+const jobSteps = h => isMonthly(h) ? STEPS.slice(0,6) : STEPS;
+const checkDone = h => PRECONFIRM.filter(([k])=>h.check?.[k]).length;
+const checkOk = h => checkDone(h) === PRECONFIRM.length;
+const stepNow = h => { const ss = jobSteps(h); let i = -1; ss.forEach((s,k)=>{ if(h.track?.[s.k]) i = k; }); return i; };
+const hireStatusPill = h => h.status==='Quotation' && h.order ? `<span class="pill appr">Order · checklist ${checkDone(h)}/${PRECONFIRM.length}</span>` : statusPill(h.status);
+const tNow = () => TODAY+' '+nowT();
+const hhmmOf = s => s ? s.slice(11,16) : '';
+
+/* example data for the process */
+(function seedJobs(){
+  const h = hire('H-2026-0155');
+  Object.assign(h, {job:{type:'Lifting', scope:'Lift and place 12 steel roof trusses (heaviest 1.8 t) onto the column heads, gridlines A–D. About 6 hours.', arrive:'09:30', requests:'Bring 2 tag lines. Site works 8 am to 6 pm only.', pay:'credit', collect:false},
+    check:Object.fromEntries(PRECONFIRM.map(([k])=>[k,true])), checkNote:{safety:'Helmet, vest, boots. Induction at the guardhouse.', rigging:'2 × 3 t round slings, 2 × 4.75 t shackles (tested Jul 2026).'},
+    track:{confirmed:'2026-10-13 14:00', sent:'2026-10-15 18:05', precheck:'2026-10-16 07:40', left:'2026-10-16 08:42'}, gps:{at:'2026-10-16 09:14', where:'Jalan Kapar, 3.1 km from site', speed:38, eta:'09:22'}});
+  hires.push({id:'H-2026-0159', c:'C8', site:'Sinar Timur workshop, Jalan Kebun, Klang', state:'Selangor', siteContact:'Mr. Yap 012-338 7766', po:'Cash job', status:'Quotation', order:true, created:'2026-10-15', cycle:'End of hire',
+    lines:[{u:'TC-06', k:'wet', basis:'hour', from:'2026-10-17', to:'2026-10-17', op:'O5'}],
+    trips:[{dir:'Delivery', d:'2026-10-17', u:'TC-06', veh:null, drv:'O5', zone:'Klang Valley', charge:500, status:'Planned', self:true}],
+    job:{type:'Loading / unloading', scope:'Unload a 3.2 t generator set from the customer\'s lorry and set it on the plinth. About 3 hours (4 hours minimum charge).', arrive:'09:00', requests:'Customer supplies the lorry; bring a spreader bar.', pay:'cash', collect:true},
+    check:{safety:true, plan:true, cf:true, op:true, ground:true, requests:true}, checkNote:{},
+    track:{}, log:[{d:'2026-10-15 17:40', t:'Order keyed in from Mr. Yap\'s WhatsApp. Customer knows the lift; checklist started.'}]});
+  hire('H-2026-0149').lines[0].to = OPEN_END; hire('H-2026-0149').lines[0].open = true;
+  hires.filter(h=>h.status==='Quotation').forEach(h=>{ h.check = h.check || {}; h.track = h.track || {}; });
+  hires.filter(h=>isMonthly(h) && h.status==='On hire' && !h.track).forEach(h => { h.track = {confirmed:h.created+' 10:00', sent:h.created+' 16:00', precheck:h.lines[0].on+' 07:30', left:h.lines[0].on+' 08:00', arrived:h.lines[0].on+' 09:10', working:h.lines[0].on+' 09:40'}; });
+})();
+const WA_INBOX = [
+  {id:1, at:'2026-10-16 09:02', from:'+60 13-508 2291', name:'Unknown number', c:null, text:'Boss, ada kren 50 tan available minggu depan? Kerja angkat tangki air di Puchong, 2 hari.', link:null},
+  {id:2, at:'2026-10-16 08:47', from:'+60 12-771 4402', name:'Mr. Ong · Sri Kenari Builders', c:null, text:'Hi, can confirm the 25 t crane for 26–30 Oct at Bandar Rimbayu? Heaviest beam 3.2 t at 18 m.', link:{enq:'E-2026-0231'}},
+  {id:3, at:'2026-10-16 07:55', from:'+60 12-655 0912', name:'Ms. Chong · Ever Bright Steel', c:'C4', text:'Crane reaching what time? Our workers ready at 9.', link:{hire:'H-2026-0155'}, auto:'Auto-reply: LC-01 is on the way, about 09:22 (GPS51).'},
+  {id:4, at:'2026-10-15 17:20', from:'+60 12-338 7766', name:'Mr. Yap · Sinar Timur Engineering', c:'C8', text:'Need crane tomorrow Saturday 9am to unload 3.2 ton genset at our workshop Jalan Kebun. Cash payment.', link:{hire:'H-2026-0159'}},
+];
+
+function cashAmount(h){
+  const l = h.lines[0], mk = lineModel(l), est = estimate(mk, l.k, l.basis, l.from, minD(l.to, addDays(l.from,29)), 8);
+  const tr = sum(h.trips.map(t=>t.charge)), sub = (est?.amt||0) + tr; return sub*(1+RULES.sst/100);
+}
+function waOperator(h){
+  const l = h.lines[0], j = h.job || {}, op = staff[l.op];
+  const lines = [
+    `*JOB ORDER ${h.id}* · Super Power Crane`,
+    `Date: ${fmtDW(l.from)} ${l.from.slice(0,4)}${j.arrive?`, arrive by ${j.arrive}`:''}`,
+    `Machine: ${l.u} ${uName(l.u)} (${uRef(l.u)})`,
+    `Customer: ${custName(h.c)}`,
+    `Site: ${h.site}`,
+    `Site contact: ${h.siteContact}`,
+    `Job type: ${j.type||'—'}`,
+    `Scope: ${j.scope||'—'}`,
+    j.requests ? `Customer requests: ${j.requests}` : null,
+    h.checkNote?.safety ? `Safety: ${h.checkNote.safety}` : null,
+    h.checkNote?.rigging ? `Rigging: ${h.checkNote.rigging}` : null,
+    j.pay==='cash' ? (j.collect ? `*COLLECT CASH: ${RM(h.cashAmt || cashAmount(h))}* (incl. SST). Issue the receipt in the app.` : 'Cash job: the office collects payment. Do not collect cash.') : null,
+    isMonthly(h) ? `Monthly rental${l.open?' with no end date, until the customer stops':' until '+fmtD(l.to)}. Fill in the timesheet every day.` : null,
+    'Do the pre-dispatch check in the app before leaving the yard.',
+  ].filter(Boolean);
+  return {to:`${op.name} · ${op.phone}`, text:lines.join('\n')};
+}
+function waCustomer(h){
+  const l = h.lines[0];
+  return {to:`${h.siteContact}`, text:`Super Power Crane: our ${mOf(l.u).type.toLowerCase()} ${l.u} (${uRef(l.u)}) with operator ${staff[l.op]?.name||''} has arrived at ${h.site} at ${hhmmOf(h.track.arrived)}. Job order ${h.id}.`};
+}
+function trackHtml(h){
+  const ss = jobSteps(h), cur = stepNow(h);
+  return `<ol class="track">${ss.map((s,i)=>`<li class="${i<=cur?'done':''} ${i===cur+1?'next':''}"><b>${esc(s.label)}</b><small>${h.track?.[s.k] ? (h.track[s.k].slice(0,10)===TODAY ? hhmmOf(h.track[s.k]) : fmtD(h.track[s.k].slice(0,10))+' '+hhmmOf(h.track[s.k])) : i===cur+1 ? 'next' : '—'} · ${esc(s.src)}</small></li>`).join('')}</ol>`;
+}
+function jobSectionsHtml(h){
+  if(!h.job && !h.check) return '';
+  const j = h.job || {}, l = h.lines[0], canEdit = ['Quotation','Booked'].includes(h.status) && role()!=='operator';
+  return `
+    ${h.job?`<div class="sect"><h3>Job</h3><div class="facts">
+      <div><span class="label">Job type</span><b>${esc(j.type)}</b></div>
+      <div><span class="label">Arrive by</span><b>${fmtDW(l.from)} ${esc(j.arrive||'—')}</b></div>
+      <div><span class="label">Payment</span><b>${j.pay==='cash'?'Cash':'Credit'}${j.pay==='cash'?` · ${j.collect?'operator collects':'office collects'}`:''}</b>${j.pay==='cash'?`<small class="muted cost">${RM(h.cashAmt||cashAmount(h))} incl. SST</small>`:''}</div>
+      <div><span class="label">End</span><b>${l.open?'No end date: until the customer stops':fmtDY(l.to)}</b></div>
+      <div style="grid-column:1/-1"><span class="label">Scope</span><b>${esc(j.scope)}</b></div>
+      ${j.requests?`<div style="grid-column:1/-1"><span class="label">Customer requests</span><b>${esc(j.requests)}</b></div>`:''}
+    </div></div>`:''}
+    ${h.check?`<div class="sect"><h3>Checklist before confirming <span class="pill ${checkOk(h)?'ok':'warn'}">${checkDone(h)} / ${PRECONFIRM.length}</span></h3><div class="in checks">
+      ${PRECONFIRM.map(([k,t,hint])=>`<label><input type="checkbox" data-chk="${h.id}|${k}" ${h.check[k]?'checked':''} ${canEdit?'':'disabled'}> <span><b style="font-weight:600">${esc(t)}</b><br><small class="muted">${esc(h.checkNote?.[k]||hint)}</small></span></label>`).join('')}
+    </div>${!checkOk(h)&&h.status==='Quotation'?'<div class="in" style="border-top:1px solid var(--line)"><small style="color:var(--warn);font-weight:600">Tick every item to confirm the order.</small></div>':''}</div>`:''}
+    ${h.track && Object.keys(h.track).length?`<div class="sect"><h3>Dispatch and tracking</h3><div class="in">${trackHtml(h)}${h.gps&&!h.track.arrived?`<small class="muted">GPS51 ${hhmmOf(h.gps.at)}: ${esc(h.gps.where)}, ${h.gps.speed} km/h, ETA ${h.gps.eta}</small>`:''}</div></div>`:''}`;
+}
+function openWa(id, who){
+  const h = hire(id), m = who==='customer' ? waCustomer(h) : waOperator(h);
+  const body = `<div class="sect"><h3>To ${esc(m.to)}</h3><div class="in"><div class="wa">${esc(m.text).replace(/\*(.+?)\*/g,'<b>$1</b>')}</div>
+    <small class="muted">${who==='customer'?'Sent automatically when GPS51 shows the machine inside the site area.':'Sent from the company WhatsApp Business number as a job-order message. The operator replies or taps the link to open the job in the app.'}</small></div></div>
+    <div class="btnrow">${who!=='customer'?`<button class="btn primary" data-action="wa-send" data-id="${id}">${h.track?.sent?'Send again':'Send to operator'}</button>`:''}<button class="btn" data-action="wa-copy" data-id="${id}" data-who="${who||'op'}">Copy text</button></div>`;
+  openSheet(who==='customer'?'Arrival message to customer':'Job order to operator', `<span class="mono">${id} · WhatsApp</span>`, body, {type:'wa', id, kind:who||'op'});
+}
+function openPrecheck(id){
+  const h = hire(id), l = h.lines[0];
+  const body = `<form class="stack" data-form="precheck" data-id="${id}">
+    <div class="banner"><b>Pre-dispatch check for ${l.u} ${esc(uName(l.u))}, done in the yard before leaving.</b></div>
+    <div class="sect"><h3>Checklist</h3><div class="in checks">${PREDISPATCH.map((c,i)=>`<label><input type="checkbox" name="c${i}"> ${esc(c)}</label>`).join('')}</div></div>
+    <div class="sect"><h3>Readings</h3><div class="in form"><label>Hour meter<input type="number" name="hm" value="${Math.round(fleet[l.u].hm||0)}"></label><label>Fuel<select class="field" name="fuel">${['Full','¾','½','¼'].map(f=>`<option>${f}</option>`).join('')}</select></label><label class="full">Remarks<input type="text" name="note" placeholder="Anything not OK, e.g. beacon not working"></label></div></div>
+    <div class="btnrow"><button class="btn primary">Save check: ready to go</button></div></form>`;
+  openSheet('Pre-dispatch check', `<span class="mono">${id}</span>`, body, {type:'pre', id});
+}
+function openWorkOrder(id){
+  const h = hire(id), l = h.lines[0], st = hhmmOf(h.track.working) || '09:00';
+  const body = `<form class="stack" data-form="wo" data-id="${id}">
+    <div class="sect"><h3>Work order · ${esc(h.job?.type||'')}</h3><div class="in form">
+      <label>Start<input type="time" name="start" value="${st}"></label><label>Finish<input type="time" name="finish" value="${hhmm(toH(st)+5.5)}"></label>
+      <label>Break (min)<input type="number" name="brk" value="30" step="15"></label><label>Standby hours<input type="number" name="standby" value="0" step="0.5"></label>
+      <label class="full">Work done<textarea name="note" rows="2">${esc(h.job?.scope||'')}</textarea></label></div></div>
+    <div class="sect"><h3>Customer signs</h3><div class="in"><div class="form"><label>Name<input type="text" name="signer" value="${esc(SITE_SIGNER[h.c]||'')}"></label></div>
+      <canvas class="sig" id="sigPad" aria-label="Signature pad"></canvas><div class="btnrow"><button class="btn small" type="button" data-action="sig-clear">Clear</button></div></div></div>
+    ${h.job?.pay==='cash'&&h.job.collect?`<div class="banner"><b>Collect ${RM(h.cashAmt||cashAmount(h))} cash and issue the receipt.</b></div>`:''}
+    <div class="btnrow"><button class="btn primary">Save signed work order</button></div></form>`;
+  openSheet('Work order', `<span class="mono">${id} · ${l.u}</span>`, body, {type:'wo', id});
+  initSig();
+}
+/* GPS51 simulation for the prototype: moves a job to its next tracked step */
+function gpsNext(h){
+  const ss = jobSteps(h), i = stepNow(h), next = ss[i+1]; if(!next) return;
+  const l = h.lines[0];
+  if(next.k==='confirmed' || next.k==='sent' || next.k==='precheck'){ toast(next.k==='confirmed' ? 'Complete the checklist and confirm the order first' : next.k==='sent' ? 'Send the job order to the operator first' : 'The operator does the pre-dispatch check in the app'); return; }
+  if(next.k==='done'){ openWorkOrder(h.id); return; }
+  h.track[next.k] = tNow();
+  if(next.k==='left'){ h.gps = {at:h.track.left, where:'Leaving the yard', speed:22, eta:h.job?.arrive||''}; h.log.unshift({d:h.track.left, t:`GPS51: ${l.u} left the yard.`}); toast(`GPS51: ${l.u} left the yard`); }
+  if(next.k==='arrived'){ h.status = 'On hire'; h.lines.forEach(x=>{ x.on = x.on || TODAY; }); h.trips.filter(t=>t.dir==='Delivery' && t.d===TODAY).forEach(t=>t.status='Done');
+    h.log.unshift({d:h.track.arrived, t:`GPS51: ${l.u} arrived at site. WhatsApp sent to ${h.siteContact}.`}); toast(`GPS51: ${l.u} arrived. Customer told by WhatsApp.`); }
+  if(next.k==='working'){ h.log.unshift({d:h.track.working, t:`${staff[l.op]?.name} started work.`}); toast('Work started'); }
+  if(next.k==='leftsite'){ h.log.unshift({d:h.track.leftsite, t:`GPS51: ${l.u} left site.`}); toast(`GPS51: ${l.u} left site`); }
+  if(next.k==='yard'){ h.lines.forEach(x=>{ x.off = TODAY; }); h.status = 'Returned'; h.log.unshift({d:h.track.yard, t:`GPS51: ${l.u} back in the yard. Ready to invoice.`}); toast(`${l.u} back in the yard. ${h.id} ready to invoice.`); }
+}
+function gpsLive(u){
+  const s = unitStatus(u), h = s.h, l = s.l;
+  if(h && h.track && h.track.left && !h.track.arrived) return {state:'Moving', where:h.gps?.where||'On the road', speed:h.gps?.speed||40, at:hhmmOf(h.gps?.at)||'09:14', cls:'warn'};
+  if(s.k==='On hire' || s.k==='Off-hire called') return {state: rnd('ig'+u) > 0.25 ? 'At site · engine on' : 'At site · parked', where:h.site.split(',')[0], speed:0, at:'09:1'+Math.floor(rnd('t'+u)*6), cls:'ok'};
+  if(s.k==='In workshop') return {state:'Workshop', where:'Klang yard', speed:0, at:'08:55', cls:'mute'};
+  return {state:'Yard', where:'Klang yard', speed:0, at:'09:0'+Math.floor(rnd('y'+u)*9), cls:'mute'};
+}
+function renderDispatch(){
+  const jobs = hires.filter(h => h.job && ['Quotation','Booked','On hire','Returned'].includes(h.status) && !(isMonthly(h) && stepNow(h)>=5 && h.lines[0].on<TODAY)).sort((a,b)=>a.lines[0].from<b.lines[0].from?-1:1);
+  const cranes = Object.keys(fleet).filter(u=>mOf(u).grp==='crane' || fleet[u].transport);
+  const pend = jobs.filter(h=>h.status==='Quotation' && !checkOk(h)).length, unsent = jobs.filter(h=>h.status==='Booked' && !h.track?.sent).length;
+  const moving = cranes.filter(u=>gpsLive(u).state==='Moving').length, atSite = cranes.filter(u=>gpsLive(u).state.startsWith('At site')).length;
+  $('#v-dispatch').innerHTML = `
+    <div class="view-head"><h2>Dispatch · ${fmtDW(TODAY)}</h2><button class="btn primary" data-action="new-hire">New order</button></div>
+    <div class="kpis"><div class="kpi"><b>${jobs.length}</b><span>Jobs today and coming</span></div><div class="kpi ${pend?'warn':''}"><b>${pend}</b><span>Checklists not complete</span></div><div class="kpi ${unsent?'alert':''}"><b>${unsent}</b><span>Job orders not sent</span></div><div class="kpi"><b>${moving}</b><span>On the road now</span></div><div class="kpi"><b>${atSite}</b><span>At site</span></div></div>
+    ${jobs.map(h=>{ const l = h.lines[0], i = stepNow(h), next = jobSteps(h)[i+1];
+      const act = h.status==='Quotation' ? `<button class="btn small primary" data-hire="${h.id}">${checkOk(h)?'Confirm order':'Open checklist'}</button>`
+        : !h.track?.sent ? `<button class="btn small primary" data-action="wa-open" data-id="${h.id}">Send job order (WhatsApp)</button>`
+        : next ? (next.k==='precheck' ? `<button class="btn small" data-action="pre-open" data-id="${h.id}">Pre-dispatch check</button>` : next.k==='done' ? `<button class="btn small primary" data-action="wo-open" data-id="${h.id}">Work order</button>` : `<button class="btn small" data-action="gps-next" data-id="${h.id}">${next.src.startsWith('GPS')?'Simulate GPS51: ':''}${esc(next.label)}</button>`) : '<span class="pill ok">Done</span>';
+      return `<div class="panel jobcard"><div class="panel-head"><div><span class="mono">${h.id}</span> ${hireStatusPill(h)}<h3>${l.u} ${esc(uName(l.u))} → ${esc(custName(h.c))}</h3><small class="muted">${fmtDW(l.from)}${h.job.arrive?' · arrive '+h.job.arrive:''} · ${esc(h.site)} · ${esc(h.job.type)} · operator ${esc(staff[l.op]?.name||'—')}${h.job.pay==='cash'?` · <b>cash${h.job.collect?', operator collects':''}</b>`:''}</small></div>
+        <div class="btnrow">${act}${h.track?.sent?`<button class="btn small" data-action="wa-open" data-id="${h.id}">Job order</button>`:''}${h.track?.arrived?`<button class="btn small" data-action="wa-cust" data-id="${h.id}">Arrival message</button>`:''}<button class="btn small" data-hire="${h.id}">Open</button></div></div>
+        <div class="in" style="padding:12px 14px">${h.status==='Quotation'?`<div class="minihead"><span>Checklist ${checkDone(h)} of ${PRECONFIRM.length}${checkOk(h)?'':': '+PRECONFIRM.filter(([k])=>!h.check?.[k]).map(([,t])=>t.toLowerCase()).join(', ')+' still to do'}</span></div>`:trackHtml(h)}
+        ${h.gps&&h.track?.left&&!h.track?.arrived?`<small class="muted">GPS51 ${hhmmOf(h.gps.at)}: ${esc(h.gps.where)}, ${h.gps.speed} km/h · ETA ${esc(h.gps.eta)}</small>`:''}</div></div>`; }).join('') || '<p class="muted">No jobs to dispatch.</p>'}
+    <div class="panel"><div class="panel-head"><h3>GPS51 · live positions</h3><span class="muted">cranes and transport · updated every minute</span></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Machine</th><th>Status</th><th>Where</th><th class="r">Speed</th><th class="r">Updated</th></tr></thead><tbody>
+      ${cranes.map(u=>{ const g = gpsLive(u); return `<tr class="click" data-unit="${u}"><td><b>${u}</b> ${esc(uName(u))}</td><td><span class="pill ${g.cls}">${esc(g.state)}</span></td><td>${esc(g.where)}</td><td class="r num">${g.speed} km/h</td><td class="r num">${g.at}</td></tr>`; }).join('')}
+      </tbody></table></div>
+      <div class="in" style="padding:10px 14px"><small class="muted">Prototype: positions are simulated. Live data needs API access from your GPS51 provider; until then operators tap each step in the app and the phone's location is recorded.</small></div></div>`;
+}
+function waInboxHtml(){
+  return `<div class="panel"><div class="panel-head"><h3>WhatsApp inbox</h3><span class="muted">company number · new messages become enquiries</span></div><div class="panel-body">
+    ${WA_INBOX.map(m=>`<div class="wamsg"><div><b>${esc(m.name)}</b> <small class="muted">${esc(m.from)} · ${fmtD(m.at.slice(0,10))} ${m.at.slice(11)}</small><div class="wa" style="margin-top:4px">${esc(m.text)}</div>${m.auto?`<small class="muted">${esc(m.auto)}</small>`:''}</div>
+      <div class="btnrow">${m.link?.enq?`<button class="btn small" data-enq="${m.link.enq}">${m.link.enq}</button>`:m.link?.hire?`<button class="btn small" data-hire="${m.link.hire}">${m.link.hire}</button>`:`<button class="btn small primary" data-action="wa-enq" data-m="${m.id}">Make enquiry</button><button class="btn small" data-action="wa-order" data-m="${m.id}">Quick order</button>`}</div></div>`).join('')}
+  </div></div>`;
+}
+function jobCardOpHtml(){
+  const me = state.me;
+  const h = hires.find(x => x.job && x.lines.some(l=>l.op===me) && ['Booked','On hire'].includes(x.status) && x.track?.sent && !x.track?.done && x.lines[0].from<=addDays(TODAY,1) && !(isMonthly(x) && x.track?.working));
+  if(!h) return '';
+  const l = h.lines[0], i = stepNow(h), next = jobSteps(h)[i+1], j = h.job;
+  const btn = !next ? '' : next.k==='precheck' ? `<button class="btn primary" data-action="pre-open" data-id="${h.id}">Do pre-dispatch check</button>` : next.k==='working' ? `<button class="btn primary" data-action="gps-next" data-id="${h.id}">Start work</button>` : next.k==='done' ? `<button class="btn primary" data-action="wo-open" data-id="${h.id}">Complete work order</button>` : `<button class="btn" data-action="gps-next" data-id="${h.id}">${next.k==='left'?"I've left the yard":next.k==='arrived'?"I've arrived":esc(next.label)}</button><small class="muted">Filled in automatically by GPS51; tap only if there is no signal.</small>`;
+  return `<div class="panel"><div class="panel-head"><div><span class="label">Job order ${h.id}</span><h3>${l.u} → ${esc(custName(h.c))}</h3></div></div><div class="in" style="padding:10px 14px;display:flex;flex-direction:column;gap:6px">
+    <b>${fmtDW(l.from)}${j.arrive?', arrive by '+j.arrive:''}</b><span>${esc(h.site)}</span><small class="muted">Site contact: ${esc(h.siteContact)}</small>
+    <span><b>${esc(j.type)}:</b> ${esc(j.scope)}</span>${j.requests?`<small class="muted">Requests: ${esc(j.requests)}</small>`:''}
+    ${j.pay==='cash'?`<div class="banner" style="padding:8px 10px"><b>${j.collect?`Collect cash ${RM(h.cashAmt||cashAmount(h))} and issue the receipt.`:'Cash job: the office collects payment. Do not collect cash.'}</b></div>`:''}
+    ${trackHtml(h)}<div class="btnrow">${btn}</div></div></div>`;
+}
+
+document.addEventListener('click', e => {
+  if(e.target.closest('input,select,textarea,canvas')) return;
+  const a = e.target.closest('[data-action^="wa-"],[data-action="pre-open"],[data-action="wo-open"],[data-action="gps-next"],[data-opme]');
+  if(!a) return;
+  const d = a.dataset, h = d.id ? hire(d.id) : null;
+  if(d.opme){ state.me = d.opme; state.ts = null; return render(); }
+  if(d.action==='wa-open') return openWa(d.id, 'op');
+  if(d.action==='wa-cust') return openWa(d.id, 'customer');
+  if(d.action==='wa-send'){ h.track.sent = tNow(); h.log.unshift({d:h.track.sent, t:`Job order sent to ${staff[h.lines[0].op].name} by WhatsApp.`}); toast(`Job order sent to ${staff[h.lines[0].op].name} by WhatsApp`); closeSheet(); return render(); }
+  if(d.action==='wa-copy'){ const m = d.who==='customer' ? waCustomer(h) : waOperator(h); try{ navigator.clipboard.writeText(m.text).then(()=>toast('Copied'), ()=>toast('Select the text and copy it')); }catch(err){ toast('Select the text and copy it'); } return; }
+  if(d.action==='pre-open') return openPrecheck(d.id);
+  if(d.action==='wo-open') return openWorkOrder(d.id);
+  if(d.action==='gps-next'){ gpsNext(h); if(state.sheet?.type==='wo') return; return rerender(); }
+  if(d.action==='wa-enq' || d.action==='wa-order'){ const m = WA_INBOX.find(x=>x.id===+d.m);
+    if(d.action==='wa-enq'){ state.ne = neDefaults({src:'WhatsApp', c:m.c||'', pphone:m.from, pname:m.c?'':'', notes:m.text, need:/50\s*tan|50\s*t/i.test(m.text)?'Rough terrain crane 50 t':'Truck crane 25 t', fuT:'Reply on WhatsApp with availability and price'}); return openNewEnquiry(); }
+    state.nh = newHireDefaults({c:m.c||'C1', site:'', jobScope:m.text}); return openNewHire(); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.dataset.chk){ const [id,k] = t.dataset.chk.split('|'), h = hire(id); h.check = h.check || {}; h.check[k] = t.checked; if(t.checked) h.log.unshift({d:tNow(), t:`Checklist: ${PRECONFIRM.find(x=>x[0]===k)[1]} ticked by ${staff[meStaff()].name}.`}); return rerender(); }
+});
+document.addEventListener('submit', e => {
+  const f = e.target, fd = new FormData(f);
+  if(f.dataset.form==='precheck'){ e.preventDefault(); const h = hire(f.dataset.id); const n = PREDISPATCH.filter((_,i)=>fd.get('c'+i)).length;
+    if(n < PREDISPATCH.length && !(fd.get('note')||'').trim()){ toast(`${PREDISPATCH.length-n} items not ticked: write what is wrong in Remarks`); return; }
+    h.track.precheck = tNow(); h.log.unshift({d:h.track.precheck, t:`Pre-dispatch check done (${n}/${PREDISPATCH.length})${fd.get('note')?': '+fd.get('note'):''}. Hour meter ${fd.get('hm')}, fuel ${fd.get('fuel')}.`});
+    toast('Pre-dispatch check saved: ready to go'); closeSheet(); return render(); }
+  if(f.dataset.form==='wo'){ e.preventDefault(); if(!sigDrawn){ toast('The customer has to sign'); return; } const h = hire(f.dataset.id), l = h.lines[0];
+    const work = Math.max(0, toH(fd.get('finish'))-toH(fd.get('start'))-(+fd.get('brk')||0)/60-(+fd.get('standby')||0));
+    sheets = sheets.filter(s=>!(s.u===l.u && s.d===TODAY && s.hire===h.id));
+    sheets.push({id:`${l.u}-${TODAY}`, hire:h.id, u:l.u, op:l.op, d:TODAY, start:fd.get('start'), finish:fd.get('finish'), brk:+fd.get('brk')||0, work, standby:+fd.get('standby')||0, reason:'Site', bd:0, hmS:fleet[l.u].hm||0, hmE:(fleet[l.u].hm||0)+work, note:fd.get('note'), status:'signed', signer:fd.get('signer')});
+    h.track.done = tNow(); h.log.unshift({d:h.track.done, t:`Work order signed by ${fd.get('signer')}: ${fd.get('start')}–${fd.get('finish')}, ${num(work)} h.${h.job?.pay==='cash'&&h.job.collect?' Cash collected.':''}`});
+    toast(`Work order signed: ${num(work)} h`); closeSheet(); return render(); }
+});
+
+/* ---------- Availability (sales) ---------- */
+/* Firm: bookings, hires, workshop. Tentative: quotations and unconfirmed orders on a machine, and open enquiries for the type. */
+function tentativeFor(type, from, to){
+  const quotes = hires.filter(h=>h.status==='Quotation' && h.lines.some(l=>models[lineModel(l)]?.type===type && overlaps(from,to,l.from,lineEnd(l))))
+    .map(h=>({kind:h.order?'order':'quote', id:h.id, u:h.lines[0].u||'no machine yet', who:custName(h.c).replace(/ Sdn Bhd$/,''), from:h.lines[0].from, to:lineEnd(h.lines[0]), valid:h.quoteValid}));
+  const enqs = enquiries.filter(e=>openStage(e) && !e.hire && e.need===type && overlaps(from,to,e.from,e.to))
+    .map(e=>({kind:'enq', id:e.id, who:enqName(e).replace(/ Sdn Bhd$/,''), qty:e.qty||1, from:e.from, to:e.to, stage:e.stage, temp:e.temp}));
+  return [...quotes, ...enqs];
+}
+const tentChip = t => t.kind==='enq'
+  ? `<button class="tchip enq" data-enq="${t.id}" title="${esc(t.stage)} · ${esc(t.temp)}">Enquiry ${esc(t.who)}${t.qty>1?' ×'+t.qty:''} · ${fmtD(t.from)}–${fmtD(t.to)}</button>`
+  : `<button class="tchip ${t.kind}" data-hire="${t.id}">${t.kind==='order'?'Order (checklist)':'Quoted'} ${esc(t.who)} · ${t.u} · ${fmtD(t.from)}–${fmtD(t.to)}${t.valid?' · valid to '+fmtD(t.valid):''}</button>`;
+function renderAvail(){
+  const a = state.av, days = [...Array(14)].map((_,i)=>addDays(a.start,i));
+  const types = [...new Set(hireUnits().map(u=>mOf(u).type))].filter(t => !a.grp || hireUnits().some(u=>mOf(u).type===t && mOf(u).grp===a.grp));
+  const cell = (type, d) => { const us = hireUnits().filter(u=>mOf(u).type===type), free = us.filter(u=>availability(u,d,d).ok).length, tent = tentativeFor(type,d,d), tq = sum(tent.map(t=>t.qty||1));
+    const cls = free===0 ? 'none' : free - tq <= 0 && tq ? 'tight' : free===us.length ? 'all' : 'some';
+    return `<button class="avc ${cls} ${d>=a.from&&d<=a.to&&type===a.type?'sel':''}" data-avpick="${type}|${d}" title="${esc(type)} ${fmtDW(d)}: ${free} of ${us.length} free${tq?`, ${tq} tentative`:''}">${free}<small>/${us.length}</small>${tq?`<i>+${tq}</i>`:''}</button>`; };
+  const selType = a.type, list = selType ? hireUnits().filter(u=>mOf(u).type===selType) : [];
+  const tent = selType ? tentativeFor(selType, a.from, a.to) : [];
+  $('#v-avail').innerHTML = `
+    <div class="view-head"><h2>Availability</h2><button class="btn primary" data-action="qq-new">Quick quotation</button></div>
+    <form class="findbar" data-form="av">
+      <label>From<input type="date" name="from" value="${a.from}"></label><label>To<input type="date" name="to" value="${a.to}"></label>
+      <label>Machine type<select class="field" name="type"><option value="">Pick a type…</option>${[...new Set(hireUnits().map(u=>mOf(u).type))].map(t=>`<option ${t===selType?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+      <button class="btn">Check</button>
+    </form>
+    ${selType ? `<div class="panel"><div class="panel-head"><h3>${esc(selType)} · ${fmtDW(a.from)}${a.to!==a.from?' – '+fmtDW(a.to):''}</h3><span class="muted">${list.filter(u=>availability(u,a.from,a.to).ok).length} of ${list.length} free</span></div><div class="findres">
+      ${list.map(u=>{ const av = availability(u,a.from,a.to), mine = tent.filter(t=>t.u===u);
+        return `<div class="fr"><div><b>${u} ${esc(uName(u))}</b> <span class="pill ${av.ok?'ok':'crit'}">${av.ok?'Free':'Not free'}</span>${av.ok&&av.warn.length?' <span class="pill crit">Document issue</span>':''}${mine.length?' <span class="pill warn">Quoted to someone else</span>':''}
+          <small>${av.ok?(av.warn.length?'':'Nothing booked on these dates.'):av.why.map(esc).join(' · ')}</small>${av.ok?warnHtml(av.warn):''}${mine.length?`<div class="tchips">${mine.map(tentChip).join('')}</div>`:''}</div>
+          ${av.ok?`<button class="btn small primary" data-action="qq-new" data-u="${u}">Quote this machine</button>`:''}</div>`; }).join('')}
+      ${tent.filter(t=>t.kind==='enq').length?`<div class="fr"><div><b>Other customers asking for a ${esc(selType)} on these dates</b><div class="tchips">${tent.filter(t=>t.kind==='enq').map(tentChip).join('')}</div><small>Not booked yet, but they want the same type: confirm quickly or offer another size.</small></div></div>`:''}
+    </div></div>` : ''}
+    <div class="panel"><div class="panel-head"><h3>Next 14 days by machine type</h3><div class="chipbar">${['',...Object.keys(GROUPS).filter(g=>g!=='transport')].map(g=>`<button class="chip" data-avgrp="${g}" aria-pressed="${a.grp===g}">${g?esc(GROUPS[g]):'All'}</button>`).join('')}</div></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table class="avgrid"><thead><tr><th>Machine type</th>${days.map(d=>`<th class="${dow(d)===0?'sun':''} ${d===TODAY?'today':''}">${DOW[dow(d)].slice(0,2)}<br>${+d.slice(8)}</th>`).join('')}</tr></thead><tbody>
+        ${types.map(t=>`<tr><td><b>${esc(t)}</b></td>${days.map(d=>`<td>${cell(t,d)}</td>`).join('')}</tr>`).join('')}
+      </tbody></table></div>
+      <div class="in" style="padding:10px 14px"><div class="g-legend"><span><i class="avc all" style="width:22px;height:18px"></i>All free</span><span><i class="avc some" style="width:22px;height:18px"></i>Some free</span><span><i class="avc tight" style="width:22px;height:18px"></i>Free but others are asking</span><span><i class="avc none" style="width:22px;height:18px"></i>None free</span><span class="muted">Number = machines free · +n = quotations or enquiries for that day · tap a box for details</span></div></div></div>`;
+}
+
+/* ---------- Quick quotation ---------- */
+const QUOTE_REMARKS = [
+  'All rates are in Ringgit Malaysia and exclude 8% SST.',
+  'Wet hire includes the operator. Daily hire covers 8 working hours, Monday to Saturday.',
+  'Hourly hire: minimum 4 hours per call, counted from arrival at site to release.',
+  'Overtime, Sundays and public holidays are charged at the overtime / holiday rates shown.',
+  'Mobilisation and demobilisation as stated. Lowloader permits and police escort, if needed, at cost.',
+  'Customer to provide firm level ground, safe access, site permits and a competent rigger / signalman unless requested from us.',
+  'Standby due to rain or site not ready is chargeable.',
+  'Cancellation less than 24 hours before mobilisation is charged at 4 hours.',
+  'Payment: 30 days for approved credit customers; otherwise cash on completion. PO / LOU required to confirm.',
+  'This quotation is valid for 7 days and is subject to machine availability when confirmed.',
+];
+const DISC_LIMIT = {sales:5, supervisor:10, boss:100};
+const RIGGER_DAY = 250;
+function qqDefaults(pre={}){
+  const from = state.av?.from || addDays(TODAY,1), to = state.av?.to || from, type = state.av?.type || 'Truck crane 25 t';
+  return {c:'', name:'', contact:'', phone:'', site:'', type, u:null, from, to, k:'wet', basis:'', hrs:8, disc:0, zone:'Klang Valley', mob:true, rigger:false, valid:7,
+    remarks:QUOTE_REMARKS.map(()=>true), extra:'', enq:null, ...pre};
+}
+function qqCalc(q){
+  const types = [...new Set(hireUnits().map(u=>mOf(u).type))];
+  const units = hireUnits().filter(u=>mOf(u).type===q.type).map(u=>({u,...availability(u,q.from,q.to)}));
+  if(q.u && !units.some(x=>x.u===q.u)) q.u = null;
+  if(!q.u){ const f = units.find(x=>x.ok && !x.warn.length) || units.find(x=>x.ok) || units[0]; q.u = f ? f.u : null; }
+  const mk = q.u ? fleet[q.u].m : modelOfType(q.type), k = kindFor(mk, q.k); q.k = k;
+  const r = rate(mk, k) || {}, bases = ['hour','day','week','month'].filter(b=>r[{hour:'hr',day:'day',week:'week',month:'month'}[b]]);
+  if(!bases.includes(q.basis)) q.basis = guessBasis(mk, k, q.from, q.to);
+  const base = r[{hour:'hr',day:'day',week:'week',month:'month'}[q.basis]] || 0, unitRate = Math.round(base*(1-q.disc/100)*100)/100;
+  const est = estimate(mk, k, q.basis, q.from, q.to, +q.hrs), qty = base ? +((est?.amt||0)/base).toFixed(2) : 0;
+  const uLabel = {hour:'hour',day:'day',week:'week',month:'month'}[q.basis];
+  let work = 0; for(let d=q.from; d<=q.to; d=addDays(d,1)) if(dow(d)!==0) work++;
+  const items = [{desc:`${q.type} (${models[mk].make} ${models[mk].model}${q.u?', '+uRef(q.u):''}), ${kindLabel(k).toLowerCase()}${k==='wet'?' with operator':''}, ${basisLabel[q.basis].toLowerCase()} · ${fmtD(q.from)}${q.to!==q.from?' – '+fmtD(q.to):''} ${q.from.slice(0,4)}`, qty, unit:uLabel+(qty===1?'':'s'), rate:unitRate, amt:qty*unitRate}];
+  const tc = transportCharge(mk, q.zone);
+  if(q.mob && tc) items.push({desc:`${models[mk].size==='self'?'Mobilisation and demobilisation (self-drive)':'Lowloader delivery and collection'}, ${q.zone}`, qty:2, unit:'trips', rate:tc, amt:2*tc});
+  if(q.rigger) items.push({desc:'Rigger / signalman', qty:Math.max(1,work), unit:'days', rate:RIGGER_DAY, amt:Math.max(1,work)*RIGGER_DAY});
+  const sub = sum(items.map(i=>i.amt)), sst = sub*RULES.sst/100;
+  const limit = DISC_LIMIT[role()] ?? 0;
+  return {types, units, mk, k, r, bases, base, unitRate, items, sub, sst, total:sub+sst, overLimit:q.disc>limit, limit};
+}
+function openQuickQuote(){
+  const q = state.qq, x = qqCalc(q), cu = q.c ? customers[q.c] : null;
+  const body = `<form class="stack" data-form="qq">
+    <div class="sect"><h3>Customer</h3><div class="in form">
+      <label>Customer<select class="field" data-qq="c"><option value="">New customer</option>${Object.entries(customers).map(([k,c])=>`<option value="${k}" ${k===q.c?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
+      ${cu ? `<label>Attention<input type="text" value="${esc(cu.contact)} · ${esc(cu.phone)}" readonly></label>` : `
+      <label>Company name<input type="text" data-qq="name" value="${esc(q.name)}" placeholder="e.g. Kenanga Hartanah Sdn Bhd"></label>
+      <label>Contact person<input type="text" data-qq="contact" value="${esc(q.contact)}"></label>
+      <label>Phone / WhatsApp<input type="text" data-qq="phone" value="${esc(q.phone)}" placeholder="012-345 6789"></label>`}
+      <label class="full">Site<input type="text" data-qq="site" value="${esc(q.site)}" placeholder="Site address or project"></label>
+    </div></div>
+    <div class="sect"><h3>Machine and rate</h3><div class="in form">
+      <label>Machine type<select class="field" data-qq="type">${x.types.map(t=>`<option ${t===q.type?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+      <label>From<input type="date" data-qq="from" value="${q.from}"></label><label>To<input type="date" data-qq="to" value="${q.to}"></label>
+      <label>Machine offered<select class="field" data-qq="u">${x.units.map(o=>`<option value="${o.u}" ${o.u===q.u?'selected':''}>${o.u} ${esc(mOf(o.u).model)} · ${o.ok?(o.warn.length?'free, document issue':'free'):'NOT free'}</option>`).join('')}</select></label>
+      <label>Charged by<select class="field" data-qq="basis">${x.bases.map(b=>`<option value="${b}" ${b===q.basis?'selected':''}>${basisLabel[b]} · ${RM0(x.r[{hour:'hr',day:'day',week:'week',month:'month'}[b]])}</option>`).join('')}</select></label>
+      ${q.basis==='hour'?`<label>Expected hours a day<input type="number" min="1" step="0.5" data-qq="hrs" value="${q.hrs}"></label>`:''}
+      <label>Discount %<input type="number" min="0" max="50" step="1" data-qq="disc" value="${q.disc}"></label>
+      <label>Transport zone<select class="field" data-qq="zone">${zones.map(z=>`<option ${z.z===q.zone?'selected':''}>${z.z}</option>`).join('')}</select></label>
+      <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="mob" ${q.mob?'checked':''}> Include mobilisation / transport</label>
+      <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="rigger" ${q.rigger?'checked':''}> Add rigger / signalman (${RM0(RIGGER_DAY)} a day)</label>
+      ${!x.units.find(o=>o.u===q.u)?.ok?`<label class="full" style="color:var(--crit);font-weight:600">${q.u} is not free on these dates. You can still quote, but check Availability first.</label>`:''}
+      ${x.units.find(o=>o.u===q.u)?.warn.length?`<label class="full">${warnHtml(x.units.find(o=>o.u===q.u).warn)}</label>`:''}
+      ${x.overLimit?`<label class="full" style="color:var(--crit);font-weight:600">Discount above your ${x.limit}% limit: the Head Manager must approve before it is issued.</label>`:''}
+    </div></div>
+    <div class="sect cost"><h3>Price</h3><div class="in est">${x.items.map(i=>`<span>${esc(i.desc)}<br><small class="muted">${num(i.qty)} ${i.unit} × ${RM(i.rate)}</small></span><b>${RM(i.amt)}</b>`).join('')}
+      <hr><span>Subtotal</span><b>${RM(x.sub)}</b><span>SST ${RULES.sst}%</span><b>${RM(x.sst)}</b><span class="tot">Total</span><b class="tot">${RM(x.total)}</b></div></div>
+    <div class="sect"><h3>Remarks on the quotation</h3><div class="in checks" style="grid-template-columns:1fr">
+      ${QUOTE_REMARKS.map((t,i)=>`<label><input type="checkbox" data-qqrem="${i}" ${q.remarks[i]?'checked':''}> ${esc(i===9?t.replace('7 days', q.valid+' days'):t)}</label>`).join('')}
+      <label style="flex-direction:column;align-items:stretch">Extra remark<input type="text" data-qq="extra" value="${esc(q.extra)}" placeholder="e.g. Rate includes 2 tag lines; site works 8 am – 6 pm"></label>
+      <label style="flex-direction:column;align-items:stretch">Valid for (days)<input type="number" min="1" max="60" data-qq="valid" value="${q.valid}" style="max-width:120px"></label>
+    </div></div>
+    <div class="btnrow"><button class="btn primary" type="button" data-action="qq-issue" ${x.overLimit&&!boss()?'disabled':''}>Issue quotation</button>${x.overLimit&&!boss()?'<button class="btn" type="button" data-action="qq-approval">Ask Head Manager to approve</button>':''}</div>
+  </form>`;
+  openSheet('Quick quotation', `<span class="mono">Q-2026-0${state.qSeq+1}</span>`, body, {type:'qq'});
+}
+function issueQuote(){
+  const q = state.qq;
+  if(!q.c && !q.name.trim()){ toast('Enter the customer name'); return; }
+  if(!q.site.trim()){ toast('Enter the site'); return; }
+  const x = qqCalc(q);
+  let c = q.c;
+  if(!c){ c = 'C' + (Math.max(...Object.keys(customers).map(k=>+k.slice(1)))+1); customers[c] = {name:q.name.trim(), contact:q.contact, phone:q.phone, brn:'', tin:'', sst:'', terms:0, limit:0, isNew:true, ind:'', sales:meStaff(), since:2026, last:TODAY, notes:[]}; }
+  const id = 'H-2026-0' + (Math.max(...hires.map(h=>+h.id.slice(-4)))+1), no = 'Q-2026-0' + (++state.qSeq);
+  const remarks = QUOTE_REMARKS.map((t,i)=>q.remarks[i] ? (i===9 ? t.replace('7 days', q.valid+' days') : t) : null).filter(Boolean).concat(q.extra.trim() ? [q.extra.trim()] : []);
+  if(x.r.ot && x.k==='wet'){ const gi = remarks.indexOf(QUOTE_REMARKS[3]); const ot = `Overtime ${RM(x.r.ot*(1-q.disc/100))} per hour after 8 hours; Sundays and public holidays ×${RULES.sunX}.`; if(gi>=0) remarks[gi] = ot; else remarks.splice(Math.min(3, remarks.length), 0, ot); }
+  hires.push({id, c, site:q.site, state:'Selangor', siteContact:customers[c].contact+' '+customers[c].phone, po:'', status:'Quotation', created:TODAY, cycle:q.basis==='month'?'Monthly in arrears':'End of hire', quoteValid:addDays(TODAY, +q.valid),
+    lines:[{u:q.u, m:x.mk, k:x.k, basis:q.basis, from:q.from, to:q.to, op:undefined, disc:q.disc}], trips:[], check:{}, checkNote:{}, track:{},
+    quote:{no, issued:TODAY, valid:addDays(TODAY,+q.valid), items:x.items, sub:x.sub, sst:x.sst, total:x.total, remarks, by:meStaff(), disc:q.disc},
+    log:[{d:TODAY+' '+nowT(), t:`Quotation ${no} issued by ${staff[meStaff()].name}: ${RM(x.total)}.`}]});
+  if(q.enq){ const e = enq(q.enq); e.hire = id; e.c = e.c || c; e.stage = 'Quoted'; e.log.unshift({d:TODAY+' '+nowT(), t:`Quotation ${no} issued (${RM(x.total)}).`}); }
+  tasks.push({id:++taskSeq, d:addDays(TODAY,2), type:'Call', who:meStaff(), hire:id, enq:q.enq||undefined, cust:c, t:`Follow up quotation ${no} with ${customers[c].contact||customers[c].name}`, rule:'Quotation sent 2 days ago', done:false});
+  state.qq = null; render(); openQuoteDoc(id);
+}
+function quoteOf(h){
+  if(h.quote) return h.quote;
+  const l = h.lines[0], mk = lineModel(l), est = estimate(mk, l.k, l.basis, l.from, minD(lineEnd(l), addDays(l.from,29)), 8), r = rate(mk,l.k)||{}, base = r[{hour:'hr',day:'day',week:'week',month:'month'}[l.basis]]||0;
+  const items = [{desc:`${models[mk].type} (${models[mk].make} ${models[mk].model}${l.u?', '+uRef(l.u):''}), ${kindLabel(l.k).toLowerCase()}, ${basisLabel[l.basis].toLowerCase()} · ${fmtD(l.from)} – ${fmtD(lineEnd(l))}`, qty:base?+((est?.amt||0)/base).toFixed(2):0, unit:l.basis+'s', rate:base, amt:est?.amt||0}, ...h.trips.map(t=>({desc:`${t.self?'Mobilisation':'Transport'}: ${t.dir.toLowerCase()}, ${t.zone}`, qty:1, unit:'trip', rate:t.charge, amt:t.charge}))];
+  const sub = sum(items.map(i=>i.amt));
+  return h.quote = {no:'Q-2026-0'+(++state.qSeq), issued:h.created, valid:h.quoteValid||addDays(h.created,7), items, sub, sst:sub*RULES.sst/100, total:sub*(1+RULES.sst/100), remarks:QUOTE_REMARKS.slice(), by:'S2', disc:0};
+}
+function quoteWaText(h){
+  const qt = quoteOf(h), cu = customers[h.c];
+  return `Super Power Crane Machinery Sdn Bhd\nQuotation ${qt.no} for ${cu.name}\n${qt.items.map(i=>`• ${i.desc}: ${RM(i.amt)}`).join('\n')}\nTotal ${RM(qt.total)} incl. SST. Valid until ${fmtDY(qt.valid)}.\nThe PDF is attached. Reply "OK" or send your PO / LOU to confirm.`;
+}
+function openQuoteDoc(id){
+  const h = hire(id), qt = quoteOf(h), cu = customers[h.c], by = staff[qt.by] || staff.S2;
+  const body = `
+    <div class="doc">
+      <div class="doc-head"><div><div class="doc-brand">${esc(CO.name)}</div><small>${esc(CO.addr)}<br>${esc(CO.phone)} · SSM ${esc(CO.ssm)}<br>SST ${esc(CO.sst)}</small></div>
+        <div class="doc-meta"><b>Quotation</b><span>${qt.no}</span><span>Date ${fmtDY(qt.issued)}</span><span>Valid until ${fmtDY(qt.valid)}</span></div></div>
+      <div class="doc-grid">
+        <div><h4>To</h4><dl><dt>Customer</dt><dd>${esc(cu.name)}</dd><dt>Attn</dt><dd>${esc(cu.contact||'—')}</dd><dt>Phone</dt><dd>${esc(cu.phone||'—')}</dd></dl></div>
+        <div><h4>Job</h4><dl><dt>Site</dt><dd>${esc(h.site)}</dd><dt>Our ref.</dt><dd>${h.id}</dd><dt>Prepared by</dt><dd>${esc(by.name)} · ${esc(by.phone||'')}</dd></dl></div>
+      </div>
+      <div class="dt"><table><thead><tr><th>No.</th><th>Description</th><th class="r">Qty</th><th class="r">Rate (RM)</th><th class="r">Amount (RM)</th></tr></thead><tbody>
+        ${qt.items.map((i,k)=>`<tr><td>${k+1}</td><td>${esc(i.desc)}</td><td class="r">${num(i.qty)} ${esc(i.unit)}</td><td class="r">${(+i.rate).toLocaleString('en-MY',{minimumFractionDigits:2})}</td><td class="r">${(+i.amt).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="tot"><span>Subtotal</span><b>${RM(qt.sub)}</b><span>SST ${RULES.sst}%</span><b>${RM(qt.sst)}</b><span><b>Total</b></span><b>${RM(qt.total)}</b></div>
+      <div><h4>Terms and remarks</h4><ol class="qrem">${qt.remarks.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>
+      <div class="sign"><div><div class="sline"></div><small>For ${esc(CO.name)}<br>${esc(by.name)}</small></div><div><div class="sline"></div><small>Accepted by customer: name, signature, company chop and date</small></div></div>
+      <div class="doc-foot">Quantities are estimates; the invoice follows signed work orders and timesheets.</div>
+    </div>
+    <div class="btnrow"><button class="btn primary" data-action="qd-wa" data-id="${id}">Send by WhatsApp</button><button class="btn" data-action="qd-copy" data-id="${id}">Copy WhatsApp text</button>${h.status==='Quotation'&&!h.order?`<button class="btn" data-action="qd-accept" data-id="${id}">Customer accepted: make order</button>`:''}<button class="btn" data-hire="${id}">Open ${id}</button></div>`;
+  openSheet(`Quotation ${qt.no}`, `<span class="mono">${id}</span> ${hireStatusPill(h)}`, body, {type:'qdoc', id});
+}
+
+document.addEventListener('click', e => {
+  if(e.target.closest('input,select,textarea,canvas')) return;
+  const a = e.target.closest('[data-action^="qq-"],[data-action^="qd-"],[data-avpick],[data-avgrp]');
+  if(!a) return;
+  const d = a.dataset;
+  if(d.avpick){ const [type, day] = d.avpick.split('|'); Object.assign(state.av, {type, from:day, to:day}); return render(); }
+  if(d.avgrp!=null){ state.av.grp = d.avgrp; return render(); }
+  if(d.action==='qq-new'){ state.qq = qqDefaults(d.u ? {u:d.u, type:mOf(d.u).type} : {}); return openQuickQuote(); }
+  if(d.action==='qq-issue') return issueQuote();
+  if(d.action==='qd-open') return openQuoteDoc(d.id);
+  if(d.action==='qq-approval'){ toast('Sent to the Head Manager to approve the discount'); return; }
+  const h = d.id ? hire(d.id) : null;
+  if(d.action==='qd-wa'){ h.log.unshift({d:TODAY+' '+nowT(), t:`Quotation ${quoteOf(h).no} sent by WhatsApp to ${customers[h.c].contact||customers[h.c].name}.`}); toast(`Quotation ${quoteOf(h).no} sent by WhatsApp with the PDF`); return; }
+  if(d.action==='qd-copy'){ try{ navigator.clipboard.writeText(quoteWaText(h)).then(()=>toast('Copied'), ()=>toast('Select the text and copy it')); }catch(err){ toast('Select the text and copy it'); } return; }
+  if(d.action==='qd-accept'){ h.order = true; h.job = h.job || {type:'Lifting', scope:'', arrive:'08:30', requests:'', pay:customers[h.c].terms?'credit':'cash', collect:false}; h.log.unshift({d:TODAY+' '+nowT(), t:`Customer accepted ${quoteOf(h).no}. Order created; checklist next.`});
+    const x = enquiries.find(y=>y.hire===h.id); if(x){ x.stage = 'Won'; x.log.unshift({d:TODAY+' '+nowT(), t:`Customer accepted ${quoteOf(h).no}.`}); }
+    toast('Order created. Fill in the job details and the checklist.'); return openHire(h.id); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.dataset.qq){ const f = t.dataset.qq; state.qq[f] = t.type==='checkbox' ? t.checked : (t.type==='number' ? +t.value : t.value);
+    if(f==='type'){ state.qq.u = null; state.qq.basis = ''; } if((f==='from'||f==='to') && state.qq.to < state.qq.from) state.qq.to = state.qq.from; if(f==='from'||f==='to') state.qq.basis = '';
+    if(t.type==='text') return; return openQuickQuote(); }
+  if(t.dataset.qqrem){ state.qq.remarks[+t.dataset.qqrem] = t.checked; return; }
+});
+document.addEventListener('input', e => { const t = e.target; if(t.dataset.qq && t.type==='text') state.qq[t.dataset.qq] = t.value; });
+document.addEventListener('submit', e => {
+  const f = e.target;
+  if(f.dataset.form==='av'){ e.preventDefault(); const fd = new FormData(f); Object.assign(state.av, {from:fd.get('from'), to:fd.get('to')<fd.get('from')?fd.get('from'):fd.get('to'), type:fd.get('type')}); return render(); }
+  if(f.dataset.form==='qq'){ e.preventDefault(); }
+});
+
 /* ---------- sheet plumbing ---------- */
 function openSheet(title, sub, body, ctx){
   state.sheet = ctx || null;
@@ -2776,7 +3261,7 @@ function openSheet(title, sub, body, ctx){
 function closeSheet(){ $('#sheetRoot').innerHTML=''; document.body.style.overflow=''; state.sheet=null; state.lastSheet=null; }
 function refreshSheet(){
   const s = state.sheet; if(!s) return;
-  if(s.type==='hire') openHire(s.id); else if(s.type==='unit') openUnit(s.id); else if(s.type==='ts') openTimesheet(s.id); else if(s.type==='inv') openInvoice(s.id); else if(s.type==='nh') openNewHire(); else if(s.type==='insp') openInspection(s.id, s.kind); else if(s.type==='enq') openEnquiry(s.id); else if(s.type==='cust') openCustomer(s.id); else if(s.type==='ne') openNewEnquiry(); else if(s.type==='fuel') openFuelAdd();
+  if(s.type==='hire') openHire(s.id); else if(s.type==='unit') openUnit(s.id); else if(s.type==='ts') openTimesheet(s.id); else if(s.type==='inv') openInvoice(s.id); else if(s.type==='nh') openNewHire(); else if(s.type==='insp') openInspection(s.id, s.kind); else if(s.type==='enq') openEnquiry(s.id); else if(s.type==='cust') openCustomer(s.id); else if(s.type==='ne') openNewEnquiry(); else if(s.type==='fuel') openFuelAdd(); else if(s.type==='qq') openQuickQuote(); else if(s.type==='qdoc') openQuoteDoc(s.id); else if(s.type==='wa') openWa(s.id, s.kind); else if(s.type==='pre') openPrecheck(s.id); else if(s.type==='wo') openWorkOrder(s.id);
 }
 function toast(t){ $('#toastRoot').innerHTML=`<div class="toast" role="status">${esc(t)}</div>`; clearTimeout(toast.h); toast.h=setTimeout(()=>$('#toastRoot').innerHTML='',3200); }
 
@@ -2794,7 +3279,7 @@ document.addEventListener('click', e => {
     if(act==='find-clear'){ state.find.type=''; return render(); }
     if(act==='nh-save') return saveNewHire(d.as);
     if(act==='send-quote'){ h.log.unshift({d:TODAY+' '+nowT(),t:'Quotation sent by WhatsApp.'}); toast(`Quotation PDF sent to ${customers[h.c].contact} by WhatsApp`); return rerender(); }
-    if(act==='confirm'){ h.status='Booked'; h.quoteValid=undefined; h.log.unshift({d:TODAY+' '+nowT(),t:'Customer confirmed. Booked.'}); toast(`${h.id} booked`); return rerender(); }
+    if(act==='confirm'){ h.check = h.check || {}; if(!checkOk(h)){ toast(`Complete the checklist first: ${PRECONFIRM.length-checkDone(h)} items left`); return rerender(); } h.track = h.track || {}; h.track.confirmed = TODAY+' '+nowT(); if(h.job?.pay==='cash') h.cashAmt = cashAmount(h); h.status='Booked'; h.quoteValid=undefined; h.log.unshift({d:TODAY+' '+nowT(),t:'Customer confirmed. Booked.'}); toast(`${h.id} booked`); return rerender(); }
     if(act==='lose'){ h.status='Lost'; h.log.unshift({d:TODAY+' '+nowT(),t:h.lines.some(l=>!l.u)?'Lost: no machine free.':'Lost: customer declined.'}); lost.unshift({d:TODAY,c:custName(h.c).replace(/ Sdn Bhd$/,''),type:models[lineModel(h.lines[0])].type,why:h.lines.some(l=>!l.u)?'No machine free':'Price'}); toast(`${h.id} marked lost`); return rerender(); }
     if(act==='deposit'){ h.depositPaid=true; h.log.unshift({d:TODAY+' '+nowT(),t:`Deposit ${RM0(h.deposit)} received (bank transfer).`}); toast('Deposit recorded. Delivery can go ahead.'); return rerender(); }
     if(act==='cancel'){ h.status='Lost'; h.log.unshift({d:TODAY+' '+nowT(),t:'Booking cancelled.'}); toast(`${h.id} cancelled; machine released`); return rerender(); }
@@ -2847,11 +3332,11 @@ document.addEventListener('keydown', e => {
 document.addEventListener('change', e => {
   const t = e.target;
   if(t.id==='roleSel'){ state.role = t.value; document.body.dataset.role = t.value; closeSheet(); state.ts=null; return setView(t.value==='operator' ? 'timesheets' : state.view==='timesheets' ? 'dashboard' : state.view); }
-  if(t.dataset.nh){ const f = t.dataset.nh; state.nh[f] = t.type==='checkbox' ? t.checked : t.value; if(f==='type') state.nh.u=null; if(f==='to' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; if(f==='from' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; return openNewHire(); }
+  if(t.dataset.nh){ const f = t.dataset.nh; state.nh[f] = t.type==='checkbox' ? t.checked : t.value; if(f==='jobScope'||f==='requests') return; if(f==='type') state.nh.u=null; if(f==='to' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; if(f==='from' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; return openNewHire(); }
   if(t.dataset.tsF){ state.ts[t.dataset.tsF] = t.value; return render(); }
   if(t.dataset.rate){ rates[t.dataset.rate][t.dataset.f] = +t.value; toast('Rate updated for new hires'); return; }
 });
-document.addEventListener('input', e => { const t = e.target; if(t.dataset.nh && t.type==='text') state.nh[t.dataset.nh] = t.value; });
+document.addEventListener('input', e => { const t = e.target; if(t.dataset.nh && (t.type==='text' || t.tagName==='TEXTAREA')) state.nh[t.dataset.nh] = t.value; });
 document.addEventListener('submit', e => {
   e.preventDefault();
   const f = e.target;
