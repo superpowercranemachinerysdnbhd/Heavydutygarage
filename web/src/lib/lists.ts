@@ -19,7 +19,7 @@ export type ListItem = {
   num: number | null;
   sort: number; active: boolean; builtin: boolean;
 };
-export type Settings = { labourRate: number; poApprovalLimit: number; otMultiplier: number; sundayMultiplier: number; jobPurchaseMarkup: number; companyName: string; companyAddress: string; companyPhone: string; companyReg: string };
+export type Settings = { labourRate: number; poApprovalLimit: number; otMultiplier: number; sundayMultiplier: number; otStart: string; jobPurchaseMarkup: number; companyName: string; companyAddress: string; companyPhone: string; companyReg: string };
 export type Lists = { items: ListItem[]; settings: Settings };
 
 const B = (list: ListName, code: string, sort: number, extra: Partial<ListItem> = {}): ListItem =>
@@ -62,7 +62,7 @@ const QC_CODES = ["testRun", "leakCheck", "allTasks", "afterPhotos", "cleanUp"];
 
 const env = (k: string) => (typeof process !== "undefined" ? process.env?.[k] : undefined);
 export const DEFAULT_SETTINGS: Settings = {
-  labourRate: Number(env("LABOUR_RATE") ?? 95) || 95, poApprovalLimit: Number(env("PO_APPROVAL_LIMIT") ?? 5000) || 5000, otMultiplier: 1.5, sundayMultiplier: 2, jobPurchaseMarkup: 25,
+  labourRate: Number(env("LABOUR_RATE") ?? 95) || 95, poApprovalLimit: Number(env("PO_APPROVAL_LIMIT") ?? 5000) || 5000, otMultiplier: 1.5, sundayMultiplier: 2, otStart: "17:00", jobPurchaseMarkup: 25,
   companyName: "", companyAddress: "", companyPhone: "", companyReg: "",
 };
 

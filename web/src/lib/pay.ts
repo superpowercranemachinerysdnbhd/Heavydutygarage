@@ -20,3 +20,14 @@ export function rateTypeFor(chosen: string, workDate: string): RateType {
   if (new Date(`${workDate}T00:00:00Z`).getUTCDay() === 0) return "sunday";
   return isRateType(chosen) ? chosen : "normal";
 }
+
+const minutes = (hhmm: string) => { const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm); return m ? Number(m[1]) * 60 + Number(m[2]) : NaN; };
+
+/** Hours between two clock times (same day), split at the time overtime starts: 15:00–19:00 with 17:00 → 2 normal + 2 overtime.
+ *  null if the times are not valid or the end is not after the start. */
+export function splitHours(from: string, to: string, otStart: string): { normal: number; ot: number } | null {
+  const a = minutes(from), b = minutes(to), s = minutes(otStart);
+  if (!Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(s) || b <= a || b > 24 * 60) return null;
+  const normal = Math.max(0, Math.min(b, s) - a), ot = Math.max(0, b - Math.max(a, s));
+  return { normal: Math.round((normal / 60) * 100) / 100, ot: Math.round((ot / 60) * 100) / 100 };
+}

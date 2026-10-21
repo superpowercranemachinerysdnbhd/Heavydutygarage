@@ -197,6 +197,9 @@ export const labourEntries = pgTable("labour_entries", {
   /** normal / ot (after 5 pm) / sunday (Sunday or public holiday); the multiplier is kept as it was when logged. */
   rateType: varchar("rate_type", { length: 10 }).notNull().default("normal"),
   rateMult: numeric("rate_mult", { precision: 4, scale: 2 }).notNull().default("1"),
+  /** Clock times when entered as "from – to" (each part of a split entry keeps its own times). */
+  timeFrom: varchar("time_from", { length: 5 }),
+  timeTo: varchar("time_to", { length: 5 }),
   note: text("note"),
   loggedBy: integer("logged_by").references(() => staff.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

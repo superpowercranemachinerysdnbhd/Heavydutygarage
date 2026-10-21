@@ -21,3 +21,13 @@ test("a Sunday is always the Sunday rate", () => {
   assert.equal(rateTypeFor("ot", "2026-10-19"), "ot"); // Monday
   assert.equal(rateTypeFor("bogus", "2026-10-19"), "normal");
 });
+
+test("split clock times at the start of overtime", async () => {
+  const { splitHours } = await import("../src/lib/pay");
+  assert.deepEqual(splitHours("15:00", "19:00", "17:00"), { normal: 2, ot: 2 });
+  assert.deepEqual(splitHours("08:00", "17:00", "17:00"), { normal: 9, ot: 0 });
+  assert.deepEqual(splitHours("18:00", "21:30", "17:00"), { normal: 0, ot: 3.5 });
+  assert.deepEqual(splitHours("16:45", "17:15", "17:00"), { normal: 0.25, ot: 0.25 });
+  assert.equal(splitHours("19:00", "15:00", "17:00"), null);
+  assert.equal(splitHours("x", "15:00", "17:00"), null);
+});

@@ -162,6 +162,13 @@
       "when": 1792562129224,
       "tag": "0022_salary_overtime",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792564449746,
+      "tag": "0023_labour_times",
+      "breakpoints": true
     }
   ]
 }

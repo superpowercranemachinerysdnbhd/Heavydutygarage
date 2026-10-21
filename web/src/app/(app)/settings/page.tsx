@@ -102,6 +102,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <label>{t("set.companyReg")}<input name="companyReg" defaultValue={s.companyReg} placeholder="202301012345 (1234567-X)" /></label>
           <label className="full">{t("set.companyAddress")}<textarea name="companyAddress" rows={2} defaultValue={s.companyAddress} /></label>
           <label>{t("set.poLimit")}<input name="poApprovalLimit" type="number" min={0} step="1" required defaultValue={s.poApprovalLimit} /></label>
+          <label>{t("set.otStart")}<input name="otStart" type="time" required defaultValue={s.otStart} /></label>
           <label>{t("set.otMult")}<input name="otMultiplier" type="number" min={1} max={5} step="0.25" required defaultValue={s.otMultiplier} /></label>
           <label>{t("set.sundayMult")}<input name="sundayMultiplier" type="number" min={1} max={5} step="0.25" required defaultValue={s.sundayMultiplier} /></label>
           <p className="full hint">{t("set.workshopHelp")}</p>

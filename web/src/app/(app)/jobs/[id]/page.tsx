@@ -17,6 +17,7 @@ import SubmitButton from "@/components/SubmitButton";
 import ChatRoom from "@/components/ChatRoom";
 import PhotoInput from "@/components/PhotoInput";
 import StatusPicker from "@/components/StatusPicker";
+import LabourHours from "@/components/LabourHours";
 import { RATE_TYPES, rateMultiplier } from "@/lib/pay";
 import PartPicker from "@/components/PartPicker";
 import BoughtLines from "@/components/BoughtLines";
@@ -215,7 +216,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {job.outsourced && <small className="muted">{t("out.labourHint")}</small>}
             {labour.length > 0 && (
               <div className="tbl-wrap"><table><thead><tr><th>{t("col.date")}</th><th>{t("col.person")}</th><th>{t("col.note")}</th><th className="r">{t("col.hours")}</th>{can(user.role, "money.labourCost") && <th className="r">{t("col.labourCost")}</th>}<th></th></tr></thead>
-                <tbody>{labour.map((l) => <tr key={l.id} className={editing?.id === l.id ? "row-sel" : ""}><td className="num">{fmtDate(l.workDate, false, locale)}</td><td>{l.name}</td><td>{l.note}</td><td className="r num">{Number(l.hours)}{l.rateType !== "normal" && <><br /><span className="pill warn">{t(`lab.tag.${l.rateType}` as MessageKey, { x: Number(l.rateMult) })}</span></>}</td>{can(user.role, "money.labourCost") && <td className="r num">{rm(lineCost(l))}</td>}
+                <tbody>{labour.map((l) => <tr key={l.id} className={editing?.id === l.id ? "row-sel" : ""}><td className="num">{fmtDate(l.workDate, false, locale)}{l.timeFrom && <><br /><small className="muted">{l.timeFrom}–{l.timeTo}</small></>}</td><td>{l.name}</td><td>{l.note}</td><td className="r num">{Number(l.hours)}{l.rateType !== "normal" && <><br /><span className="pill warn">{t(`lab.tag.${l.rateType}` as MessageKey, { x: Number(l.rateMult) })}</span></>}</td>{can(user.role, "money.labourCost") && <td className="r num">{rm(lineCost(l))}</td>}
                   <td className="r">{canEditLabour(l) && <Link className="btn small" href={`/jobs/${job.id}?labour=${l.id}#labour`}>{t("lab.edit")}</Link>}</td></tr>)}</tbody></table></div>
             )}
             {editing && (
@@ -238,8 +239,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                 {hidden("jobId", job.id)}
                 {sup ? <select className="field" name="staffId" aria-label={t("col.person")} defaultValue={job.leadId ?? undefined}>{crew.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select> : <span className="muted">{user.name}</span>}
                 <input type="date" name="workDate" defaultValue={today()} max={today()} aria-label={t("col.date")} />
-                <input type="number" name="hours" min="0.25" max="24" step="0.25" placeholder={t("col.hours")} style={{ width: 90 }} required aria-label={t("col.hours")} />
-                {rateSelect()}
+                <LabourHours otStart={settings().otStart} rateSelect={rateSelect()} />
                 <input type="text" name="note" placeholder={t("job.whatDone")} style={{ flex: "1 1 160px" }} aria-label={t("col.note")} />
                 <SubmitButton>{t("job.logTime")}</SubmitButton>
               </form>

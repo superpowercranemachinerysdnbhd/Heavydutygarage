@@ -782,3 +782,8 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Logging time: a "Type of hours" choice (Normal / Overtime after 5 pm / Sunday or public holiday). Work dated on a Sunday is always the Sunday rate. `labour_entries.rate_type` and `rate_mult` keep the multiplier as it was when logged, so later changes in Settings don't rewrite history. Rows show an "OT ×1.5" / "Sunday ×2" tag.
 - Labour cost everywhere (work order cost, machine cost, Reports) = hours × hourly rate × multiplier. Pure rules in `lib/pay.ts`, unit-tested.
 - Entries logged before this change count as normal hours.
+
+### 52. Log time as "from – to", split at the start of overtime (Oct 2026)
+- Logging time on a work order defaults to **From – to** (clock times). The form shows the split before saving ("2 h normal + 2 h overtime"). Saving makes one entry per part: 15:00–19:00 → 15:00–17:00 normal and 17:00–19:00 overtime. A Sunday is one entry at the Sunday rate. **Hours** (a number plus a type) is still there.
+- Settings → Workshop: **Overtime starts at** (default 17:00).
+- `labour_entries.time_from` / `time_to` keep the clock times, shown under the date. `splitHours` in `lib/pay.ts` is unit-tested.
