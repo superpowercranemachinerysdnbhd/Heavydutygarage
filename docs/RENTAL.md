@@ -853,6 +853,21 @@ The customer page now says "Sales and balance: in Bukku". The rental system stil
 - **The activity log records what changed**, for example "machine JQA 5783 → BPG 8362; time 8:00AM - 05:00PM → 08:00AM - 12:00PM".
 - **A changed machine, date, time or operator** marks the job order "to send again" and unticks the crane CF item on the checklist.
 
+**Monthly hire with no end date.** At the top of **Machine and dates**, the order form asks for the rental period first:
+
+| Choice | What happens |
+|---|---|
+| **Fixed dates** | From and To dates. Charged by day, week or month. |
+| **Monthly, no end date** | Charged monthly in arrears. Part months are counted by calendar days, and 200 h a month is included, then the excess rate. The To date shows "Until the customer stops". Availability checks the next 90 days. |
+
+**How a monthly hire with no end date ends:**
+- **Customer called off-hire** on the order sets the end date to today, books the collection, and stops the charges;
+- or, when the customer gives a date in advance, **Edit order → Fixed dates** with that end date. The change is logged, for example "end Until the customer stops → 31 Jan 2027".
+
+**Quick quotation** offers the same "Monthly until the customer stops" box for every machine that has a monthly rate.
+
+**Monthly rates for every machine.** Some machines have no monthly rate yet: lorry cranes, skylifts, forklifts, KR-300, TL-200. For now they are estimated at 13 × the day rate (the 25 t rate is 18,500 ÷ 1,400 = 13.2) and marked "estimate" on the Rates page until the Head Manager sets them.
+
 ## 31. Open questions for the owner
 
 **From WORK_ORDER_2026.xlsx:**

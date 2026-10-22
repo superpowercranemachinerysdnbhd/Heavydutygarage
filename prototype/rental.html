@@ -710,6 +710,12 @@ html[lang^="zh"] .navh, html[lang^="zh"] th, html[lang^="zh"] .label{letter-spac
 .subtabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
 .subtabs button:hover{color:var(--ink)}
 .pick .pickpeer,.pickpeer{display:flex;gap:8px;align-items:center;padding:8px 2px}
+
+.period{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-bottom:10px}
+.period label{display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:var(--surface)}
+.period label.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.period label span{display:flex;flex-direction:column;gap:2px}
+.period small{color:var(--muted)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- Private company data, published only with the private page and never committed (see .gitignore). Without it the page shows example data. -->
@@ -1297,6 +1303,8 @@ Object.entries(WO_RATES).forEach(([mk,[day,half]]) => {
   r.day = day; r.half = half || Math.round(day*0.7/10)*10; r.hr = r.hr || Math.round(day/7.5/5)*5;
   if(!r.ot){ r.ot = Math.round(day/9.3*100)/100; r.sun = Math.round(day*0.8/50)*50; r.sunOt = Math.round(r.ot*1.37); }
   if(/25 t$/.test(models[mk].type) && !r.month && !models[mk].peer){ Object.assign(r, {month:18500, ex:90, ot:104.35, sun:1100, sunOt:147}); }
+  /* no monthly rate given yet: estimate at 13 × the day rate (25 t: 18,500 ÷ 1,400 = 13.2), marked as an estimate on the Rates page */
+  if(!r.month){ r.month = Math.round(day*13/500)*500; r.mHrs = r.mHrs || 200; r.ex = r.ex || Math.round(day/8/5)*5; r.monthEst = true; }
 });
 (function realFleet(){
   const ADD = [['JKE 5227','KR300','JKE 5227'],['VNB 2138','SR250','VNB 2138'],['VNC 2138','SR250','VNC 2138'],['BPN 8918','SR250','BPN 8918'],
@@ -1721,8 +1729,9 @@ function openNewHire(){
   if(!kinds.includes(n.k)) n.k = kinds[0];
   const r = rate(mk, n.k);
   const bases = ['hour','day','week','month'].filter(b=>r[{hour:'hr',day:'day',week:'week',month:'month'}[b]]);
+  if(n.open && bases.includes('month')) n.basis = 'month';
   if(!bases.includes(n.basis)) n.basis = bases[0];
-  const ops = Object.entries(staff).filter(([,s])=>s.skills && s.skills.includes(models[mk].grp==='crane'?'crane':'earth'));
+  const ops = Object.entries(staff).filter(([,s])=>s.skills && s.skills.includes(models[mk].grp==='crane'?'crane':models[mk].grp==='lift'?'lift':'earth'));
   if(n.u==='peer') n.op = null; else if(n.k==='wet' && (!n.op || !operatorFree(n.op,n.from,n.to,n.editId))) n.op = (ops.find(([o])=>operatorFree(o,n.from,n.to,n.editId))||[])[0] || null;
   if(n.basis!=='month') n.open = false;
   const est = estimate(mk, n.k, n.basis, n.from, n.open ? addDays(n.from,29) : n.to, +n.hrs);
@@ -1741,10 +1750,15 @@ function openNewHire(){
         ${cu.isNew?`<label class="full" style="color:var(--warn)">New customer: deposit ${RM0(deposit)} before delivery.</label>`:''}
       </div></div>
       <div class="sect"><h3>Machine and dates</h3><div class="in">
+        <div class="period" role="radiogroup" aria-label="Rental period">
+          <label class="${!n.open?'on':''}"><input type="radio" name="nhper" data-nh="period" value="fixed" ${!n.open?'checked':''}><span><b>Fixed dates</b><small>Day, week or month, with an end date</small></span></label>
+          <label class="${n.open?'on':''}"><input type="radio" name="nhper" data-nh="period" value="open" ${n.open?'checked':''}><span><b>Monthly, no end date</b><small>Until the customer says stop</small></span></label>
+        </div>
+        ${n.open?`<div class="banner"><b>Monthly hire with no end date. It is charged each month in arrears (part months by calendar days, ${r.mHrs||RULES.mHrs} h a month included${r.monthEst?'; monthly rate is an estimate until you set it in Rates':''}). It ends when you press <i>Customer called off-hire</i> on the order, or set an end date later with <i>Edit order</i>.</b></div>`:''}
         <div class="form">
           <label>Machine type<select class="field" data-nh="type">${types.map(t=>`<option ${t===n.type?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
           <label>From<input type="date" data-nh="from" value="${n.from}"></label>
-          <label>To<input type="date" data-nh="to" value="${n.to}" ${n.open?'disabled':''}></label>
+          ${n.open ? `<label>To<input type="text" value="Until the customer stops" readonly></label>` : `<label>To<input type="date" data-nh="to" value="${n.to}"></label>`}
         </div>
         <div class="pick">${units.map(x=>`<label class="${x.ok?(x.warn.length?'docbad':''):'no'}"><input type="radio" name="nhu" data-nh="u" value="${x.u}" ${x.u===n.u?'checked':''} ${x.ok?'':'disabled'}><span><b>${x.u} ${esc(uName(x.u))}</b>${uRef(x.u)?' · '+esc(uRef(x.u)):''} ${x.ok?'<span class="pill ok">Free</span>':'<span class="pill crit">Not free</span>'}${x.ok&&x.warn.length?' <span class="pill crit">Document issue</span>':''}<small>${x.ok?Object.entries(fleet[x.u].docs).map(([k,e])=>docPill(k,e)).join(' '):x.why.map(esc).join(' · ')}</small>${x.ok?warnHtml(x.warn):''}</span></label>`).join('')}</div>
         <label class="pickpeer"><input type="radio" name="nhu" data-nh="u" value="peer" ${n.u==='peer'?'checked':''}><span><b>Cross-hire from another company (同行车)</b></span></label>
@@ -1770,7 +1784,6 @@ function openNewHire(){
         ${n.pay==='cash'?`<label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-nh="collect" ${n.collect?'checked':''}> Operator collects the cash on site</label>`:''}
         <label class="full">Job scope<textarea rows="2" data-nh="jobScope" placeholder="What to lift, weight, where it goes, how long">${esc(n.jobScope)}</textarea></label>
         <label class="full">Customer requests<input type="text" data-nh="requests" value="${esc(n.requests)}" placeholder="e.g. extra rigger, tag lines, work only after 9 am"></label>
-        ${n.basis==='month'?`<label class="full" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-nh="open" ${n.open?'checked':''}> No end date: monthly rental until the customer says stop</label>`:''}
       </div></div>
       <div class="sect"><h3>Transport</h3><div class="in form">
         <label>Zone<select class="field" data-nh="zone">${zones.map(z=>`<option ${z.z===n.zone?'selected':''}>${z.z}</option>`).join('')}</select></label>
@@ -2121,7 +2134,7 @@ function renderRates(){
   $('#v-rates').innerHTML = `
     <div class="view-head"><h2>Rates</h2>${ed?'<span class="muted">Changes apply to new quotations and bookings. Running hires keep the rates they were booked at.</span>':'<span class="muted">Only the Head Manager can change rates.</span>'}</div>
     <div class="tbl-wrap"><table><thead><tr><th>Model</th><th>Kind</th><th class="r">Hour</th><th class="r">Min h</th><th class="r">Day (8–5)</th><th class="r">Half day</th><th class="r">Week</th><th class="r">Month</th><th class="r">Month h</th><th class="r">Excess / h</th><th class="r">OT / h</th><th class="r">Sun / PH day</th><th class="r">Sun OT / h</th></tr></thead><tbody>
-      ${Object.keys(rates).map(key=>{ const [mk,k] = key.split('/'); return `<tr><td><b>${esc(mName(mk))}</b><br><small class="muted">${esc(models[mk].type)}</small></td><td>${kindLabel(k)}</td><td class="r">${cell(key,'hr')}</td><td class="r">${rates[key].minH??'—'}</td><td class="r">${cell(key,'day')}</td><td class="r">${cell(key,'half')}</td><td class="r">${cell(key,'week')}</td><td class="r">${cell(key,'month')}</td><td class="r">${rates[key].mHrs??'—'}</td><td class="r">${cell(key,'ex')}</td><td class="r">${cell(key,'ot')}</td><td class="r">${cell(key,'sun')}</td><td class="r">${cell(key,'sunOt')}</td></tr>`; }).join('')}
+      ${Object.keys(rates).map(key=>{ const [mk,k] = key.split('/'); return `<tr><td><b>${esc(mName(mk))}</b><br><small class="muted">${esc(models[mk].type)}</small></td><td>${kindLabel(k)}</td><td class="r">${cell(key,'hr')}</td><td class="r">${rates[key].minH??'—'}</td><td class="r">${cell(key,'day')}</td><td class="r">${cell(key,'half')}</td><td class="r">${cell(key,'week')}</td><td class="r">${cell(key,'month')}${rates[key].monthEst?'<br><small class="muted">estimate</small>':''}</td><td class="r">${rates[key].mHrs??'—'}</td><td class="r">${cell(key,'ex')}</td><td class="r">${cell(key,'ot')}</td><td class="r">${cell(key,'sun')}</td><td class="r">${cell(key,'sunOt')}</td></tr>`; }).join('')}
     </tbody></table></div>
     <div class="two">
       <div class="panel"><div class="panel-head"><h3>Transport by zone</h3></div><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Zone</th><th class="r">Self-drive mobilisation</th><th class="r">Lowloader up to 10 t</th><th class="r">Lowloader 10–30 t</th></tr></thead><tbody>
@@ -3625,7 +3638,7 @@ function openQuickQuote(){
       <label>Transport zone<select class="field" data-qq="zone">${zones.map(z=>`<option ${z.z===q.zone?'selected':''}>${z.z}</option>`).join('')}</select></label>
       <div class="full qq-more">${(q.more||[]).map((m,i)=>`<div class="btnrow"><label style="flex:1">Also quote<select class="field" data-qqm="${i}">${x.types.map(t=>`<option ${t===m.type?'selected':''}>${esc(t)}</option>`).join('')}</select></label><button class="btn small" type="button" data-action="qq-delm" data-i="${i}" style="align-self:flex-end">Remove</button></div>`).join('')}
         <button class="btn small" type="button" data-action="qq-addm">+ Add another machine</button> <small class="muted">Same dates, terms and discount. The machine is picked when the order is confirmed.</small></div>
-      ${q.basis==='month'?`<label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="open" ${q.open?'checked':''}> Monthly until the customer stops (no end date)</label>`:''}
+      ${x.bases.includes('month')?`<label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="open" ${q.open?'checked':''}> Monthly until the customer stops (no end date)</label>`:''}
       <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="diesel" ${q.diesel?'checked':''}> Rate includes diesel</label>
       <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="mob" ${q.mob?'checked':''}> Include mobilisation / transport</label>
       <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-qq="rigger" ${q.rigger?'checked':''}> Add rigger / signalman (${RM0(RIGGER_DAY)} a day)</label>
@@ -3721,6 +3734,7 @@ document.addEventListener('change', e => {
   const t = e.target;
   if(t.dataset.qqm!=null){ state.qq.more[+t.dataset.qqm].type = t.value; return openQuickQuote(); }
   if(t.dataset.qq){ const f = t.dataset.qq; state.qq[f] = t.type==='checkbox' ? t.checked : (t.type==='number' ? +t.value : t.value);
+    if(f==='open' && state.qq.open) state.qq.basis = 'month';
     if(f==='type'){ state.qq.u = null; state.qq.basis = ''; } if(f==='slot' && state.qq.u!=='peer') state.qq.u = null; if((f==='from'||f==='to') && state.qq.to < state.qq.from) state.qq.to = state.qq.from; if(f==='from'||f==='to') state.qq.basis = '';
     if(t.type==='text') return; return openQuickQuote(); }
 });
@@ -3816,6 +3830,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('change', e => {
   const t = e.target;
   if(t.id==='roleSel'){ state.role = t.value; document.body.dataset.role = t.value; closeSheet(); state.ts=null; return setView(t.value==='operator' ? 'timesheets' : state.view==='timesheets' ? 'dashboard' : state.view); }
+  if(t.dataset.nh==='period'){ state.nh.open = t.value==='open'; if(state.nh.open) state.nh.basis = 'month'; else if(state.nh.basis==='month' && daysBetween(state.nh.from, state.nh.to) < 27) state.nh.basis = 'day'; return openNewHire(); }
   if(t.dataset.nh){ const f = t.dataset.nh; state.nh[f] = t.type==='checkbox' ? t.checked : t.value; if(f==='jobScope'||f==='requests') return; if(f==='type') state.nh.u=null; if(f==='to' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; if(f==='from' && state.nh.to < state.nh.from) state.nh.to = state.nh.from; return openNewHire(); }
   if(t.dataset.tsF){ state.ts[t.dataset.tsF] = t.value; return render(); }
   if(t.dataset.rate){ rates[t.dataset.rate][t.dataset.f] = +t.value; toast('Rate updated for new hires'); return; }
@@ -4031,7 +4046,7 @@ const ZH = {
   // extra machine / place words that appear alone
   "Lorry tipper":"罗里（倒斗）","Truck crane":"汽车吊","Prime mover & lowloader":"拖头和低床拖车","Lowloader":"低床拖车","Palfinger lorry crane":"Palfinger 随车吊",
   "Aisyah binti Karim":"Aisyah binti Karim","Prototype":"原型",
-  "Home":"主页","Not available":"不可用","Jobs":"订单","Schedule":"排程","Machines":"机械","Settings":"设置","Tabs":"分页","Today & coming":"今天和接下来","All jobs":"全部订单","Staff & leave":"员工和请假","Edit order":"编辑订单","Save changes":"保存修改","Sales and balance":"销售额和余额","In Bukku":"在 Bukku","Last job":"最后工作","Cross-hire from another company (同行车)":"同行车（向别家租）","Their price to us (RM)":"同行价格（RM）","From the cross-hire company":"由同行公司提供",
+  "Home":"主页","Rental period":"租期","Fixed dates":"固定日期","Day, week or month, with an end date":"按天、周或月，有结束日期","Monthly, no end date":"按月，没有结束日期","Until the customer says stop":"直到顾客说停","estimate":"估计","Not available":"不可用","Jobs":"订单","Schedule":"排程","Machines":"机械","Settings":"设置","Tabs":"分页","Today & coming":"今天和接下来","All jobs":"全部订单","Staff & leave":"员工和请假","Edit order":"编辑订单","Save changes":"保存修改","Sales and balance":"销售额和余额","In Bukku":"在 Bukku","Last job":"最后工作","Cross-hire from another company (同行车)":"同行车（向别家租）","Their price to us (RM)":"同行价格（RM）","From the cross-hire company":"由同行公司提供",
   "free":"可用","NOT free":"不可用","free, document issue":"可用，文件有问题","Timesheet":"工作单","Morning · 08:00AM - 12:00PM":"上午 · 08:00AM - 12:00PM",
 
   // second pass: hints, sentences and fragments
