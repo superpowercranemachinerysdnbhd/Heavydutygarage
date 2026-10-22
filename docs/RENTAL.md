@@ -817,7 +817,43 @@ The private prototype page runs on the company's own records. The example custom
 
 So Reports start with this year's figures. The column mapping is in the prototype under Connections → Current records. The photos (`WORKORDER_Images/…`, `OPERATORS_Images/…`) come across as attachments.
 
-## 30. Open questions for the owner
+## 30. Fewer pages, and editing an order
+
+**Seven pages, with tabs inside** (was 19 separate pages):
+
+| Page | Tabs | Who sees it |
+|---|---|---|
+| Home | Dashboard: machines out, utilisation, today's jobs, needs attention | Everyone in the office |
+| Jobs | Today & coming (dispatch) · All jobs · Enquiries (with follow-ups) | Everyone in the office |
+| Schedule | Planner · Availability · Calendar | Everyone in the office |
+| Customers | List and customer page | Everyone in the office |
+| Machines | Machines · Lift check · Fuel | Everyone in the office (Fuel: Head Manager, Supervisor) |
+| Staff | Staff & leave · Timesheets | Head Manager, Supervisor. Operators see only their own day. |
+| Settings | Rates · Connections | Head Manager (Supervisor: Rates) |
+
+**Removed, because Bukku does it:**
+- the Billing page, the Reports page, and the revenue figures on the dashboard;
+- customer balances, and revenue per machine.
+
+The customer page now says "Sales and balance: in Bukku". The rental system still sends each job's lines to Bukku when it is invoiced.
+
+**Also removed:**
+- the separate Today page; its follow-ups are in Jobs → Enquiries → Follow-ups;
+- the Transport page, because the machinery list has no lowloaders.
+
+**Edit order.** Every quotation and order has an **Edit order** button until the machine is back in the yard: quotation, booked, on hire, or off-hire called.
+
+- **What can be changed:**
+  - customer, site, site contact, PO;
+  - machine, or cross-hire (同行车) with supplier and cost;
+  - dates, time (full day, morning or afternoon), operator;
+  - job type, scope, arrival time, customer requests, payment.
+- **It is the same form as a new order.** It checks availability without counting the order's own booking.
+- **The order number stays the same.** A quotation keeps its QT number, and its lines are rebuilt.
+- **The activity log records what changed**, for example "machine JQA 5783 → BPG 8362; time 8:00AM - 05:00PM → 08:00AM - 12:00PM".
+- **A changed machine, date, time or operator** marks the job order "to send again" and unticks the crane CF item on the checklist.
+
+## 31. Open questions for the owner
 
 **From WORK_ORDER_2026.xlsx:**
 

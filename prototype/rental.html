@@ -704,6 +704,12 @@ td.mono{white-space:nowrap}
 .langsw button{border:0;background:none;color:color-mix(in srgb,#fff 75%,transparent);font:inherit;font-size:.78rem;font-weight:600;padding:4px 12px;border-radius:6px;cursor:pointer}
 .langsw button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 html[lang^="zh"] .navh, html[lang^="zh"] th, html[lang^="zh"] .label{letter-spacing:.04em}
+
+.subtabs{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 14px;border-bottom:1px solid var(--line)}
+.subtabs button{border:0;background:none;font:inherit;font-weight:600;color:var(--muted);padding:9px 14px;cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.subtabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.subtabs button:hover{color:var(--ink)}
+.pick .pickpeer,.pickpeer{display:flex;gap:8px;align-items:center;padding:8px 2px}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- Private company data, published only with the private page and never committed (see .gitignore). Without it the page shows example data. -->
@@ -729,40 +735,20 @@ html[lang^="zh"] .navh, html[lang^="zh"] th, html[lang^="zh"] .label{letter-spac
     </div>
   </div>
   <nav class="tabs" aria-label="Sections">
-    <div class="navg"><span class="navh">Overview</span>
-      <button data-view="dashboard">Dashboard</button>
-      <button data-view="today">Today</button>
-    </div>
-    <div class="navg"><span class="navh">Sell</span>
-      <button data-view="enquiries">Enquiries</button>
-      <button data-view="customers">Customers</button>
-      <button data-view="avail">Availability</button>
-    </div>
-    <div class="navg"><span class="navh">Plan</span>
-      <button data-view="hires">Hires</button>
-      <button data-view="dispatch">Dispatch</button>
-      <button data-view="planner">Planner</button>
-      <button data-view="lift">Lift check</button>
-      <button data-view="calendar">Calendar</button>
-    </div>
-    <div class="navg"><span class="navh">Run</span>
-      <button data-view="fleet">Fleet</button>
-      <button data-view="transport">Transport</button>
-      <button data-view="fuel">Fuel</button>
-      <button data-view="timesheets">Timesheets</button>
-      <button data-view="staff">Staff</button>
-    </div>
-    <div class="navg"><span class="navh">Money</span>
-      <button data-view="billing">Billing</button>
-      <button data-view="rates">Rates</button>
-      <button data-view="reports">Reports</button>
-      <button data-view="connect">Connections</button>
+    <div class="navg">
+      <button data-page="home" data-view="dashboard">Home</button>
+      <button data-page="jobs" data-view="dispatch">Jobs</button>
+      <button data-page="schedule" data-view="planner">Schedule</button>
+      <button data-page="customers" data-view="customers">Customers</button>
+      <button data-page="machines" data-view="fleet">Machines</button>
+      <button data-page="staff" data-view="staff">Staff</button>
+      <button data-page="settings" data-view="rates">Settings</button>
     </div>
   </nav>
 </aside>
 <div class="shell">
 
-<div class="wrap"><p class="sample-note">Prototype of the Super Power Crane Machinery system with example data (today is set to Fri 16 Oct 2026). Changes stay until the page reloads. Switch "Viewing as" to see each role: the Supervisor sees rates and invoices but not machine cost or profit; Sales works enquiries, customers and follow-ups; operators see only their own timesheet and leave, with no prices. The full design (docs/RENTAL.md) is in the project repository.</p></div>
+<div class="wrap"><p class="sample-note">Prototype of the Super Power Crane Machinery system with example data (today is set to Fri 16 Oct 2026). Changes stay until the page reloads. Switch "Viewing as" to see each role: the Supervisor sees rates and invoices but not machine cost or profit; Sales works enquiries, customers and follow-ups; operators see only their own timesheet and leave, with no prices. The full design (docs/RENTAL.md) is in the project repository.</p><div class="subtabs" id="subtabs" role="tablist" aria-label="Tabs" hidden></div></div>
 
 <main class="wrap">
   <section class="view" id="v-dashboard"></section>
@@ -1422,12 +1408,12 @@ function renderFleet2(){
       <label>Sort by<select class="field" id="fleetSort">${Object.entries({cls:'Class and size',no:'Plate',idle:'Idle longest',end:'Hire ends soonest'}).map(([k,v])=>`<option value="${k}" ${k===f.sort?'selected':''}>${v}</option>`).join('')}</select></label>
     </div>
     <div class="seg" style="align-self:flex-start;flex-wrap:wrap">${Object.entries(FLEET_ST).map(([k,v])=>`<button data-flst="${k}" aria-pressed="${f.st===k}">${v} <span class="muted num">${counts[k]}</span></button>`).join('')}</div>
-    <div class="tbl-wrap"><table><thead><tr><th>Plate</th><th>Machine</th><th>Class</th><th>Status</th><th>Where / customer</th><th>Documents</th><th class="r boss">Revenue YTD</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table><thead><tr><th>Plate</th><th>Machine</th><th>Class</th><th>Status</th><th>Where / customer</th><th>Documents</th></tr></thead><tbody>
     ${shown.map(({u,s,cls,di})=>{ const fl = fleet[u], wd = worstDoc(u);
       return `<tr class="click" data-unit="${u}"><td class="mono"><b>${u}</b></td><td><b>${esc(uName(u))}</b><br><small class="muted">${[mOf(u).type, uRef(u), fl.year].filter(Boolean).map(esc).join(' · ')}</small></td><td><small>${esc(cls.label)}</small></td>
       <td><span class="pill ${s.cls}">${esc(s.label)}</span>${s.k==='Available'&&s.idle!=null?`<br><small class="muted">idle ${s.idle} d</small>`:''}</td>
       <td>${s.h?`${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site.split(',')[0])}${s.l&&s.k==='On hire'?' · to '+fmtD(s.l.to):''}</small>`:s.note?esc(s.note):'Kempas yard'}</td>
-      <td>${wd?docPill(wd[0],wd[1]):''}${di.length?'<br><span class="docwarn" style="display:inline">⚠ due in 60 days</span>':''}</td><td class="r num boss">${fl.ytd?RM0(fl.ytd.rev):'—'}</td></tr>`; }).join('') || '<tr><td colspan="7" class="muted">No machine matches.</td></tr>'}
+      <td>${wd?docPill(wd[0],wd[1]):''}${di.length?'<br><span class="docwarn" style="display:inline">⚠ due in 60 days</span>':''}</td></tr>`; }).join('') || '<tr><td colspan="6" class="muted">No machine matches.</td></tr>'}
     </tbody></table></div>
     ${us.length>shown.length?`<div class="btnrow"><button class="btn" data-action="fleet-more">Show ${Math.min(PAGE, us.length-shown.length)} more (${shown.length} of ${us.length})</button></div>`:`<small class="muted">${us.length} shown</small>`}`;
 }
@@ -1471,13 +1457,22 @@ const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGr
 try{ const v = localStorage.getItem('spc-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
+/* Seven pages; related screens are tabs inside a page. Billing, revenue and balances live in Bukku. */
+const PAGES = [
+  {k:'home', views:['dashboard']}, {k:'jobs', views:['dispatch','hires','enquiries']}, {k:'schedule', views:['planner','avail','calendar']},
+  {k:'customers', views:['customers']}, {k:'machines', views:['fleet','lift','fuel']}, {k:'staff', views:['staff','timesheets']}, {k:'settings', views:['rates','connect']}];
+const VIEW_TAB = {dispatch:'Today & coming', hires:'All jobs', enquiries:'Enquiries', planner:'Planner', avail:'Availability', calendar:'Calendar', fleet:'Machines', lift:'Lift check', fuel:'Fuel', staff:'Staff & leave', timesheets:'Timesheets', rates:'Rates', connect:'Connections'};
 function setView(v){
   const allowed = ROLE_VIEWS[role()];
+  if(!allowed.includes(v)) v = ({today:'dispatch', transport:'dispatch', billing:'hires', reports:'dashboard'})[v] || v;
   if(!allowed.includes(v)) v = allowed[0];
-  document.querySelectorAll('nav.tabs button').forEach(b => b.hidden = !allowed.includes(b.dataset.view));
   state.view = v;
+  const page = PAGES.find(p=>p.views.includes(v)); state.tabOf = state.tabOf || {}; if(page) state.tabOf[page.k] = v;
+  document.querySelectorAll('nav.tabs button[data-page]').forEach(b => { const pg = PAGES.find(p=>p.k===b.dataset.page), vs = pg.views.filter(x=>allowed.includes(x));
+    b.hidden = !vs.length; if(vs.length) b.dataset.view = vs.includes(state.tabOf[pg.k]) ? state.tabOf[pg.k] : vs[0]; b.setAttribute('aria-current', pg===page ? 'page' : 'false'); });
+  const tabs = page ? page.views.filter(x=>allowed.includes(x)) : [], st = document.getElementById('subtabs');
+  st.hidden = tabs.length < 2; st.innerHTML = tabs.length < 2 ? '' : tabs.map(x=>`<button role="tab" data-view="${x}" aria-selected="${x===v}">${VIEW_TAB[x]}</button>`).join('');
   document.querySelectorAll('section.view').forEach(s => s.hidden = s.id !== 'v-'+v);
-  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.view===v ? 'page' : 'false'));
   try{ localStorage.setItem('spc-view', v); }catch(e){}
   render();
 }
@@ -1599,7 +1594,7 @@ function renderPlanner(){
   };
   $('#v-planner').innerHTML = `
     <div class="view-head"><h2>Planner</h2>
-      <div class="chipbar">${['',...Object.keys(GROUPS)].map(g=>`<button class="chip" data-plangrp="${g}" aria-pressed="${state.planGrp===g}">${g?esc(GROUPS[g]):'All'}</button>`).join('')}</div>
+      <div class="chipbar">${['',...Object.keys(GROUPS).filter(g=>Object.keys(fleet).some(u=>mOf(u).grp===g))].map(g=>`<button class="chip" data-plangrp="${g}" aria-pressed="${state.planGrp===g}">${g?esc(GROUPS[g]):'All'}</button>`).join('')}</div>
       <button class="btn primary" data-action="new-hire">New hire / quotation</button></div>
     <form class="findbar" data-form="find">
       <label>Find a machine<select class="field" name="type"><option value="">Machine type…</option>${types.map(t=>`<option ${t===fType?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
@@ -1649,6 +1644,7 @@ function openHire(id){
   const tsRows = sheets.filter(s=>s.hire===h.id).sort((a,b)=>a.d<b.d?1:-1).slice(0,8);
   const actions = [];
   if(h.status==='Quotation'){ actions.push(`<button class="btn" data-action="qd-open" data-id="${id}">Quotation document</button>`); actions.push(`<button class="btn" data-action="send-quote" data-id="${id}">Send quotation by WhatsApp</button>`); if(h.lines.every(l=>l.u)) actions.push(`<button class="btn primary" data-action="confirm" data-id="${id}" ${checkOk(h)?'':'title="Complete the checklist first"'}>${h.order?'Confirm order':'Confirm booking'}${checkOk(h)?'':` (${checkDone(h)}/${PRECONFIRM.length})`}</button>`); actions.push(`<button class="btn" data-action="lose" data-id="${id}">Mark lost</button>`); }
+  if(['Quotation','Booked','On hire','Off-hire called'].includes(h.status) && role()!=='operator') actions.push(`<button class="btn" data-action="edit-order" data-id="${id}">Edit order</button>`);
   if(h.status==='Booked' && h.job){ actions.push(h.track?.sent ? `<button class="btn" data-action="wa-open" data-id="${id}">Job order (sent)</button>` : `<button class="btn primary" data-action="wa-open" data-id="${id}">Send job order to operator</button>`); if(h.track?.sent && !h.track?.precheck) actions.push(`<button class="btn" data-action="pre-open" data-id="${id}">Pre-dispatch check</button>`); actions.push(`<button class="btn" data-view="dispatch">Dispatch</button>`); }
   if(h.status==='Booked'){ if(h.deposit && !h.depositPaid) actions.push(`<button class="btn" data-action="deposit" data-id="${id}">Deposit received</button>`); actions.push(`<button class="btn primary" data-action="insp" data-id="${id}" data-kind="delivery">Delivery inspection</button>`); actions.push(`<button class="btn" data-action="cancel" data-id="${id}">Cancel booking</button>`); }
   if(h.status==='On hire'){ actions.push(`<button class="btn primary" data-action="offhire" data-id="${id}">Customer called off-hire</button>`); actions.push(`<button class="btn" data-action="breakdown" data-id="${id}">Report breakdown</button>`); actions.push(`<button class="btn" data-action="extend" data-id="${id}">Extend 7 days</button>`); }
@@ -1705,21 +1701,29 @@ function openHire(id){
 
 /* ---------- New hire ---------- */
 function newHireDefaults(pre={}){
-  return {c:'C1', site:'', state:'Johor', siteContact:'', po:'', k:'wet', basis:'day', type:'Truck crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Johor Bahru', del:true, col:true, jobType:'Lifting', jobScope:'', arrive:'08:30', requests:'', pay:'credit', collect:false, open:false, ...pre};
+  return {c:Object.keys(customers)[0], slot:'full', peerS:'', peerCost:'', site:'', state:'Johor', siteContact:'', po:'', k:'wet', basis:'day', type:'Truck crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Johor Bahru', del:true, col:true, jobType:'Lifting', jobScope:'', arrive:'08:30', requests:'', pay:'credit', collect:false, open:false, ...pre};
+}
+function hireToForm(h){
+  const l = h.lines[0], j = h.job || {};
+  return newHireDefaults({editId:h.id, c:h.c, site:h.site, state:h.state, siteContact:h.siteContact, po:h.po, k:l.k, basis:l.basis, type:models[lineModel(l)].type,
+    from:l.from, to:l.open ? addDays(l.from,29) : l.to, open:!!l.open, u:l.src==='peer' ? 'peer' : l.u, op:l.op||null, slot:l.slot||'full', peerS:l.peer?.s||'', peerCost:l.peer?.cost||'',
+    zone:h.trips[0]?.zone||'Johor Bahru', del:h.trips.some(t=>t.dir==='Delivery'), col:h.trips.some(t=>t.dir==='Collection'),
+    jobType:j.type||'Lifting', jobScope:j.scope||'', arrive:j.arrive||'08:00', requests:j.requests||'', pay:j.pay||'credit', collect:!!j.collect});
 }
 function openNewHire(){
-  const n = state.nh, types = [...new Set(hireUnits().map(u=>mOf(u).type))];
-  const units = hireUnits().filter(u=>mOf(u).type===n.type).map(u=>({u,...availability(u,n.from,n.open ? addDays(n.from,90) : n.to)}));
-  if(n.u && !units.some(x=>x.u===n.u && x.ok)) n.u = null;
-  if(!n.u){ const f = units.find(x=>x.ok && !x.warn.length) || units.find(x=>x.ok); n.u = f ? f.u : null; }
-  const mk = n.u ? fleet[n.u].m : Object.values(fleet).find(f=>models[f.m].type===n.type)?.m;
+  const n = state.nh, types = [...new Set([...hireUnits().map(u=>mOf(u).type), ...PEER_TYPES()])], slotQ = n.basis==='day' ? n.slot : undefined;
+  const units = hireUnits().filter(u=>mOf(u).type===n.type).map(u=>({u,...availability(u,n.from,n.open ? addDays(n.from,90) : n.to, n.editId, slotQ)}));
+  if(n.u && n.u!=='peer' && !units.some(x=>x.u===n.u && x.ok)) n.u = null;
+  if(!n.u){ const f = units.find(x=>x.ok && !x.warn.length) || units.find(x=>x.ok); n.u = f ? f.u : 'peer'; }
+  if(n.u==='peer' && !n.peerS) n.peerS = PEERS[0].n;
+  const mk = n.u && n.u!=='peer' ? fleet[n.u].m : modelOfType(n.type);
   const kinds = ['dry','wet'].filter(k=>rate(mk,k));
   if(!kinds.includes(n.k)) n.k = kinds[0];
   const r = rate(mk, n.k);
   const bases = ['hour','day','week','month'].filter(b=>r[{hour:'hr',day:'day',week:'week',month:'month'}[b]]);
   if(!bases.includes(n.basis)) n.basis = bases[0];
   const ops = Object.entries(staff).filter(([,s])=>s.skills && s.skills.includes(models[mk].grp==='crane'?'crane':'earth'));
-  if(n.k==='wet' && (!n.op || !operatorFree(n.op,n.from,n.to))) n.op = (ops.find(([o])=>operatorFree(o,n.from,n.to))||[])[0] || null;
+  if(n.u==='peer') n.op = null; else if(n.k==='wet' && (!n.op || !operatorFree(n.op,n.from,n.to,n.editId))) n.op = (ops.find(([o])=>operatorFree(o,n.from,n.to,n.editId))||[])[0] || null;
   if(n.basis!=='month') n.open = false;
   const est = estimate(mk, n.k, n.basis, n.from, n.open ? addDays(n.from,29) : n.to, +n.hrs);
   const tc = transportCharge(mk, n.zone), trips = (n.del?1:0)+(n.col?1:0), cu = customers[n.c];
@@ -1743,15 +1747,19 @@ function openNewHire(){
           <label>To<input type="date" data-nh="to" value="${n.to}" ${n.open?'disabled':''}></label>
         </div>
         <div class="pick">${units.map(x=>`<label class="${x.ok?(x.warn.length?'docbad':''):'no'}"><input type="radio" name="nhu" data-nh="u" value="${x.u}" ${x.u===n.u?'checked':''} ${x.ok?'':'disabled'}><span><b>${x.u} ${esc(uName(x.u))}</b>${uRef(x.u)?' · '+esc(uRef(x.u)):''} ${x.ok?'<span class="pill ok">Free</span>':'<span class="pill crit">Not free</span>'}${x.ok&&x.warn.length?' <span class="pill crit">Document issue</span>':''}<small>${x.ok?Object.entries(fleet[x.u].docs).map(([k,e])=>docPill(k,e)).join(' '):x.why.map(esc).join(' · ')}</small>${x.ok?warnHtml(x.warn):''}</span></label>`).join('')}</div>
+        <label class="pickpeer"><input type="radio" name="nhu" data-nh="u" value="peer" ${n.u==='peer'?'checked':''}><span><b>Cross-hire from another company (同行车)</b></span></label>
+        ${n.u==='peer'?`<div class="form"><label>Cross-hire from<select class="field" data-nh="peerS">${PEERS.map(p=>`<option value="${esc(p.n)}" ${p.n===n.peerS?'selected':''}>${esc(p.n)} · ${esc(p.has)}</option>`).join('')}</select></label>
+          <label class="cost">Their price to us (RM)<input type="number" min="0" step="50" data-nh="peerCost" value="${esc(n.peerCost)}"></label></div>`:''}
+        ${n.basis==='day'?`<div class="form"><label>Time<select class="field" data-nh="slot">${Object.entries(SLOTS).map(([k2,v])=>`<option value="${k2}" ${k2===n.slot?'selected':''}>${k2==='full'?'Full day':k2==='am'?'Morning':'Afternoon'} · ${v}</option>`).join('')}</select></label></div>`:''}
         ${n.u && units.find(x=>x.u===n.u)?.warn.length ? `<div class="banner crit"><b>${n.u}: ${units.find(x=>x.u===n.u).warn.map(esc).join(' · ')}. You can still book it. The Supervisor gets a follow-up to renew it, and the hire stays marked red until it is renewed.</b></div>` : ''}
-        ${!n.u?'<div class="banner crit"><b>No machine of this type is free for these dates. Save as a quotation to keep the enquiry, change the dates, or pick another size.</b></div>':''}
+        ${n.u==='peer' && !units.some(x=>x.ok)?`<div class="banner"><b>${units.length?'None of our machines of this type is free for these dates':'We have no machine of this type'}: cross-hire it, change the dates, or pick another size.</b></div>`:''}
       </div></div>
       <div class="sect"><h3>Hire terms</h3><div class="in">
         <div class="form">
           <label>Kind<select class="field" data-nh="k">${kinds.map(k=>`<option value="${k}" ${k===n.k?'selected':''}>${kindLabel(k)}${k==='wet'?' (with operator)':' (machine only)'}</option>`).join('')}</select></label>
           <label>Charged by<select class="field" data-nh="basis">${bases.map(b=>`<option value="${b}" ${b===n.basis?'selected':''}>${basisLabel[b]}</option>`).join('')}</select></label>
           ${n.k==='wet'?`<label>Expected hours a day<input type="number" min="1" max="16" step="0.5" data-nh="hrs" value="${n.hrs}"></label>
-          <label>Operator<select class="field" data-nh="op">${ops.map(([o,s])=>{ const free = operatorFree(o,n.from,n.to), exp = Object.entries(s.certs).filter(([,e])=>e<n.to); return `<option value="${o}" ${o===n.op?'selected':''} ${free&&!exp.length?'':'disabled'}>${esc(s.name)}${!free?' (busy)':exp.length?' ('+esc(exp[0][0])+' expires)':''}</option>`; }).join('')}</select></label>`:''}
+          ${n.u==='peer'?'<label>Operator<input type="text" value="From the cross-hire company" readonly></label>':''}<label ${n.u==='peer'?'hidden':''}>Operator<select class="field" data-nh="op">${ops.map(([o,s])=>{ const free = operatorFree(o,n.from,n.to,n.editId), exp = Object.entries(s.certs).filter(([,e])=>e<n.to); return `<option value="${o}" ${o===n.op?'selected':''} ${free&&!exp.length?'':'disabled'}>${esc(s.name)}${!free?' (busy)':exp.length?' ('+esc(exp[0][0])+' expires)':''}</option>`; }).join('')}</select></label>`:''}
         </div>
         <small class="muted cost">Rate card: ${[r.hr&&`${RM0(r.hr)}/h (min ${r.minH} h)`, r.day&&`${RM0(r.day)}/day`, r.week&&`${RM0(r.week)}/week`, r.month&&`${RM0(r.month)}/month for ${r.mHrs} h`].filter(Boolean).join(' · ')}${r.ot?` · OT ${RM0(r.ot)}/h`:''}${r.ex?` · excess ${RM0(r.ex)}/h`:''}</small>
       </div></div>
@@ -1777,14 +1785,16 @@ function openNewHire(){
         ${deposit?`<span>Deposit before delivery</span><b>${RM(deposit)}</b>`:''}
         <small class="muted" style="grid-column:1/-1">Final charges come from signed timesheets and hour-meter readings${n.k==='wet'?'; overtime, Sundays and public holidays are added, breakdown hours credited':''}.</small>
       </div></div>
-      <div class="btnrow"><button class="btn" type="button" data-action="nh-save" data-as="Quotation">Save as quotation</button><button class="btn primary" type="button" data-action="nh-save" data-as="Order" ${n.u?'':'disabled'}>Save order and do the checklist</button></div>
+      <div class="btnrow">${n.editId ? `<button class="btn primary" type="button" data-action="nh-save" data-as="Edit">Save changes</button><button class="btn" type="button" data-hire="${n.editId}">Cancel</button>`
+        : `<button class="btn" type="button" data-action="nh-save" data-as="Quotation">Save as quotation</button><button class="btn primary" type="button" data-action="nh-save" data-as="Order" ${n.u?'':'disabled'}>Save order and do the checklist</button>`}</div>
     </form>`;
   n._mk = mk; n._deposit = deposit; n._tc = tc;
-  openSheet('New hire / quotation', '<span class="mono">H-2026-0162</span>', body, {type:'nh'});
+  openSheet(n.editId ? `Edit order ${n.editId}` : 'New hire / quotation', n.editId ? `<span class="mono">${esc(custName(n.c))}</span> ${hireStatusPill(hire(n.editId))}` : '<span class="mono">New</span>', body, {type:'nh'});
 }
 function saveNewHire(as){
   const n = state.nh;
   if(!n.site.trim()){ toast('Enter the site'); return; }
+  if(as==='Edit') return saveEditedHire(n);
   if(as!=='Quotation' && !n.u){ toast('No machine free: save as a quotation'); return; }
   const isOrder = as==='Order'; if(isOrder) as = 'Quotation';
   const id = 'H-2026-0' + (Math.max(...hires.map(h=>+h.id.slice(-4)))+1);
@@ -1793,16 +1803,39 @@ function saveNewHire(as){
   if(n.col && !n.open) trips.push({dir:'Collection',d:addDays(n.to,1),u:n.u||'—',veh:self?null:'BKT 4410',drv:self?(n.op||'D2'):'D2',zone:n.zone,charge:n._tc,status:'Planned',self});
   hires.push({id,c:n.c,site:n.site,state:n.state,siteContact:n.siteContact||customers[n.c].contact,po:n.po,status:as,created:TODAY,cycle:n.basis==='month'?'Monthly in arrears':'End of hire',
     quoteValid: as==='Quotation'?addDays(TODAY,7):undefined, deposit:n._deposit||undefined, depositPaid:false,
-    lines:[{u:n.u,m:n._mk,k:n.k,basis:n.basis,from:n.from,to:n.open?OPEN_END:n.to,open:n.open||undefined,op:n.k==='wet'?n.op:undefined}], order:isOrder||undefined, check:{}, checkNote:{}, track:{},
-    job:{type:n.jobType, scope:n.jobScope, arrive:n.arrive, requests:n.requests, pay:n.pay, collect:n.pay==='cash' && !!n.collect}, trips: n.u ? trips : [],
+    lines:[{u:n.u==='peer'?null:n.u,m:n._mk,k:n.k,basis:n.basis,from:n.from,to:n.open?OPEN_END:n.to,open:n.open||undefined,op:n.k==='wet'&&n.u!=='peer'?n.op:undefined,slot:n.basis==='day'?n.slot:undefined,...(n.u==='peer'?{src:'peer',peer:{s:n.peerS,cost:+n.peerCost||0}}:{})}], order:isOrder||undefined, check:{}, checkNote:{}, track:{},
+    job:{type:n.jobType, scope:n.jobScope, arrive:n.arrive, requests:n.requests, pay:n.pay, collect:n.pay==='cash' && !!n.collect}, trips: n.u && n.u!=='peer' ? trips : [],
     log:[{d:TODAY+' '+nowT(),t:`${as==='Booked'?'Booked':'Quotation created'} by ${staff[meStaff()].name}.`}]});
   linkEnquiry(n, id, isOrder ? 'Booked' : as);
-  const di = n.u ? docIssues(n.u, n.from, n.to) : [];
+  const di = n.u && n.u!=='peer' ? docIssues(n.u, n.from, n.to) : [];
   if(di.length){ const h = hire(id);
     di.forEach(x => { h.log.unshift({d:TODAY+' '+nowT(), t:`Booked with a document issue: ${n.u} ${x.msg}.`});
       tasks.push({id:++taskSeq, d: x.expired ? TODAY : maxD(TODAY, addDays(x.exp,-14)), type:'Renew document', who:'S1', hire:id, cust:n.c, t:`Renew ${DOCS[x.k]} for ${n.u} (${x.expired?'expired':'expires'} ${fmtD(x.exp)}) before ${x.expired?'delivery on '+fmtD(n.from):fmtD(x.exp)}`, rule:'Booked with a document issue', done:false}); }); }
-  toast((isOrder ? `${id} order saved and ${n.u} reserved. Complete the checklist to confirm it.` : `${id} saved as quotation.`) + (di.length ? ` Note: ${di.map(x=>DOCS[x.k]).join(' and ')} needs renewing.` : ''));
+  toast((isOrder ? `${id} order saved${n.u==='peer'?' as a cross-hire from '+n.peerS:' and '+n.u+' reserved'}. Complete the checklist to confirm it.` : `${id} saved as quotation.`) + (di.length ? ` Note: ${di.map(x=>DOCS[x.k]).join(' and ')} needs renewing.` : ''));
   state.nh = null; render(); openHire(id);
+}
+/* Save an edited order: same hire number; what changed goes in the activity log, and a job order already sent is flagged to send again. */
+function saveEditedHire(n){
+  const h = hire(n.editId), l = h.lines[0], peer = n.u==='peer', before = {c:h.c, site:h.site, u:l.src==='peer'?'cross-hire':l.u, from:l.from, to:l.to, slot:l.slot||'full', op:l.op, basis:l.basis};
+  if(!peer && !n.u){ toast('No machine free: pick another machine, cross-hire, or change the dates'); return; }
+  Object.assign(h, {c:n.c, site:n.site, state:n.state, siteContact:n.siteContact, po:n.po, cycle:n.basis==='month'?'Monthly in arrears':'End of hire'});
+  Object.assign(l, {u:peer?null:n.u, m:n._mk, k:n.k, basis:n.basis, from:n.from, to:n.open?OPEN_END:n.to, open:n.open||undefined, op:peer?undefined:(n.k==='wet'?n.op:undefined), slot:n.basis==='day'?n.slot:undefined});
+  if(peer){ l.src = 'peer'; l.peer = {s:n.peerS, cost:+n.peerCost||0}; } else { delete l.src; delete l.peer; }
+  if(['On hire','Off-hire called','Returned','Closed'].includes(h.status) && !l.on) l.on = n.from;
+  h.job = {...(h.job||{}), type:n.jobType, scope:n.jobScope, arrive:n.arrive, requests:n.requests, pay:n.pay, collect:n.pay==='cash' && !!n.collect};
+  const self = models[n._mk].size==='self', done = h.trips.filter(t=>t.status==='Done');
+  h.trips = [...done, ...(!peer && n.del && !done.some(t=>t.dir==='Delivery') ? [{dir:'Delivery',d:n.from,u:n.u,veh:null,drv:n.op,zone:n.zone,charge:n._tc,status:'Planned',self}] : []),
+    ...(!peer && n.col && !n.open ? [{dir:'Collection',d:addDays(n.to,1),u:n.u,veh:null,drv:n.op,zone:n.zone,charge:n._tc,status:'Planned',self}] : [])];
+  const after = {c:h.c, site:h.site, u:peer?'cross-hire':l.u, from:l.from, to:l.to, slot:l.slot||'full', op:l.op, basis:l.basis};
+  const NAME = {c:'customer', site:'site', u:'machine', from:'start', to:'end', slot:'time', op:'operator', basis:'charged by'};
+  const show = (k,v) => k==='c' ? custName(v) : k==='op' ? (staff[v]?.name||'—') : k==='from'||k==='to' ? fmtDY(v) : k==='slot' ? (SLOTS[v]||v) : String(v||'—');
+  const changed = Object.keys(after).filter(k=>after[k]!==before[k]).map(k=>`${NAME[k]} ${show(k,before[k])} → ${show(k,after[k])}`);
+  if(['u','from','slot','op'].some(k=>after[k]!==before[k]) && h.track?.sent){ delete h.track.sent; changed.push('job order needs to be sent again'); }
+  if(after.u!==before.u && h.check) h.check.cf = false;
+  if(h.quote){ const no = h.quote.no; delete h.quote; const q = quoteOf(h); q.no = no; state.qSeq--; }
+  h.log.unshift({d:TODAY+' '+nowT(), t:`Order edited by ${staff[meStaff()].name}${changed.length?': '+changed.join('; '):' (job details)'}.`});
+  toast(`${h.id} updated${changed.some(c=>c.startsWith('job order'))?'. Send the job order again.':''}`);
+  state.nh = null; render(); openHire(h.id);
 }
 const nowT = () => '09:'+String(10+Math.floor(Math.random()*40)).padStart(2,'0');
 
@@ -1900,7 +1933,7 @@ function openUnit(u){
     <div class="sect"><h3>Documents</h3><div class="tbl-wrap" style="border:0"><table><tbody>
       ${Object.entries(f.docs).map(([k,e])=>`<tr><td>${esc(DOCS[k])}</td><td class="num">${fmtDY(e)}</td><td>${docPill(k,e)}</td></tr>`).join('')}
     </tbody></table></div><div class="in"><small class="muted">An expired DOSH CF, road tax, insurance or Puspakom blocks bookings that run past the expiry date.</small></div></div>
-    ${f.ytd?`<div class="sect boss"><h3>Jan–Sep 2026 (Head Manager)</h3><div class="facts">
+    ${false && f.ytd?`<div class="sect boss"><h3>Jan–Sep 2026 (Head Manager)</h3><div class="facts">
       <div><span class="label">Hire revenue</span><b>${RM0(f.ytd.rev)}</b></div>
       <div><span class="label">Workshop cost</span><b>${RM0(f.ytd.ws)}</b><small class="muted">parts + labour from workshop jobs</small></div>
       <div><span class="label">Operator & transport</span><b>${RM0(f.ytd.opx)}</b></div>
@@ -2142,9 +2175,9 @@ Object.entries({HM:'012-300 1001',S1:'012-388 2201',S2:'012-660 3317',S3:'016-22
 const OFFICE = ['HM','S1','S2','S3'], FIELD = ['O1','O2','O3','O4','O5','O6','O7','O8','O9','D1','D2'];
 const meStaff = () => ({boss:'HM',supervisor:'S1',sales:'S2'})[role()] || state.me;
 const ROLE_VIEWS = {
-  boss:['dashboard','today','enquiries','customers','avail','hires','dispatch','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates','reports','connect'],
-  supervisor:['dashboard','today','enquiries','customers','avail','hires','dispatch','planner','lift','calendar','fleet','transport','fuel','timesheets','staff','billing','rates'],
-  sales:['dashboard','today','enquiries','customers','avail','hires','dispatch','planner','lift','calendar','fleet','rates'],
+  boss:['dashboard','dispatch','hires','enquiries','planner','avail','calendar','customers','fleet','lift','fuel','staff','timesheets','rates','connect'],
+  supervisor:['dashboard','dispatch','hires','enquiries','planner','avail','calendar','customers','fleet','lift','fuel','staff','timesheets','rates'],
+  sales:['dashboard','dispatch','hires','enquiries','planner','avail','calendar','customers','fleet','lift'],
   operator:['timesheets'],
 };
 let leave = [
@@ -2398,12 +2431,11 @@ function renderCustomers(){
   const prospects = [...new Map(enquiries.filter(e=>!e.c).map(e=>[e.prospect.name, e])).values()];
   $('#v-customers').innerHTML = `
     <div class="view-head"><h2>Customers</h2><input type="search" id="custQ" placeholder="Search name, contact, industry" value="${esc(state.custQ||'')}"><button class="btn primary" data-action="new-enq">New enquiry</button></div>
-    <div class="tbl-wrap"><table><thead><tr><th>Customer</th><th>Contact</th><th>Salesperson</th><th class="r">On hire</th><th class="r">Open enquiries</th><th class="r cost">Balance</th><th>Last contact</th><th>Next follow-up</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table><thead><tr><th>Customer</th><th>Contact</th><th>Salesperson</th><th class="r">On hire</th><th class="r">Open enquiries</th><th>Last job</th><th>Next follow-up</th></tr></thead><tbody>
       ${rows.map(r=>`<tr class="click" data-cust="${r.k}"><td><b>${esc(r.c.name)}</b>${r.c.isNew?' <span class="pill appr">New</span>':''}<br><small class="muted">${esc(r.c.ind||'')}${!r.c.tin?' · <span style="color:var(--crit)">TIN missing</span>':''}</small></td>
         <td>${esc(r.c.contact)}<br><small class="muted">${esc(r.c.phone)}</small></td><td>${esc(staff[r.c.sales||'S2'].name)}</td>
         <td class="r num">${r.active||'—'}</td><td class="r num">${r.open||'—'}</td>
-        <td class="r num cost">${r.bal?`<span class="${r.over?'stock-out':''}">${RM0(r.bal)}</span>`:'—'}</td>
-        <td class="num">${r.last?fmtD(r.last):'—'}${r.last&&daysBetween(r.last,TODAY)>60?' <span class="pill warn">'+daysBetween(r.last,TODAY)+' d</span>':''}</td>
+        <td class="num">${r.lh?fmtD(r.lh):'—'}</td>
         <td>${r.next?`<span class="due ${r.next.d<TODAY?'over':r.next.d===TODAY?'soon':''}">${r.next.d===TODAY?'Today':fmtD(r.next.d)} · ${esc(r.next.type)}</span>`:'<span class="muted">—</span>'}</td></tr>`).join('')}
     </tbody></table></div>
     ${allRows>rows.length?`<div class="btnrow"><button class="btn" data-action="cust-all">Show all ${allRows} customers</button><small class="muted">Showing the ${rows.length} most recent. Search finds any customer.</small></div>`:''}
@@ -2433,7 +2465,7 @@ function openCustomer(k){
       <div><span class="label">TIN</span><b>${c.tin?esc(c.tin):'<span style="color:var(--warn)">Missing: customer scans the QR on each invoice</span>'}</b></div>
       <div><span class="label">SST no.</span><b>${esc(c.sst||'—')}</b></div>
       <div class="cost"><span class="label">Credit</span><b>${c.terms?c.terms+' days, limit '+RM0(c.limit):'Cash / deposit'}</b></div>
-      <div class="cost"><span class="label">Balance owing</span><b>${RM0(bal)}</b>${c.limit?`<small class="muted">${Math.round(bal/c.limit*100)}% of limit</small>`:''}</div>
+      <div><span class="label">Sales and balance</span><b>In Bukku</b></div>
     </div></div>
     <div class="sect"><h3>Contacts and sites</h3><div class="in">
       <div><b>${esc(c.contact)}</b> · ${esc(c.phone)} <span class="muted">(main)</span></div>
@@ -3108,8 +3140,7 @@ function renderDashboard(){
       <div class="btnrow"><button class="btn" data-action="new-enq">New enquiry</button><button class="btn" data-view="avail">Availability</button><button class="btn" data-action="qq-new">Quick quotation</button><button class="btn primary" data-action="new-hire">New order</button></div></div>
     <div class="kpis dk">
       <button class="kpi" data-view="fleet"><span class="label">Machinery on rental</span><b>${rented.length}<small class="muted"> / ${units.length}</small></b><span>${units.length-rented.length} in yard, booked or in workshop</span></button>
-      <button class="kpi" data-view="reports"><span class="label">Utilisation rate</span><b>${uNow}%</b><span>Oct to date ${delta(uNow,uPrev)}</span></button>
-      <button class="kpi cost" data-view="billing"><span class="label">Hire revenue, Oct</span><b style="font-size:1.4rem">${RM0(ms[5].rev)}</b><span>to date, before SST · ${RM0(outstanding)} owed to us</span></button>
+      <button class="kpi" data-view="fleet"><span class="label">Utilisation rate</span><b>${uNow}%</b><span>Oct to date ${delta(uNow,uPrev)}</span></button>
       <button class="kpi" data-view="staff"><span class="label">Attendance today</span>${noClock?'<b>—</b><span>Starts when staff clock in on the app</span>':`<b>${present}<small class="muted"> / ${att.length}</small></b><span>${none.length} not clocked in · ${att3[2].n} on leave / MC</span>`}</button>
       <button class="kpi cost" data-view="enquiries"><span class="label">Sales pipeline</span><b style="font-size:1.4rem">${RM0(pipe)}</b><span>${open.length} open enquiries · ${due} follow-ups due</span></button>
       <button class="kpi" data-view="fuel"><span class="label">Fuel, Oct</span><b style="font-size:1.4rem">${num(fL)} L</b><span class="cost">${RM0(fRM)} · ${fuel.filter(f=>f.d.startsWith('2026-10') && fuelFlag(f)).length} fill to check</span></button>
@@ -3130,13 +3161,11 @@ function renderDashboard(){
       <div class="panel"><div class="panel-head"><h3>Utilisation by type</h3><span class="muted">Oct to date</span></div><div class="rbars">
         ${byGrp.map(x=>`<div class="rbar"><span>${esc(GROUPS[x.g])} <small class="muted">${x.on}/${x.n} out</small></span><div class="track"><div class="fill" style="width:${x.util}%" data-tip="${esc(GROUPS[x.g])}: ${x.util}% (${x.on} of ${x.n} on hire today)"></div></div><span class="v">${x.util}%</span></div>`).join('')}
       </div></div>
-      <div class="panel cost"><div class="panel-head"><h3>Hire revenue by month</h3><span class="muted">invoiced, before SST</span></div><div class="in" style="padding:6px 10px 10px">${barChart(ms)}
-        <small class="muted">October is to date (hatched). ${overdue?`<b>${RM0(overdue)}</b> is overdue.`:''}</small></div></div>
-      <div class="panel"><div class="panel-head"><h3>Needs attention</h3><button class="btn small" data-view="today">Today</button></div><div class="panel-body">
+      <div class="panel"><div class="panel-head"><h3>Needs attention</h3><button class="btn small" data-view="dispatch">Jobs</button></div><div class="panel-body">
         ${alerts.map(a=>`<div class="attn ${a.cost?'cost':''}" ${a.a} role="button" tabindex="0" style="--sev:var(--${a.sev==='crit'?'crit':a.sev==='warn'?'warn':'info'})"><i></i><div><b>${esc(a.t)}</b><br><small class="muted">${esc(a.s)}</small></div></div>`).join('')}
         <div class="attn" data-view="calendar" role="button" tabindex="0" style="--sev:var(--warn)"><i></i><div><b>${exp} licences and machine documents expire within 60 days</b><br><small class="muted">DOSH CF, road tax, Puspakom, CIDB, GDL</small></div></div>
       </div></div>
-      <div class="panel"><div class="panel-head"><h3>Next 7 days</h3><button class="btn small" data-view="transport">Transport</button></div><div class="panel-body">
+      <div class="panel"><div class="panel-head"><h3>Next 7 days</h3><button class="btn small" data-view="planner">Schedule</button></div><div class="panel-body">
         ${week.map(t=>`<div class="attn" data-hire="${t.hire}" role="button" tabindex="0" style="--sev:var(--${t.dir==='Delivery'?'s1':'s2'})"><i></i><div><b>${fmtDW(t.d)} · ${t.dir==='Delivery'?'Out':'Back'}: ${t.u} ${esc(mOf(t.u).model)}</b><br><small class="muted">${esc(custName(t.c))} · ${t.veh?esc(t.veh):'self-drive'} · ${esc(staff[t.drv].name)}</small></div></div>`).join('') || '<p class="muted" style="padding:8px 14px">No trips planned.</p>'}
       </div></div>
     </div>`;
@@ -3358,7 +3387,7 @@ function gpsLive(u){
   return {state:'Yard', where:'Kempas yard', speed:0, at:'09:0'+Math.floor(rnd('y'+u)*9), cls:'mute'};
 }
 function renderDispatch(){
-  const jobs = hires.filter(h => h.job && ['Quotation','Booked','On hire','Returned'].includes(h.status) && !(isMonthly(h) && stepNow(h)>=5 && h.lines[0].on<TODAY)).sort((a,b)=>a.lines[0].from<b.lines[0].from?-1:1);
+  const jobs = hires.filter(h => h.job && h.lines[0].u && ['Quotation','Booked','On hire','Returned'].includes(h.status) && !(isMonthly(h) && stepNow(h)>=5 && h.lines[0].on<TODAY)).sort((a,b)=>a.lines[0].from<b.lines[0].from?-1:1);
   const cranes = Object.keys(fleet).filter(u=>mOf(u).grp==='crane' || fleet[u].transport);
   const pend = jobs.filter(h=>h.status==='Quotation' && !checkOk(h)).length, unsent = jobs.filter(h=>h.status==='Booked' && !h.track?.sent).length;
   const moving = cranes.filter(u=>gpsLive(u).state==='Moving').length, atSite = cranes.filter(u=>gpsLive(u).state.startsWith('At site')).length;
@@ -3729,6 +3758,7 @@ document.addEventListener('click', e => {
     const act = d.action, h = d.id ? hire(d.id) : null;
     if(act==='close') return closeSheet();
     if(act==='new-hire'){ state.nh = newHireDefaults(); return openNewHire(); }
+    if(act==='edit-order'){ state.nh = hireToForm(hire(d.id)); return openNewHire(); }
     if(act==='book-unit'){ const u = d.u; state.nh = newHireDefaults({type:mOf(u).type, u, from:state.find.from, to:state.find.to}); return openNewHire(); }
     if(act==='find-clear'){ state.find.type=''; return render(); }
     if(act==='nh-save') return saveNewHire(d.as);
@@ -4001,6 +4031,7 @@ const ZH = {
   // extra machine / place words that appear alone
   "Lorry tipper":"罗里（倒斗）","Truck crane":"汽车吊","Prime mover & lowloader":"拖头和低床拖车","Lowloader":"低床拖车","Palfinger lorry crane":"Palfinger 随车吊",
   "Aisyah binti Karim":"Aisyah binti Karim","Prototype":"原型",
+  "Home":"主页","Not available":"不可用","Jobs":"订单","Schedule":"排程","Machines":"机械","Settings":"设置","Tabs":"分页","Today & coming":"今天和接下来","All jobs":"全部订单","Staff & leave":"员工和请假","Edit order":"编辑订单","Save changes":"保存修改","Sales and balance":"销售额和余额","In Bukku":"在 Bukku","Last job":"最后工作","Cross-hire from another company (同行车)":"同行车（向别家租）","Their price to us (RM)":"同行价格（RM）","From the cross-hire company":"由同行公司提供",
   "free":"可用","NOT free":"不可用","free, document issue":"可用，文件有问题","Timesheet":"工作单","Morning · 08:00AM - 12:00PM":"上午 · 08:00AM - 12:00PM",
 
   // second pass: hints, sentences and fragments
@@ -4061,6 +4092,7 @@ const ZH_RX = [
   [new RegExp(`\\b${MON_RX} (\\d{4})\\b`,'g'), (m,mo,y)=>`${y}年${MI[mo]}月`],
   [/^Prototype of the Super Power Crane Machinery system with example data \(today is set to (.+?)\)\. Changes stay until the page reloads\..*$/g, 'Super Power Crane Machinery 系统原型，使用示例数据（今天设为 $1）。改动在刷新页面后消失。切换“查看身份”可看每个身份：主管看得到价格和发票，但看不到机械成本和利润；销售负责询价、顾客和跟进；司机只看自己的工作单和请假，没有价格。完整设计（docs/RENTAL.md）在项目仓库里。'],
   [/\b(\d+) d left\b/g, '剩 $1 天'], [/\((\d+(?:\.\d+)?) (t|m|kVA) or more\)/g, '（$1 $2 或以上）'], [/^Enquiry (?=\S)/g, '询价 '], [/^Quotation (?=\S)/g, '报价 '], [/^Order \(checklist\)/g, '订单（清单）'],
+  [/^Edit order (H-\d{4}-\d+)$/g, '编辑订单 $1'], [/^Order edited by (.+?): (.*)\.$/g, '$1 修改了订单：$2。'], [/\bupdated\b/g, '已更新'],
   [/^Collect\b/g, '收机'], [/^Deliver\b/g, '送机'], [/^Late (\d)/g, '迟到 $1'], [/\btarget (\d+)%/gi, '目标 $1%'], [/\b(\d+) this month\b/g, '本月 $1'], [/\b(\d+) unsigned timesheets?\b/g, '$1 张未签工作单'], [/^Rejected:/g, '被拒：'],
   [/^\+(\d+) more$/g, '+$1 个'], [/\bchecklist (\d+)\/(\d+)\b/g, '清单 $1/$2'], [/^Checklist (\d+) (?:of|\/) (\d+):(.*) still to do$/g, '清单 $1 / $2：$3 还没做'], [/^Closest fit: (.+?) \((\d+(?:\.\d+)?) t\), free and not quoted to anyone else\.$/g, '最合适：$1（$2吨），可用且没报给别人。'],
   [/^Closest fit: (.+?), boom ([\d.]+) m, (\d+)% of chart\.$/g, '最合适：$1，吊臂 $2 米，吊重表的 $3%。'], [/^tip ([\d.]+) m \(needs ([\d.]+) m\), boom angle (\d+)°$/g, '臂尖 $1 米（需要 $2 米），吊臂角度 $3°'],
