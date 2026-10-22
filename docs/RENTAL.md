@@ -724,7 +724,7 @@ The current system is an AppSheet app on a spreadsheet. It has these sheets:
 | Day rates from the work orders (median, own machines, with operator). | Rate card, with half day added. These are the prototype's day rates until the owner confirms them. |
 | Every operator has a **work order book** (for example, numbers 167594 to 167600 on one operator's jobs). The WO no. and the invoice no. are kept against the job. 404 jobs have a photo of the signed WO. | The operator types the WO no. from the book when the work order is signed, and can add a photo of the paper. A number used twice is refused. The invoice line prints `WO no.: plate`. |
 | Statuses 确定 (confirmed), 等待 (waiting), 需跟进 (follow up), 取消 (cancelled). | Mapped to Confirmed, Quotation / waiting, Follow-up task, and Cancelled / lost. |
-| The office works in Chinese and English. Operators' names are Malay, Chinese and Indian. | The screens should be in **English and 中文**, and the operator's phone screens in **Bahasa Melayu**. |
+| The office works in Chinese and English. | **Two languages: English and 中文** (decided). See section 29.3. |
 
 Day rates found in the work orders (RM, with operator, median of own machines):
 
@@ -760,6 +760,39 @@ Cross-hire margins in the remarks:
 | **Machine use** | Busiest: SR-250V6 VNB 2138, 217 job days. 10 machines have fewer than 10 job days, either because they were idle or because their jobs were recorded under another plate. | Utilisation per machine, from the jobs themselves. |
 | **Names in the machinery list** | "FUAN ATF-60-3" (Faun), "IVICHI" skylifts, a row with no name (MEG 2638) and a row "text value". | Cleaned up during the import. |
 
+### 29.3 Two languages: English and 中文
+
+There is an **EN | 中文** switch under the logo on every page, including the operator's phone screen. Each person's choice is remembered on their own device.
+
+- **Words:** the Chinese uses the terms the office already uses in AppSheet.
+
+  | English | 中文 |
+  |---|---|
+  | Confirmed | 确定 |
+  | Waiting | 等待 |
+  | Follow-up | 需跟进 |
+  | Cancelled | 取消 |
+  | Own machine | 自己车 |
+  | Cross-hire | 同行车 |
+  | Workshop / repair | 维修 |
+  | Available | 可用 |
+  | Plate | 车牌 |
+  | Operator | 司机 |
+  | Assistant | 跟车 |
+  | Rental period | 租赁时段 |
+  | Job scope | 工作内容 |
+  | Wet hire | 连司机 |
+  | Dry hire | 不连司机 |
+
+- **Machine types:** shown the way the office says them, for example 25吨 汽车吊, 25吨 越野吊, 随车吊, 24米 高空车 and 叉车.
+- **Dates:** shown the Chinese way, for example 10月16日 周五.
+- **Stays as written, in either language:**
+  - customer names, sites, plates, models and people's names;
+  - **quotations and invoices**, which stay in English for customers;
+  - **WhatsApp job orders to operators**.
+- **The words are in one list** (one entry per label). New screens need their Chinese added to that list. The Head Manager can correct a word without a programmer.
+- **Fonts:** Chinese uses Noto Sans SC, with PingFang or Microsoft YaHei as a fallback on phones and PCs.
+
 **How the import works.** A one-off script reads the spreadsheet and brings across:
 - customers, merging duplicates and spelling variants;
 - staff and their departments;
@@ -776,7 +809,6 @@ So Reports start with this year's figures. The column mapping is in the prototyp
 - **Missing machines.** RC-01 Kobelco RK500-2 is not in the machinery list. Do you still have it? And which machine is MEG 2638?
 - **Model names.** The machinery list says SL700L and NK200-3. The load charts you sent are for the SL-700R and NK-200E-III. Please confirm which models you have, because the lift check must use the right chart.
 - **Unbilled jobs.** Do the 83 confirmed jobs with no invoice no. need checking? 27 of them are cash sales.
-- **Language.** Should the office screens be in English and 中文, and the operator's phone in Bahasa Melayu?
 - **Cross-hire suppliers.** Is the list of peer companies right? Do you also want to track what they owe you when they cross-hire *our* machines?
 
 **From invoice IV- 01158 2026:**

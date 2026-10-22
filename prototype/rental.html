@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap">
 <style>
 /* Layout: deep-teal sidebar grouped by the job (Sell, Plan, Run, Money) + open workspace; records open as a side sheet.
    Colour: galvanised cool neutrals, hydraulic teal for structure, signal orange only for actions and "now". Type: expanded Archivo for headings, Instrument Sans for reading, JetBrains Mono for figures. */
@@ -14,9 +14,9 @@
   --c-emg:#bf3329; --c-diag:#1f5ea6; --c-pm:#21784a; --c-minor:#0f7f7d; --c-major:#5a47b3;
   --c-hyd:#c25a14; --c-fab:#8a5a2b; --c-paint:#a8327a; --c-warr:#66736f;
   --shadow:0 1px 2px rgba(13,58,57,.06),0 8px 24px rgba(13,58,57,.07); --chart:#0f7f7d;
-  --f-display:"Archivo","Arial Narrow",Arial,sans-serif;
-  --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --f-display:"Archivo","Arial Narrow",Arial,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,"Noto Sans SC","PingFang SC",monospace;
   --r-lg:14px; --r-md:9px;
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
 }
@@ -699,6 +699,11 @@ td.mono{white-space:nowrap}
 .platefind input{width:100%;background:color-mix(in srgb,#fff 10%,transparent);border:1px solid color-mix(in srgb,#fff 22%,transparent);color:#fff;border-radius:8px;padding:8px 10px;font:inherit;font-family:var(--f-mono);font-size:.85rem;letter-spacing:.03em}
 .platefind input::placeholder{color:color-mix(in srgb,#fff 60%,transparent);font-family:var(--f-body);letter-spacing:0}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.langsw{display:flex;gap:2px;background:color-mix(in srgb,#fff 10%,transparent);border-radius:8px;padding:2px;align-self:flex-start}
+.langsw button{border:0;background:none;color:color-mix(in srgb,#fff 75%,transparent);font:inherit;font-size:.78rem;font-weight:600;padding:4px 12px;border-radius:6px;cursor:pointer}
+.langsw button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+html[lang^="zh"] .navh, html[lang^="zh"] th, html[lang^="zh"] .label{letter-spacing:.04em}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -708,6 +713,7 @@ td.mono{white-space:nowrap}
       <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="8" style="fill:var(--accent)"/><path d="M8 24V8h2v16M10 9l13 3M10 13l13-1M21 12v5" style="fill:none;stroke:var(--accent-ink);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"/><path d="M21 17c0 2 2.6 2 2.6 0" style="fill:none;stroke:var(--accent-ink);stroke-width:1.8;stroke-linecap:round"/><path d="M6 24h7" style="stroke:var(--accent-ink);stroke-width:2;stroke-linecap:round"/></svg>
       <div><b>Super Power Crane</b><small>Machinery Sdn Bhd</small></div>
     </div>
+    <div class="langsw" role="group" aria-label="Language / 语言"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="zh" aria-pressed="false" lang="zh-Hans">中文</button></div>
     <form class="platefind" id="plateFind" role="search"><label for="plateIn" class="sr">Find a machine by plate</label><input id="plateIn" list="plateList" autocomplete="off" placeholder="Plate, e.g. BPN 8918"><datalist id="plateList"></datalist></form>
     <div class="side-foot">
       <label for="roleSel">Viewing as</label>
@@ -3791,6 +3797,255 @@ document.getElementById('plateFind').addEventListener('submit', e => { e.prevent
   if(hits.length===1){ inp.value = ''; inp.blur(); return openUnit(hits[0]); }
   state.fl.q = inp.value; state.fl.st = ''; state.fl.page = 1; inp.value = ''; setView('fleet'); if(!hits.length) toast('No machine with that plate'); });
 document.getElementById('plateIn').addEventListener('change', e => { if(fleet[e.target.value]) document.getElementById('plateFind').requestSubmit(); });
+/* ---------- English / 中文 ----------
+   The screens are written in English; in 中文 every text node and placeholder is translated on the way to the screen,
+   using the words of the company's own AppSheet (确定, 等待, 需跟进, 取消, 自己车, 同行车, 维修, 可用, 车牌, 司机).
+   Customer names, sites, plates and models stay as they are. Quotations, invoices and WhatsApp messages to operators stay in English. */
+const ZH = {
+  // navigation and shell
+  "Overview":"总览","Sell":"销售","Plan":"计划","Run":"运作","Money":"财务",
+  "Dashboard":"仪表板","Today":"今天","Enquiries":"询价","Customers":"顾客","Availability":"机械空档","Hires":"租赁单","Dispatch":"派工",
+  "Planner":"排程","Lift check":"吊重查询","Calendar":"日历","Fleet":"机械","Transport":"运输","Fuel":"柴油","Timesheets":"工作单","Staff":"员工",
+  "Billing":"账单","Rates":"价格","Reports":"报告","Connections":"系统连接","Viewing as":"查看身份","Head Manager":"总经理","Supervisor · Rental desk":"主管 · 租赁柜台",
+  "Operator (phone screen)":"司机（手机画面）","Each role sees a different set of pages and prices.":"每个身份看到的页面和价格不同。",
+  "Find a machine by plate":"按车牌找机械","Plate, e.g. BPN 8918":"车牌，例如 BPN 8918","Sections":"页面","Close":"关闭","Signature pad":"签名板",
+  "Super Power Crane":"Super Power Crane","Machinery Sdn Bhd":"Machinery Sdn Bhd",
+  // common words
+  "Open":"打开","Save":"保存","Add":"添加","Clear":"清除","Cancel":"取消","Search":"搜索","Check":"查询","Upload":"上传","Edit":"编辑","Send":"发送","Copy text":"复制文字","Send again":"再发一次",
+  "From":"从","To":"到","Until":"直到","Since":"自","Date":"日期","Dates":"日期","Time":"时段","Status":"现况","Type":"类别","Kind":"类型","Class":"级别","Family":"类别","All":"全部","All families":"所有类别",
+  "Machine":"机械","Machines":"机械","Machine type":"机械类型","Machine type…":"机械类型…","Plate":"车牌","Model":"型号","Year":"年份","Customer":"顾客","Company":"公司","Contact":"联络人","Contact person":"联络人","Phone":"电话",
+  "Phone / WhatsApp":"电话 / WhatsApp","Site":"地点","Site contact":"工地联络人","Customer · site":"顾客 · 地点","Customer and site":"顾客和地点","Where":"位置","Where / customer":"位置 / 顾客","Who":"谁","What":"什么","By":"经手",
+  "Price":"价格","Rate":"价格","Cost":"成本","Charge":"收费","Charged":"收费","Margin":"利润","Amount":"金额","Total":"合计","Subtotal":"小计","Balance":"余额","Value":"金额","Estimate":"估价","Estimated total":"估计总额",
+  "Hour":"小时","Hours":"小时","Day":"天","Week":"周","Month":"月","Half day":"半天","Min h":"最少小时","Month h":"每月小时","Excess / h":"超时 / 小时","OT / h":"加班 / 小时","Sun / PH day":"星期日 / 公假（天）","Sun OT / h":"星期日加班 / 小时",
+  "Day (8–5)":"全天（8–5）","Hourly":"按小时","Daily":"按天","Weekly":"按周","Monthly":"按月","Kind of hire":"租赁方式",
+  "Wet hire":"连司机","Dry hire":"不连司机","Wet hire (with operator)":"连司机出租","Wet hire · daily":"连司机 · 按天","Wet hire · monthly":"连司机 · 按月","Wet hire · Monthly":"连司机 · 按月","Dry hire · weekly":"不连司机 · 按周","Dry hire · monthly":"不连司机 · 按月",
+  "Operator":"司机","Driver":"司机","Crane operator":"吊车司机","Lorry crane operator":"随车吊司机","Excavator operator":"挖土机司机","Skylift operator":"高空车司机","Lowloader driver":"拖车司机","Vehicle":"车辆","Vehicle · driver":"车辆 · 司机",
+  "Self-drive":"自驾","self-drive":"自驾","Customer's own":"顾客自备","Office":"办公室","Yard":"车厂","Kempas yard":"Kempas 车厂","Yard / standby":"车厂 / 待命","Office / yard":"办公室 / 车厂",
+  "Yes":"是","No":"否","OK":"好","Done":"完成","Ready":"准备好","Planned":"已安排","Signed":"已签","Not signed":"未签","Missing":"缺少","Not yet":"还没","Not needed":"不需要","Normal":"正常","None free":"没有空档","None free.":"没有空档。",
+  "Free":"可用","Not free":"不可用","Free only":"只看可用","Nothing booked":"没有预订","Cannot":"不行","Can lift":"吊得起","Can take it":"可以接","Result":"结果","Note":"备注","Notes":"备注","Remarks":"备注","Details":"详情","Description":"说明","Qty":"数量","Quantity":"数量",
+  "Mon":"周一","Tue":"周二","Wed":"周三","Thu":"周四","Fri":"周五","Sat":"周六","Sun":"周日","Mo":"一","Tu":"二","We":"三","Th":"四","Fr":"五","Sa":"六","Su":"日",
+  "Jan":"1月","Feb":"2月","Mar":"3月","Apr":"4月","May":"5月","Jun":"6月","Jul":"7月","Aug":"8月","Sep":"9月","Oct":"10月","Nov":"11月","Dec":"12月",
+  "This week":"本周","‹ Week":"‹ 上周","Week ›":"下周 ›","This month":"本月","Oct to date":"10月至今","since Aug":"8月以来","Next follow-up":"下次跟进","Last contact":"最后联络",
+  // statuses (AppSheet 现况 / 机械 status)
+  "Booked":"已预订","On hire":"出租中","Off-hire called":"已通知停租","Going out":"出车","Going out today":"今天出车","In workshop":"维修中","Workshop":"维修","Available":"可用","Available now":"现在可用",
+  "Quotation":"报价","Quotations":"报价","Returned":"已归还","Closed":"已结案","Lost":"未成交","Won":"成交","New":"新","Contacted":"已联络","Quoted":"已报价","Negotiating":"议价中","Active":"进行中",
+  "Order confirmed":"订单确定","Confirmed":"确定","Cancelled":"取消","Follow-up":"需跟进","Follow-ups":"跟进","Waiting":"等待","Paid":"已付","Sent":"已发","Draft":"草稿","Due":"到期","Overdue":"逾期","Validated":"已验证","Not validated":"未验证",
+  "Hot":"热","Warm":"温","Cold":"冷","Cross-hire":"同行车","Cross-hire (同行车)":"同行车","Own machine":"自己车","Repair":"维修","Service":"保养","Breakdown":"故障","Idle in the yard":"在车厂闲置","Idle: promote to customers":"闲置：可向顾客推介",
+  // dashboard / today
+  "Machinery on rental":"出租中的机械","Utilisation rate":"使用率","Hire revenue, Oct":"10月租金收入","Attendance today":"今日出勤","Sales pipeline":"销售机会","Fuel, Oct":"10月柴油",
+  "Fleet utilisation":"机械使用率","days on hire ÷ days available":"出租天数 ÷ 可用天数","May–Aug are sample history; Sep and Oct come from the hires in this prototype.":"5–8月为示例数据；9月和10月来自本原型的租赁单。",
+  "On site / on the road":"在工地 / 在路上","In yard or office":"在车厂或办公室","On leave / MC":"请假 / 病假","Not clocked in":"未打卡","! Not in":"! 未到","Days on hire":"出租天数","Utilisation by type":"各类使用率",
+  "Hire revenue by month":"每月租金收入","invoiced, before SST":"已开发票，未含税","October is to date (hatched).":"10月为至今数字（斜线）。","is overdue.":"已逾期。","Needs attention":"需要处理","Machines on hire":"出租中的机械",
+  "Utilisation, Oct to date":"使用率，10月至今","Coming back today":"今天回来","Urgent items":"紧急事项","Hire charges Oct to date (before SST)":"10月至今租金（未含税）","All follow-ups":"全部跟进","Act now":"马上处理",
+  "Moving today":"今天调动","Direction":"方向","Back to yard":"回车厂","Out to site":"去工地","On hire now":"现在出租中","Fleet now":"机械现况","New order":"新订单","New enquiry":"新询价","Quick quotation":"快速报价","New hire / quotation":"新租赁 / 报价",
+  "View all":"查看全部","Delivery":"送机","Collection":"收机","Trip":"趟","Trips":"趟数",
+  // enquiries / customers
+  "Open enquiries":"未结询价","Pipeline":"销售机会","Pipeline, weighted by stage":"销售机会（按阶段加权）","New today":"今天新到","Average first reply (Oct)":"平均首次回复（10月）","Follow-ups overdue":"逾期跟进","Open, no follow-up set":"未结且没设跟进",
+  "WhatsApp inbox":"WhatsApp 收件箱","company number · new messages become enquiries":"公司号码 · 新信息自动成为询价","Unknown number":"陌生号码","Make enquiry":"建立询价","Quick order":"快速下单","No machine free":"没有空档机械",
+  "Salesperson":"销售员","Prospects":"潜在顾客","asked for a machine, not customers yet":"问过机械，还不是顾客","Search name, contact, industry":"搜索名称、联络人、行业","Industry":"行业","Customer since":"成为顾客自","SSM no.":"SSM 号码","TIN":"税号 TIN","SST no.":"SST 号码",
+  "Balance owing":"欠款","Contacts and sites":"联络人和工地","(main)":"（主要）","Open follow-ups":"未完成跟进","Payment chase":"催款","History":"记录","Make quotation":"做报价","Add as customer":"加为顾客","Enquiry":"询价","Prospect":"潜在顾客","Needs":"需要",
+  "Send quotation":"发报价","Chase PO":"追 PO","Log":"记录","Went elsewhere":"找了别家","Project postponed":"工程延期","No reply":"没回复","Source":"来源","Owner":"负责人","How hot":"热度","Who is asking":"谁在询价","New prospect (not a customer yet)":"新潜在顾客（还不是顾客）",
+  "What they need":"需要什么","Next step":"下一步","Follow up on":"跟进日期","Follow-up action":"跟进方式","Save enquiry":"保存询价","Call":"电话","Site visit":"工地拜访","Meeting":"会议","Send documents":"发文件","Add follow-up":"添加跟进",
+  "Referral":"介绍","Website form":"网站表格","Email":"电邮","Tender":"投标","Walk-in":"上门","TIN missing":"缺少税号","New customer":"新顾客","Company name":"公司名称","Payment term":"付款条件","Credit":"挂账","Cash":"现金","Credit (PO / LOU)":"挂账（PO / LOU）",
+  "Building construction":"建筑","Quarry":"石场","Piling & foundations":"打桩和地基","Civil & drainage":"土木和排水","Port & logistics":"港口和物流","M&E contractor":"机电承包商",
+  // availability / planner / fleet
+  "What do you need?":"需要什么机械？","Booked, on hire or workshop":"已预订、出租中或维修","Free but with a document issue":"可用但文件有问题","Quote it":"报价","Quote":"报价","Quote with a cross-hire (同行车)":"用同行车报价",
+  "All free":"全部可用","Some free":"部分可用","Free but others are asking":"可用但别人也在问","Tap a box to search that class and day":"点格子查看该级别当天","Next 14 days by class":"未来14天（按级别）","Closest fit":"最合适",
+  "Cranes":"吊车","Forklifts":"叉车","Access platforms":"高空作业","Excavators":"挖土机","Loaders":"铲车","Generators":"发电机","Other":"其他","Mobile cranes":"吊车","Lifting & access":"起重和高空","Earthmoving":"土方","Power":"电力","Our transport":"自家运输",
+  "Find a machine":"找机械","Show only":"只显示","Collapse all":"全部收起","Expand all":"全部展开","Compact rows":"紧凑行","Wet hire":"连司机","Delivery / collection":"送机 / 收机","Shaded = Sunday · orange line = today":"阴影 = 星期日 · 橙线 = 今天",
+  "Units":"台数","Free unit-days":"空档台日","Signal":"提示","Tight: line up a cross-hire":"紧张：准备同行车","Sort by":"排序","Class and size":"级别和吨位","Idle longest":"闲置最久","Hire ends soonest":"最快到期","Document issue":"文件问题","Revenue YTD":"今年收入","Documents":"文件",
+  "Hour meter":"小时表","DOSH Certificate of Fitness":"DOSH 合格证（PMA）","Road tax":"路税","Insurance":"保险","Purchase cost":"购入成本","Revenue / cost (yearly)":"收入 / 成本（每年）","parts + labour from workshop jobs":"零件 + 工钱（维修单）",
+  "An expired DOSH CF, road tax, insurance or Puspakom blocks bookings that run past the expiry date.":"PMA、路税、保险或 Puspakom 过期后，超过到期日的预订会被挡。",
+  // lift check
+  "Crane selector":"吊车选择","Find a crane":"找吊车","Load charts":"吊重表","Load weight (t)":"吊重（吨）","Working radius (m)":"工作半径（米）","Lifting height (m)":"起吊高度（米）","Rigging weight (t)":"索具重量（吨）","Load + sling height (m)":"货物 + 吊索高度（米）",
+  "Find cranes":"找吊车","New enquiry with this crane":"用这台吊车建询价","Crane":"吊车","Boom":"吊臂","Rated":"额定","Gross":"总重","Use of chart":"吊重表使用","Day rate":"日租","Edit chart":"编辑吊重表","Radius (m) \\ Boom (m)":"半径（米）\\ 吊臂（米）",
+  // dispatch / jobs
+  "Cross-hired jobs (同行车)":"同行车工作","The supplier sends the machine and operator; we send them the job order and invoice the customer":"同行派机械和司机；我们发派工单给同行，再向顾客开发票",
+  "Jobs today and coming":"今天和接下来的工作","Checklists not complete":"清单未完成","Job orders not sent":"派工单未发","On the road now":"现在在路上","At site":"在工地","Open checklist":"打开清单","Pre-dispatch check":"出车前检查",
+  "Job order sent to operator":"派工单已发给司机","Left yard":"离开车厂","Arrived · customer told":"到达 · 已通知顾客","Working":"工作中","Work order signed":"工作单已签","Left site":"离开工地","Back in yard":"回到车厂","Send job order (WhatsApp)":"发派工单（WhatsApp）",
+  "Job order":"派工单","Job order (sent)":"派工单（已发）","Job order to operator":"派工单给司机","Dispatch and tracking":"派工和追踪","cranes and transport · updated every minute":"吊车和运输 · 每分钟更新","Speed":"速度","Updated":"更新","Moving":"行驶中",
+  "At site · parked":"在工地 · 停放","At site · engine on":"在工地 · 发动中","Job":"工作","Job type":"工作类型","Job scope":"工作内容","Scope":"工作内容","Lifting":"起吊","Hoisting / installation":"吊装 / 安装","Loading / unloading":"上下货","Piling support":"打桩辅助","Standby on site":"工地待命",
+  "Arrive by":"到达时间","Customer requests":"顾客要求","Checklist before confirming":"确定前的清单","Tick every item to confirm the order.":"全部打勾才能确定订单。","Checklist":"清单",
+  "Site safety requirements":"工地安全要求","Lifting plan / risk assessment":"吊装计划 / 风险评估","Crane DOSH CF copy":"吊车 PMA 副本","Operator licences valid":"司机执照有效","Rigging gear and certificates":"索具和证书","Site access and ground":"工地进出和地面",
+  "Arrival time agreed":"到达时间已确认","Customer requests noted":"顾客要求已记下","Payment term confirmed":"付款条件已确认","Work order":"工作单","WO no. (from the work order book)":"WO 号码（工作单本子）","Add photo of the signed WO":"添加已签工作单照片",
+  "Customer signs":"顾客签名","Save signed work order":"保存已签工作单","Start":"开始","Finish":"结束","Break (min)":"休息（分钟）","Standby hours":"待命小时","Work done":"完成的工作",
+  "Engine oil, coolant and hydraulic oil levels":"机油、水箱水和液压油","No leaks":"没有漏油","Tyres and wheel nuts":"轮胎和轮螺丝","Lights, horn, beacon and reverse alarm":"灯、喇叭、警示灯和倒车警报","LMI / ALI tested":"LMI / ALI 已测试",
+  "Hook, safety latch and wire rope":"吊钩、安全扣和钢丝绳","Outrigger pads on board":"支脚垫在车上","Rigging gear on board with certificates":"索具和证书在车上","Fire extinguisher and first-aid kit":"灭火器和急救箱","Documents in cab: DOSH CF, road tax, insurance":"车里文件：PMA、路税、保险",
+  "Fuel level checked":"柴油已检查","Readings":"读数","Full":"满","Save check: ready to go":"保存检查：可以出车",
+  // hire sheet
+  "Activity":"记录","PO / LOU":"PO / LOU","Off hire":"停租","Mark lost":"标为未成交","Not assigned":"未分配","Quotation estimate":"报价估算","Quotation document":"报价单","Send quotation by WhatsApp":"用 WhatsApp 发报价","Delivery inspection":"送机检查","Cancel booking":"取消预订",
+  "End":"结束","Customer called off-hire":"顾客通知停租","Report breakdown":"报告故障","Contract":"合约","Customer supplies (dry hire)":"顾客提供（不连司机）","Inspections":"检查","Front":"前","Left side":"左边","Rear":"后","Hour meter readings":"小时表读数",
+  "Machine and dates":"机械和日期","Hire terms":"租赁条件","Expected hours a day":"每天预计小时","Monthly rental":"月租","Mobilisation (self-drive)":"出车（自驾）","Demobilisation":"回程","Save as quotation":"存为报价","Save order and do the checklist":"保存订单并做清单",
+  "Customer PO / LOU":"顾客 PO / LOU","State (for public holidays)":"州（公共假期）","Long-term contract":"长期合约","Deposit due":"按金未付","Monthly in arrears":"每月月底结算","End of hire":"租完结算",
+  // quick quotation
+  "Project / site":"工程 / 地点","Machine and rate":"机械和价格","Machine offered":"提供的机械","Cross-hire from another company (同行车)":"同行车（向别家租）","Cross-hire from":"同行公司","Charged by":"计价方式","Discount %":"折扣 %","Transport zone":"运输区域",
+  "+ Add another machine":"+ 再加一台机械","Same dates, terms and discount. The machine is picked when the order is confirmed.":"同样日期、条件和折扣。确定订单时才选机械。","Rate includes diesel":"价格包柴油","Include mobilisation / transport":"包括出车 / 运输",
+  "Lines on the quotation":"报价单项目","Estimated value (rental, transport and crew, before tax)":"估计金额（租金、运输和人手，未含税）","Remarks and terms":"备注和条款","Remark under the lines":"项目下的备注","Valid for (days)":"有效（天）","Issue quotation":"发出报价",
+  "(rate)":"（价格）","Monthly until the customer stops (no end date)":"按月直到顾客停租（没有结束日）","Ask Head Manager to approve":"请总经理批准",
+  // timesheets / operator
+  "Timesheets · October":"工作单 · 10月","Machine · operator":"机械 · 司机","Sunday off":"星期日休息","Dry hire: hour meter readings":"不连司机：小时表读数","Last reading":"最后读数","Allowance":"津贴","Follow-ups due":"到期跟进","Follow-ups due (mine)":"我的到期跟进",
+  "Today's job":"今天的工作","Open map":"打开地图","Hour meter start":"小时表开始","Hour meter end":"小时表结束","Standby reason":"待命原因","Rain":"下雨","Site not ready":"工地未准备好","Waiting for materials":"等材料","Customer instruction":"顾客指示",
+  "Breakdown hours":"故障小时","Working hours":"工作小时","Submit signed timesheet":"提交已签工作单","Nobody to sign: send by WhatsApp":"没人签：用 WhatsApp 发","My last days":"我最近几天","RM per litre":"每升 RM","Station":"油站","Save diesel":"保存柴油",
+  "Apply for leave":"申请请假","Annual leave":"年假","Medical leave (MC)":"病假（MC）","Emergency leave":"紧急假","Unpaid leave":"无薪假","Replacement leave":"补假","Send request":"发出申请","My certificates":"我的证书","DOSH mobile crane operator":"DOSH 吊车司机执照","CIDB green card":"CIDB 绿卡",
+  // staff / calendar
+  "Roster":"排班","People":"人员","Person":"人员","Sales & customer service":"销售和客服","Accounts":"会计","Leave / MC":"请假 / 病假","Leave asked":"请假申请","Clash":"冲突","Leave":"请假","MC":"病假","Off (Sunday)":"休息（星期日）","Sunday, no work":"星期日，不工作",
+  "Built from hires, trips and leave. Click a job to open the hire.":"根据租赁单、运输和请假排出。点工作可打开租赁单。","Add event":"添加活动","Inspection":"检查","Training":"培训","Expiry":"到期",
+  // transport / fuel
+  "Lowloader trips and self-drive mobilisation. Drivers see their own trips on the phone with the site pin and contact, and do the delivery or return inspection there.":"拖车运输和自驾出车。司机在手机看自己的运输、工地位置和联络人，并在现场做送机或收机检查。",
+  "Record a fill":"记录加油","Diesel this month":"本月柴油","Fuel cost":"柴油费","Receipts sent to Bukku":"收据已发 Bukku","By machine":"按机械","litres per working hour from hour meter and timesheets":"每工作小时升数（小时表和工作单）","Use":"用量","no hours":"没有小时",
+  "Where · who":"地点 · 谁","Hire · fuel terms":"租赁 · 柴油条件","Own tank (yard)":"自家油库（车厂）","Diesel":"柴油","Litres":"升","Fills":"加油次数","Own use (transport)":"自用（运输）","Included in the hire rate":"包含在租金",
+  // billing / rates
+  "Not yet due":"未到期","Cycle":"结算方式","Check before invoicing":"开发票前检查","damage repair not finished":"损坏维修未完成","customer TIN missing":"顾客缺少税号","missing timesheet":"缺少工作单","Invoices":"发票","e-Invoice via LHDN MyInvois":"LHDN MyInvois 电子发票",
+  "Invoice":"发票","Payment":"付款","Credit note":"退款单","Send by WhatsApp":"用 WhatsApp 发","Record payment":"记录付款","Zone":"区域","Transport by zone":"按区域运输费","Self-drive mobilisation":"自驾出车","Charging rules":"收费规则","Working day":"工作日","Overtime":"加班",
+  "Single trip minimum":"单趟最少","Sunday / public holiday":"星期日 / 公共假期","Monthly hire":"月租","Diesel":"柴油","Standby (rain, site not ready)":"待命（下雨、工地未准备好）","Operator outstation allowance":"司机外站津贴","Quotation":"报价","Service tax":"服务税",
+  "Only the Head Manager can change rates.":"只有总经理可以改价格。","Changes apply to new quotations and bookings. Running hires keep the rates they were booked at.":"改价只用在新报价和新预订；进行中的租赁保持原价。",
+  "Oversize loads: JPJ permit and police escort charged at cost.":"超大货物：JPJ 准证和警察护送按实际收费。","Johor Bahru":"新山","Senai / Kulai / Pasir Gudang":"士乃 / 古来 / 巴西古当","Rest of Johor":"柔佛其他地区","Melaka / Negeri Sembilan":"马六甲 / 森美兰",
+  // reports
+  "Hire revenue":"租金收入","Workshop cost":"维修成本","Operator & transport":"司机和运输","Contribution":"贡献","Enquiries by source":"询价来源","count · won":"数量 · 成交","Time utilisation":"时间使用率","Lost enquiries":"未成交询价","Profit per machine":"每台机械利润",
+  "workshop cost comes from workshop jobs on the machine":"维修成本来自该机械的维修单","Utilisation":"使用率","Revenue / purchase cost (yearly)":"收入 / 购入成本（每年）","Name":"名称","Referrals win most often: ask happy customers for introductions.":"介绍来的最容易成交：请满意的顾客介绍。",
+  // connections
+  "Bukku · accounting":"Bukku · 会计","Connected":"已连接","Access token":"访问令牌","Last sync":"最后同步","Automatic":"自动","Invoices and credit notes":"发票和退款单","Payments received":"已收付款","Fuel and parts bills":"柴油和零件单据","e-Invoice (MyInvois)":"电子发票（MyInvois）",
+  "Bukku submits":"Bukku 提交","This app submits":"本系统提交","Worksy · HR and payroll":"Worksy · 人事和薪金","File exchange":"文件交换","Staff list":"员工名单","Monthly payroll hours":"每月薪金工时","Monthly file":"每月文件","To decide":"待决定","Bukku account mapping":"Bukku 账户对应",
+  "Hire charges":"租金","Transport and mobilisation":"运输和出车","Overtime, Sunday, standby":"加班、星期日、待命","Diesel recharged to customers":"向顾客收的柴油","Damage repairs charged":"收取的损坏维修","Fuel bought":"购买柴油","Customer deposits":"顾客按金","Sync log":"同步记录","Sync now":"现在同步",
+  "Employee ID":"员工编号","Normal h":"正常小时","OT h":"加班小时","Sun / PH h":"星期日 / 公假小时","Leave days":"请假天数","MC days":"病假天数","Check before importing":"导入前检查","Found":"发现","What the new system does":"新系统怎么做","AppSheet column":"AppSheet 栏位","New system":"新系统",
+  "Machinery list dates":"机械清单日期","Jobs without an invoice no.":"没有发票号码的工作","Price on the work order":"工作单上的价格","WO no.":"WO 号码","Cross-hire supplier and cost":"同行车公司和成本","Machine names":"机械名称","Machine use":"机械使用","Ready to invoice":"待开发票",
+  "confirmed jobs a working day":"每个工作日确定的工作","cross-hired from other companies (同行车)":"向别家租（同行车）","Sent once the e-invoice is fixed":"电子发票修好后发送",
+  // extra machine / place words that appear alone
+  "Lorry tipper":"罗里（倒斗）","Truck crane":"汽车吊","Prime mover & lowloader":"拖头和低床拖车","Lowloader":"低床拖车","Palfinger lorry crane":"Palfinger 随车吊",
+  "Aisyah binti Karim":"Aisyah binti Karim","Prototype":"原型",
+  "free":"可用","NOT free":"不可用","free, document issue":"可用，文件有问题","Timesheet":"工作单","Morning · 08:00AM - 12:00PM":"上午 · 08:00AM - 12:00PM",
+
+  // second pass: hints, sentences and fragments
+  "Expense sent":"已发费用","Not hired yet":"还没出租","Charged to customer at cost + 10%":"按成本 + 10% 向顾客收","Hire":"租赁","Period":"期间","Fleet card":"油卡","receipt photo":"收据照片","Petronas near site":"工地附近 Petronas",
+  "office":"办公室","next":"下一步","Operator app":"司机 App","Full day":"全天","Morning":"上午","Afternoon":"下午","Order":"订单","Awaiting collection":"等收款","To bill customers (cost + 10%)":"向顾客收（成本 + 10%）","Fills to check (over 20% above normal)":"要检查的加油（比正常高20%以上）",
+  "GPS51 · live positions":"GPS51 · 实时位置","Demand vs fleet, next 4 weeks":"未来4周需求对比机械","Simulate GPS51: Arrived · customer told":"模拟 GPS51：到达 · 已通知顾客","Steel structures":"钢结构","new":"新",
+  "Prepared, or confirmed not needed for this lift":"已准备，或确认这次不需要","In the cab, and sent to the customer if asked":"放在车里，顾客要求时发给他们","DOSH competency, CIDB green card, GDL":"DOSH 执照、CIDB 绿卡、GDL","Road access, outrigger space, ground bearing, overhead lines":"道路进出、支脚空间、地面承重、上方电线",
+  "Confirmed with the site contact":"已和工地联络人确认","e.g. extra rigger, tag lines, working hours":"例如加派 rigger、拉绳、工作时间","Credit with PO / LOU, or cash and who collects it":"挂账要 PO / LOU，或现金及由谁收",
+  "PPE, permit to work, safety induction, CIDB green card":"安全装备、工作准证、安全讲解、CIDB 绿卡","Slings, shackles, spreader bar: within test date, certificates in the cab":"吊带、卸扣、吊梁：在测试期内，证书放车里",
+  "Quotation valid to":"报价有效至","Nothing charged in October yet.":"10月还没有收费。","The overtime and Sunday lines are rates at qty 1, as on your quotation. They are not added to the estimate; the invoice charges what the work order shows.":"加班和星期日项目是单价（数量 1），和你们的报价单一样，不算进估价；发票按工作单收费。",
+  "Standard terms and conditions (27 clauses, printed on every quotation)":"标准条款（27条，每张报价单都会印）","Add rigger / signalman (RM 250 a day)":"加 rigger / 指挥员（每天 RM 250）","Service tax 6%":"服务税 6%","SST 6%":"SST 6%",
+  "The machine's own Sunday / PH day rate and Sunday OT rate; holidays by the site's state":"按机械本身的星期日 / 公假日租和星期日加班价；公假按工地所在州","Included in day, week and month rates unless the quotation says \"without diesel\"":"日租、周租和月租包柴油，除非报价单写明“不包柴油”",
+  "50% of hourly rate on hourly hire; part of the day on day and month hire":"按小时租：每小时价的50%；按天和按月：算在当天内","RM 80 a night outside Johor Bahru":"新山以外每晚 RM 80","6% per line, as on quotation QT-01094 (confirm the rate for dry and wet hire with the tax agent)":"每项 6%，和报价单 QT-01094 一样（连司机和不连司机的税率请和税务代理确认）",
+  "5 pm – 11:59 pm at the machine's OT rate; 12 am – 7:59 am at double the OT rate":"下午5点至晚上11:59按加班价；凌晨12点至早上7:59按双倍加班价","Cross-hire lorry tipper":"同行车 罗里（倒斗）",
+  "Prototype: positions are simulated. Live data needs API access from your GPS51 provider; until then operators tap each step in the app and the phone's location is recorded.":"原型：位置是模拟的。实时数据需要 GPS51 供应商提供 API；在那之前司机在 App 点每个步骤，系统记录手机位置。",
+  "Gross load = load + rigging + the crane's hook block. Needed tip height = lifting height + load and sling height. Capacity is read at the next larger radius in the chart (never interpolated up). Up to 75% of chart is a normal lift; 75–90% is a critical lift; above 90% is not allowed.":"总重 = 货物 + 索具 + 吊钩。需要的臂尖高度 = 起吊高度 + 货物和吊索高度。吊重按表中下一个较大的半径读取（不往上插值）。75% 以下为一般吊装；75–90% 为关键吊装；超过 90% 不允许。",
+  "Outriggers fully extended, 360°, full counterweight, on firm level ground. Hook block 0.3 t.":"支脚全伸、360°、全配重、坚实平地。吊钩 0.3 吨。","Orange: the cell used. Green: cells where this load is 75% or less of chart. Click another crane above to see its chart.":"橙色：使用的格子。绿色：这个吊重在表的75%以下。点上面另一台吊车看它的吊重表。",
+  "Prototype: the connections here are simulated with the example data. In the real system Bukku is linked with an API token from Bukku (Control Panel → Integrations → API Access).":"原型：这里的连接是用示例数据模拟的。正式系统用 Bukku 的 API 令牌连接（Control Panel → Integrations → API Access）。",
+  "work orders, January to October 2026":"张工作单，2026年1月至10月","single-day jobs: 80% full day 8–5, 18% half day (8–12 or 1–5)":"单日工作：80% 全天 8–5，18% 半天（8–12 或 1–5）","confirmed jobs before October (27 are cash sales, 37 are for one customer)":"10月前确定的工作（27个是现金单，37个是同一顾客）",
+  "until it is on an invoice":"直到开了发票","of confirmed jobs since March have a price (Jan–Feb: 84%)":"3月以来确定的工作有价格（1–2月：84%）","confirmed jobs without one;":"个确定的工作没有；","numbers used twice":"个号码用了两次","Typed in the remarks (e.g. \"AIRLEX-800\", \"SUPER S-2800\")":"打在备注里（例如“AIRLEX-800”、“SUPER S-2800”）",
+  "Hire from / to":"租赁开始 / 结束","Time: full day, morning, afternoon":"时段：全天、上午、下午","Own machine / cross-hire (supplier, cost)":"自己车 / 同行车（公司、成本）","Price (from quotation or rate card)":"价格（来自报价或价目表）",
+  "The moment they are issued here, with customer, lines, SST and hire number":"在这里开出时，连顾客、项目、SST 和租赁号","Name, SSM no., TIN, SST no., address, credit terms":"名称、SSM 号码、税号、SST 号码、地址、挂账条件","Recorded in Bukku; the invoice here is marked paid and the follow-ups stop":"在 Bukku 记录；这里的发票标为已付，停止跟进",
+  "Every 15 min":"每15分钟","As expenses with the receipt photo, tagged by machine for cost per machine":"作为费用连收据照片，按机械标记以计算每台成本","Choose one place to submit, so nothing is sent twice":"只选一个地方提交，避免重复",
+  "which Bukku account each kind of line posts to":"每种项目记到哪个 Bukku 账户","1 timesheet waiting for the customer's signature.":"1 张工作单等顾客签名。","Bring 2 tag lines. Site works 8 am to 6 pm only.":"带2条拉绳。工地只在早上8点到傍晚6点工作。","Helmet, vest, boots. Induction at the guardhouse.":"安全帽、背心、安全鞋。在警卫室做安全讲解。",
+  "Booked by phone. PO received by e-mail.":"电话预订。PO 用电邮收到。","Enquiry by Mr. Lim. Quotation started.":"Mr. Lim 询价。已开始报价。","Signed by En. Shahril":"En. Shahril 已签","EXCESS HOURS":"超时","(site)":"（工地）",
+  "Current records: WORK_ORDER_2026.xlsx (AppSheet)":"现有记录：WORK_ORDER_2026.xlsx（AppSheet）","Hi, Azman":"你好，Azman","Reason (optional)":"原因（可选）",
+  "Three 50 t crane jobs were lost because WVX 5501 was out: worth pricing a second 50 t crane or a cross-hire partner.":"因为 WVX 5501 不在，失去了三个50吨的工作：值得考虑第二台50吨吊车或固定的同行车伙伴。",
+  "Worksy has no public API, so until Worksy gives API access the link works with files in Worksy's import format.":"Worksy 没有公开 API，在 Worksy 提供 API 之前用 Worksy 的导入文件格式交换。",
+  "Employee ID, name, IC / passport, position. Upload Worksy's staff export once, then when staff join or leave":"员工编号、姓名、IC / 护照、职位。先上传一次 Worksy 的员工导出，之后员工入职或离职时再上传",
+  "Keep leave in one system: either apply here (roster clash check) and send to Worksy, or apply in Worksy and import":"请假只放一个系统：在这里申请（检查排班冲突）再发到 Worksy，或在 Worksy 申请再导入",
+  "EPF, SOCSO, EIS and PCB are worked out in Worksy as today. If Worksy provides an API, these become automatic like Bukku.":"EPF、SOCSO、EIS 和 PCB 照旧在 Worksy 计算。如果 Worksy 提供 API，就会像 Bukku 一样自动。",
+  "Supplier and cost are fields, so the margin per job is reported":"同行公司和成本是栏位，可以报告每个工作的利润","Machine type picked from the list; the plate from the machine":"机械类型从清单选；车牌来自机械","Utilisation per machine on Reports, from the jobs themselves":"报告里按工作计算每台机械使用率",
+  "The price comes from the quotation or rate card and is always on the job":"价格来自报价或价目表，并一直在工作上","Every signed work order sits in":"每张已签工作单留在","WO no. typed from the book when the work order is signed; a number used twice is refused":"签工作单时打入本子上的 WO 号码；重复的号码会被拒",
+  "Each renewal is entered once with its new expiry and a copy of the certificate; red warnings 30 days before":"每次更新时输入新到期日和证书副本；到期前30天红色提醒",
+  "Operator · assistant (rigger)":"司机 · 跟车（rigger）","Site · job scope":"地点 · 工作内容","Customer · site contact":"顾客 · 工地联络人","Machine type · machine (plate)":"机械类型 · 机械（车牌）","Confirmed · Quotation / waiting · Follow-up · Cancelled":"确定 · 报价 / 等待 · 需跟进 · 取消",
+  "Signed WO photo · WO no. · invoice no. (from Bukku)":"已签工作单照片 · WO 号码 · 发票号码（来自 Bukku）",
+  "Normal L/h figures and the diesel price here are sample values; the real price comes from each receipt. Own-tank fills are costed at the tank's average purchase price. Fuel charged to a customer goes onto that hire's next invoice automatically.":"这里的正常耗油和柴油价是示例；实际价格来自每张收据。自家油库加油按油库平均进价计算。向顾客收的柴油自动加到该租赁的下一张发票。",
+  "Wet hire: the operator fills in the day on the phone and the customer's site supervisor signs. Signed timesheets are the basis of the invoice and are locked.":"连司机：司机在手机填当天工作，顾客的工地主管签名。已签工作单是开发票的依据，并会锁定。",
+  "Built from signed timesheets, trips and approved leave (October so far). The real system makes this an Excel file in Worksy's import layout; the column names will follow Worksy's template once we have it.":"根据已签工作单、运输和已批请假（10月至今）。正式系统会做成 Worksy 导入格式的 Excel；栏位名称按 Worksy 模板。",
+  "Final charges come from signed timesheets and hour-meter readings; overtime, Sundays and public holidays are added, breakdown hours credited.":"最终收费按已签工作单和小时表；加上加班、星期日和公假，扣除故障小时。",
+  "Sent from the company WhatsApp Business number as a job-order message. The operator replies or taps the link to open the job in the app.":"从公司 WhatsApp Business 号码发出派工信息。司机回复或点链接在 App 打开工作。",
+  "e.g. Kenanga Hartanah Sdn Bhd":"例如 Kenanga Hartanah Sdn Bhd","e.g. Senai, or Lot 12 Jalan Seelong, Senai":"例如 Senai，或 Lot 12 Jalan Seelong, Senai","e.g. Rate includes 2 tag lines; site works 8 am – 6 pm":"例如价格包2条拉绳；工地早上8点到傍晚6点",
+  "e.g. Visit Mr. Lim about next year's projects":"例如拜访 Mr. Lim 谈明年工程","Add a note (call, visit, complaint…)":"添加备注（电话、拜访、投诉…）","e.g. Call Mr. Ong to confirm the lift plan":"例如打电话给 Mr. Ong 确认吊装计划","Log a call, WhatsApp or visit…":"记录电话、WhatsApp 或拜访…",
+  "Anything not OK, e.g. beacon not working":"有什么问题，例如警示灯坏了","e.g. Lot 5, Jalan Seelong, Senai":"例如 Lot 5, Jalan Seelong, Senai","Name and phone":"姓名和电话","Needed to confirm":"确定时需要","What to lift, weight, where it goes, how long":"吊什么、多重、放哪里、多久",
+  "e.g. extra rigger, tag lines, work only after 9 am":"例如加派 rigger、拉绳、早上9点后才开工","e.g. Sri Kenari Builders Sdn Bhd":"例如 Sri Kenari Builders Sdn Bhd","Town / project":"城镇 / 工程","Loads, radius, ground, access, working hours…":"吊重、半径、地面、进出、工作时间…",
+  "Plate (e.g. BPN 8918), model, or 50t crane":"车牌（例如 BPN 8918）、型号或 50t crane","e.g. BPN 8918, 25t crane, forklift 5t, skylift 24m":"例如 BPN 8918、25t crane、forklift 5t、skylift 24m","e.g. Meeting with Teguh Piling":"例如和 Teguh Piling 开会","e.g. Lifting steel trusses grid C–F":"例如吊钢架 C–F 轴",
+  "Search name, contact, industry":"搜索名称、联络人、行业","From search: Cranes":"按搜索：吊车","Pre-dispatch check":"出车前检查","Johor":"柔佛","Today: Call":"今天：电话","Late: Call":"逾期：电话","Today: WhatsApp":"今天：WhatsApp",
+};
+/* Phrases inside longer text: dates first, then machine types and common wording. */
+const MI = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12}, WD = {Mon:'一',Tue:'二',Wed:'三',Thu:'四',Fri:'五',Sat:'六',Sun:'日'};
+const MON_RX = '(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)';
+const ZH_RX = [
+  [new RegExp(`\\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (\\d{1,2}) ${MON_RX} (\\d{4})\\b`,'g'), (m,w,d,mo,y)=>`${y}年${MI[mo]}月${d}日 周${WD[w]}`],
+  [new RegExp(`\\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (\\d{1,2}) ${MON_RX}\\b`,'g'), (m,w,d,mo)=>`${MI[mo]}月${d}日 周${WD[w]}`],
+  [new RegExp(`\\b(\\d{1,2}) ${MON_RX} (\\d{4})\\b`,'g'), (m,d,mo,y)=>`${y}年${MI[mo]}月${d}日`],
+  [new RegExp(`\\b(\\d{1,2}) ${MON_RX} (\\d{2})\\b`,'g'), (m,d,mo,y)=>`20${y}年${MI[mo]}月${d}日`],
+  [new RegExp(`\\b(\\d{1,2}) ${MON_RX}\\b`,'g'), (m,d,mo)=>`${MI[mo]}月${d}日`],
+  [new RegExp(`\\b${MON_RX} (\\d{4})\\b`,'g'), (m,mo,y)=>`${y}年${MI[mo]}月`],
+  [/^Prototype of the Super Power Crane Machinery system with example data \(today is set to (.+?)\)\. Changes stay until the page reloads\..*$/g, 'Super Power Crane Machinery 系统原型，使用示例数据（今天设为 $1）。改动在刷新页面后消失。切换“查看身份”可看每个身份：主管看得到价格和发票，但看不到机械成本和利润；销售负责询价、顾客和跟进；司机只看自己的工作单和请假，没有价格。完整设计（docs/RENTAL.md）在项目仓库里。'],
+  [/\b(\d+) d left\b/g, '剩 $1 天'], [/\((\d+(?:\.\d+)?) (t|m|kVA) or more\)/g, '（$1 $2 或以上）'], [/^Enquiry (?=\S)/g, '询价 '], [/^Quotation (?=\S)/g, '报价 '], [/^Order \(checklist\)/g, '订单（清单）'],
+  [/^Collect\b/g, '收机'], [/^Deliver\b/g, '送机'], [/^Late (\d)/g, '迟到 $1'], [/\btarget (\d+)%/gi, '目标 $1%'], [/\b(\d+) this month\b/g, '本月 $1'], [/\b(\d+) unsigned timesheets?\b/g, '$1 张未签工作单'], [/^Rejected:/g, '被拒：'],
+  [/^\+(\d+) more$/g, '+$1 个'], [/\bchecklist (\d+)\/(\d+)\b/g, '清单 $1/$2'], [/^Checklist (\d+) (?:of|\/) (\d+):(.*) still to do$/g, '清单 $1 / $2：$3 还没做'], [/^Closest fit: (.+?) \((\d+(?:\.\d+)?) t\), free and not quoted to anyone else\.$/g, '最合适：$1（$2吨），可用且没报给别人。'],
+  [/^Closest fit: (.+?), boom ([\d.]+) m, (\d+)% of chart\.$/g, '最合适：$1，吊臂 $2 米，吊重表的 $3%。'], [/^tip ([\d.]+) m \(needs ([\d.]+) m\), boom angle (\d+)°$/g, '臂尖 $1 米（需要 $2 米），吊臂角度 $3°'],
+  [/^Over capacity: gross ([\d.]+) t vs ([\d.]+) t rated at ([\d.]+) m \((\d+)%\)$/g, '超载：总重 $1 吨，$3 米额定 $2 吨（$4%）'], [/^Boom too short: highest tip at ([\d.]+) m radius is ([\d.]+) m, needs ([\d.]+) m$/g, '吊臂太短：$1 米半径最高臂尖 $2 米，需要 $3 米'],
+  [/^radius ([\d.]+) m$/g, '半径 $1 米'], [/^lift ([\d.]+) m$/g, '起吊 $1 米'], [/^tip ([\d.]+) m$/g, '臂尖 $1 米'], [/^boom ([\d.]+) m$/g, '吊臂 $1 米'], [/^(\d+) (?:of|\/) (\d+) cranes can lift it$/g, '$2 台中 $1 台吊得起'], [/\b(\d+) trips?\b/g, '$1 趟'],
+  [/^([\d.]+) t at ([\d.]+) m radius, ([\d.]+) m high$/g, '$1 吨，半径 $2 米，高 $3 米'], [/^(.+): load chart \(t\)$/g, '$1：吊重表（吨）'], [/^New enquiry with (.+)$/g, '用 $1 建询价'], [/^Lift check: ([\d.]+) t at ([\d.]+) m$/g, '吊重查询：$1 吨，$2 米'],
+  [/^(\d+) cranes still have sample charts \((.+)\): made-up numbers\. Send their manufacturer charts\.$/g, '$1 台吊车还是示例吊重表（$2）：数字是假的。请发厂家吊重表。'],
+  [/^(\d+) charts were copied from your manufacturer PDFs \((.+)\)\. Check them against the PDFs and mark verified before quoting\.$/g, '$1 张吊重表抄自你们的厂家 PDF（$2）。报价前请和 PDF 核对并标为已核对。'],
+  [/^Deposit (RM [\d,]+) not received:/g, '按金 $1 未收到：'], [/^No machine free for quotation\b/g, '报价没有空档机械'], [/^Damage to charge:/g, '要收的损坏：'], [/^Add diesel · /g, '加柴油 · '], [/\(busy\)$/g, '（忙）'],
+  [/^(\d+) × no machine free$/g, '$1 × 没有空档机械'], [/^(\d+) × price$/g, '$1 × 价格'], [/^(\d+) × went elsewhere$/g, '$1 × 找了别家'], [/(\d+)% won\b/g, '$1% 成交'], [/(\d+)% of limit\b/g, '额度的 $1%'], [/(\d+)% likely at this stage\b/g, '这个阶段 $1% 机会'],
+  [/^(\d+) fuel receipts? \((RM [\d,.]+)\) → Bukku expenses, tagged (.+)$/g, '$1 张柴油收据（$2）→ Bukku 费用，标记 $3'], [/^Payment (RM [\d,.]+) recorded in Bukku → (.+) marked paid here$/g, '付款 $1 已在 Bukku 记录 → $2 在这里标为已付'],
+  [/^Estimated value (RM [\d,.]+)\.$/g, '估计金额 $1。'], [/^Transport: (\d+) × (RM [\d,]+) \((.+)\)$/g, '运输：$1 × $2（$3）'], [/(\d+) working days × (RM [\d,]+)/g, '$1 个工作日 × $2'], [/\bwhen the work order is signed\b/g, '签工作单时'],
+  [/(RM [\d,]+) \/ month\b/g, '$1 / 月'], [/(RM [\d,]+) \/ day\b/g, '$1 / 天'], [/\b(\d+(?:\.\d+)?) month\b/g, '$1 个月'], [/^WhatsApp · Today\b/g, 'WhatsApp · 今天'], [/^Site contact:/g, '工地联络人：'], [/^Sites:/g, '工地：'], [/^Site supervisor signs \((.+)\)$/g, '工地主管签名（$1）'],
+  [/^Pre-dispatch check for (.+), done in the yard before leaving\.$/g, '$1 出车前检查，在车厂出发前完成。'], [/\b(\d+) d\b/g, '$1 天'], [/^(\d+) min$/g, '$1 分钟'], [/^\+(\d+) standby$/g, '+$1 待命'],
+  [/\bFull day\b/g, '全天'], [/\bMorning\b/g, '上午'], [/\bAfternoon\b/g, '下午'], [/: Medical leave \(MC\)/g, '：病假（MC）'], [/: Annual leave \(pending\)/g, '：年假（待批）'], [/\bGPS51 (\d\d:\d\d):/g, 'GPS51 $1：'], [/\bkm from site\b/g, '公里到工地'],
+  [/\b(\d+) of (\d+) free\b/g, '$2台中$1台可用'], [/\b(\d+) of (\d+)\b/g, '$1 / $2'], [/(\d+) enquiring\b/g, '$1 个在询价'], [/(\d+) on hire\b/g, '$1 台出租中'], [/(\d+)\/(\d+) out\b/g, '$1/$2 台在外'],
+  [/\bRough terrain crane (\d+(?:\.\d+)?) t\b/g, '$1吨 越野吊'], [/\bAll terrain crane (\d+(?:\.\d+)?) t\b/g, '$1吨 全地面吊'], [/\bTruck crane (\d+(?:\.\d+)?) t\b/g, '$1吨 汽车吊'], [/\bMobile crane (\d+(?:\.\d+)?) t\b/g, '$1吨 吊车'],
+  [/\bLorry crane (\d+(?:\.\d+)?) t\b/g, '$1吨 随车吊'], [/\bLorry crane with 40 ft cargo\b/g, '随车吊连40尺货斗'], [/\bSkylift (\d+) m\b/g, '$1米 高空车'], [/\bForklift (\d+(?:\.\d+)?) t\b/g, '$1吨 叉车'], [/\bExcavator (\d+) t\b/g, '$1吨 挖土机'],
+  [/\bBoom lift (\d+) m\b/g, '$1米 臂式升降机'], [/\bWheel loader\b/g, '铲车'], [/\bGenerator (\d+) kVA\b/g, '$1 kVA 发电机'], [/\bCross-hire (\d+) t mobile crane\b/g, '同行车 $1吨吊车'],
+  [/\bCranes · up to (\d+) t\b/g, '吊车 · $1吨以下'], [/\bCranes · over (\d+) t\b/g, '吊车 · $1吨以上'], [/\bCranes · (\d+)–(\d+) t\b/g, '吊车 · $1–$2吨'], [/\bForklifts · /g, '叉车 · '], [/\bAccess platforms · over (\d+) m\b/g, '高空作业 · $1米以上'], [/\bAccess platforms · up to (\d+) m\b/g, '高空作业 · $1米以下'],
+  [/\bup to (\d+(?:\.\d+)?) t\b/g, '$1吨以下'], [/\bover (\d+(?:\.\d+)?) t\b/g, '$1吨以上'], [/\b(\d+)–(\d+) t\b/g, '$1–$2吨'],
+  [/\bBooked from\b/g, '已预订，自'], [/\bBooked to\b/g, '已预订给'], [/\bOn hire to\b/g, '出租给'], [/\bIn workshop\b/g, '维修中'], [/\bOff-hire\b/g, '停租'], [/\bPlanned\b/g, '已安排'],
+  [/\bJob order not sent to operator:/g, '派工单未发给司机：'], [/\bChecklist not complete:/g, '清单未完成：'], [/\bNo timesheet:/g, '没有工作单：'], [/\bTimesheet not signed:/g, '工作单未签：'], [/\bInvoice overdue (\d+) d:/g, '发票逾期 $1 天：'],
+  [/\be-Invoice rejected:/g, '电子发票被拒：'], [/\binvoices? not yet e-invoices\b/g, '张发票还不是电子发票'], [/\bexpires\b/g, '到期'], [/\bexpired\b/g, '已过期'], [/\bdue in (\d+) days\b/g, '$1 天内到期'],
+  [/\b(\d+) d left\b/g, '剩 $1 天'], [/\bOverdue (\d+) d\b/g, '逾期 $1 天'], [/\b(\d+) d late\b/g, '迟 $1 天'], [/\b(\d+) days since last hire\b/g, '上次出租后 $1 天'], [/\bidle (\d+) d\b/g, '闲置 $1 天'], [/\b(\d+) days?\b/g, '$1 天'], [/\b(\d+(?:\.\d+)?) h\b/g, '$1 小时'],
+  [/\b(\d+) machines\b/g, '$1 台机械'], [/\b(\d+) shown\b/g, '显示 $1 台'], [/\bShow (\d+) more\b/g, '再显示 $1 台'], [/\bShow all (\d+)\b/g, '显示全部 $1 台'], [/\bShow fewer\b/g, '少显示'], [/\bView all (\d+)\b/g, '查看全部 $1'], [/(\d+) ending soonest of (\d+)/g, '$2 台中最快到期的 $1 台'],
+  [/\bMachines matching\b/g, '符合的机械'], [/\b(\d+) not clocked in\b/g, '$1 人未打卡'], [/\b(\d+) on leave \/ MC\b/g, '$1 人请假 / 病假'], [/\b(\d+) in yard, booked or in workshop\b/g, '$1 台在车厂、已预订或维修'], [/\b(\d+) open enquiries\b/g, '$1 个未结询价'], [/\b(\d+) follow-ups due\b/g, '$1 个到期跟进'],
+  [/\bto date, before SST\b/g, '至今，未含税'], [/\bowed to us\b/g, '应收'], [/\bpts vs Sep\b/g, '个百分点（对比9月）'], [/\bfill to check\b/g, '次加油要检查'], [/\bNext (\d+) days\b/g, '未来 $1 天'],
+  [/\bFree\b/g, '可用'], [/\bNot free\b/g, '不可用'], [/\bWet hire daily\b/g, '连司机按天'], [/\bWet hire\b/g, '连司机'], [/\bDry hire\b/g, '不连司机'], [/\bDaily\b/g, '按天'], [/\bMonthly\b/g, '按月'], [/\bWeekly\b/g, '按周'],
+  [/\bsigned\b/g, '已签'], [/\boperator\b/g, '司机'], [/\barrive\b/g, '到达'], [/\bLifting\b/g, '起吊'], [/\bQuote ·/g, '报价 ·'], [/\buntil stopped\b/g, '直到停租'], [/\bUntil the customer stops\b/g, '直到顾客停租'],
+  [/\bRoad tax\b/g, '路税'], [/\bInsurance\b/g, '保险'], [/\bDOSH Certificate of Fitness\b/g, 'PMA'], [/^CF\b/g, 'PMA'], [/\bdocument issue\b/g, '文件问题'], [/\bsample chart\b/g, '示例吊重表'], [/\bchart from PDF, not checked\b/g, '吊重表来自 PDF，未核对'],
+  [/\bPrototype of the Super Power Crane Machinery system with example data\b/g, 'Super Power Crane Machinery 系统原型（示例数据）'],
+];
+const I18N = {lang:'en', orig:new WeakMap()};
+try{ const v = localStorage.getItem('spc-lang'); if(v==='zh') I18N.lang = 'zh'; }catch(e){}
+function zhText(t){
+  const k = t.replace(/\s+/g,' ').trim(); if(!k) return t;
+  let out = ZH[k];
+  if(out==null && k.includes(' · ')){ const parts = k.split(' · '), tp = parts.map(p => ZH[p] ?? zhPhr(p)); if(tp.some((x,i)=>x!==parts[i])) out = tp.join(' · '); }
+  if(out==null){ const r = zhPhr(k); if(r!==k) out = r; }
+  if(out==null){ const m = k.match(/^([▾▸·•→←\s]*)(.*?)([\s·:→]*)$/); if(m && (m[1]||m[3]) && m[2]){ const c = ZH[m[2]] ?? zhPhr(m[2]); if(c!==m[2]) out = m[1]+c+m[3]; } }
+  return out==null ? t : t.replace(t.trim(), out);
+}
+function zhPhr(k){ let o = k; for(const [re, rp] of ZH_RX) o = o.replace(re, rp); return o; }
+const I18N_SKIP = '.doc,script,style,.wa,.wamsg,.qrem,[data-noi18n]';
+const I18N_ATTR = ['placeholder','title','aria-label','data-tip'];
+function i18nNode(root){
+  if(I18N.lang!=='zh' || !root) return;
+  if(root.nodeType===3){ const el = root.parentElement; if(el && !el.closest(I18N_SKIP)) i18nText(root); return; }
+  if(root.nodeType!==1 || root.closest?.(I18N_SKIP)) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT, {acceptNode: n => n.nodeType===1 ? (n.matches(I18N_SKIP) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_SKIP) : NodeFilter.FILTER_ACCEPT});
+  while(w.nextNode()) i18nText(w.currentNode);
+  [root, ...root.querySelectorAll('['+I18N_ATTR.join('],[')+']')].forEach(el => { if(!el.getAttribute || el.closest(I18N_SKIP)) return;
+    I18N_ATTR.forEach(a => { const v = el.getAttribute(a); if(v==null || el.hasAttribute('data-en-'+a)) return; const z = zhText(v); if(z!==v){ el.setAttribute('data-en-'+a, v); el.setAttribute(a, z); } }); });
+}
+function i18nText(n){ const v = n.nodeValue; if(!v || !/[A-Za-z]/.test(v)) return; const z = zhText(v); if(z!==v){ if(!I18N.orig.has(n)) I18N.orig.set(n, v);
+  const el = n.parentElement; if(el && el.tagName==='OPTION' && !el.hasAttribute('value')) el.setAttribute('value', el.textContent.trim()); // the form still sends the English value
+  n.nodeValue = z; } }
+function i18nRestore(){
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); while(w.nextNode()){ const n = w.currentNode; if(I18N.orig.has(n)) n.nodeValue = I18N.orig.get(n); }
+  document.querySelectorAll(I18N_ATTR.map(a=>'[data-en-'+a+']').join(',')).forEach(el => I18N_ATTR.forEach(a => { if(el.hasAttribute('data-en-'+a)){ el.setAttribute(a, el.getAttribute('data-en-'+a)); el.removeAttribute('data-en-'+a); } }));
+}
+new MutationObserver(ms => { if(I18N.lang!=='zh') return; ms.forEach(m => m.addedNodes.forEach(i18nNode)); }).observe(document.body, {childList:true, subtree:true});
+function setLang(l){
+  I18N.lang = l; try{ localStorage.setItem('spc-lang', l); }catch(e){}
+  document.documentElement.lang = l==='zh' ? 'zh-Hans' : 'en';
+  document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang===l));
+  if(l==='zh') i18nNode(document.body); else i18nRestore();
+  render(); if(state.sheet) closeSheet();
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-lang]'); if(b) setLang(b.dataset.lang); });
+
 document.body.dataset.role = state.role;
 setView(state.view);
+if(I18N.lang==='zh'){ document.documentElement.lang = 'zh-Hans'; document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang==='zh')); i18nNode(document.body); }
 </script>
