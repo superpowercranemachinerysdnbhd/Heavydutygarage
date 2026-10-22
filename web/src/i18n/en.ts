@@ -131,6 +131,7 @@ export const en = {
   "dash.onActive": "{n} on active work orders",
   "dash.addCrew": "Add your crew under Team.",
   "dash.attention": "Needs attention",
+  "rep.labourToggle": "Labour hours",
   "task.saved": "Task updated.",
   "task.removed": "Task removed.",
   "task.remove": "Remove task",

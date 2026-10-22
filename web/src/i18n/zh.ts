@@ -125,6 +125,7 @@ export const zh: Messages = {
   "dash.onActive": "{n} 人在岗",
   "dash.addCrew": "请在「团队」中添加人员。",
   "dash.attention": "需要处理",
+  "rep.labourToggle": "工时",
   "task.saved": "任务已更新。",
   "task.removed": "任务已删除。",
   "task.remove": "删除任务",

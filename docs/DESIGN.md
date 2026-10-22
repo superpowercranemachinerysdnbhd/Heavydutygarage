@@ -801,3 +801,6 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 ### 55. Edit or remove tasks on a work order (Oct 2026)
 - Each task has **Edit** (wording, and for Supervisor / Head Manager who it is assigned to) and **Remove task** (with a confirmation). The activity log records the change.
 - Supervisor / Head Manager can change any task; crew only the tasks assigned to them. Open work orders only (reopen a completed one to change its tasks).
+
+### 56. Service report: choose whether to show labour hours (Oct 2026)
+- Service report → Include: **Labour hours** next to Photos and Quality checks. On by default; off leaves the Labour section (technicians and hours) out of the report and the print. The choice is kept when recommendations are saved (`labour=0` in the report link).
