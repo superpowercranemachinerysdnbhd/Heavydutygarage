@@ -214,7 +214,7 @@ Operators and riggers also get **site allowances** and **overtime** for payroll 
 
 - **Our transport vehicles** (prime movers, lowloaders, lorry cranes) are fleet machines marked *transport*. They are scheduled, not hired out.
 - A **trip** has a direction (delivery / collection / transfer between sites), date and time window, vehicle, driver, machine(s), from and to (with map pin), and a charge.
-- Charges by **zone** (Klang Valley, Negeri Sembilan, Perak, Johor…) or distance band, set per machine size (up to 10 t, 10–30 t, over 30 t). Self-drive cranes are charged **mobilisation / demobilisation**.
+- Charges by **zone** from the Kempas yard (Johor Bahru; Senai / Kulai / Pasir Gudang; rest of Johor; Melaka / Negeri Sembilan) or distance band, set per machine size (up to 10 t, 10–30 t, over 30 t). Self-drive cranes are charged **mobilisation / demobilisation**.
 - **Permits:** oversize loads need a JPJ special permit and sometimes a police escort. The trip shows the permit number and escort booking, and the charge is passed on.
 - The driver's phone shows today's trips, the site contact and the pin, and records departure, arrival and the delivery/return inspection.
 - Vehicle documents tracked: road tax, insurance, Puspakom inspection, APAD operator licence, and the driver's GDL licence.
@@ -230,16 +230,54 @@ Operators and riggers also get **site allowances** and **overtime** for payroll 
 - **Lines:** hire per machine and period, excess / overtime hours, Sunday and public holiday hours, standby, *less* breakdown credit, operator allowance, transport, fuel, cleaning, damages, *less* deposit applied.
 - **Credit notes** for disputes and corrections. An issued invoice is never edited.
 - **Statement of account** and **ageing** (current, 30, 60, 90+ days) per customer. A customer over their credit limit or 60+ days overdue is flagged at booking.
-- **Accounting export** to AutoCount / SQL Accounting / Xero (same as the workshop), so nothing is typed twice.
+- **Accounting:** invoices go to Bukku (section 24), so nothing is typed twice. Your quotation and invoice PDFs look like they come from Bukku. If so, the invoice number is Bukku's own and Bukku also handles the e-invoice.
+
+### 9.1a Invoice format (copied from IV- 01158 2026)
+
+**Header and top of the invoice**
+- **Header:** logo, then the company name with Reg No, Sales Tax ID, Service Tax ID, TIN C6860756030, MSIC Code 43907, address, contact and website.
+- **Title:** INVOICE.
+- **BILL TO:** the customer's name and full address, so the customer record needs a billing address.
+- **On the right:** NO., DATE, PAYMENT TERM and DUE DATE. The payment term is NET30 (the customer's credit days) or COD.
+- **Numbering:** `IV- 01158 2026`, five digits plus the year.
+
+**Lines: one per signed work order**
+- **Columns:** NO., DESCRIPTION, QTY, UOM, U/PRICE, AMT, TAX AMT.
+- **Daily wet hire:** each work order becomes its own line. It shows:
+  - `DAILY RENTAL OF 80T MOBILE CRANE WITH OPERATOR @ AT PONTIAN`;
+  - the date (20.10.2026);
+  - `work order no.: plate` (167948: JRM 79);
+  - the working times from the work order (8:00 - 12:00,13:00 - 17:00).
+- **Overtime and Sunday:** each goes on its own line under that day, with the work order no. and how many hours after 5 pm.
+- **Hourly hire:** one line per work order. It shows the minimum (3.5 h or 7.5 h) when that is what was charged.
+- **Monthly hire:** one line per month with the date range, then an EXCESS HOURS line if needed.
+- **Other lines:**
+  - transport (mobilisation, or lowloader delivery / collection) with date and zone;
+  - diesel supplied;
+  - LESS: BREAKDOWN with the date and terms clause 18;
+  - damage repair.
+- **Totals:** SUBTOTAL, SERVICE TAX (6%), TOTAL.
+
+**Bottom of the invoice**
+- **The 5 standard notes:**
+  - objections within 14 days;
+  - interest of 1.5% a month;
+  - bound by the terms;
+  - crossed cheques, with the bank accounts (Public Bank 3112434006, RHB Bank 20129160014550);
+  - the 2% tax exemption note dated 23 Jan 2026.
+- **Signatures:** Authorised By and Received By.
+- **e-Invoice QR:** if the customer has a TIN, the invoice is validated and the QR links to MyInvois. If not, the footer says "Not validated by LHDN. Scan within same month to convert into e-invoice."
+
+**Work order numbers** are 6 digits, from the operator's work order. Each work order is used on one invoice line only, so it can't be billed twice.
 
 ### 9.2 Malaysian tax and e-invoicing
 
 | Item | Design |
 |---|---|
-| **SST** | Rental and leasing of machinery became a taxable service at **8%** from 1 July 2025 for registered businesses above the RM 1 million threshold. Our SST registration number goes on every invoice. Each charge type (hire, transport, fuel, damages) has its own *taxable / not taxable* setting and rate, because not every line may be taxable. **The tax agent should confirm these settings before go-live.** |
-| **LHDN e-Invoice (MyInvois)** | Every invoice and credit note is submitted to MyInvois, either directly through the API or through the accounting software if it already does this. The validated **UUID and QR code** are printed on the PDF. Status is shown per invoice: Pending, Validated, Rejected (with reason), Cancelled (within 72 hours). |
-| **Buyer details needed** | Customer SSM registration no. (BRN), **TIN**, SST no. (if any), address and contact. A customer without a TIN cannot be invoiced, so the TIN is asked for at booking, not at billing. |
-| **Our details** | Company name, SSM no., TIN, SST no., **MSIC code** (77300: renting of other machinery, equipment), set in Settings. |
+| **SST** | Rental and leasing of machinery became a taxable service at **8%** from 1 July 2025 for registered businesses above the RM 1 million threshold. Our quotation QT-01094 charges **6%** service tax on every line, including wet hire. The prototype follows the quotation and keeps the rate as a setting. **Ask the tax agent which rate applies to dry hire and to hire with an operator.** Our service tax ID goes on every invoice. Each charge type (hire, transport, fuel, damages) has its own *taxable / not taxable* setting and rate, because not every line may be taxable. **The tax agent should confirm these settings before go-live.** |
+| **LHDN e-Invoice (MyInvois)** | Every invoice and credit note is submitted to MyInvois, either directly through the API or through the accounting software if it already does this. The validated **UUID and QR code** are printed on the PDF. Status is shown per invoice: Pending, Validated, **Not validated** (customer has no TIN; they scan the QR this month, otherwise it goes into the month's consolidated e-invoice; to confirm with Bukku), Rejected (with reason), Cancelled (within 72 hours). |
+| **Buyer details needed** | Customer SSM registration no. (BRN), **TIN**, SST no. (if any), address and contact. A customer without a TIN can still be invoiced, as IV- 01158 2026 shows, but the invoice is not an e-invoice until they scan the QR. The TIN is asked for at booking, so most invoices are validated directly. |
+| **Our details** | Super Power Crane Machinery Sdn Bhd, Reg No 199401026255 / 311936-K, Sales Tax ID J31-2507-32000161, Service Tax ID J31-2507-39000112, Lot 3013, Jalan Belati, Off Jalan Kempas Lama, Kawasan Perindustrian Maju Jaya, 81300 Johor Bahru, Johor; +60 19-728 0435, accounting@superpowercrane.com. TIN C6860756030, **MSIC code 43907** (from invoice IV- 01158 2026), bank accounts Public Bank 3112434006 and RHB Bank 20129160014550. All of these are set in Settings. |
 | **Deposits** | Recorded as a receipt and applied to the final invoice (an e-invoice is issued for the deposit only if the tax agent advises it). |
 
 ---
@@ -600,13 +638,40 @@ GPS51: left site ──► back in yard ──► ready to invoice
 
 Every free machine has **Quote this machine**.
 
-**Quick quotation** (one screen; from Availability, the Dashboard or an enquiry's *Make quotation*):
+**Quick quotation** (one screen; from Availability, the Dashboard or an enquiry's *Make quotation*). It produces the company's own quotation layout (see *Quotation format* below):
 
 1. Customer: pick an existing one, or type the company, contact and phone (the customer record is created when the quotation is issued).
 2. Site, machine type, dates. The free machine is picked automatically (one without a document issue first), and its availability is shown.
 3. Rate: taken from the rate card for the basis (hour / day / week / month, guessed from the dates); discount % within the salesperson's limit (Sales 5%, Supervisor 10%; above that the quotation waits for the Head Manager); transport / mobilisation by zone; optional rigger / signalman.
-4. Remarks: the standard remarks are ticked by default (rates exclude 8% SST, what wet hire includes, 4-hour minimum, overtime rate, mobilisation and permits, customer's ground and site duties, standby, cancellation, payment terms, validity) and can be unticked, plus a free-text remark and the validity in days.
-5. **Issue quotation**: quotation number `Q-YYYY-NNNN`, the formatted quotation (company header, customer, site, numbered items with quantity, rate and amount, subtotal, SST, total, terms and remarks, signature and customer acceptance block), **Send by WhatsApp** (summary text plus the PDF) and a follow-up call in 2 days.
+4. More machines: **Add another machine** puts a second (third…) machine type on the same quotation with the same dates, terms and discount, as on QT-01094 (50 t rough terrain and 25 t mobile crane).
+5. Options: diesel included or not, and monthly "until the customer stops" (no end date).
+6. Remark under the lines and the validity (30 days by default, terms clause 20).
+7. **Issue quotation**: the next number in the company's series (`QT-01095` after `QT-01094`), the formatted quotation, **Send by WhatsApp** (the summary text plus the PDF) and a follow-up call in 2 days.
+
+**Quotation format** (copied from QT-01094):
+
+- **Header:** logo; company name, Reg No, Sales Tax ID and Service Tax ID; address, contact and website. On the right: QUOTATION, No., Date (dd/mm/yyyy) and Payment Term (COD for cash customers, otherwise "30 DAYS" etc. from the customer's credit terms).
+- **Quote To:** company, attention person, phone.
+- **Table:** No., Description, Qty, UOM, Unit Price, Disc, Tax Amt, Net Amt. Tax is worked out per line.
+- **Description in capitals,** built from the rate card: `MONTHLY RENTAL OF 50T ROUGH TERRAIN CRANE WITH OPERATOR WITHOUT DIESEL`. A small grey line under it gives the model, fleet no. and dates.
+- **Rate schedule:** each wet-hire rental line is followed by its rates at qty 1: OVERTIME (HRS), SUNDAY / P.HOLIDAY (DAY) and OVERTIME SUNDAY / P.HOLIDAY (HRS). They come from three new rate-card fields per model: OT / h, Sun / PH day, Sun OT / h. Dry monthly hire adds EXCESS HOURS. These lines are price information, so the system leaves them out of the estimated value used for the sales pipeline.
+- **Grand total:** none is printed, as on QT-01094.
+- **Below the table:** `FOR PROJECT AT <SITE>` and any remark.
+- **Terms and conditions:** the company's 27 clauses under their headings (Rental Rates, Insurance, Conditions of Rental, Safety & Risk, Acts of God and Equipment Failure, Payment, General). The Head Manager edits them in Settings.
+- **Signatures:** Authorised By and Received By. The signature image is uploaded once per authorised person.
+
+**The terms drive the charging rules** (Rates → Charging rules):
+
+| Terms clause | Rule |
+|---|---|
+| 3, 4 | Normal hours 8 am to 5 pm, Monday to Saturday. 5 pm to 11:59 pm is overtime. Midnight to 7:59 am is double overtime. |
+| 5 | Sunday and public holidays use each machine's own day rate and overtime rate. |
+| 6 | Day, week and month rates include diesel unless the line says WITHOUT DIESEL. |
+| 7 | Single trip minimum is 3.5 h, or 7.5 h for bigger cranes (above 60 t in the prototype; to confirm). Extra hours or part hours are charged as overtime. |
+| 8 | A confirmed monthly hire withdrawn early is charged the full month. |
+| 18 | Breakdown: no deduction under 4 h of downtime in total; above that, deducted by the hour. |
+| 20 | Quotations are valid for 30 days. |
+| 21, 22, 24, 25 | Late payment interest is 1.5% a month. Credit customers are stopped at their credit limit or 90 days. Cash customers pay on completion, or within 5 working days of the cash invoice. |
 
 When the customer accepts, **Customer accepted: make order** turns the quotation into an order and opens the job details and checklist (section 26).
 
@@ -621,7 +686,9 @@ One box per machine works for a dozen cranes. At 50 to 200 machines it becomes a
 
 **Machine classes.** Each machine is put in a family (cranes, forklifts, access platforms, excavators, loaders, generators) and a capacity class within it. The capacity comes from the machine type, so nobody keys it in twice. Crane classes are up to 20 t, 21–30 t, 31–60 t, 61–100 t and over 100 t. Forklift classes are up to 3 t, 3–5 t and over 5 t. The Head Manager can change the class limits in Settings.
 
-**Search the way people ask.** One search box understands "25t crane", "forklift 5t", "scissor 12m", a fleet number or a plate. A capacity means "this size or bigger". A family word narrows the family. Anything else is matched against fleet no., plate, serial, make and model. The same box is on Availability, Fleet and Planner.
+**The plate is the machine's ID.** Every screen, job order, quotation and invoice names a machine by its plate (BPN 8918), with the model (Kato SR-250V6) underneath, as in the current machinery list. Machines without a plate, such as forklifts, use their fleet no. A **Find by plate** box sits under the logo on every page: one match opens the machine, and several matches ("2138") open Fleet filtered to them. Spaces and capitals don't matter ("bpn8918").
+
+**Search the way people ask.** One search box understands a plate ("BPN 8918"), "25t crane", "forklift 5t" or "skylift 24m". A capacity means "this size or bigger". A family word narrows the family. Anything else is matched against fleet no., plate, serial, make and model. The same box is on Availability, Fleet and Planner.
 
 | Screen | How it scales |
 |---|---|
@@ -637,7 +704,206 @@ One box per machine works for a dozen cranes. At 50 to 200 machines it becomes a
 | `machine_classes` | family, label, cap_min, cap_max, unit (t, m, kVA), sort |
 | `models` (added) | family, capacity, capacity_unit (filled from the type, can be overridden) |
 
-## 29. Open questions for the owner
+## 29. What the current records show (WORK_ORDER_2026.xlsx) and moving across
+
+The current system is an AppSheet app on a spreadsheet. It has these sheets:
+- WORKORDER: 1,714 rows, January to October 2026;
+- MACHINERY LIST: 28 machines;
+- OPERATORS: 51 staff;
+- CUSTOMERS LIST: 1,147 customers;
+- MASTER CALENDER: 3 entries;
+- CATEGORIES: the pick lists.
+
+### 29.1 How the business really runs
+
+| Finding | Effect on the design |
+|---|---|
+| About 5.7 confirmed jobs a working day. 98% are single-day jobs: 80% full day (8:00 to 5:00), 18% half day (8:00 to 12:00 or 1:00 to 5:00). Monthly hire is rare (16 jobs). | The main screens are the daily job board (Dispatch, Planner, Availability). Monthly hire is kept, but it is not the centre. |
+| A machine often does a morning job and an afternoon job on the same day (74 machine-days). | **Time slot** on every daily booking: full day, morning or afternoon. Morning and afternoon on the same machine do not clash. Availability, the quick quotation and the Planner (half-width bars) all use it. Quotations show `HALF DAY RENTAL OF … (08:00AM - 12:00PM)` at the half-day rate. |
+| 19% of jobs (300) are **cross-hired** from other companies (同行车). The supplier and the cost are typed into the remarks ("SUPER S-2800", "AIRLEX-800"). Main suppliers: MANTA, WISE, CAHAYA, SUPER S, AIRLEX, YONG FATT, SPRUCE MOVER, PKSB. Types we cross-hire: 20 t, 45 t, 80 t, 120 t and 200 t cranes, skylifts, lorry cranes, lorry tippers, 40 ft cargo. | **Cross-hire** is a choice on every booking. The fields are: supplier (from a list of peers with what each one usually supplies), their price to us, and our price. The margin shows on the job, in Dispatch (*Cross-hired jobs*) and in Reports. The customer's quotation and invoice look the same as for our own machine. The job order goes to the supplier, not to our operator. When none of our machines of a type is free, Availability offers *Quote with a cross-hire*. |
+| Day rates from the work orders (median, own machines, with operator). | Rate card, with half day added. These are the prototype's day rates until the owner confirms them. |
+| Every operator has a **work order book** (for example, numbers 167594 to 167600 on one operator's jobs). The WO no. and the invoice no. are kept against the job. 404 jobs have a photo of the signed WO. | The operator types the WO no. from the book when the work order is signed, and can add a photo of the paper. A number used twice is refused. The invoice line prints `WO no.: plate`. |
+| Statuses 确定 (confirmed), 等待 (waiting), 需跟进 (follow up), 取消 (cancelled). | Mapped to Confirmed, Quotation / waiting, Follow-up task, and Cancelled / lost. |
+| The office works in Chinese and English. | **Two languages: English and 中文** (decided). See section 29.3. |
+
+Day rates found in the work orders (RM, with operator, median of own machines):
+
+| Machine | Full day (8–5) | Half day | | Machine | Full day |
+|---|---|---|---|---|---|
+| 16 t | 850 | – | | 50 t | 2,450 |
+| 20 t | 1,080 | 820 | | 60 t | 3,100 |
+| 25 t truck crane | 1,400 | 950–1,065 | | 70 t | 3,300 |
+| 25 t rough terrain | 1,800 | 1,050 | | 80 t | 3,800 |
+| 35 t | 1,900 | – | | 100 t and 120 t | 5,000 |
+| 45 t | 1,980 | – | | 130 t | 6,600 |
+| Lorry crane | 1,500 | 675–875 | | Skylift 20 / 24 / 27 / 40 m | 600 / 620 / 950 / 1,750 |
+
+Cross-hire margins in the remarks:
+
+| Job | Supplier's price | Our price | Margin |
+|---|---|---|---|
+| 50 t (SUPER S) | 2,800 | 3,000 | 7% |
+| 45 t (MANTA) | 2,000 | 2,600 | 23% |
+| 24 m skylift (WISE) | 600 | 680 | 12% |
+| Lorry crane (AIRLEX) | 650 | 800 | 19% |
+| Forklift (GHL) | 800 | 1,547 | 48% |
+
+### 29.2 Things to check before moving the data across
+
+| Check | Found | In the new system |
+|---|---|---|
+| **Machinery list dates** | All 26 machines that have dates show at least one expired PMA, Puspakom or insurance date (as of 21 Oct 2026). 4 machines have the same date in all three columns, which looks like a placeholder. One example: TL-250-3 KEK 3118 worked 157 days this year, but its PMA date is 13 Aug 2026 and its insurance date is 13 Oct 2026. | Each renewal is entered with the new expiry and a copy of the certificate. **Either the list was not updated after renewals, or machines are working with expired papers. Please check this first.** |
+| **Jobs with no invoice no.** | 83 confirmed jobs before October. 27 are cash sales, possibly paid with a receipt, and 37 are for one customer. 29 have a price, worth RM 157,212 in total. | Every signed work order stays in *Ready to invoice* until it is on an invoice. |
+| **Prices on work orders** | 84% of confirmed jobs in January and February have a price. Since March, only 18% do. | The price comes from the quotation or the rate card, and is always on the job. |
+| **WO no.** | 77 confirmed jobs have none. 13 numbers are used twice. | WO no. checked when the work order is signed. |
+| **Machine type** | Free text, for example "25T", "25T(RT)", "25 TON ROUGH TERRAIN", "LC 40FT", "CARGO 40FT". | Picked from the list. The plate comes from the machine. |
+| **Machine use** | Busiest: SR-250V6 VNB 2138, 217 job days. 10 machines have fewer than 10 job days, either because they were idle or because their jobs were recorded under another plate. | Utilisation per machine, from the jobs themselves. |
+| **Names in the machinery list** | "FUAN ATF-60-3" (Faun), "IVICHI" skylifts, a row with no name (MEG 2638) and a row "text value". | Cleaned up during the import. |
+
+### 29.3 Two languages: English and 中文
+
+There is an **EN | 中文** switch under the logo on every page, including the operator's phone screen. Each person's choice is remembered on their own device.
+
+- **Words:** the Chinese uses the terms the office already uses in AppSheet.
+
+  | English | 中文 |
+  |---|---|
+  | Confirmed | 确定 |
+  | Waiting | 等待 |
+  | Follow-up | 需跟进 |
+  | Cancelled | 取消 |
+  | Own machine | 自己车 |
+  | Cross-hire | 同行车 |
+  | Workshop / repair | 维修 |
+  | Available | 可用 |
+  | Plate | 车牌 |
+  | Operator | 司机 |
+  | Assistant | 跟车 |
+  | Rental period | 租赁时段 |
+  | Job scope | 工作内容 |
+  | Wet hire | 连司机 |
+  | Dry hire | 不连司机 |
+
+- **Machine types:** shown the way the office says them, for example 25吨 汽车吊, 25吨 越野吊, 随车吊, 24米 高空车 and 叉车.
+- **Dates:** shown the Chinese way, for example 10月16日 周五.
+- **Stays as written, in either language:**
+  - customer names, sites, plates, models and people's names;
+  - **quotations and invoices**, which stay in English for customers;
+  - **WhatsApp job orders to operators**.
+- **The words are in one list** (one entry per label). New screens need their Chinese added to that list. The Head Manager can correct a word without a programmer.
+- **Fonts:** Chinese uses Noto Sans SC, with PingFang or Microsoft YaHei as a fallback on phones and PCs.
+
+### 29.4 The prototype with the company's own data
+
+The private prototype page runs on the company's own records. The example customers, staff and jobs are removed.
+
+- **Customers:** all 1,147 from the customer list, in its own spelling, with phone, email and address. The ones you worked with most recently are shown first.
+- **Machines:** only the 28 in the machinery list, named by plate. The example machines are removed: the excavators, loader, generator, boom lift, sample forklifts, lowloaders, and the Kobelco RK500-2 (it is not in the list).
+- **Staff:** the staff list with their departments. Office logins are roles (Head Manager, Rental desk, Sales, Accounts), not invented people.
+- **Jobs:** the 889 work orders from May to November 2026. Each one keeps its customer, date, time slot, site, scope, machine plate, operator, cross-hire supplier and cost, WO no., invoice no., and price where the work order has one. Machines the list marks 维修 or 不可用 show as in the workshop.
+- **Empty until the app is used:** enquiries, follow-ups, timesheets, fuel, attendance and invoices. AppSheet does not hold this information.
+
+**Keeping the data private.** The repository is public. So the data is kept out of it:
+- the customer, staff and work-order data sits in a separate file, `spc-data.js`;
+- that file is published only with the private prototype page;
+- `.gitignore` stops that file, and any `.xlsx`, from being committed;
+- without the file (for example, opened from GitHub), the page shows the example data.
+
+**How the import works.** A one-off script reads the spreadsheet and brings across:
+- customers, merging duplicates and spelling variants;
+- staff and their departments;
+- machines (plate, model, capacity, status);
+- the work-order history.
+
+So Reports start with this year's figures. The column mapping is in the prototype under Connections → Current records. The photos (`WORKORDER_Images/…`, `OPERATORS_Images/…`) come across as attachments.
+
+## 30. Fewer pages, and editing an order
+
+**Seven pages, with tabs inside** (was 19 separate pages):
+
+| Page | Tabs | Who sees it |
+|---|---|---|
+| Home | Dashboard: machines out, utilisation, today's jobs, needs attention | Everyone in the office |
+| Jobs | Today & coming (dispatch) · All jobs · Enquiries (with follow-ups) | Everyone in the office |
+| Schedule | Planner · Availability · Calendar | Everyone in the office |
+| Customers | List and customer page | Everyone in the office |
+| Machines | Machines · Lift check · Fuel | Everyone in the office (Fuel: Head Manager, Supervisor) |
+| Staff | Staff & leave · Timesheets | Head Manager, Supervisor. Operators see only their own day. |
+| Settings | Rates · Connections | Head Manager (Supervisor: Rates) |
+
+**Removed, because Bukku does it:**
+- the Billing page, the Reports page, and the revenue figures on the dashboard;
+- customer balances, and revenue per machine.
+
+The customer page now says "Sales and balance: in Bukku". The rental system still sends each job's lines to Bukku when it is invoiced.
+
+**Also removed:**
+- the separate Today page; its follow-ups are in Jobs → Enquiries → Follow-ups;
+- the Transport page, because the machinery list has no lowloaders.
+
+**Edit order.** Every quotation and order has an **Edit order** button until the machine is back in the yard: quotation, booked, on hire, or off-hire called.
+
+- **What can be changed:**
+  - customer, site, site contact, PO;
+  - machine, or cross-hire (同行车) with supplier and cost;
+  - dates, time (full day, morning or afternoon), operator;
+  - job type, scope, arrival time, customer requests, payment.
+- **It is the same form as a new order.** It checks availability without counting the order's own booking.
+- **The order number stays the same.** A quotation keeps its QT number, and its lines are rebuilt.
+- **The activity log records what changed**, for example "machine JQA 5783 → BPG 8362; time 8:00AM - 05:00PM → 08:00AM - 12:00PM".
+- **A changed machine, date, time or operator** marks the job order "to send again" and unticks the crane CF item on the checklist.
+
+**Monthly hire with no end date.** At the top of **Machine and dates**, the order form asks for the rental period first:
+
+| Choice | What happens |
+|---|---|
+| **Fixed dates** | From and To dates. Charged by day, week or month. |
+| **Monthly, no end date** | Charged monthly in arrears. Part months are counted by calendar days, and 200 h a month is included, then the excess rate. The To date shows "Until the customer stops". Availability checks the next 90 days. |
+
+**How a monthly hire with no end date ends:**
+- **Customer called off-hire** on the order sets the end date to today, books the collection, and stops the charges;
+- or, when the customer gives a date in advance, **Edit order → Fixed dates** with that end date. The change is logged, for example "end Until the customer stops → 31 Jan 2027".
+
+**Quick quotation** offers the same "Monthly until the customer stops" box for every machine that has a monthly rate.
+
+**Monthly rates for every machine.** Some machines have no monthly rate yet: lorry cranes, skylifts, forklifts, KR-300, TL-200. For now they are estimated at 13 × the day rate (the 25 t rate is 18,500 ÷ 1,400 = 13.2) and marked "estimate" on the Rates page until the Head Manager sets them.
+
+## 31. Open questions for the owner
+
+**From WORK_ORDER_2026.xlsx:**
+
+- **Machinery dates.** Are the PMA, Puspakom and insurance dates in the machinery list up to date? Every machine shows at least one expired date (section 29.2).
+- **Missing machines.** RC-01 Kobelco RK500-2 is not in the machinery list. Do you still have it? And which machine is MEG 2638?
+- **Model names.** The machinery list says SL700L and NK200-3. The load charts you sent are for the SL-700R and NK-200E-III. Please confirm which models you have, because the lift check must use the right chart.
+- **Unbilled jobs.** Do the 83 confirmed jobs with no invoice no. need checking? 27 of them are cash sales.
+- **Cross-hire suppliers.** Is the list of peer companies right? Do you also want to track what they owe you when they cross-hire *our* machines?
+
+**From invoice IV- 01158 2026:**
+
+- **Two machines on IV- 01158 2026.** Should they be in the fleet list?
+  - the 80 t mobile crane, plate JRM 79;
+  - the lorry crane with 40 ft cargo, plate JWW 3688.
+  The fleet list you gave has no 80 t crane. Please also send the plate number of every machine, so work orders and invoices print them.
+- **Day rates.** The invoice charges RM 7,000 a day for the 80 t and RM 2,500 for the lorry crane, much more than the monthly rate ÷ 26. The prototype now uses RM 2,500 for the lorry crane. The other day rates are still sample figures until the rate card arrives.
+- **Note 5** ("2% Tax exempted under seksyen 34(3)(a) and 34(4)"). Does it go on every invoice, or only on some customers' invoices?
+- **Note 3** says "as started herein". Should it be "stated"?
+- **Work order numbers** (173961, 167948). Do they come from a printed work order book? If they do, the operator types the number into the app. If not, the app numbers them.
+
+**From quotation QT-01094:**
+
+- **Service tax.** QT-01094 charges 6%. Is that right for both wet and dry hire? (See the SST row in section 9.)
+- **Rates for other sizes.** The 25 t and 50 t rates come from QT-01094: RM 18,500 and RM 28,000 a month with operator, without diesel, plus their overtime and Sunday rates. Every other size is scaled from these. Please send the full rate card.
+- **Minimum hours.** Which crane sizes have the 3.5-hour minimum and which have 7.5 hours (clause 7)?
+- **Line 7 unit.** On QT-01094, line 7 (Sunday / P.Holiday, RM 1,100) says UOM "HRS". Line 3 for the 50 t says "DAY". Should line 7 also be DAY?
+- **Typing errors in the terms.** These could be fixed when the terms go into Settings:
+  - the heading "TERM & CONDTIONS";
+  - "crosses cheque" (crossed);
+  - "sum owned" (owed);
+  - "shall the right" (shall have the right);
+  - "unground" (underground);
+  - "is not comply with" (complied).
+- **Where quotations are made today.** QT-01094 appears to come from your accounting software. Should the rental system create quotations in Bukku through the API, so the QT numbers stay in one series? Or should it take over the quotation numbers?
+
 
 1. How many machines are in the hire fleet, and do we cross-hire machines in from other companies when we run short?
 2. Which machines are only wet hire (cranes?) and which are only dry hire?

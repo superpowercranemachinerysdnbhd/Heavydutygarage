@@ -1,0 +1,4 @@
+
+# Private company data for the rental prototype (customers, staff, work orders). Never commit.
+prototype/spc-data.js
+*.xlsx
