@@ -793,6 +793,22 @@ There is an **EN | 中文** switch under the logo on every page, including the o
 - **The words are in one list** (one entry per label). New screens need their Chinese added to that list. The Head Manager can correct a word without a programmer.
 - **Fonts:** Chinese uses Noto Sans SC, with PingFang or Microsoft YaHei as a fallback on phones and PCs.
 
+### 29.4 The prototype with the company's own data
+
+The private prototype page runs on the company's own records. The example customers, staff and jobs are removed.
+
+- **Customers:** all 1,147 from the customer list, in its own spelling, with phone, email and address. The ones you worked with most recently are shown first.
+- **Machines:** only the 28 in the machinery list, named by plate. The example machines are removed: the excavators, loader, generator, boom lift, sample forklifts, lowloaders, and the Kobelco RK500-2 (it is not in the list).
+- **Staff:** the staff list with their departments. Office logins are roles (Head Manager, Rental desk, Sales, Accounts), not invented people.
+- **Jobs:** the 889 work orders from May to November 2026. Each one keeps its customer, date, time slot, site, scope, machine plate, operator, cross-hire supplier and cost, WO no., invoice no., and price where the work order has one. Machines the list marks 维修 or 不可用 show as in the workshop.
+- **Empty until the app is used:** enquiries, follow-ups, timesheets, fuel, attendance and invoices. AppSheet does not hold this information.
+
+**Keeping the data private.** The repository is public. So the data is kept out of it:
+- the customer, staff and work-order data sits in a separate file, `spc-data.js`;
+- that file is published only with the private prototype page;
+- `.gitignore` stops that file, and any `.xlsx`, from being committed;
+- without the file (for example, opened from GitHub), the page shows the example data.
+
 **How the import works.** A one-off script reads the spreadsheet and brings across:
 - customers, merging duplicates and spelling variants;
 - staff and their departments;

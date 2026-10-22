@@ -706,6 +706,8 @@ td.mono{white-space:nowrap}
 html[lang^="zh"] .navh, html[lang^="zh"] th, html[lang^="zh"] .label{letter-spacing:.04em}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Private company data, published only with the private page and never committed (see .gitignore). Without it the page shows example data. -->
+<script src="spc-data.js"></script>
 
 <aside class="side">
   <div class="side-top">
@@ -1290,6 +1292,8 @@ Object.assign(models, {
   SK240:{make:'Ivichi',model:'240 skylift',type:'Skylift 24 m',grp:'lift',size:'self'},
   SK270:{make:'Ivichi',model:'A270 skylift',type:'Skylift 27 m',grp:'lift',size:'self'},
   LCK:{make:'Lorry crane',model:'c/w 40 ft cargo',type:'Lorry crane with 40 ft cargo',grp:'crane',size:'self'},
+  FL45:{make:'Toyota',model:'Mark 5 forklift',type:'Forklift 5 t',grp:'lift',size:'small'},
+  FL25:{make:'Toyota',model:'Mark 5 forklift',type:'Forklift 2.5 t',grp:'lift',size:'small'},
   /* types the company cross-hires from other companies (同行车); no own machine */
   X45:{make:'Cross-hire',model:'45 t mobile crane',type:'Mobile crane 45 t',grp:'crane',size:'self',peer:true},
   X80:{make:'Cross-hire',model:'80 t mobile crane',type:'Mobile crane 80 t',grp:'crane',size:'self',peer:true},
@@ -1301,7 +1305,7 @@ Object.assign(models, {
    lorry crane and 24 m skylift have half-day medians; other half days are 70% of the day rate until confirmed). */
 const WO_RATES = {NK160:[850], NK200:[1080,820], TL200:[1080,820], NK250:[1400,1000], NK2502:[1400,1000], TL2501:[1400,1000], TL2502:[1400,1000], TL2503:[1400,1000],
   SR250:[1800,1050], KR300:[1900], TL450:[1980], RK500:[2450], SS500:[2450], TL500:[2450], GR600:[3100], ATF60:[3100], SL700:[3300], SA1100:[5000], SL1300:[6600],
-  UNIC:[1500,800], LCK:[2500], J340:[1750], SK240:[620,470], SK270:[950], X45:[1980], X80:[3800], X120:[5000], X200:[8000], XTIP:[1200]};
+  UNIC:[1500,800], LCK:[2500], FL45:[1550], FL25:[900], J340:[1750], SK240:[620,470], SK270:[950], X45:[1980], X80:[3800], X120:[5000], X200:[8000], XTIP:[1200]};
 Object.entries(WO_RATES).forEach(([mk,[day,half]]) => {
   const r = rates[mk+'/wet'] || (rates[mk+'/wet'] = {minH:3.5, mHrs:200});
   r.day = day; r.half = half || Math.round(day*0.7/10)*10; r.hr = r.hr || Math.round(day/7.5/5)*5;
@@ -1311,12 +1315,12 @@ Object.entries(WO_RATES).forEach(([mk,[day,half]]) => {
 (function realFleet(){
   const ADD = [['JKE 5227','KR300','JKE 5227'],['VNB 2138','SR250','VNB 2138'],['VNC 2138','SR250','VNC 2138'],['BPN 8918','SR250','BPN 8918'],
     ['BPG 8362','TL2501','BPG 8362'],['JVY 1832','TL2502','JVY 1832'],['KEK 3118','TL2503','KEK 3118'],['BMV 8865','NK2502','BMV 8865'],['BMK 3428','TL200','BMK 3428'],
-    ['BQB 9319','J340','BQB 9319'],['JKU 2969','SK240','JKU 2969'],['WJC 9971','SK240','WJC 9971'],['MED 2138','SK270','MED 2138'],['JWW 3688','LCK','JWW 3688']];
+    ['BQB 9319','J340','BQB 9319'],['JKU 2969','SK240','JKU 2969'],['WJC 9971','SK240','WJC 9971'],['MED 2138','SK270','MED 2138'],['JWW 3688','LCK','JWW 3688'],['TOYOTA FORKLIFT 45','FL45',''],['TOYOTA FORKLIFT 25','FL25','']];
   const pad = n => String(n).padStart(2,'0');
   ADD.forEach(([u, m, plate]) => { const r = k => rnd(u+k);
     const exp = k => r(k) < 0.08 ? `2026-12-${pad(5+Math.floor(r(k+'d')*20))}` : `2027-${pad(1+Math.floor(r(k)*9))}-${pad(1+Math.floor(r(k+'d')*27))}`;
     const rt = rate(m,'wet'), util = 45 + Math.floor(r('u')*45);
-    fleet[u] = {m, plate, year:2008 + Math.floor(r('y')*14), hm:4000 + Math.floor(r('h')*18000), docs:{cf:exp('cf'), road:exp('rd'), ins:exp('rd'), pusp:exp('pu')},
+    fleet[u] = {m, plate:plate||undefined, year:2008 + Math.floor(r('y')*14), hm:4000 + Math.floor(r('h')*18000), docs: plate ? {cf:exp('cf'), road:exp('rd'), ins:exp('rd'), pusp:exp('pu')} : {ins:exp('rd')},
       cost:Math.round(rt.day*260/1000)*1000, ytd:{rev:Math.round(rt.day*util*2), ws:Math.round(rt.day*util*0.25), opx:Math.round(rt.day*util*0.4), util}};
   });
   workshop.push({u:'JKU 2969', from:addDays(TODAY,-6), to:addDays(TODAY,4), job:'J-2026-0431', note:'Repair (维修 in the machinery list)'});
@@ -1584,7 +1588,7 @@ function renderPlanner(){
       const cls = (h.status==='Quotation' ? 'quote' : h.status==='Booked' ? `booked ${l.k}` : `${l.k}${h.status==='Off-hire called'?' offcalled':''}`) + (l.slot && l.slot!=='full' && a===b ? ' '+l.slot : '');
       bars.push(barHtml(a, b, cls, `${l.slot&&l.slot!=='full'&&a!==b?slotTag(l.slot)+' · ':''}${h.status==='Quotation'?'Quote · ':''}${customers[h.c].name.replace(/ (Sdn Bhd|Construction|Engineering|Structure|Builders|Logistics)/g,'')}`, `data-hire="${h.id}"`, `${h.id} · ${custName(h.c)} · ${kindLabel(l.k)} ${basisLabel[l.basis].toLowerCase()}${l.slot&&l.slot!=='full'?' '+SLOTS[l.slot]:''} · ${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))} · ${h.status}`));
     }); });
-    workshop.filter(w=>w.u===u).forEach(w => bars.push(barHtml(daysBetween(G0,w.from), daysBetween(G0,w.to), 'ws', w.note.startsWith('Return')?'Repair':'Service', `data-unit="${u}"`, `${w.job} · ${w.note} · ${fmtD(w.from)}–${fmtD(w.to)}`)));
+    workshop.filter(w=>w.u===u).forEach(w => bars.push(barHtml(daysBetween(G0,w.from), daysBetween(G0,w.to), 'ws', /^(Return|Repair)/.test(w.note)?'Repair':/^Not available/.test(w.note)?'Not available':'Service', `data-unit="${u}"`, `${w.job} · ${w.note} · ${fmtD(w.from)}–${fmtD(w.to)}`)));
     breakdowns.filter(b=>b.u===u).forEach(b => { const i = daysBetween(G0,b.d); if(i>=0 && i<GN) bars.push(`<button class="bd" style="left:calc(var(--cw) * ${i})" data-hire="${b.hire}" title="Breakdown ${fmtD(b.d)}: ${esc(b.note)} (${b.hrs} h lost, ${b.job})" aria-label="Breakdown"></button>`); });
     if(fleet[u].transport) allTrips().filter(t=>t.veh===u).forEach(t => bars.push(barHtml(daysBetween(G0,t.d), daysBetween(G0,t.d), 'trip', t.u, `data-hire="${t.hire}"`, `${fmtD(t.d)} · ${t.dir} ${t.u} · ${t.site} · ${staff[t.drv].name}`)));
     else allTrips().filter(t=>t.u===u).forEach(t => { const i = daysBetween(G0,t.d); if(i>=0 && i<GN) bars.push(`<span class="tmark" style="left:calc(var(--cw) * ${i})" title="${t.dir} ${fmtD(t.d)}${t.veh?' by '+t.veh:' (self-drive)'} · ${esc(staff[t.drv].name)}"></span>`); });
@@ -1949,7 +1953,7 @@ function renderTimesheets(){
     <p class="muted" style="margin:0">Wet hire: the operator fills in the day on the phone and the customer's site supervisor signs. Signed timesheets are the basis of the invoice and are locked.</p>
     ${pend.length?`<div class="banner"><b>${pend.length} timesheet${pend.length>1?'s':''} waiting for the customer's signature.</b>${pend.map(p=>`<button class="btn small" data-action="ts-wa" data-id="${p.id}">Send ${p.u} ${fmtD(p.d)} to ${esc(SITE_SIGNER[hire(p.hire).c])}</button>`).join('')}</div>`:''}
     <div class="tbl-wrap" style="padding:10px 12px"><table class="mx"><thead><tr><th class="lab">Machine · operator</th>${days.map(d=>`<th class="${dow(d)===0?'sun':''}">${+d.slice(8)}</th>`).join('')}<th class="lab r" style="padding-left:10px">Hours</th></tr></thead><tbody>
-      ${lines.map(({h,l})=>`<tr><td class="lab"><b>${l.u}</b> ${esc(staff[l.op].name)}<br><small class="muted">${esc(custName(h.c))}</small></td>${days.map(d=>`<td>${cell(h,l,d)}</td>`).join('')}<td class="lab r num" style="padding-left:10px">${num(sum(sheets.filter(s=>s.u===l.u&&s.hire===h.id&&s.d>='2026-10-01').map(s=>s.work)))} h</td></tr>`).join('')}
+      ${lines.map(({h,l})=>`<tr><td class="lab"><b>${l.u}</b> ${esc(staff[l.op]?.name||'—')}<br><small class="muted">${esc(custName(h.c))}</small></td>${days.map(d=>`<td>${cell(h,l,d)}</td>`).join('')}<td class="lab r num" style="padding-left:10px">${num(sum(sheets.filter(s=>s.u===l.u&&s.hire===h.id&&s.d>='2026-10-01').map(s=>s.work)))} h</td></tr>`).join('')}
     </tbody></table></div>
     <div class="g-legend"><span><i class="cell ok" style="width:18px;height:18px">✓</i>Signed</span><span><i class="cell un" style="width:18px;height:18px">!</i>Not signed</span><span><i class="cell miss" style="width:18px;height:18px">✕</i>Missing</span><span><i class="cell off" style="width:18px;height:18px">–</i>Sunday off</span></div>
     <div class="panel"><div class="panel-head"><h3>Dry hire: hour meter readings</h3></div><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Machine</th><th>Customer</th><th>Last reading</th><th class="r">This month</th><th class="r">Allowance</th></tr></thead><tbody>
@@ -1968,7 +1972,7 @@ function renderOperator(){
   const work = Math.max(0, toH(ts.finish)-toH(ts.start)-ts.brk/60-(+ts.standby)-(+ts.bd));
   const hist = cur ? sheets.filter(s=>s.u===cur.l.u).sort((a,b)=>a.d<b.d?1:-1).slice(0,6) : [];
   $('#v-timesheets').innerHTML = `<div class="phone">
-    <div class="view-head"><h2>Hi, ${esc(op.name.split(' ')[0])}</h2><div class="seg">${['O1','O3','O5'].map(o=>`<button data-opme="${o}" aria-pressed="${o===me}">${esc(staff[o].name.split(' ')[0])}</button>`).join('')}</div></div>
+    <div class="view-head"><h2>Hi, ${esc(op.name.split(' ')[0])}</h2><div class="seg">${(window.SPC_DATA ? [...new Set(hires.filter(h=>['On hire','Booked'].includes(h.status)).map(h=>h.lines[0].op).filter(o=>staff[o]))].slice(0,3) : ['O1','O3','O5']).map(o=>`<button data-opme="${o}" aria-pressed="${o===me}">${esc(staff[o].name.split(' ')[0])}</button>`).join('')}</div></div>
     ${jobCardOpHtml()}
     ${cur?`<div class="panel"><div class="panel-head"><div><span class="label">Today's job</span><h3>${cur.l.u} ${esc(uName(cur.l.u))}</h3></div></div><div class="in" style="padding:10px 14px;display:flex;flex-direction:column;gap:4px">
       <b>${esc(custName(cur.h.c))}</b><span>${esc(cur.h.site)}</span><small class="muted">Site contact: ${esc(cur.h.siteContact)}</small>
@@ -2387,7 +2391,10 @@ function renderCustomers(){
   const rows = Object.entries(customers).filter(([k,c])=>!q || (c.name+' '+c.contact+' '+(c.ind||'')).toLowerCase().includes(q)).map(([k,c]) => ({k, c,
     active: hires.filter(h=>h.c===k && LIVE.includes(h.status)).length, open: enquiries.filter(e=>e.c===k && openStage(e)).length,
     bal: balanceOf(k), over: invoices.some(i=>i.c===k && invStatus(i)==='Overdue'), last: lastContact(k),
-    next: tasks.filter(t=>!t.done && custOfTask(t)===k).sort((a,b)=>a.d<b.d?-1:1)[0]}));
+    next: tasks.filter(t=>!t.done && custOfTask(t)===k).sort((a,b)=>a.d<b.d?-1:1)[0], lh: lastHireOf(k)||''}))
+    .sort((a,b)=>(b.active-a.active) || (b.lh<a.lh?-1:b.lh>a.lh?1:0) || (a.c.name<b.c.name?-1:1));
+  /* a long customer list shows the most recent customers first; search finds the rest */
+  const CUST_MAX = state.custAll ? rows.length : 150, allRows = rows.length; rows.splice(CUST_MAX);
   const prospects = [...new Map(enquiries.filter(e=>!e.c).map(e=>[e.prospect.name, e])).values()];
   $('#v-customers').innerHTML = `
     <div class="view-head"><h2>Customers</h2><input type="search" id="custQ" placeholder="Search name, contact, industry" value="${esc(state.custQ||'')}"><button class="btn primary" data-action="new-enq">New enquiry</button></div>
@@ -2399,6 +2406,7 @@ function renderCustomers(){
         <td class="num">${r.last?fmtD(r.last):'—'}${r.last&&daysBetween(r.last,TODAY)>60?' <span class="pill warn">'+daysBetween(r.last,TODAY)+' d</span>':''}</td>
         <td>${r.next?`<span class="due ${r.next.d<TODAY?'over':r.next.d===TODAY?'soon':''}">${r.next.d===TODAY?'Today':fmtD(r.next.d)} · ${esc(r.next.type)}</span>`:'<span class="muted">—</span>'}</td></tr>`).join('')}
     </tbody></table></div>
+    ${allRows>rows.length?`<div class="btnrow"><button class="btn" data-action="cust-all">Show all ${allRows} customers</button><small class="muted">Showing the ${rows.length} most recent. Search finds any customer.</small></div>`:''}
     ${prospects.length?`<div class="panel"><div class="panel-head"><h3>Prospects</h3><span class="muted">asked for a machine, not customers yet</span></div><div class="tbl-wrap" style="border:0"><table><tbody>
       ${prospects.map(e=>`<tr class="click" data-enq="${e.id}"><td><b>${esc(e.prospect.name)}</b><br><small class="muted">${esc(e.prospect.contact)} · ${esc(e.prospect.phone)}</small></td><td>${esc(e.need)}</td><td>${e.stage}</td></tr>`).join('')}
     </tbody></table></div></div>`:''}`;
@@ -3085,7 +3093,7 @@ function renderDashboard(){
   const units = hireUnits(), st = units.map(u=>[u,unitStatus(u)]);
   const rented = st.filter(([,s])=>['On hire','Off-hire called'].includes(s.k));
   const ms = monthSeries(), uNow = ms[5].util, uPrev = ms[4].util;
-  const att = attendanceToday(), present = att.filter(a=>a.k==='work'||a.k==='base').length;
+  const att = attendanceToday(), present = att.filter(a=>a.k==='work'||a.k==='base').length, noClock = !!window.SPC_DATA && !Object.keys(CLOCK).length;
   const none = att.filter(a=>a.k==='none'), late = att.filter(a=>a.late);
   const open = enquiries.filter(openStage), pipe = sum(open.map(e=>e.value*PROB[e.stage]));
   const fOct = fuel.filter(f=>f.d.startsWith('2026-10')), fL = sum(fOct.map(f=>f.l)), fRM = sum(fOct.map(f=>f.l*f.price));
@@ -3102,14 +3110,14 @@ function renderDashboard(){
       <button class="kpi" data-view="fleet"><span class="label">Machinery on rental</span><b>${rented.length}<small class="muted"> / ${units.length}</small></b><span>${units.length-rented.length} in yard, booked or in workshop</span></button>
       <button class="kpi" data-view="reports"><span class="label">Utilisation rate</span><b>${uNow}%</b><span>Oct to date ${delta(uNow,uPrev)}</span></button>
       <button class="kpi cost" data-view="billing"><span class="label">Hire revenue, Oct</span><b style="font-size:1.4rem">${RM0(ms[5].rev)}</b><span>to date, before SST · ${RM0(outstanding)} owed to us</span></button>
-      <button class="kpi" data-view="staff"><span class="label">Attendance today</span><b>${present}<small class="muted"> / ${att.length}</small></b><span>${none.length} not clocked in · ${att3[2].n} on leave / MC</span></button>
+      <button class="kpi" data-view="staff"><span class="label">Attendance today</span>${noClock?'<b>—</b><span>Starts when staff clock in on the app</span>':`<b>${present}<small class="muted"> / ${att.length}</small></b><span>${none.length} not clocked in · ${att3[2].n} on leave / MC</span>`}</button>
       <button class="kpi cost" data-view="enquiries"><span class="label">Sales pipeline</span><b style="font-size:1.4rem">${RM0(pipe)}</b><span>${open.length} open enquiries · ${due} follow-ups due</span></button>
       <button class="kpi" data-view="fuel"><span class="label">Fuel, Oct</span><b style="font-size:1.4rem">${num(fL)} L</b><span class="cost">${RM0(fRM)} · ${fuel.filter(f=>f.d.startsWith('2026-10') && fuelFlag(f)).length} fill to check</span></button>
     </div>
     <div class="dgrid">
       <div class="panel"><div class="panel-head"><h3>Fleet utilisation</h3><span class="muted">days on hire ÷ days available</span></div><div class="in" style="padding:6px 10px 10px">${lineChart(ms)}
-        <small class="muted">May–Aug are sample history; Sep and Oct come from the hires in this prototype.</small></div></div>
-      <div class="panel"><div class="panel-head"><h3>Attendance today</h3><button class="btn small" data-view="staff">Staff</button></div><div class="in" style="padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+        <small class="muted">${window.SPC_DATA?'From your work orders: days on hire of our own machines ÷ days available.':'May–Aug are sample history; Sep and Oct come from the hires in this prototype.'}</small></div></div>
+      <div class="panel"><div class="panel-head"><h3>Attendance today</h3><button class="btn small" data-view="staff">Staff</button></div>${noClock?'<div class="in" style="padding:14px"><p class="muted">There is no clock-in in AppSheet, so attendance starts when operators and office staff clock in on the app (phone location at clock-in).</p></div>':''}<div class="in" style="padding:12px 14px;display:${noClock?'none':'flex'};flex-direction:column;gap:10px">
         <div class="segbar" role="img" aria-label="${att3.map(c=>c.label+' '+c.n).join(', ')}, not clocked in ${none.length}">${att3.filter(c=>c.n).map(c=>`<i style="flex:${c.n};background:${c.c}" data-tip="${c.label}: ${c.n}"></i>`).join('')}${none.length?`<i class="none" style="flex:${none.length}" data-tip="Not clocked in: ${none.length}"></i>`:''}</div>
         <div class="slegend" style="padding:0">${att3.map(c=>`<div><i style="background:${c.c}"></i>${c.label}<b>${c.n}</b></div>`).join('')}<div><i class="none-sw"></i>Not clocked in<b>${none.length}</b></div></div>
         ${none.length||late.length?`<div class="mini">${none.map(a=>`<div><span class="pill warn">! Not in</span> ${esc(staff[a.s].name)} <small class="muted">· ${esc(a.what)}</small></div>`).join('')}${late.map(a=>`<div><span class="pill mute">Late ${a.time}</span> ${esc(staff[a.s].name)} <small class="muted">· ${esc(a.where)}</small></div>`).join('')}</div>`:''}
@@ -3660,13 +3668,14 @@ function openQuoteDoc(id){
 
 document.addEventListener('click', e => {
   if(e.target.closest('input,select,textarea,canvas')) return;
-  const a = e.target.closest('[data-action^="qq-"],[data-action^="qd-"],[data-action="wo-photo"],[data-avpick],[data-avgrp]');
+  const a = e.target.closest('[data-action^="qq-"],[data-action^="qd-"],[data-action="wo-photo"],[data-action="cust-all"],[data-avpick],[data-avgrp]');
   if(!a) return;
   const d = a.dataset;
   if(d.avpick){ const [type, day] = d.avpick.split('|'); Object.assign(state.av, {type, from:day, to:day}); return render(); }
   if(d.avgrp!=null){ state.av.grp = d.avgrp; return render(); }
   if(d.action==='qq-new'){ state.qq = qqDefaults(d.u ? {u:d.u, type:mOf(d.u).type, slot:state.av.slot||'full'} : d.type ? {type:d.type, u:d.peer?'peer':null, slot:state.av.slot||'full'} : {}); return openQuickQuote(); }
   if(d.action==='qq-issue') return issueQuote();
+  if(d.action==='cust-all'){ state.custAll = true; return render(); }
   if(d.action==='wo-photo'){ state.woPhoto = true; a.textContent = '✓ Photo of signed WO added'; toast('Photo attached to the work order'); return; }
   if(d.action==='qq-addm'){ const q = state.qq; q.more = q.more||[]; const ts = [...new Set(hireUnits().map(u=>mOf(u).type))]; q.more.push({type: ts.find(t=>t!==q.type && !q.more.some(m=>m.type===t)) || ts[0]}); return openQuickQuote(); }
   if(d.action==='qq-delm'){ state.qq.more.splice(+d.i,1); return openQuickQuote(); }
@@ -3790,6 +3799,85 @@ document.addEventListener('submit', e => {
     const i = invoices.find(x=>x.no===f.dataset.no); customers[i.c].tin = v; i.einv='Validated'; i.einvNote=''; i.uuid=uuidOf(i.no); i.status='Sent'; toast(`TIN saved. ${i.no} validated by MyInvois.`); return rerender(); }
 });
 
+/* ---------- the company's own data ----------
+   When the private file spc-data.js is published next to this page (it is never committed), the example customers,
+   staff and jobs are removed and replaced with the customers, staff and work orders from WORK_ORDER_2026.xlsx.
+   Only the machines in the machinery list are kept. Without the file the page shows example data. */
+const REAL = window.SPC_DATA || null;
+function useRealData(D){
+  const wipe = o => Object.keys(o).forEach(k => delete o[k]);
+  const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  /* machines: only the machinery list */
+  ['WVX 5501','FL-01','FL-02','BL-01','EX-01','EX-02','EX-03','WL-01','GS-01','WPL 8812','BKT 4410'].forEach(u => { delete fleet[u]; delete charts[u]; });
+  /* customers: the customer list, in its own order */
+  wipe(customers);
+  const cid = {};
+  D.customers.forEach((c, i) => { const id = 'C'+String(i+1).padStart(4,'0'); cid[norm(c.n)] = id;
+    customers[id] = {name:c.n, contact:'', phone:c.ph||'', email:c.em||'', addr:(c.a||[]).join('|'), brn:'', tin:'', sst:'', terms:/^CASH SALES$/i.test(c.n)?0:30, limit:0, ind:'', since:'', notes:[], sales:'S2'}; });
+  const custOf = n => { const k = norm(n); if(cid[k]) return cid[k]; const id = 'C'+String(Object.keys(customers).length+1).padStart(4,'0'); cid[k] = id; customers[id] = {name:n, contact:'', phone:'', addr:'', brn:'', tin:'', sst:'', terms:30, limit:0, notes:[], sales:'S2'}; return id; };
+  /* staff: office roles (not people) plus the staff list */
+  wipe(staff);
+  Object.assign(staff, {HM:{name:'Head Manager',role:'Head Manager'}, S1:{name:'Rental desk',role:'Supervisor · Rental desk'}, S2:{name:'Sales',role:'Sales'}, S3:{name:'Accounts',role:'Accounts'}});
+  const sid = {};
+  D.staff.forEach(s => { const d = s.d, skill = /SKYLIFT/.test(d) ? 'lift' : /CRANE/.test(d) ? 'crane' : null;
+    staff[s.id] = {name:s.n, role:d.charAt(0)+d.slice(1).toLowerCase(), certs:{}, skills:skill?[skill]:undefined}; sid[s.id] = s.id; sid[norm(s.n)] = s.id; });
+  FIELD.splice(0, FIELD.length, ...D.staff.filter(s=>/OPERATOR|DRIVER|ASSISTANCE/.test(s.d)).map(s=>s.id));
+  wipe(CLOCK); wipe(leaveBal);
+  /* jobs: one hire per work order, as the business works */
+  const MT = [[/LORRY\s*TIPPER|TIPPER/,'XTIP'],[/CARGO|40\s*FT/,'LCK'],[/LORRY\s*CRANE|^LC\b/,'UNIC'],[/FORK/,'FL45'],[/^(\d+)\s*M\b/,'SKY'],[/(\d+)\s*(T|TON)\b.*R(OUGH)?\s*T|(\d+)T\s*\(?RT/,'RT'],[/(\d+)\s*(T|TON)/,'T']];
+  const byTon = t => t<=16?'NK160':t<=20?'NK200':t<=25?'NK250':t<=35?'KR300':t<=45?'TL450':t<=50?'TL500':t<=60?'GR600':t<=70?'SL700':t<=80?'X80':t<=110?'SA1100':t<=120?'X120':t<=130?'SL1300':'X200';
+  const modelFor = j => { const p = (j.pl||'').trim(); if(fleet[p]) return {u:p, m:fleet[p].m};
+    const s = (j.m||'').toUpperCase();
+    for(const [re, k] of MT){ const r = s.match(re); if(!r) continue;
+      if(k==='SKY'){ const m = +r[1]; return {m: m>=35?'J340':m>=26?'SK270':'SK240'}; }
+      if(k==='RT'){ const t = +(s.match(/(\d+)/)||[])[1]; return {m: t<=25?'SR250':t<=30?'KR300':byTon(t)}; }
+      if(k==='T') return {m: byTon(+r[1])};
+      return {m:k}; }
+    return null; };
+  const SLOT = p => /^0?1:00\s*PM/i.test(p) ? 'pm' : /12:00\s*PM\s*$/i.test(p) ? 'am' : 'full';
+  const peerOf = rm => { const m = String(rm||'').toUpperCase().match(/^(?:\d+\s*T\s+)?([A-Z][A-Z &.]*?)\s*-\s*(?:\d+M?-\s*)?(\d{3,5})/); return m ? {s:m[1].trim(), cost:+m[2]} : {s:(String(rm||'').toUpperCase().match(/^[A-Z][A-Z &.]+/)||[''])[0].trim(), cost:0}; };
+  hires.splice(0, hires.length); sheets = []; fuel = []; invoices = []; enquiries = []; tasks = []; leave = []; events = [];
+  workshop.splice(0, workshop.length); breakdowns.splice(0, breakdowns.length); lost.splice(0, lost.length); WA_INBOX.splice(0, WA_INBOX.length); SRC_YTD.splice(0, SRC_YTD.length); HIST.won = 0; HIST.lost = 0;
+  let n = 0;
+  D.jobs.forEach(j => { if(/PUSPAK|REPAIR/i.test(j.c+' '+(j.m||''))) return;
+    const mm = modelFor(j); if(!mm || !models[mm.m]) return;
+    const c = custOf(j.c), from = j.s, to = j.e < j.s ? j.s : j.e, days = daysBetween(from, to) + 1;
+    const peer = j.k==='同行车' || (!mm.u && models[mm.m].peer);
+    const basis = /MONTH/i.test(j.rm||'') || days >= 20 ? 'month' : 'day', slot = basis==='day' ? SLOT(j.per||'') : undefined;
+    const st = j.st==='取消' ? 'Lost' : j.st==='等待' || j.st==='需更近' ? 'Quotation' : to < TODAY ? (j.inv ? 'Closed' : 'Returned') : from <= TODAY ? 'On hire' : 'Booked';
+    const op = sid[j.dr] || sid[norm(j.dr)] || undefined;
+    if(j.ct && !customers[c].contact){ customers[c].contact = j.ct; if(j.ph) customers[c].phone = customers[c].phone || j.ph; }
+    const line = {u: peer ? null : mm.u || null, m:mm.m, k:'wet', basis, from, to, slot, op, price:j.pr||undefined,
+      ...(['On hire','Returned','Closed'].includes(st) ? {on:from} : {}), ...(['Returned','Closed'].includes(st) ? {off:to} : {}),
+      ...(peer ? {src:'peer', peer:peerOf(j.rm)} : {})};
+    if(peer && line.price && !line.peer.cost) line.peer.cost = 0;
+    hires.push({id:'H-2026-'+String(++n).padStart(4,'0'), c, site:j.loc||'—', state:'Johor', siteContact:[j.ct, j.ph].filter(Boolean).join(' '), po:'', status:st, order:['Booked','On hire'].includes(st)||undefined, created:addDays(from,-1),
+      cycle: basis==='month' ? 'Monthly in arrears' : 'End of hire', lines:[line], trips:[],
+      job: !['Booked','On hire'].includes(st) || !line.u ? undefined : {type:'Lifting', scope:j.sc||'', arrive:SLOT_T[slot||'full'][0], requests:j.rm&&!peer?j.rm:'', pay:/^CASH SALES$/i.test(j.c)?'cash':'credit', collect:false},
+      check: st==='Booked' || st==='On hire' ? Object.fromEntries(PRECONFIRM.map(x=>[x[0],true])) : {}, checkNote:{},
+      track: st==='Booked' ? {confirmed:addDays(from,-1)+' 17:00'} : st==='On hire' ? {confirmed:addDays(from,-1)+' 17:00', sent:addDays(from,-1)+' 18:00', left:from+' 07:30', arrived:from+' 08:15', working:from+' 08:30'} : {},
+      wo:j.wo, inv:j.inv, woPhoto:!!j.ph_, helper:j.hp ? (staff[j.hp]?.name || j.hp) : undefined,
+      log:[{d:from+' 08:00', t:`From the AppSheet work order ${j.id}${j.wo?` · WO ${j.wo}`:''}${j.inv?` · invoice ${j.inv}`:''}${j.rm?` · ${j.rm}`:''}.`}]});
+    if(j.st==='需更近') tasks.push({id:++taskSeq, d:TODAY, type:'Call', who:'S2', hire:'H-2026-'+String(n).padStart(4,'0'), cust:c, t:`Follow up ${j.c}`, rule:'需跟进 in AppSheet', done:false});
+  });
+  /* machines marked 维修 / 不可用 in the machinery list */
+  [['VHX 8292','Repair (维修 in the machinery list)'],['JKU 2969','Repair (维修 in the machinery list)'],['JYR 2138','Repair (维修 in the machinery list)'],['WEH 1567','Not available (不可用 in the machinery list)']]
+    .forEach(([u, note]) => { if(fleet[u]) workshop.push({u, from:addDays(TODAY,-7), to:addDays(TODAY,7), job:'—', note}); });
+  /* first operator with a job today becomes the operator view */
+  state.me = hires.find(h=>h.status==='On hire' && h.lines[0].op)?.lines[0].op || FIELD[0];
+  const sel = document.querySelector('#roleSel option[value="sales"]'); if(sel) sel.textContent = 'Sales';
+  const note = document.querySelector('.sample-note'); if(note) note.textContent = `Prototype with your own data: ${Object.keys(customers).length} customers and ${D.staff.length} staff from ${D.source}, ${Object.keys(fleet).length} machines from the machinery list, and ${hires.length} work orders from May to November 2026 as the jobs (today is set to ${fmtDW(TODAY)} 2026). Changes stay until the page reloads.`;
+}
+if(REAL) useRealData(REAL);
+if(REAL){
+  /* utilisation and revenue by month from the work orders (price on the work order, or the rate card when it has none) */
+  monthSeries = function(){
+    const months = ['2026-05','2026-06','2026-07','2026-08','2026-09','2026-10'];
+    return months.map((m,i) => { const s = m+'-01', e = i===5 ? TODAY : `${m}-${dim(s)}`;
+      const rev = sum(hires.filter(h=>!['Quotation','Lost'].includes(h.status)).flatMap(h=>h.lines).filter(l=>l.from>=s && l.from<=e).map(l=>{ const r = rate(l.m,'wet')||{}; return l.price || (l.basis==='month' ? r.month||0 : (l.slot&&l.slot!=='full' ? r.half : r.day)||0); }));
+      return {m, label:MON[+m.slice(5)-1], util:utilisation(s, e), rev:Math.round(rev), sample:false, partial:i===5}; });
+  };
+}
 document.getElementById('roleSel').value = state.role;
 document.getElementById('plateList').innerHTML = Object.keys(fleet).map(u=>`<option value="${esc(u)}">${esc(uName(u))}</option>`).join('');
 document.getElementById('plateFind').addEventListener('submit', e => { e.preventDefault(); const inp = document.getElementById('plateIn'), q = normPlate(inp.value); if(!q) return;
