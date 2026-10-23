@@ -18,7 +18,7 @@ import ChatRoom from "@/components/ChatRoom";
 import PhotoInput from "@/components/PhotoInput";
 import StatusPicker from "@/components/StatusPicker";
 import LabourHours from "@/components/LabourHours";
-import { RATE_TYPES, rateMultiplier } from "@/lib/pay";
+import { RATE_TYPES } from "@/lib/pay";
 import PartPicker from "@/components/PartPicker";
 import BoughtLines from "@/components/BoughtLines";
 import Suggest from "@/components/Suggest";
@@ -86,11 +86,10 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const hours = labour.reduce((a, l) => a + Number(l.hours), 0);
   const lineCost = (l: (typeof labour)[number]) => Number(l.hours) * Number(l.payRate) * Number(l.rateMult);
   const labourCost = labour.reduce((a, l) => a + lineCost(l), 0);
-  // Pay multipliers (×1.5, ×2) are pay information: the Head Manager only.
-  const seePay = can(user.role, "money.labourCost");
+  // The type of hour is shown without its pay multiplier (that is set in Settings and only used for the cost).
   const rateSelect = (v = "normal") => (
     <select className="field" name="rateType" defaultValue={v} aria-label={t("lab.rateType")} style={{ width: "auto" }}>
-      {RATE_TYPES.map((r) => <option key={r} value={r}>{seePay ? t(`lab.rate.${r}` as MessageKey, { x: rateMultiplier(r, settings()) }) : t(`lab.ratePlain.${r}` as MessageKey)}</option>)}
+      {RATE_TYPES.map((r) => <option key={r} value={r}>{t(`lab.ratePlain.${r}` as MessageKey)}</option>)}
     </select>);
   const qcDone = qc.filter((q) => q.passedAt).length;
   const due = dueInfo(job, t, locale);
@@ -237,7 +236,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {job.outsourced && <small className="muted">{t("out.labourHint")}</small>}
             {labour.length > 0 && (
               <div className="tbl-wrap"><table><thead><tr><th>{t("col.date")}</th><th>{t("col.person")}</th><th>{t("col.note")}</th><th className="r">{t("col.hours")}</th>{can(user.role, "money.labourCost") && <th className="r">{t("col.labourCost")}</th>}<th></th></tr></thead>
-                <tbody>{labour.map((l) => <tr key={l.id} className={editing?.id === l.id ? "row-sel" : ""}><td className="num">{fmtDate(l.workDate, false, locale)}{l.timeFrom && <><br /><small className="muted">{l.timeFrom}–{l.timeTo}</small></>}</td><td>{l.name}</td><td>{l.note}</td><td className="r num">{Number(l.hours)}{l.rateType !== "normal" && <><br /><span className={`pill ${Number(l.rateMult) > 1 ? "warn" : "info"}`}>{!seePay ? t(`lab.tagPlain.${l.rateType}` as MessageKey) : Number(l.rateMult) > 1 ? t(`lab.tag.${l.rateType}` as MessageKey, { x: Number(l.rateMult) }) : t("lab.tag.noExtra")}</span></>}</td>{can(user.role, "money.labourCost") && <td className="r num">{rm(lineCost(l))}</td>}
+                <tbody>{labour.map((l) => <tr key={l.id} className={editing?.id === l.id ? "row-sel" : ""}><td className="num">{fmtDate(l.workDate, false, locale)}{l.timeFrom && <><br /><small className="muted">{l.timeFrom}–{l.timeTo}</small></>}</td><td>{l.name}</td><td>{l.note}</td><td className="r num">{Number(l.hours)}{l.rateType !== "normal" && <><br /><span className="pill warn">{t(`lab.tagPlain.${l.rateType}` as MessageKey)}</span></>}</td>{can(user.role, "money.labourCost") && <td className="r num">{rm(lineCost(l))}</td>}
                   <td className="r">{canEditLabour(l) && <Link className="btn small" href={`/jobs/${job.id}?labour=${l.id}#labour`}>{t("lab.edit")}</Link>}</td></tr>)}</tbody></table></div>
             )}
             {editing && (

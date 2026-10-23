@@ -183,6 +183,13 @@
       "when": 1792721760319,
       "tag": "0025_no_overtime",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1792724176862,
+      "tag": "0026_supervisor_overtime_back",
+      "breakpoints": true
     }
   ]
 }

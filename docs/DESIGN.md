@@ -809,4 +809,5 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - `staff.no_overtime`: Team → person → Pay → **No overtime pay**. Hours after 5 pm are still recorded (split as usual, tag "After 5 pm · no OT pay") but cost the normal rate; the Sunday rate still applies. Changing the tick re-costs the overtime hours already logged for that person.
 - Migration 0025 ticks it for the Supervisor role and re-costs their logged overtime at the normal rate.
 - The Supervisor can now be chosen when logging time on a work order (before, only crew roles could), so his own work has a labour cost.
-- Pay multipliers are pay information: the "Type of hours" choices and the row tags show ×1.5 / ×2 to the Head Manager only. Supervisor and crew see "Overtime after 5 pm", "Sunday / public holiday", and tags "After 5 pm" / "Sunday / holiday".
+- The "Type of hours" choices and row tags never show the multiplier, for anyone: "Normal", "Overtime after 5 pm", "Sunday / public holiday"; tags "After 5 pm" / "Sunday / holiday". The multipliers live in Settings and only drive the cost.
+- Migration 0026 undoes 0025 for the Supervisor: overtime is paid again (no_overtime = false; their logged overtime goes back to the Settings overtime rate). The "No overtime pay" tick stays available per person, off by default.
