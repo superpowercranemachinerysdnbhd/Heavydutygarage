@@ -1080,7 +1080,10 @@ const hireUnits = () => Object.keys(fleet).filter(u => !fleet[u].transport);
 const allTrips = () => hires.filter(h=>h.status!=='Quotation').flatMap(h => h.trips.map(t => ({...t, hire:h.id, c:h.c, site:h.site})));
 const lineEnd = l => l.off || l.to;
 const overlaps = (a1,a2,b1,b2) => a1 <= b2 && b1 <= a2;
-const kindLabel = k => k==='wet' ? 'Wet hire' : 'Dry hire';
+/* The company always supplies the operator, so screens show how a hire is charged, not wet / dry.
+   'Machine only' appears only for the example machines that have no operator rate. */
+const kindLabel = k => k==='dry' ? 'Machine only' : 'With operator';
+const hireKind = (k, b, slot) => (b==='day' && slot && slot!=='full' ? `Half day (${slot==='am'?'morning':'afternoon'})` : basisLabel[b]) + (k==='dry' ? ' · machine only' : '');
 const basisLabel = {hour:'Hourly',day:'Daily',week:'Weekly',month:'Monthly'};
 const custName = c => customers[c].name;
 const role = () => state.role;
@@ -1321,28 +1324,31 @@ Object.entries(WO_RATES).forEach(([mk,[day,half]]) => {
 })();
 
 /* ---------- working with a large fleet: families, capacity classes, search ---------- */
+/* Machine groups as the company names them; inside a group, machines sit by exact size (e.g. Rough terrain crane 25 t). */
 const FAMILIES = [
-  {k:'Cranes', re:/crane(?! with)|lorry crane/i, buckets:[[20,'up to 20 t'],[30,'21–30 t'],[60,'31–60 t'],[100,'61–100 t'],[1e9,'over 100 t']]},
-  {k:'Forklifts', re:/forklift/i, buckets:[[3,'up to 3 t'],[5,'3–5 t'],[1e9,'over 5 t']]},
-  {k:'Access platforms', re:/boom lift|scissor|skylift/i, buckets:[[12,'up to 12 m'],[1e9,'over 12 m']]},
-  {k:'Excavators', re:/excavator/i, buckets:[[8,'up to 8 t'],[1e9,'over 8 t']]},
-  {k:'Loaders', re:/loader/i, buckets:[[1e9,'all']]},
-  {k:'Generators', re:/generator/i, buckets:[[100,'up to 100 kVA'],[1e9,'over 100 kVA']]},
+  {k:'Truck cranes', re:/^(truck|mobile) crane/i}, {k:'Rough terrain cranes', re:/^rough terrain crane/i}, {k:'All terrain cranes', re:/^all terrain crane/i},
+  {k:'Lorry cranes', re:/^lorry crane/i}, {k:'Skylifts', re:/skylift|boom lift|scissor/i}, {k:'Forklifts', re:/forklift/i},
+  {k:'Excavators', re:/excavator/i}, {k:'Loaders', re:/loader/i}, {k:'Generators', re:/generator/i},
 ];
 const capOf = u => { const m = mOf(u).type.match(/(\d+(?:\.\d+)?)\s*(t|m³|m|kVA)\b/); return m ? {n:+m[1], unit:m[2]} : {n:0, unit:''}; };
 function classOf(u){
-  const t = mOf(u).type, fi = FAMILIES.findIndex(f=>f.re.test(t)), fam = FAMILIES[fi] || {k:'Other', buckets:[[1e9,'']]}, cap = capOf(u);
-  const bi = fam.buckets.findIndex(([max])=>cap.n<=max);
-  return {fam:fam.k, label:`${fam.k}${fam.buckets[bi][1]&&fam.buckets[bi][1]!=='all'?' · '+fam.buckets[bi][1]:''}`, order:(fi<0?99:fi)*10+bi};
+  const t = mOf(u).type, fi = FAMILIES.findIndex(f=>f.re.test(t));
+  return {fam: fi<0 ? 'Other' : FAMILIES[fi].k, label: t, order: (fi<0?99:fi)*1000 + capOf(u).n};
 }
-const FAM_WORDS = [[/crane|kren/i,'Cranes'],[/forklift/i,'Forklifts'],[/boom|scissor|skylift|access|platform/i,'Access platforms'],[/excavator|digger|jentolak/i,'Excavators'],[/loader/i,'Loaders'],[/genset|generator/i,'Generators']];
+/* 'Cranes' (from a search like "25t crane") means any of the crane groups */
+/* Planner groups: the machine groups, plus the company's own transport */
+const planGroupOf = u => fleet[u].transport ? 'Our transport' : classOf(u).fam;
+const PLAN_GROUPS = () => [...FAMILIES.map(f=>f.k), 'Other', 'Our transport'].filter(g=>Object.keys(fleet).some(u=>planGroupOf(u)===g));
+const famHit = (u, f) => !f || (f==='Cranes' ? / cranes$/.test(classOf(u).fam) : classOf(u).fam===f);
+const FAM_WORDS = [[/rough\s*terrain|\bRT\b|越野/i,'Rough terrain cranes'],[/all\s*terrain|\bAT\b|\bATF\b|全地面/i,'All terrain cranes'],[/truck|汽车吊/i,'Truck cranes'],[/lorry|随车/i,'Lorry cranes'],
+  [/crane|kren|吊车/i,'Cranes'],[/skylift|sky lift|boom|scissor|access|platform|高空/i,'Skylifts'],[/forklift|叉车/i,'Forklifts'],[/excavator|digger|jentolak/i,'Excavators'],[/loader/i,'Loaders'],[/genset|generator/i,'Generators']];
 function parseNeed(q){
   q = (q||'').trim(); if(!q) return {};
   if(Object.keys(fleet).some(u => normPlate(u).includes(normPlate(q)) && normPlate(q).length>=3) && /\d{2,}/.test(q)) return {text:q.toLowerCase()};
   const fam = FAM_WORDS.find(([re])=>re.test(q))?.[1];
   const m = q.match(/(\d+(?:\.\d+)?)\s*(t|ton|tons|tan|tonne|m|meter|metre|kva)\b/i);
   const cap = m ? {n:+m[1], unit:/^m/i.test(m[2]) ? 'm' : /kva/i.test(m[2]) ? 'kVA' : 't'} : null;
-  const rest = q.replace(m?.[0]||'','').replace(/crane|kren|forklift|boom|scissor|lift|excavator|loader|generator|genset|ton|tan/gi,'').trim();
+  const rest = q.replace(m?.[0]||'','').replace(/rough|terrain|truck|all|lorry|\bRT\b|\bAT\b|crane|kren|forklift|boom|scissor|sky\s*lift|lift|excavator|loader|generator|genset|ton|tan/gi,'').trim();
   return {fam, cap, text: !fam && !cap ? q.toLowerCase() : (rest.length>=3 ? rest.toLowerCase() : '')};
 }
 const textHit = (u, t) => !t || [u, fleet[u].plate, fleet[u].serial, mOf(u).make, mOf(u).model, mOf(u).type].filter(Boolean).join(' ').toLowerCase().includes(t) || normPlate([u, fleet[u].plate, fleet[u].serial].join('|')).includes(normPlate(t));
@@ -1351,7 +1357,7 @@ const textHit = (u, t) => !t || [u, fleet[u].plate, fleet[u].serial, mOf(u).make
 function renderAvail2(){
   const a = state.av, need = parseNeed(a.q), fam = a.fam || need.fam || '';
   const days = [...Array(14)].map((_,i)=>addDays(a.start,i));
-  let rows = hireUnits().filter(u => (!fam || classOf(u).fam===fam) && (!need.cap || (capOf(u).unit===need.cap.unit && capOf(u).n>=need.cap.n)) && textHit(u, need.text))
+  let rows = hireUnits().filter(u => famHit(u, fam) && (!need.cap || (capOf(u).unit===need.cap.unit && capOf(u).n>=need.cap.n)) && textHit(u, need.text))
     .map(u => ({u, cls:classOf(u), cap:capOf(u), av:availability(u,a.from,a.to,null,a.slot), tent:tentativeFor(mOf(u).type,a.from,a.to).filter(t=>t.u===u)}));
   const all = rows.length, free = rows.filter(r=>r.av.ok), docIss = free.filter(r=>r.av.warn.length);
   if(a.freeOnly) rows = rows.filter(r=>r.av.ok);
@@ -1360,7 +1366,7 @@ function renderAvail2(){
   const best = need.cap ? rows.filter(r=>r.av.ok && !r.tent.length).sort((x,y)=>x.cap.n-y.cap.n || (!!x.av.warn.length-!!y.av.warn.length))[0] : null;
   const asked = cls => { const types = [...new Set(hireUnits().filter(u=>classOf(u).label===cls).map(u=>mOf(u).type))]; return types.flatMap(t=>tentativeFor(t,a.from,a.to)).filter(t=>t.kind==='enq'); };
   const famList = FAMILIES.map(f=>f.k).filter(k=>hireUnits().some(u=>classOf(u).fam===k));
-  const gridRows = [...new Map(hireUnits().filter(u=>!fam || classOf(u).fam===fam).map(u=>[classOf(u).label, classOf(u)])).values()].sort((x,y)=>x.order-y.order);
+  const gridRows = [...new Map(hireUnits().filter(u=>famHit(u, fam)).map(u=>[classOf(u).label, classOf(u)])).values()].sort((x,y)=>x.order-y.order);
   const cell = (cl, d) => { const us = hireUnits().filter(u=>classOf(u).label===cl), f = us.filter(u=>availability(u,d,d).ok).length;
     const tq = sum([...new Set(us.map(u=>mOf(u).type))].map(t=>sum(tentativeFor(t,d,d).map(x=>x.qty||1))));
     const c = f===0 ? 'none' : (f - tq <= 0 && tq) ? 'tight' : f===us.length ? 'all' : 'some';
@@ -1376,7 +1382,7 @@ function renderAvail2(){
       <label style="flex:1 1 260px">What do you need?<input type="search" id="avQ" name="q" value="${esc(a.q)}" placeholder="e.g. BPN 8918, 25t crane, forklift 5t, skylift 24m"></label>
       <label>From<input type="date" name="from" value="${a.from}"></label><label>To<input type="date" name="to" value="${a.to}"></label>
       <label>Time<select class="field" name="slot">${Object.entries(SLOTS).map(([k,v])=>`<option value="${k}" ${k===(a.slot||'full')?'selected':''}>${k==='full'?'Full day':k==='am'?'Morning':'Afternoon'} · ${v}</option>`).join('')}</select></label>
-      <label>Family<select class="field" name="fam"><option value="">${need.fam?'From search: '+need.fam:'All families'}</option>${famList.map(f=>`<option ${f===a.fam?'selected':''}>${f}</option>`).join('')}</select></label>
+      <label>Group<select class="field" name="fam"><option value="">${need.fam?'From search: '+need.fam:'All groups'}</option>${famList.map(f=>`<option ${f===a.fam?'selected':''}>${f}</option>`).join('')}</select></label>
       <label style="flex-direction:row;align-items:center;gap:8px;align-self:center"><input type="checkbox" name="freeOnly" ${a.freeOnly?'checked':''}> Free only</label>
       <button class="btn">Search</button>
     </form>
@@ -1402,7 +1408,7 @@ function renderFleet2(){
   let us = Object.keys(fleet).map(u=>({u, s:unitStatus(u), cls:classOf(u), cap:capOf(u), di:docIssues(u, TODAY, addDays(TODAY,60))}));
   const counts = Object.fromEntries(Object.keys(FLEET_ST).map(k=>[k,0]));
   const stOf = x => x.s.k==='On hire'||x.s.k==='Off-hire called' ? 'onhire' : x.s.k==='Available' ? 'free' : x.s.k==='Booked'||x.s.k==='Going out' ? 'booked' : x.s.k==='In workshop' ? 'ws' : '';
-  us = us.filter(x => (!f.fam || x.cls.fam===f.fam) && (!need.fam || x.cls.fam===need.fam) && (!need.cap || (x.cap.unit===need.cap.unit && x.cap.n>=need.cap.n)) && textHit(x.u, need.text));
+  us = us.filter(x => famHit(x.u, f.fam) && famHit(x.u, need.fam) && (!need.cap || (x.cap.unit===need.cap.unit && x.cap.n>=need.cap.n)) && textHit(x.u, need.text));
   us.forEach(x=>{ counts['']++; const k = stOf(x); if(k) counts[k]++; if(x.di.length) counts.docs++; });
   if(f.st) us = us.filter(x => f.st==='docs' ? x.di.length : stOf(x)===f.st);
   const sorters = {no:(a,b)=>a.u<b.u?-1:1, cls:(a,b)=>a.cls.order-b.cls.order || a.cap.n-b.cap.n || (a.u<b.u?-1:1), idle:(a,b)=>(b.s.idle||0)-(a.s.idle||0), end:(a,b)=>(a.s.l?.to||'9')<(b.s.l?.to||'9')?-1:1};
@@ -1412,13 +1418,13 @@ function renderFleet2(){
     <div class="view-head"><h2>Fleet</h2><span class="muted">${Object.keys(fleet).length} machines</span></div>
     <div class="findbar">
       <label style="flex:1 1 240px">Search<input type="search" id="fleetQ" value="${esc(f.q)}" placeholder="Plate (e.g. BPN 8918), model, or 50t crane"></label>
-      <label>Family<select class="field" id="fleetFam"><option value="">All families</option>${FAMILIES.map(x=>`<option ${x.k===f.fam?'selected':''}>${x.k}</option>`).join('')}</select></label>
-      <label>Sort by<select class="field" id="fleetSort">${Object.entries({cls:'Class and size',no:'Plate',idle:'Idle longest',end:'Hire ends soonest'}).map(([k,v])=>`<option value="${k}" ${k===f.sort?'selected':''}>${v}</option>`).join('')}</select></label>
+      <label>Group<select class="field" id="fleetFam"><option value="">All groups</option>${FAMILIES.map(x=>`<option ${x.k===f.fam?'selected':''}>${x.k}</option>`).join('')}</select></label>
+      <label>Sort by<select class="field" id="fleetSort">${Object.entries({cls:'Group and size',no:'Plate',idle:'Idle longest',end:'Hire ends soonest'}).map(([k,v])=>`<option value="${k}" ${k===f.sort?'selected':''}>${v}</option>`).join('')}</select></label>
     </div>
     <div class="seg" style="align-self:flex-start;flex-wrap:wrap">${Object.entries(FLEET_ST).map(([k,v])=>`<button data-flst="${k}" aria-pressed="${f.st===k}">${v} <span class="muted num">${counts[k]}</span></button>`).join('')}</div>
-    <div class="tbl-wrap"><table><thead><tr><th>Plate</th><th>Machine</th><th>Class</th><th>Status</th><th>Where / customer</th><th>Documents</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table><thead><tr><th>Plate</th><th>Machine</th><th>Group</th><th>Status</th><th>Where / customer</th><th>Documents</th></tr></thead><tbody>
     ${shown.map(({u,s,cls,di})=>{ const fl = fleet[u], wd = worstDoc(u);
-      return `<tr class="click" data-unit="${u}"><td class="mono"><b>${u}</b></td><td><b>${esc(uName(u))}</b><br><small class="muted">${[mOf(u).type, uRef(u), fl.year].filter(Boolean).map(esc).join(' · ')}</small></td><td><small>${esc(cls.label)}</small></td>
+      return `<tr class="click" data-unit="${u}"><td class="mono"><b>${u}</b></td><td><b>${esc(uName(u))}</b><br><small class="muted">${[mOf(u).type, uRef(u), fl.year].filter(Boolean).map(esc).join(' · ')}</small></td><td><small>${esc(cls.fam)}</small></td>
       <td><span class="pill ${s.cls}">${esc(s.label)}</span>${s.k==='Available'&&s.idle!=null?`<br><small class="muted">idle ${s.idle} d</small>`:''}</td>
       <td>${s.h?`${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site.split(',')[0])}${s.l&&s.k==='On hire'?' · to '+fmtD(s.l.to):''}</small>`:s.note?esc(s.note):'Kempas yard'}</td>
       <td>${wd?docPill(wd[0],wd[1]):''}${di.length?'<br><span class="docwarn" style="display:inline">⚠ due in 60 days</span>':''}</td></tr>`; }).join('') || '<tr><td colspan="6" class="muted">No machine matches.</td></tr>'}
@@ -1431,13 +1437,12 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-avcls],[data-avmore],[data-flst],[data-action="fleet-more"],[data-action="plan-colall"],[data-plancol],[data-allview]');
   if(!a) return;
   const d = a.dataset;
-  if(d.avcls){ const [cl, day] = d.avcls.split('|'); const fam = FAMILIES.find(f=>cl.startsWith(f.k))?.k || ''; const ex = hireUnits().find(u=>classOf(u).label===cl), cap = ex ? capOf(ex) : null;
-    const lo = cap && FAMILIES.find(f=>f.k===fam) ? (FAMILIES.find(f=>f.k===fam).buckets.slice().reverse().find(([max])=>max < cap.n)?.[0] ?? 0) : 0;
-    Object.assign(state.av, {from:day, to:day, fam, q: cap && lo ? `${Math.floor(lo)+1} ${cap.unit}` : '', open:{...state.av.open, [cl]:true}}); return render(); }
+  if(d.avcls){ const [cl, day] = d.avcls.split('|'); const ex = hireUnits().find(u=>classOf(u).label===cl), cap = ex ? capOf(ex) : null;
+    Object.assign(state.av, {from:day, to:day, fam: ex ? classOf(ex).fam : '', q: cap && cap.n ? `${cap.n} ${cap.unit}` : '', open:{...state.av.open, [cl]:true}}); return render(); }
   if(d.avmore){ state.av.more[d.avmore] = !state.av.more[d.avmore]; state.av.open[d.avmore] = true; return render(); }
   if(d.flst!=null){ state.fl.st = d.flst; state.fl.page = 1; return render(); }
   if(d.action==='fleet-more'){ state.fl.page++; return render(); }
-  if(d.action==='plan-colall'){ const all = Object.keys(GROUPS).every(g=>state.planCol[g]); Object.keys(GROUPS).forEach(g=>state.planCol[g]=!all); return render(); }
+  if(d.action==='plan-colall'){ const all = PLAN_GROUPS().every(g=>state.planCol[g]); PLAN_GROUPS().forEach(g=>state.planCol[g]=!all); return render(); }
   if(d.plancol){ const g = d.plancol; state.planCol[g] = !state.planCol[g]; return render(); }
   if(d.allview){ const [v, st] = d.allview.split('|'); if(v==='fleet'){ state.fl.st = st; state.fl.page = 1; } return setView(v); }
 });
@@ -1552,7 +1557,7 @@ function renderToday(){
           </tbody></table></div></div>
         <div class="panel"><div class="panel-head"><h3>On hire now</h3><span class="muted">${onHire} machines</span></div>
           <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Machine</th><th>Customer · site</th><th>Hire</th><th>Since</th><th>Until</th></tr></thead><tbody>
-          ${st.filter(([,s])=>['On hire','Off-hire called'].includes(s.k)).sort((a,b)=>(a[1].k==='Off-hire called'?-1:0)-(b[1].k==='Off-hire called'?-1:0) || ((a[1].l.off||a[1].l.to)<(b[1].l.off||b[1].l.to)?-1:1)).slice(0,10).map(([u,s])=>`<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(uRef(u)||mOf(u).type)}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${kindLabel(s.l.k)}<br><small class="muted">${basisLabel[s.l.basis]}${s.l.op?' · '+esc(staff[s.l.op].name):''}</small></td><td class="num">${fmtD(s.l.on)}</td><td class="num">${s.k==='Off-hire called'?'<span class="pill warn">Off-hire '+fmtD(s.l.off)+'</span>':fmtD(s.l.to)}</td></tr>`).join('')}
+          ${st.filter(([,s])=>['On hire','Off-hire called'].includes(s.k)).sort((a,b)=>(a[1].k==='Off-hire called'?-1:0)-(b[1].k==='Off-hire called'?-1:0) || ((a[1].l.off||a[1].l.to)<(b[1].l.off||b[1].l.to)?-1:1)).slice(0,10).map(([u,s])=>`<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(uRef(u)||mOf(u).type)}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${hireKind(s.l.k,s.l.basis,s.l.slot)}<br><small class="muted">${s.l.op?esc(staff[s.l.op]?.name||''):''}</small></td><td class="num">${fmtD(s.l.on)}</td><td class="num">${s.k==='Off-hire called'?'<span class="pill warn">Off-hire '+fmtD(s.l.off)+'</span>':fmtD(s.l.to)}</td></tr>`).join('')}
           </tbody></table></div></div>
       </div>
       <div class="rail">
@@ -1583,13 +1588,13 @@ function renderPlanner(){
   const f = state.find, fType = f.type;
   const res = fType ? hireUnits().filter(u=>mOf(u).type===fType).map(u=>({u,...availability(u,f.from,f.to)})) : [];
   const sunCols = days.map((d,i)=>dow(d)===0?`<i class="g-sun" style="left:calc(var(--cw) * ${i})"></i>`:'').join('');
-  const groups = Object.keys(GROUPS).filter(g => !state.planGrp || state.planGrp===g), pNeed = parseNeed(state.planQ);
+  const groups = PLAN_GROUPS().filter(g => !state.planGrp || state.planGrp===g), pNeed = parseNeed(state.planQ);
   const rowFor = u => {
     const bars = [];
     hires.forEach(h => { if(['Lost'].includes(h.status)) return; h.lines.forEach(l => { if(l.u!==u) return;
       const a = daysBetween(G0, l.on||l.from), b = daysBetween(G0, lineEnd(l));
       const cls = (h.status==='Quotation' ? 'quote' : h.status==='Booked' ? `booked ${l.k}` : `${l.k}${h.status==='Off-hire called'?' offcalled':''}`) + (l.slot && l.slot!=='full' && a===b ? ' '+l.slot : '');
-      bars.push(barHtml(a, b, cls, `${l.slot&&l.slot!=='full'&&a!==b?slotTag(l.slot)+' · ':''}${h.status==='Quotation'?'Quote · ':''}${customers[h.c].name.replace(/ (Sdn Bhd|Construction|Engineering|Structure|Builders|Logistics)/g,'')}`, `data-hire="${h.id}"`, `${h.id} · ${custName(h.c)} · ${kindLabel(l.k)} ${basisLabel[l.basis].toLowerCase()}${l.slot&&l.slot!=='full'?' '+SLOTS[l.slot]:''} · ${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))} · ${h.status}`));
+      bars.push(barHtml(a, b, cls, `${l.slot&&l.slot!=='full'&&a!==b?slotTag(l.slot)+' · ':''}${h.status==='Quotation'?'Quote · ':''}${customers[h.c].name.replace(/ (Sdn Bhd|Construction|Engineering|Structure|Builders|Logistics)/g,'')}`, `data-hire="${h.id}"`, `${h.id} · ${custName(h.c)} · ${hireKind(l.k,l.basis,l.slot)}${l.slot&&l.slot!=='full'?' '+SLOTS[l.slot]:''} · ${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))} · ${h.status}`));
     }); });
     workshop.filter(w=>w.u===u).forEach(w => bars.push(barHtml(daysBetween(G0,w.from), daysBetween(G0,w.to), 'ws', /^(Return|Repair)/.test(w.note)?'Repair':/^Not available/.test(w.note)?'Not available':'Service', `data-unit="${u}"`, `${w.job} · ${w.note} · ${fmtD(w.from)}–${fmtD(w.to)}`)));
     breakdowns.filter(b=>b.u===u).forEach(b => { const i = daysBetween(G0,b.d); if(i>=0 && i<GN) bars.push(`<button class="bd" style="left:calc(var(--cw) * ${i})" data-hire="${b.hire}" title="Breakdown ${fmtD(b.d)}: ${esc(b.note)} (${b.hrs} h lost, ${b.job})" aria-label="Breakdown"></button>`); });
@@ -1602,7 +1607,7 @@ function renderPlanner(){
   };
   $('#v-planner').innerHTML = `
     <div class="view-head"><h2>Planner</h2>
-      <div class="chipbar">${['',...Object.keys(GROUPS).filter(g=>Object.keys(fleet).some(u=>mOf(u).grp===g))].map(g=>`<button class="chip" data-plangrp="${g}" aria-pressed="${state.planGrp===g}">${g?esc(GROUPS[g]):'All'}</button>`).join('')}</div>
+      <div class="chipbar">${['',...PLAN_GROUPS()].map(g=>`<button class="chip" data-plangrp="${g}" aria-pressed="${state.planGrp===g}">${g?esc(g):'All'}</button>`).join('')}</div>
       <button class="btn primary" data-action="new-hire">New hire / quotation</button></div>
     <form class="findbar" data-form="find">
       <label>Find a machine<select class="field" name="type"><option value="">Machine type…</option>${types.map(t=>`<option ${t===fType?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
@@ -1611,17 +1616,17 @@ function renderPlanner(){
       <button class="btn">Check</button>${fType?'<button class="btn" type="button" data-action="find-clear">Clear</button>':''}
     </form>
     <div class="findbar"><label style="flex:1 1 240px">Show only<input type="search" id="planQ" value="${esc(state.planQ)}" placeholder="Plate (e.g. BPN 8918), model, or 50t crane"></label>
-      <label>Family<select class="field" id="planFam"><option value="">All families</option>${FAMILIES.map(x=>`<option ${x.k===state.planFam?'selected':''}>${x.k}</option>`).join('')}</select></label>
-      <button class="btn" type="button" data-action="plan-colall">${Object.keys(GROUPS).every(g=>state.planCol[g])?'Expand all':'Collapse all'}</button>
+      <label>Group<select class="field" id="planFam"><option value="">All groups</option>${FAMILIES.map(x=>`<option ${x.k===state.planFam?'selected':''}>${x.k}</option>`).join('')}</select></label>
+      <button class="btn" type="button" data-action="plan-colall">${PLAN_GROUPS().every(g=>state.planCol[g])?'Expand all':'Collapse all'}</button>
       <label style="flex-direction:row;align-items:center;gap:8px;align-self:center"><input type="checkbox" id="planCompact" ${state.planCompact?'checked':''}> Compact rows</label></div>
     ${fType ? `<div class="panel"><div class="panel-head"><h3>${esc(fType)} · ${fmtD(f.from)}–${fmtD(f.to)}</h3><span class="muted">${res.filter(r=>r.ok).length} of ${res.length} free</span></div><div class="findres">
       ${res.map(r=>`<div class="fr"><div><b>${r.u} ${esc(uName(r.u))}</b> <span class="pill ${r.ok?'ok':'crit'}">${r.ok?'Free':'Not free'}</span>${r.ok&&r.warn.length?' <span class="pill crit">Document issue</span>':''}<small>${r.ok?(r.warn.length?'Can still be booked.':'No bookings, workshop jobs or document expiries in these dates.'):r.why.map(esc).join(' · ')}</small>${r.ok?warnHtml(r.warn):''}</div>${r.ok?`<button class="btn small primary" data-action="book-unit" data-u="${r.u}">Book</button>`:''}</div>`).join('')}
       ${!res.some(r=>r.ok)?`<div class="fr"><div><b>Nothing free.</b><small>Offer another size, other dates, or cross-hire from another company. The enquiry is kept as lost (no machine free) for the fleet report.</small></div></div>`:''}
     </div></div>` : ''}
-    <div class="g-legend"><span><i class="sw" style="background:var(--k-wet)"></i>Wet hire</span><span><i class="sw" style="background:var(--k-dry)"></i>Dry hire</span><span><i class="sw bar booked dry" style="position:static;height:12px;width:22px;padding:0"></i>Booked</span><span><i class="sw" style="outline:1.5px dashed var(--k-quote);outline-offset:-1.5px"></i>Quotation</span><span><i class="sw bar ws" style="position:static;height:12px;width:22px;padding:0"></i>Workshop</span><span><i class="sw" style="background:var(--crit);width:5px"></i>Breakdown</span><span><i class="sw" style="width:0;height:0;border-radius:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid var(--warn)"></i>Delivery / collection</span><span class="muted">Shaded = Sunday · orange line = today</span></div>
+    <div class="g-legend"><span><i class="sw" style="background:var(--k-wet)"></i>On hire</span><span><i class="sw bar booked dry" style="position:static;height:12px;width:22px;padding:0"></i>Booked</span><span><i class="sw" style="outline:1.5px dashed var(--k-quote);outline-offset:-1.5px"></i>Quotation</span><span><i class="sw bar ws" style="position:static;height:12px;width:22px;padding:0"></i>Workshop</span><span><i class="sw" style="background:var(--crit);width:5px"></i>Breakdown</span><span><i class="sw" style="width:0;height:0;border-radius:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:7px solid var(--warn)"></i>Delivery / collection</span><span class="muted">Shaded = Sunday · orange line = today</span></div>
     <div class="gantt-wrap"><div class="gantt ${state.planCompact?'compact':''}">
       <div class="g-row g-head"><div class="g-lab">Machine</div><div class="g-track">${days.map((d,i)=>`<div class="g-day ${dow(d)===0?'sun':''} ${d===TODAY?'today':''}"><i>${+d.slice(8)===1||i===0?MON[+d.slice(5,7)-1]:''}</i><b>${+d.slice(8)}</b></div>`).join('')}</div></div>
-      ${groups.map(g => { const us = Object.keys(fleet).filter(u=>mOf(u).grp===g && (!state.planFam || classOf(u).fam===state.planFam) && (!pNeed.fam || classOf(u).fam===pNeed.fam) && (!pNeed.cap || (capOf(u).unit===pNeed.cap.unit && capOf(u).n>=pNeed.cap.n)) && textHit(u, pNeed.text)).sort((a,b)=>classOf(a).order-classOf(b).order || capOf(a).n-capOf(b).n || (a<b?-1:1)); const col = state.planCol[g]; return us.length ? `<button class="g-group" data-plancol="${g}" aria-expanded="${!col}"><span>${col?'▸':'▾'} ${esc(GROUPS[g])} <small>${us.length} · ${us.filter(u=>onHireOn(u,TODAY)).length} on hire</small></span></button>${col?'':us.map(rowFor).join('')}` : ''; }).join('') || '<div class="g-group"><span>No machine matches the search.</span></div>'}
+      ${groups.map(g => { const us = Object.keys(fleet).filter(u=>planGroupOf(u)===g && famHit(u, state.planFam) && famHit(u, pNeed.fam) && (!pNeed.cap || (capOf(u).unit===pNeed.cap.unit && capOf(u).n>=pNeed.cap.n)) && textHit(u, pNeed.text)).sort((a,b)=>classOf(a).order-classOf(b).order || capOf(a).n-capOf(b).n || (a<b?-1:1)); const col = state.planCol[g]; return us.length ? `<button class="g-group" data-plancol="${g}" aria-expanded="${!col}"><span>${col?'▸':'▾'} ${esc(g)} <small>${us.length} · ${us.filter(u=>onHireOn(u,TODAY)).length} on hire</small></span></button>${col?'':us.map(rowFor).join('')}` : ''; }).join('') || '<div class="g-group"><span>No machine matches the search.</span></div>'}
     </div></div>`;
   $('#v-planner').insertAdjacentHTML('beforeend', demandHtml());
 }
@@ -1638,7 +1643,7 @@ function renderHires(){
     <div class="tbl-wrap"><table><thead><tr><th>Hire</th><th>Customer · site</th><th>Machines</th><th>Kind</th><th>Period</th><th>Status</th><th class="r cost">Oct to date</th></tr></thead><tbody>
     ${list.map(h=>`<tr class="click" data-hire="${h.id}"><td class="mono">${h.id}</td><td><b>${esc(custName(h.c))}</b><br><small class="muted">${esc(h.site)}</small></td>
       <td>${h.lines.map(l=>l.u?`<b>${l.u}</b> ${esc(mOf(l.u).model)}${l.slot&&l.slot!=='full'?` <span class="pill mute">${slotTag(l.slot)}</span>`:''}`:l.src==='peer'?`<span class="pill info">Cross-hire</span> ${esc(models[l.m].type)} <small class="muted">${esc(l.peer?.s||'')}</small>`:`<span class="pill crit">No machine</span> ${esc(models[l.m].type)}`).join('<br>')}</td>
-      <td>${[...new Set(h.lines.map(l=>kindLabel(l.k)))].join(', ')}<br><small class="muted">${[...new Set(h.lines.map(l=>basisLabel[l.basis]))].join(', ')}</small></td>
+      <td>${[...new Set(h.lines.map(l=>hireKind(l.k,l.basis,l.slot)))].join(', ')}<br><small class="muted">${h.lines.some(l=>l.src==='peer')?'Cross-hire (同行车)':''}</small></td>
       <td class="num">${fmtD(h.lines[0].on||h.lines[0].from)} – ${fmtD(lineEnd(h.lines[0]))}${h.contract?'<br><small class="muted">Long-term contract</small>':''}</td>
       <td>${hireStatusPill(h)}${h.deposit&&!h.depositPaid&&h.status==='Booked'?'<br><small class="muted">Deposit due</small>':''}</td>
       <td class="r num cost">${h.status==='Quotation'?'<span class="muted">—</span>':RM0(hireValue(h))}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No hires here.</td></tr>'}
@@ -1679,7 +1684,7 @@ function openHire(id){
     <div class="sect"><h3>Machines</h3><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Machine</th><th>Hire</th><th class="cost">Rate</th><th>Operator</th><th>On hire</th><th>Off hire</th></tr></thead><tbody>
       ${h.lines.map(l=>{ const r = rate(lineModel(l), l.k)||{}; const main = {hour:r.hr,day:r.day,week:r.week,month:r.month}[l.basis];
         return `<tr><td>${l.u?`<b>${l.u}</b> ${esc(uName(l.u))}<br><small class="muted">${[mOf(l.u).type, uRef(l.u)].filter(Boolean).map(esc).join(' · ')}</small>${warnHtml(docIssues(l.u, l.on||l.from, lineEnd(l)).map(x=>x.msg))}`:l.src==='peer'?`<span class="pill info">Cross-hire (同行车)</span> ${esc(models[l.m].type)}<br><small class="muted">from ${esc(l.peer?.s||'—')}</small><small class="cost muted"> · cost ${RM0(l.peer?.cost||0)}${l.price?` · charged ${RM0(l.price)} · margin ${RM0(l.price-(l.peer?.cost||0))}`:''}</small>`:`<span class="pill crit">Not assigned</span><br><small class="muted">${esc(models[l.m].type)}</small>`}${l.slot&&l.slot!=='full'?`<br><small class="muted">${SLOTS[l.slot]}</small>`:''}</td>
-        <td>${kindLabel(l.k)}<br><small class="muted">${basisLabel[l.basis]}</small></td>
+        <td>${hireKind(l.k,l.basis,l.slot)}</td>
         <td class="cost num">${RM0(main||0)} / ${({hour:'h',day:'day',week:'week',month:'month'})[l.basis]}${l.basis==='month'?`<br><small class="muted">${r.mHrs} h incl., then ${RM0(r.ex)}/h</small>`:l.basis==='hour'?`<br><small class="muted">min ${r.minH} h a day</small>`:l.k==='wet'?`<br><small class="muted">OT ${RM0(r.ot)}/h</small>`:''}</td>
         <td>${l.op?esc(staff[l.op].name):'<span class="muted">Customer\'s own</span>'}</td>
         <td class="num">${l.on?fmtD(l.on):'<span class="muted">Planned '+fmtD(l.from)+'</span>'}</td>
@@ -1725,7 +1730,7 @@ function openNewHire(){
   if(!n.u){ const f = units.find(x=>x.ok && !x.warn.length) || units.find(x=>x.ok); n.u = f ? f.u : 'peer'; }
   if(n.u==='peer' && !n.peerS) n.peerS = PEERS[0].n;
   const mk = n.u && n.u!=='peer' ? fleet[n.u].m : modelOfType(n.type);
-  const kinds = ['dry','wet'].filter(k=>rate(mk,k));
+  const kinds = ['wet','dry'].filter(k=>rate(mk,k));
   if(!kinds.includes(n.k)) n.k = kinds[0];
   const r = rate(mk, n.k);
   const bases = ['hour','day','week','month'].filter(b=>r[{hour:'hr',day:'day',week:'week',month:'month'}[b]]);
@@ -1770,7 +1775,7 @@ function openNewHire(){
       </div></div>
       <div class="sect"><h3>Hire terms</h3><div class="in">
         <div class="form">
-          <label>Kind<select class="field" data-nh="k">${kinds.map(k=>`<option value="${k}" ${k===n.k?'selected':''}>${kindLabel(k)}${k==='wet'?' (with operator)':' (machine only)'}</option>`).join('')}</select></label>
+          ${kinds.length>1?`<label>Kind<select class="field" data-nh="k">${kinds.map(k=>`<option value="${k}" ${k===n.k?'selected':''}>${kindLabel(k)}${k==='wet'?' (with operator)':' (machine only)'}</option>`).join('')}</select></label>`:''}
           <label>Charged by<select class="field" data-nh="basis">${bases.map(b=>`<option value="${b}" ${b===n.basis?'selected':''}>${basisLabel[b]}</option>`).join('')}</select></label>
           ${n.k==='wet'?`<label>Expected hours a day<input type="number" min="1" max="16" step="0.5" data-nh="hrs" value="${n.hrs}"></label>
           ${n.u==='peer'?'<label>Operator<input type="text" value="From the cross-hire company" readonly></label>':''}<label ${n.u==='peer'?'hidden':''}>Operator<select class="field" data-nh="op">${ops.map(([o,s])=>{ const free = operatorFree(o,n.from,n.to,n.editId), exp = Object.entries(s.certs).filter(([,e])=>e<n.to); return `<option value="${o}" ${o===n.op?'selected':''} ${free&&!exp.length?'':'disabled'}>${esc(s.name)}${!free?' (busy)':exp.length?' ('+esc(exp[0][0])+' expires)':''}</option>`; }).join('')}</select></label>`:''}
@@ -1955,7 +1960,7 @@ function openUnit(u){
       <div><span class="label">Revenue / cost (yearly)</span><b>${Math.round(f.ytd.rev/9*12/f.cost*100)}%</b></div>
     </div></div>`:''}
     ${hs.length?`<div class="sect"><h3>Hires</h3><div class="tbl-wrap" style="border:0"><table><tbody>
-      ${hs.map(h=>{ const l = h.lines.find(x=>x.u===u); return `<tr class="click" data-hire="${h.id}"><td class="mono">${h.id}</td><td>${esc(custName(h.c))}<br><small class="muted">${kindLabel(l.k)} · ${basisLabel[l.basis]}</small></td><td class="num">${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))}</td><td>${hireStatusPill(h)}</td></tr>`; }).join('')}
+      ${hs.map(h=>{ const l = h.lines.find(x=>x.u===u); return `<tr class="click" data-hire="${h.id}"><td class="mono">${h.id}</td><td>${esc(custName(h.c))}<br><small class="muted">${hireKind(l.k,l.basis,l.slot)}</small></td><td class="num">${fmtD(l.on||l.from)}–${fmtD(lineEnd(l))}</td><td>${hireStatusPill(h)}</td></tr>`; }).join('')}
     </tbody></table></div></div>`:''}
     ${workshop.some(w=>w.u===u)||breakdowns.some(b=>b.u===u)?`<div class="sect"><h3>Workshop</h3><div class="in">
       ${workshop.filter(w=>w.u===u).map(w=>`<div><b class="mono">${w.job}</b> ${fmtD(w.from)}–${fmtD(w.to)} · ${esc(w.note)}</div>`).join('')}
@@ -2133,8 +2138,8 @@ function renderRates(){
   const cell = (key, f) => { const v = rates[key][f]; return ed && v!=null ? `<input class="ratein" type="number" data-rate="${key}" data-f="${f}" step="0.01" value="${v}">` : v!=null ? (v%1 ? RM(v) : RM0(v)) : '<span class="muted">—</span>'; };
   $('#v-rates').innerHTML = `
     <div class="view-head"><h2>Rates</h2>${ed?'<span class="muted">Changes apply to new quotations and bookings. Running hires keep the rates they were booked at.</span>':'<span class="muted">Only the Head Manager can change rates.</span>'}</div>
-    <div class="tbl-wrap"><table><thead><tr><th>Model</th><th>Kind</th><th class="r">Hour</th><th class="r">Min h</th><th class="r">Day (8–5)</th><th class="r">Half day</th><th class="r">Week</th><th class="r">Month</th><th class="r">Month h</th><th class="r">Excess / h</th><th class="r">OT / h</th><th class="r">Sun / PH day</th><th class="r">Sun OT / h</th></tr></thead><tbody>
-      ${Object.keys(rates).map(key=>{ const [mk,k] = key.split('/'); return `<tr><td><b>${esc(mName(mk))}</b><br><small class="muted">${esc(models[mk].type)}</small></td><td>${kindLabel(k)}</td><td class="r">${cell(key,'hr')}</td><td class="r">${rates[key].minH??'—'}</td><td class="r">${cell(key,'day')}</td><td class="r">${cell(key,'half')}</td><td class="r">${cell(key,'week')}</td><td class="r">${cell(key,'month')}${rates[key].monthEst?'<br><small class="muted">estimate</small>':''}</td><td class="r">${rates[key].mHrs??'—'}</td><td class="r">${cell(key,'ex')}</td><td class="r">${cell(key,'ot')}</td><td class="r">${cell(key,'sun')}</td><td class="r">${cell(key,'sunOt')}</td></tr>`; }).join('')}
+    <div class="tbl-wrap"><table><thead><tr><th>Model</th><th class="r">Hour</th><th class="r">Min h</th><th class="r">Day (8–5)</th><th class="r">Half day</th><th class="r">Week</th><th class="r">Month</th><th class="r">Month h</th><th class="r">Excess / h</th><th class="r">OT / h</th><th class="r">Sun / PH day</th><th class="r">Sun OT / h</th></tr></thead><tbody>
+      ${Object.keys(rates).map(key=>{ const [mk,k] = key.split('/'); return `<tr><td><b>${esc(mName(mk))}</b><br><small class="muted">${esc(models[mk].type)}</small></td><td class="r">${cell(key,'hr')}</td><td class="r">${rates[key].minH??'—'}</td><td class="r">${cell(key,'day')}</td><td class="r">${cell(key,'half')}</td><td class="r">${cell(key,'week')}</td><td class="r">${cell(key,'month')}${rates[key].monthEst?'<br><small class="muted">estimate</small>':''}</td><td class="r">${rates[key].mHrs??'—'}</td><td class="r">${cell(key,'ex')}</td><td class="r">${cell(key,'ot')}</td><td class="r">${cell(key,'sun')}</td><td class="r">${cell(key,'sunOt')}</td></tr>`; }).join('')}
     </tbody></table></div>
     <div class="two">
       <div class="panel"><div class="panel-head"><h3>Transport by zone</h3></div><div class="tbl-wrap" style="border:0"><table><thead><tr><th>Zone</th><th class="r">Self-drive mobilisation</th><th class="r">Lowloader up to 10 t</th><th class="r">Lowloader 10–30 t</th></tr></thead><tbody>
@@ -2300,7 +2305,7 @@ function renderEnquiries(){
       <div class="card-top"><span class="mono">${e.id}</span><span class="pri ${e.temp==='Hot'?'High':'Normal'}">${e.temp}</span></div>
       <span class="mach">${esc(e.need)}${e.qty>1?' × '+e.qty:''}</span>
       <span class="cust">${esc(enqName(e))}${e.c?'':' · new'}</span>
-      <span class="cust">${fmtD(e.from)}–${fmtD(e.to)} · ${kindLabel(e.k)}</span>
+      <span class="cust">${fmtD(e.from)}–${fmtD(e.to)}</span>
       <div class="card-foot"><b class="num">${RM0(e.value)}</b>${openStage(e) ? (f ? `<span class="due ${f.d<TODAY?'over':f.d===TODAY?'soon':''}">${f.d<TODAY?'Late: ':f.d===TODAY?'Today: ':fmtD(f.d)+': '}${esc(f.type)}</span>` : '<span class="due over">No follow-up</span>') : e.stage==='Lost' ? `<span class="muted">${esc(e.lostWhy||'')}</span>` : `<span class="mono muted">${e.hire||''}</span>`}<span class="avatar" title="${esc(staff[e.owner].name)}">${initials(staff[e.owner].name)}</span></div></button>`; };
   let body = '';
   if(tab==='board') body = `<div class="board">${STAGES.map(s=>{ const es = enquiries.filter(e=>e.stage===s); return `<div class="col"><div class="col-head"><h3>${s}</h3><span class="num">${es.length}${openStage({stage:s})&&es.length?' · '+RM0(sum(es.map(e=>e.value))):''}</span></div>${es.map(card).join('') || '<div class="empty-col">None</div>'}</div>`; }).join('')}</div>`;
@@ -2343,7 +2348,7 @@ function openNewEnquiry(){
     <div class="sect"><h3>What they need</h3><div class="in form">
       <label>Machine type<select class="field" data-ne="need">${types.map(t=>`<option ${t===n.need?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
       <label>Quantity<input type="number" min="1" max="10" data-ne="qty" value="${n.qty}"></label>
-      <label>Kind<select class="field" data-ne="k">${kinds.map(k=>`<option value="${k}" ${k===n.k?'selected':''}>${kindLabel(k)}</option>`).join('')}</select></label>
+      
       <label>From<input type="date" data-ne="from" value="${n.from}"></label>
       <label>To<input type="date" data-ne="to" value="${n.to}"></label>
       <label>Site<input type="text" data-ne="site" value="${esc(n.site)}" placeholder="Town / project"></label>
@@ -2385,7 +2390,7 @@ function openEnquiry(id){
       <div><span class="label">${e.c?'Customer':'Prospect'}</span><b>${e.c?`<a href="#" data-cust="${e.c}">${esc(cu.name)}</a>`:esc(e.prospect.name)}</b></div>
       <div><span class="label">Contact</span><b>${esc(cu?cu.contact:e.prospect.contact)} · ${esc(cu?cu.phone:e.prospect.phone)}</b></div>
       <div><span class="label">Source</span><b>${esc(e.src)}</b><small class="muted">${esc(e.at)}</small></div>
-      <div><span class="label">Needs</span><b>${esc(e.need)}${e.qty>1?' × '+e.qty:''}</b><small class="muted">${kindLabel(e.k)}</small></div>
+      <div><span class="label">Needs</span><b>${esc(e.need)}${e.qty>1?' × '+e.qty:''}</b></div>
       <div><span class="label">Dates</span><b>${fmtD(e.from)} – ${fmtDY(e.to)}</b><small class="muted">${daysBetween(e.from,e.to)+1} days</small></div>
       <div><span class="label">Site</span><b>${esc(e.site||'—')}</b></div>
       <div class="cost"><span class="label">Value</span><b>${RM0(e.value)}</b><small class="muted">${Math.round(PROB[e.stage]*100)}% likely at this stage</small></div>
@@ -3145,7 +3150,7 @@ function renderDashboard(){
   const att3 = ATT_CAT.map(c=>({...c, n:att.filter(a=>a.k===c.k).length}));
   const alerts = attention().slice(0,6), due = tasks.filter(t=>!t.done && t.d<=TODAY).length, exp = expiring().length;
   const week = allTrips().filter(t=>t.d>=TODAY && t.d<=addDays(TODAY,7)).sort((a,b)=>a.d<b.d?-1:1);
-  const byGrp = Object.keys(GROUPS).filter(g=>g!=='transport').map(g=>{ const us = units.filter(u=>mOf(u).grp===g); return {g, n:us.length, on:us.filter(u=>onHireOn(u,TODAY)).length, util:utilisation('2026-10-01',TODAY,us)}; }).filter(x=>x.n);
+  const byGrp = FAMILIES.map(f=>f.k).map(g=>{ const us = units.filter(u=>classOf(u).fam===g); return {g, n:us.length, on:us.filter(u=>onHireOn(u,TODAY)).length, util:utilisation('2026-10-01',TODAY,us)}; }).filter(x=>x.n);
   const outstanding = sum(invoices.filter(i=>i.status!=='Paid' && i.status!=='Draft').map(i=>i.total)), overdue = sum(invoices.filter(i=>invStatus(i)==='Overdue').map(i=>i.total));
   const delta = (a,b) => { const d = a-b; return `<small class="${d>=0?'up':'down'}">${d>=0?'▲':'▼'} ${Math.abs(d)} pts vs Sep</small>`; };
   $('#v-dashboard').innerHTML = `
@@ -3168,11 +3173,11 @@ function renderDashboard(){
       </div></div>
       <div class="panel span2"><div class="panel-head"><h3>Machinery on rental <small class="muted">${Math.min(8,rented.length)} ending soonest of ${rented.length}</small></h3><div class="btnrow"><button class="btn small" data-allview="fleet|onhire">View all ${rented.length}</button><button class="btn small" data-view="planner">Planner</button></div></div>
         <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Machine</th><th>Customer · site</th><th>Hire</th><th class="r">Days on hire</th><th>Until</th></tr></thead><tbody>
-        ${rented.slice().sort((a,b)=>(a[1].l.off||a[1].l.to)<(b[1].l.off||b[1].l.to)?-1:1).slice(0,8).map(([u,s])=>{ const left = daysBetween(TODAY, s.l.to); return `<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(mOf(u).type)}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${kindLabel(s.l.k)} · ${basisLabel[s.l.basis].toLowerCase()}${s.l.op?`<br><small class="muted">${esc(staff[s.l.op].name)}</small>`:''}</td><td class="r num">${daysBetween(s.l.on,TODAY)+1}</td>
+        ${rented.slice().sort((a,b)=>(a[1].l.off||a[1].l.to)<(b[1].l.off||b[1].l.to)?-1:1).slice(0,8).map(([u,s])=>{ const left = daysBetween(TODAY, s.l.to); return `<tr class="click" data-hire="${s.h.id}"><td><b>${u}</b> ${esc(uName(u))}<br><small class="muted">${esc(mOf(u).type)}</small></td><td>${esc(custName(s.h.c))}<br><small class="muted">${esc(s.h.site)}</small></td><td>${hireKind(s.l.k,s.l.basis,s.l.slot)}${s.l.op?`<br><small class="muted">${esc(staff[s.l.op].name)}</small>`:''}</td><td class="r num">${daysBetween(s.l.on,TODAY)+1}</td>
           <td>${s.k==='Off-hire called'?`<span class="pill warn">Off-hire ${fmtD(s.l.off)}</span>`:`${fmtD(s.l.to)} ${left<=7?`<span class="pill warn">${left} d left</span>`:''}`}</td></tr>`; }).join('')}
         </tbody></table></div></div>
       <div class="panel"><div class="panel-head"><h3>Utilisation by type</h3><span class="muted">Oct to date</span></div><div class="rbars">
-        ${byGrp.map(x=>`<div class="rbar"><span>${esc(GROUPS[x.g])} <small class="muted">${x.on}/${x.n} out</small></span><div class="track"><div class="fill" style="width:${x.util}%" data-tip="${esc(GROUPS[x.g])}: ${x.util}% (${x.on} of ${x.n} on hire today)"></div></div><span class="v">${x.util}%</span></div>`).join('')}
+        ${byGrp.map(x=>`<div class="rbar"><span>${esc(x.g)} <small class="muted">${x.on}/${x.n} out</small></span><div class="track"><div class="fill" style="width:${x.util}%" data-tip="${esc(x.g)}: ${x.util}% (${x.on} of ${x.n} on hire today)"></div></div><span class="v">${x.util}%</span></div>`).join('')}
       </div></div>
       <div class="panel"><div class="panel-head"><h3>Needs attention</h3><button class="btn small" data-view="dispatch">Jobs</button></div><div class="panel-body">
         ${alerts.map(a=>`<div class="attn ${a.cost?'cost':''}" ${a.a} role="button" tabindex="0" style="--sev:var(--${a.sev==='crit'?'crit':a.sev==='warn'?'warn':'info'})"><i></i><div><b>${esc(a.t)}</b><br><small class="muted">${esc(a.s)}</small></div></div>`).join('')}
@@ -4046,7 +4051,7 @@ const ZH = {
   // extra machine / place words that appear alone
   "Lorry tipper":"罗里（倒斗）","Truck crane":"汽车吊","Prime mover & lowloader":"拖头和低床拖车","Lowloader":"低床拖车","Palfinger lorry crane":"Palfinger 随车吊",
   "Aisyah binti Karim":"Aisyah binti Karim","Prototype":"原型",
-  "Home":"主页","Rental period":"租期","Fixed dates":"固定日期","Day, week or month, with an end date":"按天、周或月，有结束日期","Monthly, no end date":"按月，没有结束日期","Until the customer says stop":"直到顾客说停","estimate":"估计","Not available":"不可用","Jobs":"订单","Schedule":"排程","Machines":"机械","Settings":"设置","Tabs":"分页","Today & coming":"今天和接下来","All jobs":"全部订单","Staff & leave":"员工和请假","Edit order":"编辑订单","Save changes":"保存修改","Sales and balance":"销售额和余额","In Bukku":"在 Bukku","Last job":"最后工作","Cross-hire from another company (同行车)":"同行车（向别家租）","Their price to us (RM)":"同行价格（RM）","From the cross-hire company":"由同行公司提供",
+  "Home":"主页","Truck cranes":"汽车吊","Rough terrain cranes":"越野吊","All terrain cranes":"全地面吊","Lorry cranes":"随车吊","Skylifts":"高空车","With operator":"连司机","Machine only":"不连司机","Group":"类别","All groups":"所有类别","Group and size":"类别和吨位","Half day (morning)":"半天（上午）","Half day (afternoon)":"下午半天","On hire":"出租中","Rental period":"租期","Fixed dates":"固定日期","Day, week or month, with an end date":"按天、周或月，有结束日期","Monthly, no end date":"按月，没有结束日期","Until the customer says stop":"直到顾客说停","estimate":"估计","Not available":"不可用","Jobs":"订单","Schedule":"排程","Machines":"机械","Settings":"设置","Tabs":"分页","Today & coming":"今天和接下来","All jobs":"全部订单","Staff & leave":"员工和请假","Edit order":"编辑订单","Save changes":"保存修改","Sales and balance":"销售额和余额","In Bukku":"在 Bukku","Last job":"最后工作","Cross-hire from another company (同行车)":"同行车（向别家租）","Their price to us (RM)":"同行价格（RM）","From the cross-hire company":"由同行公司提供",
   "free":"可用","NOT free":"不可用","free, document issue":"可用，文件有问题","Timesheet":"工作单","Morning · 08:00AM - 12:00PM":"上午 · 08:00AM - 12:00PM",
 
   // second pass: hints, sentences and fragments
@@ -4108,6 +4113,7 @@ const ZH_RX = [
   [/^Prototype of the Super Power Crane Machinery system with example data \(today is set to (.+?)\)\. Changes stay until the page reloads\..*$/g, 'Super Power Crane Machinery 系统原型，使用示例数据（今天设为 $1）。改动在刷新页面后消失。切换“查看身份”可看每个身份：主管看得到价格和发票，但看不到机械成本和利润；销售负责询价、顾客和跟进；司机只看自己的工作单和请假，没有价格。完整设计（docs/RENTAL.md）在项目仓库里。'],
   [/\b(\d+) d left\b/g, '剩 $1 天'], [/\((\d+(?:\.\d+)?) (t|m|kVA) or more\)/g, '（$1 $2 或以上）'], [/^Enquiry (?=\S)/g, '询价 '], [/^Quotation (?=\S)/g, '报价 '], [/^Order \(checklist\)/g, '订单（清单）'],
   [/^Edit order (H-\d{4}-\d+)$/g, '编辑订单 $1'], [/^Order edited by (.+?): (.*)\.$/g, '$1 修改了订单：$2。'], [/\bupdated\b/g, '已更新'],
+  [/^From search: (.+)$/g, (x,f)=>'按搜索：'+(ZH[f]||f)], [/^Half day \((morning|afternoon)\)/g, (x,w)=>w==='morning'?'半天（上午）':'半天（下午）'], [/^(Truck|Rough terrain|All terrain|Lorry) cranes$/g, x=>ZH[x]||x],
   [/^Collect\b/g, '收机'], [/^Deliver\b/g, '送机'], [/^Late (\d)/g, '迟到 $1'], [/\btarget (\d+)%/gi, '目标 $1%'], [/\b(\d+) this month\b/g, '本月 $1'], [/\b(\d+) unsigned timesheets?\b/g, '$1 张未签工作单'], [/^Rejected:/g, '被拒：'],
   [/^\+(\d+) more$/g, '+$1 个'], [/\bchecklist (\d+)\/(\d+)\b/g, '清单 $1/$2'], [/^Checklist (\d+) (?:of|\/) (\d+):(.*) still to do$/g, '清单 $1 / $2：$3 还没做'], [/^Closest fit: (.+?) \((\d+(?:\.\d+)?) t\), free and not quoted to anyone else\.$/g, '最合适：$1（$2吨），可用且没报给别人。'],
   [/^Closest fit: (.+?), boom ([\d.]+) m, (\d+)% of chart\.$/g, '最合适：$1，吊臂 $2 米，吊重表的 $3%。'], [/^tip ([\d.]+) m \(needs ([\d.]+) m\), boom angle (\d+)°$/g, '臂尖 $1 米（需要 $2 米），吊臂角度 $3°'],

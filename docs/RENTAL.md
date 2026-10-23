@@ -868,6 +868,23 @@ The customer page now says "Sales and balance: in Bukku". The rental system stil
 
 **Monthly rates for every machine.** Some machines have no monthly rate yet: lorry cranes, skylifts, forklifts, KR-300, TL-200. For now they are estimated at 13 × the day rate (the 25 t rate is 18,500 ÷ 1,400 = 13.2) and marked "estimate" on the Rates page until the Head Manager sets them.
 
+**Always with operator.** The company supplies the operator on every hire, so the screens no longer ask for or show "wet / dry hire".
+- **Orders and quotations** show how the hire is charged: Daily, Half day (morning / afternoon), Monthly.
+- **Quotations** still print "WITH OPERATOR", as on QT-01094.
+
+**Machine groups by crane type.**
+- **The groups:** Truck cranes, Rough terrain cranes, All terrain cranes, Lorry cranes, Skylifts, Forklifts.
+- **Within a group:** machines sit by exact size, for example *Rough terrain crane 25 t: BPN 8918, VNB 2138, VNC 2138*.
+- **Where the groups are used:** Machines, Planner, Availability, and the Home utilisation panel.
+- **Search understands the type:**
+
+  | Search | Finds |
+  |---|---|
+  | "25t rough terrain" or "RT 25t" | the three SR-250V6 first, then the bigger rough terrain cranes |
+  | "truck crane 50t" | 50 t truck cranes and bigger |
+  | "all terrain" | all terrain cranes |
+  | "25t crane" | every crane type of 25 t and above |
+
 ## 31. Open questions for the owner
 
 **From WORK_ORDER_2026.xlsx:**
