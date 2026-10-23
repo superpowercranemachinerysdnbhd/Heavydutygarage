@@ -885,6 +885,18 @@ The customer page now says "Sales and balance: in Bukku". The rental system stil
   | "all terrain" | all terrain cranes |
   | "25t crane" | every crane type of 25 t and above |
 
+**Load charts are kept per model.**
+- One chart covers every machine of that model. The SR-250V6 chart is used for BPN 8918, VNB 2138 and VNC 2138; the TL-250-1, -2 and -3 are separate models.
+- **Lift check covers every crane in the machinery list.** Cranes whose model has no chart yet are listed as "Not checked" with **Add chart**. They are never silently left out.
+- **The Load charts tab** lists each crane model with its plates and status: Verified, From PDF not checked, PDF received, or No chart.
+- **Adding a chart for a model:**
+  1. attach the manufacturer's PDF or photo;
+  2. paste the table from Excel, or type it in cell by cell;
+  3. the Head Manager checks it against the PDF and marks it verified.
+- **With the company's own data, sample charts (made-up numbers) are removed.** Only the charts typed from the manufacturer PDFs remain: NK-160B-2, NK-200E-III, SL-700R and KA-1300SL.
+- **In the example data, sample charts are shown greyed** and are never the closest fit.
+- **A chart can carry a warning.** The SL-700 chart was typed from the SL-700R PDF, while the machinery list says SL700L, so it is flagged until confirmed.
+
 ## 31. Open questions for the owner
 
 **From WORK_ORDER_2026.xlsx:**

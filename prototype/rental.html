@@ -716,6 +716,10 @@ html[lang^="zh"] .navh, html[lang^="zh"] th, html[lang^="zh"] .label{letter-spac
 .period label.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
 .period label span{display:flex;flex-direction:column;gap:2px}
 .period small{color:var(--muted)}
+.samplerow td{opacity:.55}
+tr.nochart td{background:var(--surface-2)}
+.nclist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px 14px;margin-top:8px}
+.nclist span{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- Private company data, published only with the private page and never committed (see .gitignore). Without it the page shows example data. -->
@@ -2720,9 +2724,16 @@ let charts = {
   'BPJ 8896':sampleChart([12.5,20.5,28.5,36.5,44.5,52.5,60.0], 110, 520, 2.8, 1.0, 1.10),
   'VAV 5711':{booms:[11.8, 19.8, 27.88, 35.9, 44.0, 48.0, 52.0], rows:[{"r": 2.5, "caps": [70.0, null, null, null, null, null, null]}, {"r": 3.0, "caps": [70.0, 50.0, null, null, null, null, null]}, {"r": 3.5, "caps": [70.0, 50.0, null, null, null, null, null]}, {"r": 4.0, "caps": [70.0, 50.0, 35.0, null, null, null, null]}, {"r": 4.5, "caps": [70.0, 50.0, 35.0, null, null, null, null]}, {"r": 5.0, "caps": [70.0, 50.0, 35.0, 24.0, null, null, null]}, {"r": 6.0, "caps": [64.5, 50.0, 35.0, 24.0, null, null, null]}, {"r": 7.0, "caps": [54.0, 50.0, 35.0, 24.0, 17.0, 14.0, null]}, {"r": 8.0, "caps": [46.0, 46.0, 35.0, 24.0, 17.0, 14.0, 12.0]}, {"r": 9.0, "caps": [40.0, 40.0, 35.0, 24.0, 17.0, 14.0, 12.0]}, {"r": 10.0, "caps": [null, 35.5, 33.7, 24.0, 17.0, 14.0, 12.0]}, {"r": 12.0, "caps": [null, 28.5, 27.8, 23.2, 17.0, 14.0, 12.0]}, {"r": 14.0, "caps": [null, 22.0, 21.8, 20.7, 15.8, 14.0, 12.0]}, {"r": 16.0, "caps": [null, 17.2, 17.1, 18.4, 14.0, 14.0, 12.0]}, {"r": 18.0, "caps": [null, null, 13.6, 15.3, 12.6, 13.1, 12.0]}, {"r": 20.0, "caps": [null, null, 10.9, 12.5, 11.5, 11.7, 11.0]}, {"r": 22.0, "caps": [null, null, 8.8, 10.4, 10.5, 10.4, 9.8]}, {"r": 24.0, "caps": [null, null, 7.1, 8.7, 9.6, 9.3, 8.8]}, {"r": 26.0, "caps": [null, null, null, 7.3, 8.2, 8.4, 7.9]}, {"r": 28.0, "caps": [null, null, null, 6.0, 7.0, 7.3, 7.1]}, {"r": 30.0, "caps": [null, null, null, 4.8, 6.0, 6.3, 6.5]}, {"r": 32.0, "caps": [null, null, null, 3.8, 5.0, 5.4, 5.6]}, {"r": 34.0, "caps": [null, null, null, null, 4.0, 4.5, 4.8]}, {"r": 36.0, "caps": [null, null, null, null, 3.2, 3.7, 4.0]}, {"r": 38.0, "caps": [null, null, null, null, 2.5, 2.9, 3.3]}, {"r": 40.0, "caps": [null, null, null, null, 1.9, 2.3, 2.7]}, {"r": 42.0, "caps": [null, null, null, null, 1.4, 1.8, 2.1]}, {"r": 44.0, "caps": [null, null, null, null, null, 1.3, 1.6]}, {"r": 46.0, "caps": [null, null, null, null, null, null, 1.1]}], h0:2.6, a:0.5, hook:0.9, maxT:130, cfg:"A1: outriggers max (8.4 m), 360\u00b0, counterweight on. Heavy-lift attachment column (to 130 t) not included", verified:false, hooks:[0.9,0.6,0.6,0.6,0.6,0.6,0.6], transcribed:true, source:"Kato KA-1300SL p.364 A1 table (scan, Japanese). \u5b9a\u683c\u7dcf\u8377\u91cd = rated total load, includes hook. Hook 70 t: 0.9 t (50 t hook 0.6 t on 19.8 m+ boom).", pdf:"KATO_KA1300SL_LOAD_CHART.pdf"},
 };
+/* A load chart belongs to a model, so one chart covers every machine of that model (e.g. SR-250V6: BPN 8918, VNB 2138, VNC 2138). */
+Object.keys(charts).forEach(u => { if(fleet[u]){ const m = fleet[u].m; if(!charts[m]) charts[m] = charts[u]; delete charts[u]; } });
+charts.SL700.note = 'This chart was typed from the SL-700R PDF; the machinery list says SL700L. Confirm the model before quoting.';
+const chartFor = u => charts[fleet[u]?.m];
+const liftUnits = () => hireUnits().filter(u => /crane/i.test(mOf(u).type));
 const LIFT_OK = 0.75, LIFT_MAX = 0.90;
 function liftCheck(u, j){
-  const c = charts[u], hookOf = bi => (c.hooks && c.hooks[bi] != null) ? c.hooks[bi] : c.hook, reqTip = j.h + j.head, tried = [];
+  const c = chartFor(u);
+  if(!c || !c.booms.length || !c.rows.length) return {u, c, best:null, verdict:'none', why:c&&c.pdf?`Chart PDF received (${c.pdf}), not typed in yet`:'No load chart yet', gross:j.w+j.rig, reqTip:j.h+j.head};
+  const hookOf = bi => (c.hooks && c.hooks[bi] != null) ? c.hooks[bi] : c.hook, reqTip = j.h + j.head, tried = [];
   let best = null;
   c.booms.forEach((L, bi) => {
     const dR = j.r - c.a;
@@ -2750,9 +2761,10 @@ function liftCheck(u, j){
   return {u, c, best, verdict, why, gross: best ? best.gross : j.w + j.rig + Math.max(c.hook, ...(c.hooks||[])), reqTip};
 }
 function liftResults(j){
-  const res = Object.keys(charts).map(u => { const x = liftCheck(u, j); x.avail = j.from && j.to ? availability(u, j.from, j.to) : null; return x; });
-  const rank = {ok:0, crit:1, no:2};
-  return res.sort((a,b) => rank[a.verdict]-rank[b.verdict] || (a.verdict==='no' ? 0 : a.c.maxT-b.c.maxT) || ((a.avail&&!a.avail.ok)-(b.avail&&!b.avail.ok)) || (b.best?.util||0)-(a.best?.util||0));
+  const res = liftUnits().map(u => { const x = liftCheck(u, j); x.avail = j.from && j.to ? availability(u, j.from, j.to) : null;
+    if(x.c && !x.c.verified && !x.c.transcribed && x.verdict!=='none') x.sample = true; return x; });
+  const rank = x => x.sample ? 3 : ({ok:0, crit:1, no:2, none:4})[x.verdict];
+  return res.sort((a,b) => rank(a)-rank(b) || (a.verdict==='no'||a.verdict==='none' ? 0 : capOf(a.u).n-capOf(b.u).n) || ((a.avail&&!a.avail.ok)-(b.avail&&!b.avail.ok)) || (b.best?.util||0)-(a.best?.util||0));
 }
 function liftSvg(x, j){
   if(!x.best) return '';
@@ -2775,8 +2787,8 @@ function liftSvg(x, j){
     <text x="${(X(c.a)+X(tipX))/2 + 10}" y="${(Y(c.h0)+Y(tipY))/2 + 16}" text-anchor="start" style="fill:var(--ink);font-size:11px;font-weight:600">boom ${b.L} m · ${Math.round(b.angle)}°</text>
   </svg>`;
 }
-function chartTable(u, hl, gross){
-  const c = charts[u];
+function chartTable(m, hl, gross){
+  const c = charts[m];
   return `<div class="tbl-wrap"><table class="lc"><thead><tr><th>Radius (m) \\ Boom (m)</th>${c.booms.map((L,bi)=>`<th class="r ${hl&&hl.bi===bi?'hl':''}">${L}</th>`).join('')}</tr></thead><tbody>
     ${c.rows.map(row=>`<tr><th class="${hl&&hl.r===row.r?'hl':''}">${row.r}</th>${row.caps.map((v,bi)=>`<td class="r num ${v==null?'na':''} ${hl&&hl.r===row.r&&hl.bi===bi?'pick':gross&&v!=null&&gross/v<=LIFT_OK?'can':''}">${v==null?'':v.toFixed(2)}</td>`).join('')}</tr>`).join('')}
   </tbody></table></div>`;
@@ -2784,12 +2796,17 @@ function chartTable(u, hl, gross){
 function renderLift(){
   const tab = state.liftTab;
   const head = `<div class="view-head"><h2>Crane selector</h2><div class="seg"><button data-lifttab="find" aria-pressed="${tab==='find'}">Find a crane</button><button data-lifttab="charts" aria-pressed="${tab==='charts'}">Load charts</button></div></div>`;
-  const samples = Object.keys(charts).filter(u=>!charts[u].verified && !charts[u].transcribed), pdfs = Object.keys(charts).filter(u=>!charts[u].verified && charts[u].transcribed);
-  const warn = (samples.length ? `<div class="banner crit"><b>${samples.length} cranes still have sample charts (${samples.join(', ')}): made-up numbers. Send their manufacturer charts.</b></div>` : '') + (pdfs.length ? `<div class="banner"><b>${pdfs.length} charts were copied from your manufacturer PDFs (${pdfs.join(', ')}). Check them against the PDFs and mark verified before quoting.</b></div>` : '');
+  const crMods = [...new Set(liftUnits().map(u=>fleet[u].m))], plates = m => liftUnits().filter(u=>fleet[u].m===m).join(', ');
+  const has = m => charts[m] && charts[m].booms.length && charts[m].rows.length;
+  const samples = crMods.filter(m=>has(m) && !charts[m].verified && !charts[m].transcribed).map(plates), pdfs = crMods.filter(m=>has(m) && !charts[m].verified && charts[m].transcribed).map(plates);
+  const none = crMods.filter(m=>!has(m));
+  const warn = (none.length ? `<div class="banner crit"><b>${none.length} crane model${none.length>1?'s have':' has'} no load chart yet, so Lift check cannot check ${none.map(m=>`${esc(models[m].model)} (${plates(m)})`).join(', ')}. Send the manufacturer charts, or add them under Load charts.</b></div>` : '')
+    + (samples.length ? `<div class="banner crit"><b>Sample charts with made-up numbers: ${samples.join(', ')}. Their results are shown greyed and are never the closest fit.</b></div>` : '')
+    + (pdfs.length ? `<div class="banner"><b>${pdfs.length} chart${pdfs.length>1?'s were':' was'} typed from your manufacturer PDFs (${pdfs.join(' · ')}). Check them against the PDFs and mark verified.</b></div>` : '');
   if(tab==='charts') return $('#v-lift').innerHTML = head + warn + chartsEditor();
   const j = state.lift, res = j.done ? liftResults(j) : [];
-  const sel = res.find(x=>x.u===state.liftSel) || res.find(x=>x.verdict!=='no') || res[0];
-  const best = res.find(x=>x.verdict==='ok' && (!x.avail || x.avail.ok)) || res.find(x=>x.verdict!=='no' && (!x.avail || x.avail.ok));
+  const sel = res.filter(x=>x.verdict!=='none').find(x=>x.u===state.liftSel) || res.find(x=>!x.sample && (x.verdict==='ok'||x.verdict==='crit')) || res.find(x=>x.verdict!=='none');
+  const real = res.filter(x=>!x.sample && x.verdict!=='none'), best = real.find(x=>x.verdict==='ok' && (!x.avail || x.avail.ok)) || real.find(x=>x.verdict==='crit' && (!x.avail || x.avail.ok));
   $('#v-lift').innerHTML = head + warn + `
     <form class="findbar" data-form="lift">
       <label>Load weight (t)<input type="number" step="0.05" min="0.05" name="w" value="${j.w}" required></label>
@@ -2806,31 +2823,49 @@ function renderLift(){
     ${best ? `<div class="banner" style="border-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--surface))"><b>Closest fit: ${best.u} ${esc(uName(best.u))}, boom ${best.best.L} m, ${Math.ceil(best.best.util*100)}% of chart${best.avail?' · free for those dates':''}.</b><button class="btn small primary" data-action="lift-enq" data-u="${best.u}">New enquiry with this crane</button></div>`
       : `<div class="banner crit"><b>No crane in the fleet can do this lift${res.some(x=>x.verdict!=='no')?' on those dates':''}. Options: a bigger crane by cross-hire, a shorter radius (move the crane closer), or a lighter load.</b></div>`}
     <div class="dash">
-      <div class="panel"><div class="panel-head"><h3>${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high</h3><span class="muted">${res.filter(x=>x.verdict!=='no').length} of ${res.length} cranes can lift it</span></div>
+      <div class="panel"><div class="panel-head"><h3>${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high</h3><span class="muted">${real.filter(x=>x.verdict==='ok'||x.verdict==='crit').length} of ${real.length} cranes with a real chart can lift it${res.length>real.length?` · ${res.length-real.length} not checked`:''}</span></div>
         <div class="tbl-wrap" style="border:0;border-radius:0 0 6px 6px"><table><thead><tr><th>Crane</th><th>Result</th><th class="r">Boom</th><th class="r">Rated</th><th class="r">Gross</th><th>Use of chart</th>${j.from?'<th>Dates</th>':''}<th class="r cost">Day rate</th></tr></thead><tbody>
-        ${res.map(x=>{ const b = x.best, r = rate(fleet[x.u].m,'wet'), pct = b ? Math.ceil(b.util*100) : null;
-          return `<tr class="click" data-liftsel="${x.u}" ${sel&&sel.u===x.u?'style="background:var(--accent-soft)"':''}><td><b>${x.u}</b> ${esc(uName(x.u))}<br><small class="muted">${esc(mOf(x.u).type)}${chartTag(charts[x.u])}</small></td>
-          <td><span class="pill ${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'}">${x.verdict==='ok'?'Can lift':x.verdict==='crit'?'Critical lift':'Cannot'}</span><br><small class="muted">${esc(x.verdict==='no'?x.why:b?`tip ${num(+b.tip.toFixed(1))} m (needs ${num(x.reqTip)} m), boom angle ${Math.round(b.angle)}°`:'')}</small></td>
+        ${res.filter(x=>x.verdict!=='none').map(x=>{ const b = x.best, r = rate(fleet[x.u].m,'wet'), pct = b ? Math.ceil(b.util*100) : null;
+          if(x.verdict==='none') return `<tr class="nochart"><td><b>${x.u}</b> ${esc(uName(x.u))}<br><small class="muted">${esc(mOf(x.u).type)}</small></td><td colspan="${j.from?6:5}"><span class="pill mute">Not checked</span> <small class="muted">${esc(x.why)}</small> <button class="btn small" data-action="lift-edit" data-u="${x.u}">Add chart</button></td><td class="r num cost">${r?RM0(r.day):'—'}</td></tr>`;
+          return `<tr class="click ${x.sample?'samplerow':''}" data-liftsel="${x.u}" ${sel&&sel.u===x.u?'style="background:var(--accent-soft)"':''}><td><b>${x.u}</b> ${esc(uName(x.u))}<br><small class="muted">${esc(mOf(x.u).type)}${chartTag(x.c)}</small></td>
+          <td>${x.sample?'<span class="pill crit">Sample chart: do not use</span><br>':''}<span class="pill ${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'}">${x.verdict==='ok'?'Can lift':x.verdict==='crit'?'Critical lift':'Cannot'}</span><br><small class="muted">${esc(x.verdict==='no'?x.why:b?`tip ${num(+b.tip.toFixed(1))} m (needs ${num(x.reqTip)} m), boom angle ${Math.round(b.angle)}°`:'')}</small></td>
           <td class="r num">${b?b.L+' m':'—'}</td><td class="r num">${b?num(b.cap)+' t':'—'}<br>${b?`<small class="muted">at ${b.r} m</small>`:''}</td><td class="r num">${num(+x.gross.toFixed(2))} t</td>
           <td>${b?`<div class="rbar" style="grid-template-columns:minmax(70px,1fr) auto"><div class="track"><div class="fill" style="width:${Math.min(pct,100)}%;background:var(--${x.verdict==='ok'?'ok':x.verdict==='crit'?'warn':'crit'})"></div></div><span class="v">${pct}%</span></div>`:''}</td>
           ${j.from?`<td>${x.avail.ok?'<span class="pill ok">Free</span>'+(x.avail.warn.length?'<br>'+warnHtml(x.avail.warn):''):`<span class="pill crit" title="${esc(x.avail.why.join(' · '))}">Busy</span><br><small class="muted">${esc(x.avail.why[0])}</small>`}</td>`:''}
           <td class="r num cost">${r?RM0(r.day):'—'}</td></tr>`; }).join('')}
+        ${(()=>{ const nc = res.filter(x=>x.verdict==='none'); return nc.length ? `<tr class="nochart"><td colspan="${j.from?8:7}"><details><summary><b>${nc.length} cranes not checked</b> <span class="muted">· no load chart yet</span></summary>
+          <div class="nclist">${nc.map(x=>`<span><b>${x.u}</b> ${esc(mOf(x.u).model)} <small class="muted">${esc(mOf(x.u).type)}</small> <button class="btn small" data-action="lift-edit" data-u="${x.u}">Add chart</button></span>`).join('')}</div></details></td></tr>` : ''; })()}
         </tbody></table></div></div>
       ${sel ? `<div class="rail"><div class="panel"><div class="panel-head"><h3>${sel.u} · ${esc(mOf(sel.u).model)}</h3>${sel.best?`<span class="pill ${sel.verdict==='ok'?'ok':sel.verdict==='crit'?'warn':'crit'}">${Math.ceil(sel.best.util*100)}%</span>`:''}</div>
         <div class="in" style="padding:10px 14px">${sel.best ? liftSvg(sel, j) : `<p class="muted" style="margin:0">${esc(sel.why)}</p>`}
           <small class="muted">${esc(sel.c.cfg)}. Hook block ${num(sel.best ? (sel.c.hooks?.[sel.best.bi] ?? sel.c.hook) : sel.c.hook)} t.</small>
-          ${sel.verdict!=='no'?`<div class="btnrow" style="margin-top:8px"><button class="btn small" data-action="lift-enq" data-u="${sel.u}">New enquiry with ${sel.u}</button></div>`:''}</div></div>
+          ${sel.c.note?`<div class="docwarn" style="display:block;margin-top:6px">⚠ ${esc(sel.c.note)}</div>`:''}
+          ${sel.verdict!=='no' && !sel.sample?`<div class="btnrow" style="margin-top:8px"><button class="btn small" data-action="lift-enq" data-u="${sel.u}">New enquiry with ${sel.u}</button></div>`:''}</div></div>
         </div>` : ''}
     </div>
-    ${sel ? `<div class="panel"><div class="panel-head"><h3>${sel.u} ${esc(uName(sel.u))}: load chart (t)</h3><button class="btn small" data-action="lift-edit" data-u="${sel.u}">Edit chart</button></div><div class="in" style="padding:8px">${chartTable(sel.u, sel.best, sel.gross)}<small class="muted">Orange: the cell used. Green: cells where this load is ${LIFT_OK*100}% or less of chart. Click another crane above to see its chart.</small></div></div>` : ''}` : ''}`;
+    ${sel ? `<div class="panel"><div class="panel-head"><h3>${esc(uName(sel.u))}: load chart (t) <small class="muted">${liftUnits().filter(u=>fleet[u].m===fleet[sel.u].m).join(', ')}</small></h3><button class="btn small" data-action="lift-edit" data-u="${sel.u}">Edit chart</button></div><div class="in" style="padding:8px">${chartTable(fleet[sel.u].m, sel.best, sel.gross)}<small class="muted">Orange: the cell used. Green: cells where this load is ${LIFT_OK*100}% or less of chart. Click another crane above to see its chart.</small></div></div>` : ''}` : ''}`;
 }
 function chartsEditor(){
-  const u = state.chartU, c = charts[u];
-  return `<div class="split">
-    <div class="panel"><div class="list">${Object.keys(charts).map(k=>`<button class="li" data-chartu="${k}" aria-current="${k===u}"><div class="li-main"><b>${k} ${esc(uName(k))}</b><small>${esc(mOf(k).type)} · ${charts[k].booms.length} boom lengths</small></div>${chartPill(charts[k])}</button>`).join('')}</div>
-      <div class="in" style="padding:10px 14px"><small class="muted">Each crane needs a chart for every set-up it is used in (outrigger width, counterweight, jib). Add the main one first: outriggers fully extended, 360°.</small></div></div>
+  const mods = [...new Set(liftUnits().map(u=>fleet[u].m))].sort((x,y)=>{ const ux = liftUnits().find(u=>fleet[u].m===x), uy = liftUnits().find(u=>fleet[u].m===y); return classOf(ux).order-classOf(uy).order; });
+  if(!mods.includes(state.chartU)) state.chartU = mods[0];
+  const m = state.chartU, c = charts[m], plates = k => liftUnits().filter(u=>fleet[u].m===k).join(', '), filled = k => charts[k] && charts[k].booms.length && charts[k].rows.length;
+  const list = `<div class="panel"><div class="list">${mods.map(k=>`<button class="li" data-chartu="${k}" aria-current="${k===m}"><div class="li-main"><b>${esc(mName(k))}</b><small>${esc(models[k].type)} · ${plates(k)}</small></div>${filled(k)?chartPill(charts[k]):charts[k]?.pdf?'<span class="pill warn">PDF received</span>':'<span class="pill mute">No chart</span>'}</button>`).join('')}</div>
+      <div class="in" style="padding:10px 14px"><small class="muted">One chart per model: every machine of that model uses it. A model needs a chart for every set-up it is used in (outrigger width, counterweight, jib). Add the main one first: outriggers fully extended, 360°.</small></div></div>`;
+  if(!filled(m)) return `<div class="split">${list}<div class="detail">
+      <div class="sect"><h3>${esc(mName(m))} <span class="pill mute">No chart</span></h3><div class="in" style="display:flex;flex-direction:column;gap:10px">
+        <p style="margin:0">Machines: <b>${plates(m)}</b>. Lift check cannot check ${plates(m).includes(',')?'them':'it'} until the chart is in.</p>
+        ${c?.pdf?`<p class="muted" style="margin:0">Manufacturer chart received: ${esc(c.pdf)}. It still has to be typed in or pasted below.</p>`:''}
+        <div class="docbar"><span class="label">1. Attach the manufacturer's load chart (PDF or photo)</span><div class="btnrow"><input type="file" id="lcPdfNew" accept="application/pdf,image/*"><button class="btn" data-action="lc-attach">Attach</button></div></div>
+        <form class="docbar" data-form="lc-paste"><label class="label" for="lcPaste">2. Paste the table from Excel: first row boom lengths, first column radius</label>
+          <textarea id="lcPaste" rows="5" placeholder="Radius&#9;9.35&#9;15.15&#9;20.95&#10;3.0&#9;25.00&#9;&#9;&#10;3.5&#9;23.50&#9;18.00&#9;"></textarea>
+          <div class="btnrow"><button class="btn primary">Save chart from pasted table</button><button class="btn" type="button" data-action="lc-blank">Or type it in cell by cell</button></div></form>
+      </div></div></div></div>`;
+  const u = m;
+  return `<div class="split">${list}
     <div class="detail">
-      <div class="sect"><h3>${u} ${esc(uName(u))} ${chartPill(c)}${c.verified?' <small class="muted">'+esc(c.verifiedBy||'')+'</small>':''}</h3><div class="in form">
+      <div class="sect"><h3>${esc(mName(m))} ${chartPill(c)}${c.verified?' <small class="muted">'+esc(c.verifiedBy||'')+'</small>':''}</h3><div class="in form">
+        <p class="full" style="margin:0">Machines: <b>${plates(m)}</b></p>
+        ${c.note?`<div class="full docwarn" style="display:block">⚠ ${esc(c.note)}</div>`:''}
         <label class="full">Set-up this chart is for<input type="text" data-geo="${u}|cfg" value="${esc(c.cfg)}"></label>
         <label>Boom foot height (m)<input type="number" step="0.1" data-geo="${u}|h0" value="${c.h0}"></label>
         <label>Boom foot offset from slew centre (m)<input type="number" step="0.1" data-geo="${u}|a" value="${c.a}"></label>
@@ -2863,10 +2898,15 @@ document.addEventListener('click', e => {
   if(d.chartu){ state.chartU = d.chartu; return render(); }
   const act = d.action, c = charts[state.chartU];
   if(act==='lift-from-enq'){ const x = enq(d.id); state.lift = {...x.lift, rig:0.2, head:3, from:x.from, to:x.to, done:true}; state.liftTab = 'find'; state.liftSel = null; closeSheet(); return setView('lift'); }
-  if(act==='lift-edit'){ state.chartU = d.u; state.liftTab = 'charts'; return render(); }
+  if(act==='lift-edit'){ state.chartU = fleet[d.u].m; state.liftTab = 'charts'; return render(); }
+  if(act==='lc-attach'){ const f = $('#lcPdfNew').files[0]; if(!f){ toast('Choose the PDF or photo first'); return; }
+    charts[state.chartU] = {...(charts[state.chartU]||{}), booms:charts[state.chartU]?.booms||[], rows:charts[state.chartU]?.rows||[], pdf:f.name, h0:2.4, a:0.9, hook:0.3, cfg:'Outriggers fully extended, 360°, full counterweight, on firm level ground', source:'Manufacturer chart attached', transcribed:true, verified:false};
+    toast(`${f.name} attached to ${mName(state.chartU)}. Paste or type the table to start using it.`); return render(); }
+  if(act==='lc-blank'){ charts[state.chartU] = {...(charts[state.chartU]||{}), booms:[10], rows:[{r:3, caps:[null]}], h0:2.4, a:0.9, hook:0.3, cfg:'Outriggers fully extended, 360°, full counterweight, on firm level ground', source:'Typed in', transcribed:true, verified:false, pdf:charts[state.chartU]?.pdf||''};
+    toast('Blank chart started: add boom lengths and radii, then type the capacities'); return render(); }
   if(act==='lift-enq'){ const j = state.lift, x = liftCheck(d.u, j);
     state.ne = neDefaults({need:mOf(d.u).type, k:'wet', from:j.from||addDays(TODAY,7), to:j.to||addDays(TODAY,11),
-      notes:`Lift: ${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high. Crane selector: ${d.u} ${uName(d.u)}, boom ${x.best.L} m, ${Math.ceil(x.best.util*100)}% of chart${charts[d.u].verified?'':charts[d.u].transcribed?' (chart from PDF, not checked)':' (sample chart)'}.`});
+      notes:`Lift: ${num(j.w)} t at ${num(j.r)} m radius, ${num(j.h)} m high. Crane selector: ${d.u} ${uName(d.u)}, boom ${x.best.L} m, ${Math.ceil(x.best.util*100)}% of chart${chartFor(d.u).verified?'':chartFor(d.u).transcribed?' (chart from PDF, not checked)':' (sample chart)'}.`});
     return openNewEnquiry(); }
   if(act==='lc-addrow'){ const last = c.rows[c.rows.length-1]; c.rows.push({r:(last?last.r:0)+2, caps:c.booms.map(()=>null)}); chartChanged(state.chartU); return render(); }
   if(act==='lc-addcol'){ c.booms.push(+(c.booms[c.booms.length-1]+4).toFixed(2)); c.rows.forEach(row=>row.caps.push(null)); chartChanged(state.chartU); return render(); }
@@ -2894,7 +2934,8 @@ document.addEventListener('submit', e => {
     const booms = lines[0].slice(1).map(Number).filter(v=>v>0);
     const rows = lines.slice(1).map(l=>({r:+l[0], caps:booms.map((_,i)=>{ const v = l[i+1]; return v===undefined || v==='' || v==='-' ? null : +v; })})).filter(r=>r.r>0);
     if(!booms.length || !rows.length || rows.some(r=>r.caps.some(v=>v!=null && !(v>0)))){ toast('Could not read the table: check numbers and tabs'); return; }
-    const c = charts[state.chartU]; c.booms = booms; c.rows = rows.sort((x,y)=>x.r-y.r); c.source = 'Pasted table'; chartChanged(state.chartU);
+    const c = charts[state.chartU] || (charts[state.chartU] = {h0:2.4, a:0.9, hook:0.3, cfg:'Outriggers fully extended, 360°, full counterweight, on firm level ground', pdf:'', transcribed:true, verified:false});
+    c.booms = booms; c.rows = rows.sort((x,y)=>x.r-y.r); c.source = 'Pasted table'; c.transcribed = true; chartChanged(state.chartU);
     toast(`Chart replaced: ${booms.length} boom lengths × ${rows.length} radii`); return render(); }
 });
 
@@ -3858,7 +3899,9 @@ function useRealData(D){
   const wipe = o => Object.keys(o).forEach(k => delete o[k]);
   const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   /* machines: only the machinery list */
-  ['WVX 5501','FL-01','FL-02','BL-01','EX-01','EX-02','EX-03','WL-01','GS-01','WPL 8812','BKT 4410'].forEach(u => { delete fleet[u]; delete charts[u]; });
+  ['WVX 5501','FL-01','FL-02','BL-01','EX-01','EX-02','EX-03','WL-01','GS-01','WPL 8812','BKT 4410'].forEach(u => { delete fleet[u]; });
+  /* load charts: keep only charts typed from the company's manufacturer PDFs; sample charts with made-up numbers are removed */
+  Object.keys(charts).forEach(m => { if(!charts[m].transcribed && !charts[m].verified) delete charts[m]; });
   /* customers: the customer list, in its own order */
   wipe(customers);
   const cid = {};
@@ -4051,7 +4094,7 @@ const ZH = {
   // extra machine / place words that appear alone
   "Lorry tipper":"罗里（倒斗）","Truck crane":"汽车吊","Prime mover & lowloader":"拖头和低床拖车","Lowloader":"低床拖车","Palfinger lorry crane":"Palfinger 随车吊",
   "Aisyah binti Karim":"Aisyah binti Karim","Prototype":"原型",
-  "Home":"主页","Truck cranes":"汽车吊","Rough terrain cranes":"越野吊","All terrain cranes":"全地面吊","Lorry cranes":"随车吊","Skylifts":"高空车","With operator":"连司机","Machine only":"不连司机","Group":"类别","All groups":"所有类别","Group and size":"类别和吨位","Half day (morning)":"半天（上午）","Half day (afternoon)":"下午半天","On hire":"出租中","Rental period":"租期","Fixed dates":"固定日期","Day, week or month, with an end date":"按天、周或月，有结束日期","Monthly, no end date":"按月，没有结束日期","Until the customer says stop":"直到顾客说停","estimate":"估计","Not available":"不可用","Jobs":"订单","Schedule":"排程","Machines":"机械","Settings":"设置","Tabs":"分页","Today & coming":"今天和接下来","All jobs":"全部订单","Staff & leave":"员工和请假","Edit order":"编辑订单","Save changes":"保存修改","Sales and balance":"销售额和余额","In Bukku":"在 Bukku","Last job":"最后工作","Cross-hire from another company (同行车)":"同行车（向别家租）","Their price to us (RM)":"同行价格（RM）","From the cross-hire company":"由同行公司提供",
+  "Home":"主页","Not checked":"未查","No chart":"没有吊重表","Add chart":"添加吊重表","PDF received":"已收 PDF","Sample chart: do not use":"示例吊重表：不要使用","Verified":"已核对","From PDF, not checked":"来自 PDF，未核对","Attach":"附上","Save chart from pasted table":"用贴上的表格保存","Or type it in cell by cell":"或逐格输入","Mark verified":"标为已核对","No load chart yet":"还没有吊重表","no load chart yet":"还没有吊重表","Truck cranes":"汽车吊","Rough terrain cranes":"越野吊","All terrain cranes":"全地面吊","Lorry cranes":"随车吊","Skylifts":"高空车","With operator":"连司机","Machine only":"不连司机","Group":"类别","All groups":"所有类别","Group and size":"类别和吨位","Half day (morning)":"半天（上午）","Half day (afternoon)":"下午半天","On hire":"出租中","Rental period":"租期","Fixed dates":"固定日期","Day, week or month, with an end date":"按天、周或月，有结束日期","Monthly, no end date":"按月，没有结束日期","Until the customer says stop":"直到顾客说停","estimate":"估计","Not available":"不可用","Jobs":"订单","Schedule":"排程","Machines":"机械","Settings":"设置","Tabs":"分页","Today & coming":"今天和接下来","All jobs":"全部订单","Staff & leave":"员工和请假","Edit order":"编辑订单","Save changes":"保存修改","Sales and balance":"销售额和余额","In Bukku":"在 Bukku","Last job":"最后工作","Cross-hire from another company (同行车)":"同行车（向别家租）","Their price to us (RM)":"同行价格（RM）","From the cross-hire company":"由同行公司提供",
   "free":"可用","NOT free":"不可用","free, document issue":"可用，文件有问题","Timesheet":"工作单","Morning · 08:00AM - 12:00PM":"上午 · 08:00AM - 12:00PM",
 
   // second pass: hints, sentences and fragments
@@ -4114,6 +4157,7 @@ const ZH_RX = [
   [/\b(\d+) d left\b/g, '剩 $1 天'], [/\((\d+(?:\.\d+)?) (t|m|kVA) or more\)/g, '（$1 $2 或以上）'], [/^Enquiry (?=\S)/g, '询价 '], [/^Quotation (?=\S)/g, '报价 '], [/^Order \(checklist\)/g, '订单（清单）'],
   [/^Edit order (H-\d{4}-\d+)$/g, '编辑订单 $1'], [/^Order edited by (.+?): (.*)\.$/g, '$1 修改了订单：$2。'], [/\bupdated\b/g, '已更新'],
   [/^From search: (.+)$/g, (x,f)=>'按搜索：'+(ZH[f]||f)], [/^Half day \((morning|afternoon)\)/g, (x,w)=>w==='morning'?'半天（上午）':'半天（下午）'], [/^(Truck|Rough terrain|All terrain|Lorry) cranes$/g, x=>ZH[x]||x],
+  [/^(\d+) cranes not checked$/g, '$1 台吊车未查'], [/^Machines:/g, '机械：'], [/cranes with a real chart can lift it/g, '台有真实吊重表的吊车吊得起'], [/(\d+) not checked\b/g, '$1 台未查'],
   [/^Collect\b/g, '收机'], [/^Deliver\b/g, '送机'], [/^Late (\d)/g, '迟到 $1'], [/\btarget (\d+)%/gi, '目标 $1%'], [/\b(\d+) this month\b/g, '本月 $1'], [/\b(\d+) unsigned timesheets?\b/g, '$1 张未签工作单'], [/^Rejected:/g, '被拒：'],
   [/^\+(\d+) more$/g, '+$1 个'], [/\bchecklist (\d+)\/(\d+)\b/g, '清单 $1/$2'], [/^Checklist (\d+) (?:of|\/) (\d+):(.*) still to do$/g, '清单 $1 / $2：$3 还没做'], [/^Closest fit: (.+?) \((\d+(?:\.\d+)?) t\), free and not quoted to anyone else\.$/g, '最合适：$1（$2吨），可用且没报给别人。'],
   [/^Closest fit: (.+?), boom ([\d.]+) m, (\d+)% of chart\.$/g, '最合适：$1，吊臂 $2 米，吊重表的 $3%。'], [/^tip ([\d.]+) m \(needs ([\d.]+) m\), boom angle (\d+)°$/g, '臂尖 $1 米（需要 $2 米），吊臂角度 $3°'],
