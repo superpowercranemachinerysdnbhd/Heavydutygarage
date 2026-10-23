@@ -811,3 +811,6 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - The Supervisor can now be chosen when logging time on a work order (before, only crew roles could), so his own work has a labour cost.
 - The "Type of hours" choices and row tags never show the multiplier, for anyone: "Normal", "Overtime after 5 pm", "Sunday / public holiday"; tags "After 5 pm" / "Sunday / holiday". The multipliers live in Settings and only drive the cost.
 - Migration 0026 undoes 0025 for the Supervisor: overtime is paid again (no_overtime = false; their logged overtime goes back to the Settings overtime rate). The "No overtime pay" tick stays available per person, off by default.
+
+### 58. Reset a forgotten password from the server (Oct 2026)
+- `npm run user:reset-password` (`scripts/reset-password.ts`): lists the Head Manager accounts (name and phone), asks for the phone number and a new password (typed at the prompt, so it is not kept in the shell history). It sets the password, makes the account active and signs that person out everywhere. On the server: `cd /opt/heavyworks/deploy && docker compose exec app npm run -s user:reset-password`. Passwords are stored as one-way hashes: nobody can read them back.
