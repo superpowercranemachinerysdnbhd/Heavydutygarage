@@ -801,3 +801,16 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 ### 55. Edit or remove tasks on a work order (Oct 2026)
 - Each task has **Edit** (wording, and for Supervisor / Head Manager who it is assigned to) and **Remove task** (with a confirmation). The activity log records the change.
 - Supervisor / Head Manager can change any task; crew only the tasks assigned to them. Open work orders only (reopen a completed one to change its tasks).
+
+### 56. Service report: choose whether to show labour hours (Oct 2026)
+- Service report → Include: **Labour hours** next to Photos and Quality checks. On by default; off leaves the Labour section (technicians and hours) out of the report and the print. The choice is kept when recommendations are saved (`labour=0` in the report link).
+
+### 57. No overtime pay for the Supervisor (Oct 2026)
+- `staff.no_overtime`: Team → person → Pay → **No overtime pay**. Hours after 5 pm are still recorded (split as usual, tag "After 5 pm · no OT pay") but cost the normal rate; the Sunday rate still applies. Changing the tick re-costs the overtime hours already logged for that person.
+- Migration 0025 ticks it for the Supervisor role and re-costs their logged overtime at the normal rate.
+- The Supervisor can now be chosen when logging time on a work order (before, only crew roles could), so his own work has a labour cost.
+- The "Type of hours" choices and row tags never show the multiplier, for anyone: "Normal", "Overtime after 5 pm", "Sunday / public holiday"; tags "After 5 pm" / "Sunday / holiday". The multipliers live in Settings and only drive the cost.
+- Migration 0026 undoes 0025 for the Supervisor: overtime is paid again (no_overtime = false; their logged overtime goes back to the Settings overtime rate). The "No overtime pay" tick stays available per person, off by default.
+
+### 58. Reset a forgotten password from the server (Oct 2026)
+- `npm run user:reset-password` (`scripts/reset-password.ts`): lists the Head Manager accounts (name and phone), asks for the phone number and a new password (typed at the prompt, so it is not kept in the shell history). It sets the password, makes the account active and signs that person out everywhere. On the server: `cd /opt/heavyworks/deploy && docker compose exec app npm run -s user:reset-password`. Passwords are stored as one-way hashes: nobody can read them back.

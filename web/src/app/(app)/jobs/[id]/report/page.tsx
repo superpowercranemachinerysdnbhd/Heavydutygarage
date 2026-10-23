@@ -38,7 +38,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const lang: Locale = isLocale(sp.lang) ? sp.lang : isLocale(customer.locale) ? customer.locale : "en";
   const t = translator(lang);
   // Reports carry no prices: work orders are costed internally, not charged from here.
-  const o = { prices: false, photos: sp.photos !== "0", qc: sp.qc !== "0" };
+  const o = { prices: false, photos: sp.photos !== "0", qc: sp.qc !== "0", labour: sp.labour !== "0" };
   const final = job.status === "closed";
   const no = "SR-" + job.jobNo.slice(2);
   const warr = job.category === "WARR";
@@ -58,9 +58,9 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const recIdeas = recommendationIdeas(d, t, lang);
   const stages = (["before", "during", "after", "qc"] as const).map((s) => [s, photos.filter((p) => p.stage === s)] as const).filter(([, l]) => l.length);
   const techs = [lead, ...team].filter(Boolean).map((p) => p!.name);
-  const href = (change: Partial<{ prices: boolean; photos: boolean; qc: boolean; lang: Locale }>) => {
+  const href = (change: Partial<{ prices: boolean; photos: boolean; qc: boolean; labour: boolean; lang: Locale }>) => {
     const v = { ...o, lang, ...change };
-    return `?${new URLSearchParams({ prices: v.prices ? "1" : "0", photos: v.photos ? "1" : "0", qc: v.qc ? "1" : "0", lang: v.lang })}`;
+    return `?${new URLSearchParams({ prices: v.prices ? "1" : "0", photos: v.photos ? "1" : "0", qc: v.qc ? "1" : "0", labour: v.labour ? "1" : "0", lang: v.lang })}`;
   };
   // Machines without an hour meter show a dash instead of "0 h".
   const hm = [job.hourMeterIn ? t("rep.hmIn", { in: job.hourMeterIn.toLocaleString() }) : "", job.signoffHourMeter ? t("rep.hmOut", { out: job.signoffHourMeter.toLocaleString() }) : ""].filter(Boolean).join(" · ") || "—";
@@ -77,10 +77,11 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           <div className="filters"><span className="label">{ui("rep.include")}</span>
             <Link className="btn small" href={href({ photos: !o.photos })} aria-pressed={o.photos}>{o.photos ? "✓ " : ""}{ui("rep.photos")}</Link>
             <Link className="btn small" href={href({ qc: !o.qc })} aria-pressed={o.qc}>{o.qc ? "✓ " : ""}{ui("rep.qc")}</Link>
+            <Link className="btn small" href={href({ labour: !o.labour })} aria-pressed={o.labour}>{o.labour ? "✓ " : ""}{ui("rep.labourToggle")}</Link>
           </div>
           <form action={saveRecommendations} className="stack" style={{ gap: 6 }}>
             <input type="hidden" name="jobId" value={job.id} /><input type="hidden" name="lang" value={lang} />
-            <input type="hidden" name="prices" value={o.prices ? "1" : "0"} /><input type="hidden" name="photos" value={o.photos ? "1" : "0"} /><input type="hidden" name="qc" value={o.qc ? "1" : "0"} />
+            <input type="hidden" name="prices" value={o.prices ? "1" : "0"} /><input type="hidden" name="photos" value={o.photos ? "1" : "0"} /><input type="hidden" name="qc" value={o.qc ? "1" : "0"} /><input type="hidden" name="labour" value={o.labour ? "1" : "0"} />
             <label className="label" htmlFor="recommendations">{ui("rep.recTo")}</label>
             <textarea id="recommendations" name="recommendations" rows={3} defaultValue={rec} />
             {recIdeas.length > 0 && <Suggest target="recommendations" label={ui("rec.ideas")} items={recIdeas} />}
@@ -117,10 +118,10 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           <div className="dt"><table><thead><tr><th>{t("parts.partNo")}</th><th>{t("parts.description")}</th><th className="r">{t("po.qty")}</th>{o.prices && <><th className="r">{t("po.unitPrice")}</th><th className="r">{t("col.amount")}</th></>}</tr></thead>
             <tbody>{issued.map((x) => <tr key={x.id}><td>{x.ref}</td><td>{x.description}</td><td className="r">{x.qty} {x.uom}</td>{o.prices && <><td className="r">{warr ? t("rep.noCharge") : rm(x.unitPrice)}</td><td className="r">{warr ? t("rep.noCharge") : rm(x.qty * x.unitPrice)}</td></>}</tr>)}</tbody></table></div>
         ) : <p>{t("rep.noParts")}</p>}</div>
-        <div><h4>{t("rep.labour")}</h4>{byPerson.size ? (
+        {o.labour && <div><h4>{t("rep.labour")}</h4>{byPerson.size ? (
           <div className="dt"><table><thead><tr><th>{t("col.technician")}</th><th className="r">{t("col.hours")}</th>{o.prices && <th className="r">{t("col.amount")}</th>}</tr></thead>
             <tbody>{[...byPerson].map(([n, h]) => <tr key={n}><td>{n}</td><td className="r">{h}</td>{o.prices && <td className="r">{warr ? t("rep.noCharge") : rm(h * labourRate())}</td>}</tr>)}</tbody></table></div>
-        ) : <p>—</p>}</div>
+        ) : <p>—</p>}</div>}
         {o.prices && <div className="tot"><span>{t("rep.parts")}</span><b>{warr ? t("rep.noCharge") : rm(partsTotal)}</b><span>{t("rep.labourHrs", { h: hours })}</span><b>{warr ? t("rep.noCharge") : rm(labourTotal)}</b><span><b>{t("rep.total")}</b></span><b>{rm(partsTotal + labourTotal)}</b></div>}
         {o.photos && stages.length > 0 && <div><h4>{t("rep.photos")}</h4>{stages.map(([s, l]) => (
           <div key={s} className="photos" style={{ marginBottom: 8 }}>{l.map((p) => <figure key={p.id} className="photo"><img src={`/api/photos/${p.id}`} alt={p.caption ?? stageLabel(t, s)} /><figcaption><span className="stage">{stageLabel(t, s)}</span> {p.caption}</figcaption></figure>)}</div>

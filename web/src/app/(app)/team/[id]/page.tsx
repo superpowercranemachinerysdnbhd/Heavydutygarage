@@ -14,7 +14,7 @@ import StaffFields, { PayInputs } from "@/components/StaffFields";
 import { HISTORY_START, payHistory } from "@/lib/pay-server";
 import { settings } from "@/lib/lists";
 import SubmitButton from "@/components/SubmitButton";
-import { addCert, changePay, mergeInto, removeCert, removePayChange, resetPassword, setActive, updateStaff } from "../actions";
+import { addCert, changePay, mergeInto, removeCert, removePayChange, resetPassword, setActive, setOvertimeRule, updateStaff } from "../actions";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("team.title") };
@@ -54,7 +54,7 @@ export default async function StaffPage({ params, searchParams }: { params: Prom
         <div><span className="label">{t("team.emergency")}</span><b>{p.emergencyContact ?? "—"}</b></div>
         <div><span className="label">{t("s.language")}</span><b>{isLocale(p.locale) ? langLabel(t, p.locale) : p.locale}</b></div>
         {can(user.role, "money.labourCost") && <div><span className="label">{t("team.payRate")}</span><b className="num">{t("team.perHour", { rm: rm(Number(p.payRate)) })}</b>
-          <small className="muted">{p.monthlySalary ? `${t("team.salaryLine", { rm: rm(Number(p.monthlySalary)), h: Number(p.monthlyHours) })} · ` : ""}{t("team.otLine", { ot: rm(Number(p.payRate) * settings().otMultiplier), sun: rm(Number(p.payRate) * settings().sundayMultiplier) })}</small></div>}
+          <small className="muted">{p.monthlySalary ? `${t("team.salaryLine", { rm: rm(Number(p.monthlySalary)), h: Number(p.monthlyHours) })} · ` : ""}{p.noOvertime ? t("team.noOtLine", { sun: rm(Number(p.payRate) * settings().sundayMultiplier) }) : t("team.otLine", { ot: rm(Number(p.payRate) * settings().otMultiplier), sun: rm(Number(p.payRate) * settings().sundayMultiplier) })}</small></div>}
         <div style={{ gridColumn: "1/-1" }}><span className="label">{t("team.skills")}</span><div className="tags">{p.skills.map((s) => <span key={s} className="tag">{s}</span>)}{p.skills.length === 0 && "—"}</div></div>
       </div></div>
 
@@ -91,10 +91,15 @@ export default async function StaffPage({ params, searchParams }: { params: Prom
               <tr key={h.id} className={current ? "row-sel" : ""}>
                 <td>{h.effectiveFrom === HISTORY_START ? t("pay.start") : fmtDate(h.effectiveFrom, true, locale)}{current && <> <span className="pill ok">{t("pay.current")}</span></>}{h.effectiveFrom > d && <> <span className="pill info">{t("pay.upcoming")}</span></>}{h.note && <><br /><small className="muted">{h.note}</small></>}</td>
                 <td className="r num">{h.monthlySalary ? rm(Number(h.monthlySalary)) : "—"}</td><td className="r num">{h.monthlySalary ? Number(h.monthlyHours) : "—"}</td>
-                <td className="r num">{rm(r)}</td><td className="r num">{rm(r * settings().otMultiplier)}</td><td className="r num">{rm(r * settings().sundayMultiplier)}</td>
+                <td className="r num">{rm(r)}</td><td className="r num">{p.noOvertime ? "—" : rm(r * settings().otMultiplier)}</td><td className="r num">{rm(r * settings().sundayMultiplier)}</td>
                 <td className="r">{i < history.length - 1 && <form action={removePayChange}><input type="hidden" name="id" value={id} /><input type="hidden" name="rowId" value={h.id} /><SubmitButton className="linkbtn muted" confirm={t("pay.removeConfirm")}>{t("common.remove")}</SubmitButton></form>}</td>
               </tr>); })}</tbody>
           </table></div>
+          <form action={setOvertimeRule} className="filters" style={{ padding: "10px 14px", borderTop: "1px solid var(--line)" }}>
+            <input type="hidden" name="id" value={id} />
+            <label className="set-check"><input type="checkbox" name="noOvertime" defaultChecked={p.noOvertime} /> <span><b>{t("pay.noOt")}</b><br /><small className="muted">{t("pay.noOtHelp")}</small></span></label>
+            <SubmitButton className="btn small">{t("common.save")}</SubmitButton>
+          </form>
           <form action={changePay} className="form" style={{ padding: 14, borderTop: "1px solid var(--line)" }}>
             <input type="hidden" name="id" value={id} />
             <label>{t("pay.effectiveFrom")}<input type="date" name="effectiveFrom" required defaultValue={`${d.slice(0, 7)}-01`} /></label>

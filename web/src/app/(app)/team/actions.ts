@@ -9,6 +9,7 @@ import { hashPassword, passwordProblem } from "@/lib/password";
 import { normalisePhone } from "@/lib/phone";
 import { isRole } from "@/lib/queries";
 import { hourlyFromSalary } from "@/lib/pay";
+import { loadLists } from "@/lib/lists-server";
 import { fmtDate } from "@/lib/format";
 import { ensurePayBaseline, payHistory, syncCurrentPay } from "@/lib/pay-server";
 import { isLocale, translator, type MessageKey, type Vars } from "@/i18n";
@@ -144,4 +145,15 @@ export async function removePayChange(form: FormData) {
   await syncCurrentPay(id);
   revalidatePath(`/team/${id}`);
   go(`/team/${id}`, "ok", "pay.removed");
+}
+
+/** Paid overtime or not (e.g. the Supervisor is not). Changes the cost of overtime hours already logged too. */
+export async function setOvertimeRule(form: FormData) {
+  const { go } = await boss();
+  const id = Number(form.get("id")), noOvertime = form.get("noOvertime") === "on";
+  await db.update(schema.staff).set({ noOvertime }).where(eq(schema.staff.id, id));
+  const s = (await loadLists()).settings;
+  await db.update(schema.labourEntries).set({ rateMult: String(noOvertime ? 1 : s.otMultiplier) }).where(and(eq(schema.labourEntries.staffId, id), eq(schema.labourEntries.rateType, "ot")));
+  revalidatePath(`/team/${id}`);
+  go(`/team/${id}`, "ok", noOvertime ? "pay.noOtSaved" : "pay.otSaved");
 }

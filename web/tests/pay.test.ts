@@ -41,3 +41,11 @@ test("rate on a day follows the pay history", async () => {
   assert.equal(rateOn([{ effectiveFrom: "2026-10-01", hourlyRate: 10.77 }], "2026-01-01", 0), 10.77);
   assert.equal(rateOn([], "2026-01-01", 8), 8);
 });
+
+test("no overtime pay: overtime hours at the normal rate, Sunday unchanged", async () => {
+  const { rateMultiplier } = await import("../src/lib/pay");
+  const s = { otMultiplier: 1.5, sundayMultiplier: 2 };
+  assert.equal(rateMultiplier("ot", s, true), 1);
+  assert.equal(rateMultiplier("sunday", s, true), 2);
+  assert.equal(rateMultiplier("ot", s, false), 1.5);
+});

@@ -395,12 +395,12 @@ export async function logLabour(form: FormData) {
     if (!split) back(user, jobId, { error: "lab.err.times", hash: "labour" });
     if (workDate > today()) back(user, jobId, { error: "err.futureDate" });
     if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
-    const [s] = await db.select({ name: schema.staff.name }).from(schema.staff).where(eq(schema.staff.id, staffId));
+    const [s] = await db.select({ name: schema.staff.name, noOvertime: schema.staff.noOvertime }).from(schema.staff).where(eq(schema.staff.id, staffId));
     if (!s) back(user, jobId, { error: "err.choosePerson" });
     const note = str(form, "note") || null, sunday = rateTypeFor("normal", workDate) === "sunday", ot = settings().otStart;
     const parts = sunday ? [{ type: "sunday" as const, hours: split.normal + split.ot, a: from, b: to }]
       : [{ type: "normal" as const, hours: split.normal, a: from, b: split.ot ? ot : to }, { type: "ot" as const, hours: split.ot, a: split.normal ? ot : from, b: to }].filter((p) => p.hours > 0);
-    await db.insert(schema.labourEntries).values(parts.map((p) => ({ jobId, staffId, workDate, hours: String(p.hours), rateType: p.type, rateMult: String(rateMultiplier(p.type, settings())),
+    await db.insert(schema.labourEntries).values(parts.map((p) => ({ jobId, staffId, workDate, hours: String(p.hours), rateType: p.type, rateMult: String(rateMultiplier(p.type, settings(), s.noOvertime)),
       timeFrom: p.a, timeTo: p.b, note, loggedBy: user.id })));
     await ensureOnTeam(jobId, staffId, job.leadId);
     await addActivity(jobId, user.id, "act.labour", { hours: split.normal + split.ot, who: s.name });
@@ -410,10 +410,10 @@ export async function logLabour(form: FormData) {
   if (!(hours > 0 && hours <= 24)) back(user, jobId, { error: "err.hours" });
   if (workDate > today()) back(user, jobId, { error: "err.futureDate" });
   if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
-  const [s] = await db.select({ name: schema.staff.name }).from(schema.staff).where(eq(schema.staff.id, staffId));
+  const [s] = await db.select({ name: schema.staff.name, noOvertime: schema.staff.noOvertime }).from(schema.staff).where(eq(schema.staff.id, staffId));
   if (!s) back(user, jobId, { error: "err.choosePerson" });
   const rateType = rateTypeFor(str(form, "rateType"), workDate);
-  await db.insert(schema.labourEntries).values({ jobId, staffId, hours: String(hours), workDate, rateType, rateMult: String(rateMultiplier(rateType, settings())), note: str(form, "note") || null, loggedBy: user.id });
+  await db.insert(schema.labourEntries).values({ jobId, staffId, hours: String(hours), workDate, rateType, rateMult: String(rateMultiplier(rateType, settings(), s.noOvertime)), note: str(form, "note") || null, loggedBy: user.id });
   await ensureOnTeam(jobId, staffId, job.leadId);
   await addActivity(jobId, user.id, "act.labour", { hours, who: s.name });
   back(user, jobId, { ok: "ok.timeLogged", hash: "labour" });
@@ -439,11 +439,11 @@ export async function updateLabour(form: FormData) {
   const staffId = can(user.role, "job.assign") && num(form, "staffId") > 0 ? num(form, "staffId") : e.staffId;
   if (!(hours > 0 && hours <= 24)) back(user, job.id, { error: "err.hours", hash: "labour" });
   if (!/^\d{4}-\d{2}-\d{2}$/.test(workDate) || workDate > today()) back(user, job.id, { error: "err.futureDate", hash: "labour" });
-  const [s] = await db.select({ name: schema.staff.name }).from(schema.staff).where(eq(schema.staff.id, staffId));
+  const [s] = await db.select({ name: schema.staff.name, noOvertime: schema.staff.noOvertime }).from(schema.staff).where(eq(schema.staff.id, staffId));
   if (!s) back(user, job.id, { error: "err.choosePerson", hash: "labour" });
-  // The multiplier is kept from when it was logged unless the type of hour changes.
+  // The multiplier is kept from when it was logged unless the type of hour or the person changes.
   const rateType = rateTypeFor(str(form, "rateType") || e.rateType, workDate);
-  const rateMult = rateType === e.rateType ? e.rateMult : String(rateMultiplier(rateType, settings()));
+  const rateMult = rateType === e.rateType && staffId === e.staffId ? e.rateMult : String(rateMultiplier(rateType, settings(), s.noOvertime));
   await db.update(schema.labourEntries).set({ hours: String(hours), workDate, staffId, rateType, rateMult, note: str(form, "note") || null }).where(eq(schema.labourEntries.id, e.id));
   if (staffId !== e.staffId) await ensureOnTeam(job.id, staffId, job.leadId);
   await addActivity(job.id, user.id, "act.labourEdit", { who: s.name, from: Number(e.hours), hours, name: user.name });
@@ -538,7 +538,7 @@ export async function saveRecommendations(form: FormData) {
   await access(jobId, user);
   await db.update(jobs).set({ recommendations: str(form, "recommendations") }).where(eq(jobs.id, jobId));
   revalidatePath(`/jobs/${jobId}/report`);
-  const q = new URLSearchParams({ prices: str(form, "prices"), photos: str(form, "photos"), qc: str(form, "qc"), lang: str(form, "lang"), ok: translator(user.locale)("ok.recSaved") });
+  const q = new URLSearchParams({ prices: str(form, "prices"), photos: str(form, "photos"), qc: str(form, "qc"), labour: str(form, "labour"), lang: str(form, "lang"), ok: translator(user.locale)("ok.recSaved") });
   redirect(`/jobs/${jobId}/report?${q}`);
 }
 
