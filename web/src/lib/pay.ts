@@ -10,9 +10,10 @@ export function hourlyFromSalary(salary: number, hoursPerMonth: number): number 
   return Math.round((salary / hoursPerMonth) * 100) / 100;
 }
 
-/** Multiplier for a type of hour: normal 1, overtime (after 5 pm) and Sunday / public holiday from Settings. */
-export function rateMultiplier(type: RateType, s: { otMultiplier: number; sundayMultiplier: number }): number {
-  return type === "ot" ? s.otMultiplier : type === "sunday" ? s.sundayMultiplier : 1;
+/** Multiplier for a type of hour: normal 1, overtime (after 5 pm) and Sunday / public holiday from Settings.
+ *  Someone not paid overtime (`noOvertime`) gets 1 for overtime hours. */
+export function rateMultiplier(type: RateType, s: { otMultiplier: number; sundayMultiplier: number }, noOvertime = false): number {
+  return type === "ot" ? (noOvertime ? 1 : s.otMultiplier) : type === "sunday" ? s.sundayMultiplier : 1;
 }
 
 /** Work on a Sunday is always paid at the Sunday rate; otherwise what was chosen. */

@@ -804,3 +804,8 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 
 ### 56. Service report: choose whether to show labour hours (Oct 2026)
 - Service report → Include: **Labour hours** next to Photos and Quality checks. On by default; off leaves the Labour section (technicians and hours) out of the report and the print. The choice is kept when recommendations are saved (`labour=0` in the report link).
+
+### 57. No overtime pay for the Supervisor (Oct 2026)
+- `staff.no_overtime`: Team → person → Pay → **No overtime pay**. Hours after 5 pm are still recorded (split as usual, tag "After 5 pm · no OT pay") but cost the normal rate; the Sunday rate still applies. Changing the tick re-costs the overtime hours already logged for that person.
+- Migration 0025 ticks it for the Supervisor role and re-costs their logged overtime at the normal rate.
+- The Supervisor can now be chosen when logging time on a work order (before, only crew roles could), so his own work has a labour cost.

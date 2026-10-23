@@ -77,6 +77,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const vendorLate = job.outsourced && !job.backAt && job.expectedBackAt && job.expectedBackAt < today() ? daysBetween(job.expectedBackAt, today()) : 0;
   const q2 = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
   const crew = staffList.filter((s) => CREW_ROLES.includes(s.role));
+  // Whose time can be logged: the crew and the Supervisor (who also works on machines; not paid overtime).
+  const workers = staffList.filter((s) => CREW_ROLES.includes(s.role) || s.role === "supervisor");
   // Time entries: supervisors change any (also after completion); crew their own while the job is open.
   const canEditLabour = (l: { staffId: number; loggedBy: number | null }) =>
     (open || can(user.role, "job.editDetails")) && (can(user.role, "job.assign") || l.staffId === user.id || l.loggedBy === user.id);
@@ -233,14 +235,14 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {job.outsourced && <small className="muted">{t("out.labourHint")}</small>}
             {labour.length > 0 && (
               <div className="tbl-wrap"><table><thead><tr><th>{t("col.date")}</th><th>{t("col.person")}</th><th>{t("col.note")}</th><th className="r">{t("col.hours")}</th>{can(user.role, "money.labourCost") && <th className="r">{t("col.labourCost")}</th>}<th></th></tr></thead>
-                <tbody>{labour.map((l) => <tr key={l.id} className={editing?.id === l.id ? "row-sel" : ""}><td className="num">{fmtDate(l.workDate, false, locale)}{l.timeFrom && <><br /><small className="muted">{l.timeFrom}–{l.timeTo}</small></>}</td><td>{l.name}</td><td>{l.note}</td><td className="r num">{Number(l.hours)}{l.rateType !== "normal" && <><br /><span className="pill warn">{t(`lab.tag.${l.rateType}` as MessageKey, { x: Number(l.rateMult) })}</span></>}</td>{can(user.role, "money.labourCost") && <td className="r num">{rm(lineCost(l))}</td>}
+                <tbody>{labour.map((l) => <tr key={l.id} className={editing?.id === l.id ? "row-sel" : ""}><td className="num">{fmtDate(l.workDate, false, locale)}{l.timeFrom && <><br /><small className="muted">{l.timeFrom}–{l.timeTo}</small></>}</td><td>{l.name}</td><td>{l.note}</td><td className="r num">{Number(l.hours)}{l.rateType !== "normal" && <><br /><span className={`pill ${Number(l.rateMult) > 1 ? "warn" : "info"}`}>{Number(l.rateMult) > 1 ? t(`lab.tag.${l.rateType}` as MessageKey, { x: Number(l.rateMult) }) : t("lab.tag.noExtra")}</span></>}</td>{can(user.role, "money.labourCost") && <td className="r num">{rm(lineCost(l))}</td>}
                   <td className="r">{canEditLabour(l) && <Link className="btn small" href={`/jobs/${job.id}?labour=${l.id}#labour`}>{t("lab.edit")}</Link>}</td></tr>)}</tbody></table></div>
             )}
             {editing && (
               <div className="lab-edit">
                 <form action={A.updateLabour} className="filters">
                   {hidden("jobId", job.id)}{hidden("entryId", editing.id)}
-                  {sup ? <select className="field" name="staffId" aria-label={t("col.person")} defaultValue={editing.staffId}>{[...crew, ...(crew.some((s) => s.id === editing.staffId) ? [] : [{ id: editing.staffId, name: editing.name }])].map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select> : <span className="muted">{editing.name}</span>}
+                  {sup ? <select className="field" name="staffId" aria-label={t("col.person")} defaultValue={editing.staffId}>{[...workers, ...(workers.some((s) => s.id === editing.staffId) ? [] : [{ id: editing.staffId, name: editing.name }])].map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select> : <span className="muted">{editing.name}</span>}
                   <input type="date" name="workDate" defaultValue={editing.workDate} max={today()} aria-label={t("col.date")} required />
                   <input type="number" name="hours" min="0.25" max="24" step="0.25" defaultValue={Number(editing.hours)} style={{ width: 90 }} required aria-label={t("col.hours")} />
                   {rateSelect(editing.rateType)}
@@ -254,7 +256,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {open && (
               <form action={A.logLabour} className="filters">
                 {hidden("jobId", job.id)}
-                {sup ? <select className="field" name="staffId" aria-label={t("col.person")} defaultValue={job.leadId ?? undefined}>{crew.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select> : <span className="muted">{user.name}</span>}
+                {sup ? <select className="field" name="staffId" aria-label={t("col.person")} defaultValue={job.leadId ?? undefined}>{workers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select> : <span className="muted">{user.name}</span>}
                 <input type="date" name="workDate" defaultValue={today()} max={today()} aria-label={t("col.date")} />
                 <LabourHours otStart={settings().otStart} rateSelect={rateSelect()} />
                 <input type="text" name="note" placeholder={t("job.whatDone")} style={{ flex: "1 1 160px" }} aria-label={t("col.note")} />
