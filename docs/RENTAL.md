@@ -868,6 +868,35 @@ The customer page now says "Sales and balance: in Bukku". The rental system stil
 
 **Monthly rates for every machine.** Some machines have no monthly rate yet: lorry cranes, skylifts, forklifts, KR-300, TL-200. For now they are estimated at 13 × the day rate (the 25 t rate is 18,500 ÷ 1,400 = 13.2) and marked "estimate" on the Rates page until the Head Manager sets them.
 
+**Always with operator.** The company supplies the operator on every hire, so the screens no longer ask for or show "wet / dry hire".
+- **Orders and quotations** show how the hire is charged: Daily, Half day (morning / afternoon), Monthly.
+- **Quotations** still print "WITH OPERATOR", as on QT-01094.
+
+**Machine groups by crane type.**
+- **The groups:** Truck cranes, Rough terrain cranes, All terrain cranes, Lorry cranes, Skylifts, Forklifts.
+- **Within a group:** machines sit by exact size, for example *Rough terrain crane 25 t: BPN 8918, VNB 2138, VNC 2138*.
+- **Where the groups are used:** Machines, Planner, Availability, and the Home utilisation panel.
+- **Search understands the type:**
+
+  | Search | Finds |
+  |---|---|
+  | "25t rough terrain" or "RT 25t" | the three SR-250V6 first, then the bigger rough terrain cranes |
+  | "truck crane 50t" | 50 t truck cranes and bigger |
+  | "all terrain" | all terrain cranes |
+  | "25t crane" | every crane type of 25 t and above |
+
+**Load charts are kept per model.**
+- One chart covers every machine of that model. The SR-250V6 chart is used for BPN 8918, VNB 2138 and VNC 2138; the TL-250-1, -2 and -3 are separate models.
+- **Lift check covers every crane in the machinery list.** Cranes whose model has no chart yet are listed as "Not checked" with **Add chart**. They are never silently left out.
+- **The Load charts tab** lists each crane model with its plates and status: Verified, From PDF not checked, PDF received, or No chart.
+- **Adding a chart for a model:**
+  1. attach the manufacturer's PDF or photo;
+  2. paste the table from Excel, or type it in cell by cell;
+  3. the Head Manager checks it against the PDF and marks it verified.
+- **With the company's own data, sample charts (made-up numbers) are removed.** Only the charts typed from the manufacturer PDFs remain: NK-160B-2, NK-200E-III, SL-700R and KA-1300SL.
+- **In the example data, sample charts are shown greyed** and are never the closest fit.
+- **A chart can carry a warning.** The SL-700 chart was typed from the SL-700R PDF, while the machinery list says SL700L, so it is flagged until confirmed.
+
 ## 31. Open questions for the owner
 
 **From WORK_ORDER_2026.xlsx:**
