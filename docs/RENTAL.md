@@ -897,6 +897,27 @@ The customer page now says "Sales and balance: in Bukku". The rental system stil
 - **In the example data, sample charts are shown greyed** and are never the closest fit.
 - **A chart can carry a warning.** The SL-700 chart was typed from the SL-700R PDF, while the machinery list says SL700L, so it is flagged until confirmed.
 
+**Daily income (Home → Daily income; Head Manager and Supervisor).**
+
+Bukku shows money only when an invoice is issued, and a monthly rental is invoiced once a month. So the rental system shows the income each day's work earned, before SST.
+
+**How each kind of job is counted:**
+
+| Kind of job | Counted as |
+|---|---|
+| Daily and half-day jobs | The work-order price on their day. If the work order has no price, the rate card (day, half-day or Sunday rate), marked "rate card". |
+| Overtime | Added from the signed timesheet. |
+| Monthly rentals | Spread over every day the machine is on hire: monthly rate ÷ days in that month (for example RM 18,500 ÷ 31 = RM 597 a day in October). A fixed-period price from an imported work order is divided over its own days. A monthly hire with no end date keeps counting until off-hire. |
+| Cross-hire | What we charge. The supplier's price is shown as a cost when it is recorded. The margin is worked out only from jobs that have the supplier's price, and says how many those are. |
+
+**The page shows:**
+- **Totals:** earned this month to date, today, the average per working day, the share from monthly rentals, the cross-hire margin, and work earned but with no invoice no. yet.
+- **A bar per day**, split into daily jobs, monthly rentals and cross-hire. Booked days ahead are faded. A dashed line marks today.
+- **The chosen day's jobs:** customer, machine, how each amount is counted, and the invoice no.
+- **A table of every day of the month,** with **Copy for Excel**.
+
+The Home dashboard has an "Earned, month to date · today" tile that opens this page.
+
 ## 31. Open questions for the owner
 
 **From WORK_ORDER_2026.xlsx:**
