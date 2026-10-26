@@ -720,6 +720,12 @@ html[lang^="zh"] .navh, html[lang^="zh"] th, html[lang^="zh"] .label{letter-spac
 tr.nochart td{background:var(--surface-2)}
 .nclist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px 14px;margin-top:8px}
 .nclist span{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+.incchart .s1{fill:var(--s1)} .incchart .s2{fill:var(--s2)} .incchart .s3{fill:var(--s3)} .incchart .fut{opacity:.35}
+.incchart .selday{fill:none;stroke:var(--ink);stroke-width:1.5;rx:3}
+.incchart .todayln{stroke:var(--accent);stroke-width:1.5;stroke-dasharray:4 3}
+.sw.s1{background:var(--s1)} .sw.s2{background:var(--s2)} .sw.s3{background:var(--s3)}
+tr.futrow td{color:var(--muted)} tr.seld td{background:var(--accent-soft)} tr.sumrow td{border-top:2px solid var(--line);background:var(--surface-2)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- Private company data, published only with the private page and never committed (see .gitignore). Without it the page shows example data. -->
@@ -762,6 +768,7 @@ tr.nochart td{background:var(--surface-2)}
 
 <main class="wrap">
   <section class="view" id="v-dashboard"></section>
+  <section class="view" id="v-income" hidden></section>
   <section class="view" id="v-today" hidden></section>
   <section class="view" id="v-enquiries" hidden></section>
   <section class="view" id="v-customers" hidden></section>
@@ -1476,9 +1483,9 @@ if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.
 
 /* Seven pages; related screens are tabs inside a page. Billing, revenue and balances live in Bukku. */
 const PAGES = [
-  {k:'home', views:['dashboard']}, {k:'jobs', views:['dispatch','hires','enquiries']}, {k:'schedule', views:['planner','avail','calendar']},
+  {k:'home', views:['dashboard','income']}, {k:'jobs', views:['dispatch','hires','enquiries']}, {k:'schedule', views:['planner','avail','calendar']},
   {k:'customers', views:['customers']}, {k:'machines', views:['fleet','lift','fuel']}, {k:'staff', views:['staff','timesheets']}, {k:'settings', views:['rates','connect']}];
-const VIEW_TAB = {dispatch:'Today & coming', hires:'All jobs', enquiries:'Enquiries', planner:'Planner', avail:'Availability', calendar:'Calendar', fleet:'Machines', lift:'Lift check', fuel:'Fuel', staff:'Staff & leave', timesheets:'Timesheets', rates:'Rates', connect:'Connections'};
+const VIEW_TAB = {dashboard:'Dashboard', income:'Daily income', dispatch:'Today & coming', hires:'All jobs', enquiries:'Enquiries', planner:'Planner', avail:'Availability', calendar:'Calendar', fleet:'Machines', lift:'Lift check', fuel:'Fuel', staff:'Staff & leave', timesheets:'Timesheets', rates:'Rates', connect:'Connections'};
 function setView(v){
   const allowed = ROLE_VIEWS[role()];
   if(!allowed.includes(v)) v = ({today:'dispatch', transport:'dispatch', billing:'hires', reports:'dashboard'})[v] || v;
@@ -1493,7 +1500,7 @@ function setView(v){
   try{ localStorage.setItem('spc-view', v); }catch(e){}
   render();
 }
-function render(){ ({dashboard:renderDashboard,avail:renderAvail2,dispatch:renderDispatch,today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet2,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
+function render(){ ({dashboard:renderDashboard,income:renderIncome,avail:renderAvail2,dispatch:renderDispatch,today:renderToday,enquiries:renderEnquiries,fuel:renderFuel,connect:renderConnect,lift:renderLift,customers:renderCustomers,calendar:renderCalendar,staff:renderStaff,planner:renderPlanner,hires:renderHires,fleet:renderFleet2,transport:renderTransport,timesheets:renderTimesheets,billing:renderBilling,rates:renderRates,reports:renderReports})[state.view](); }
 function rerender(){ render(); refreshSheet(); }
 
 /* ---------- Today ---------- */
@@ -2197,8 +2204,8 @@ Object.entries({HM:'012-300 1001',S1:'012-388 2201',S2:'012-660 3317',S3:'016-22
 const OFFICE = ['HM','S1','S2','S3'], FIELD = ['O1','O2','O3','O4','O5','O6','O7','O8','O9','D1','D2'];
 const meStaff = () => ({boss:'HM',supervisor:'S1',sales:'S2'})[role()] || state.me;
 const ROLE_VIEWS = {
-  boss:['dashboard','dispatch','hires','enquiries','planner','avail','calendar','customers','fleet','lift','fuel','staff','timesheets','rates','connect'],
-  supervisor:['dashboard','dispatch','hires','enquiries','planner','avail','calendar','customers','fleet','lift','fuel','staff','timesheets','rates'],
+  boss:['dashboard','income','dispatch','hires','enquiries','planner','avail','calendar','customers','fleet','lift','fuel','staff','timesheets','rates','connect'],
+  supervisor:['dashboard','income','dispatch','hires','enquiries','planner','avail','calendar','customers','fleet','lift','fuel','staff','timesheets','rates'],
   sales:['dashboard','dispatch','hires','enquiries','planner','avail','calendar','customers','fleet','lift'],
   operator:['timesheets'],
 };
@@ -3180,6 +3187,85 @@ function barChart(ms){
     <text x="${x(ms.length-2)}" y="${y(ms[ms.length-2].rev)-6}" text-anchor="middle" class="endv">${RM0(ms[ms.length-2].rev)}</text>
   </svg>`;
 }
+/* ---------- Daily income: what the work earned each day (before SST) ----------
+   Daily and half-day jobs count on their day at the work-order price, or the rate card when there is none.
+   Monthly rentals are spread over every day on hire: monthly rate ÷ days in that month (a fixed-period price ÷ its days).
+   Cross-hire counts what we charge, less the supplier's price. Invoices and payments stay in Bukku. */
+function incomeOn(d){
+  const out = [];
+  hires.forEach(h => { if(['Quotation','Lost'].includes(h.status)) return;
+    h.lines.forEach(l => {
+      const s = l.on || l.from, e = l.off || lineEnd(l); if(d < s || d > e) return;
+      const done = d <= TODAY && ['On hire','Off-hire called','Returned','Closed'].includes(h.status), r = rate(lineModel(l), l.k) || {};
+      let amt = 0, how = '';
+      if(l.basis==='month'){
+        const fixed = l.price && l.priceTotal && !l.open, n = fixed ? daysBetween(l.from, lineEnd(l))+1 : dim(d);
+        amt = (fixed ? l.price : (l.price || r.month || 0)) / n; how = fixed ? `${RM0(l.price)} for ${n} days ÷ ${n}` : `${RM0(l.price||r.month||0)} a month ÷ ${n} days`;
+      } else if(l.basis==='week'){ amt = (l.price || r.week || 0) / 7; how = `${RM0(l.price||r.week||0)} a week ÷ 7`; }
+      else if(l.basis==='hour'){ const ts = sheets.find(t=>t.hire===h.id && t.u===l.u && t.d===d), hrs = ts ? Math.max(ts.work, r.minH||0) : Math.max(8, r.minH||0);
+        if(dow(d)===0 && !ts) return; amt = (l.price || r.hr || 0) * hrs; how = `${num(hrs)} h × ${RM0(l.price||r.hr||0)}`; }
+      else { if(dow(d)===0 && daysBetween(l.from, lineEnd(l))>0 && !sheets.some(t=>t.hire===h.id && t.d===d)) return;
+        const half = l.slot && l.slot!=='full', sun = dow(d)===0;
+        amt = l.price || (half ? r.half : sun && r.sun ? r.sun : r.day) || 0; how = l.price ? 'work-order price' : half ? 'half-day rate' : sun ? 'Sunday rate' : 'day rate'; }
+      const ts = sheets.find(t=>t.hire===h.id && t.u===l.u && t.d===d);
+      const ot = ts && l.k==='wet' && l.basis==='day' ? Math.max(0, ts.work+ts.standby+ts.bd-RULES.dayHrs) * (r.ot||0) : 0;
+      const peer = l.src==='peer', cost = peer ? (l.peer?.cost||0) * (l.basis==='month' ? 1/dim(d) : l.basis==='week' ? 1/7 : 1) : 0;
+      out.push({h, l, d, kind: peer ? 'peer' : l.basis==='month' ? 'month' : 'day', amt: amt + ot, ot, cost, costKnown: peer && cost > 0, est: !l.price, how: how + (ot ? ` + ${RM0(ot)} overtime` : '') + (peer && !cost ? ' · supplier price not recorded' : ''), done, invoiced: !!h.inv || h.status==='Closed'});
+    }); });
+  return out;
+}
+function renderIncome(){
+  const m = state.incM || TODAY.slice(0,7), first = m+'-01', n = dim(first), days = [...Array(n)].map((_,i)=>`${m}-${String(i+1).padStart(2,'0')}`);
+  const rows = days.map(d => { const xs = incomeOn(d), sumK = k => sum(xs.filter(x=>x.kind===k).map(x=>x.amt));
+    return {d, xs, day:sumK('day'), month:sumK('month'), peer:sumK('peer'), cost:sum(xs.map(x=>x.cost)), total:sum(xs.map(x=>x.amt)), jobs:xs.length, past: d <= TODAY}; });
+  const past = rows.filter(r=>r.past), fut = rows.filter(r=>!r.past);
+  const T = k => sum(past.map(r=>r[k])), tot = T('total'), work = past.filter(r=>dow(r.d)!==0).length || 1;
+  const pastXs = past.flatMap(r=>r.xs), notInv = sum(pastXs.filter(x=>!x.invoiced).map(x=>x.amt)), booked = sum(fut.map(r=>r.total));
+  const pk = pastXs.filter(x=>x.costKnown), pAll = pastXs.filter(x=>x.kind==='peer'), pkM = sum(pk.map(x=>x.amt-x.cost)), pkC = sum(pk.map(x=>x.amt));
+  const estAmt = sum(pastXs.filter(x=>x.est).map(x=>x.amt));
+  const sel = rows.find(r=>r.d===state.incDay) || rows.find(r=>r.d===TODAY) || past[past.length-1] || rows[0];
+  const W = 760, H = 220, L = 52, B = 26, Tp = 12, bw = (W-L-8)/n, max = Math.max(1, ...rows.map(r=>r.total));
+  const y = v => Tp + (H-Tp-B) * (1 - v/max), seg = (r, i, k, base, cls) => { const v = r[k]; if(!v) return ''; return `<rect x="${L+i*bw+2}" y="${y(base+v)}" width="${bw-4}" height="${y(base)-y(base+v)}" class="${cls}${r.past?'':' fut'}"/>`; };
+  const ticks = [0, max/2, max].map(v=>`<line x1="${L}" x2="${W-8}" y1="${y(v)}" y2="${y(v)}" class="gl"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" class="ax">${v>=1000?Math.round(v/1000)+'k':Math.round(v)}</text>`).join('');
+  const chart = `<svg viewBox="0 0 ${W} ${H}" class="dchart incchart" role="img" aria-label="Income by day, ${MON[+m.slice(5)-1]} ${m.slice(0,4)}">${ticks}
+    ${rows.map((r,i)=>`<g data-incday="${r.d}" style="cursor:pointer">${seg(r,i,'day',0,'s1')}${seg(r,i,'month',r.day,'s2')}${seg(r,i,'peer',r.day+r.month,'s3')}<rect x="${L+i*bw}" y="${Tp}" width="${bw}" height="${H-Tp-B}" fill="transparent" data-tip="${fmtDW(r.d)}: ${RM0(r.total)}${r.past?'':' booked'} · daily jobs ${RM0(r.day)} · monthly ${RM0(r.month)} · cross-hire ${RM0(r.peer)}"/>
+      ${(i%3===0||i===n-1)?`<text x="${L+i*bw+bw/2}" y="${H-8}" text-anchor="middle" class="ax">${+r.d.slice(8)}</text>`:''}${r.d===sel.d?`<rect x="${L+i*bw+1}" y="${Tp}" width="${bw-2}" height="${H-Tp-B}" class="selday"/>`:''}</g>`).join('')}
+    ${TODAY.startsWith(m)?`<line x1="${L+(+TODAY.slice(8))*bw}" x2="${L+(+TODAY.slice(8))*bw}" y1="${Tp}" y2="${H-B}" class="todayln"/>`:''}</svg>`;
+  const months = [...new Set(hires.flatMap(h=>h.lines.map(l=>(l.on||l.from).slice(0,7))))].filter(x=>x<=TODAY.slice(0,7)).sort().slice(-6);
+  $('#v-income').innerHTML = `
+    <div class="view-head"><div><h2>Daily income</h2><span class="muted">Earned from the work done, before SST. Invoices and payments are in Bukku.</span></div>
+      <label>Month<select class="field" id="incM">${[...new Set([...months, TODAY.slice(0,7)])].map(x=>`<option value="${x}" ${x===m?'selected':''}>${MON[+x.slice(5)-1]} ${x.slice(0,4)}</option>`).join('')}</select></label></div>
+    <div class="kpis">
+      <div class="kpi"><b>${RM0(tot)}</b><span>Earned ${MON[+m.slice(5)-1]} to ${past.length?fmtD(past[past.length-1].d):'—'}</span></div>
+      <div class="kpi"><b>${RM0(rows.find(r=>r.d===TODAY)?.total||0)}</b><span>Today</span></div>
+      <div class="kpi"><b>${RM0(tot/work)}</b><span>Average a working day</span></div>
+      <div class="kpi"><b>${tot?Math.round(T('month')/tot*100):0}%</b><span>From monthly rentals (${RM0(T('month'))})</span></div>
+      <div class="kpi"><b>${pk.length?Math.round(pkM/pkC*100)+'%':'—'}</b><span>Cross-hire margin${pk.length?` (${RM0(pkM)} on ${pk.length} of ${pAll.length} jobs with the supplier's price)`:pAll.length?`: supplier price not recorded on the ${pAll.length} jobs`:''}</span></div>
+      <div class="kpi ${notInv?'alert':''}"><b>${RM0(notInv)}</b><span>Earned but no invoice no. yet</span></div>
+    </div>
+    <div class="panel"><div class="panel-head"><h3>By day</h3><div class="g-legend" style="padding:0"><span><i class="sw s1"></i>Daily & half-day jobs</span><span><i class="sw s2"></i>Monthly rentals (per day)</span><span><i class="sw s3"></i>Cross-hire (charged)</span>${booked?`<span class="muted">Faded = booked, not yet worked (${RM0(booked)})</span>`:''}</div></div>
+      <div class="in" style="padding:6px 10px 10px">${chart}<small class="muted">Click a day to see its jobs.${estAmt?` ${tot?Math.round(estAmt/tot*100):0}% of this month (${RM0(estAmt)}) is from the rate card because the work order has no price; the rest is the work-order price.`:''}</small></div></div>
+    <div class="panel"><div class="panel-head"><h3>${fmtDW(sel.d)} ${sel.d.slice(0,4)}: ${RM(sel.total)}${sel.past?'':' booked'}</h3><span class="muted">${sel.jobs} job${sel.jobs===1?'':'s'}</span></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Machine</th><th>Customer · site</th><th>Hire</th><th>How it is counted</th><th class="r">Income</th><th class="r">Cross-hire cost</th><th>Invoice</th></tr></thead><tbody>
+      ${sel.xs.sort((a,b)=>b.amt-a.amt).map(x=>`<tr class="click" data-hire="${x.h.id}"><td>${x.l.u?`<b>${x.l.u}</b> ${esc(mOf(x.l.u).model)}`:`<span class="pill info">Cross-hire</span> ${esc(models[x.l.m].type)}<br><small class="muted">${esc(x.l.peer?.s||'')}</small>`}</td>
+        <td>${esc(custName(x.h.c))}<br><small class="muted">${esc(x.h.site)}</small></td><td>${hireKind(x.l.k,x.l.basis,x.l.slot)}${x.l.open?'<br><small class="muted">until the customer stops</small>':''}</td>
+        <td><small>${esc(x.how)}</small></td><td class="r num">${RM(x.amt)}${x.est?'<br><small class="muted">rate card</small>':''}</td><td class="r num">${x.cost?RM(x.cost):x.kind==='peer'?'<small class="muted">not recorded</small>':'—'}</td><td>${x.h.inv?`<small class="mono">${esc(x.h.inv)}</small>`:x.invoiced?'<span class="pill ok">Invoiced</span>':x.done?'<span class="pill warn">Not yet</span>':'<span class="pill mute">Booked</span>'}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No jobs on this day.</td></tr>'}
+      </tbody></table></div></div>
+    <div class="panel"><div class="panel-head"><h3>Every day of ${MON[+m.slice(5)-1]}</h3><button class="btn small" data-action="inc-csv">Copy for Excel</button></div>
+      <div class="tbl-wrap" style="border:0;border-radius:0 0 var(--r-lg) var(--r-lg)"><table><thead><tr><th>Date</th><th class="r">Jobs</th><th class="r">Daily jobs</th><th class="r">Monthly rentals</th><th class="r">Cross-hire</th><th class="r">Cross-hire cost</th><th class="r">Total</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr class="click ${r.past?'':'futrow'} ${r.d===sel.d?'seld':''}" data-incday="${r.d}"><td class="num">${fmtDW(r.d)}${r.past?'':' <small class="muted">booked</small>'}</td><td class="r num">${r.jobs||'—'}</td><td class="r num">${r.day?RM0(r.day):'—'}</td><td class="r num">${r.month?RM0(r.month):'—'}</td><td class="r num">${r.peer?RM0(r.peer):'—'}</td><td class="r num">${r.cost?RM0(r.cost):'—'}</td><td class="r num"><b>${r.total?RM0(r.total):'—'}</b></td></tr>`).join('')}
+      <tr class="sumrow"><td><b>Total to ${past.length?fmtD(past[past.length-1].d):'—'}</b></td><td class="r num">${sum(past.map(r=>r.jobs))}</td><td class="r num">${RM0(T('day'))}</td><td class="r num">${RM0(T('month'))}</td><td class="r num">${RM0(T('peer'))}</td><td class="r num">${RM0(T('cost'))}</td><td class="r num"><b>${RM0(tot)}</b></td></tr>
+      </tbody></table></div></div>`;
+  state._incRows = rows;
+}
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-incday]'); if(g){ state.incDay = g.dataset.incday; return render(); }
+  if(e.target.closest('[data-action="inc-csv"]')){ const rows = state._incRows||[];
+    const txt = ['Date\tJobs\tDaily jobs\tMonthly rentals\tCross-hire\tCross-hire cost\tTotal', ...rows.map(r=>[r.d, r.jobs, r.day.toFixed(2), r.month.toFixed(2), r.peer.toFixed(2), r.cost.toFixed(2), r.total.toFixed(2)].join('\t'))].join('\n');
+    try{ navigator.clipboard.writeText(txt).then(()=>toast('Copied: paste into Excel'), ()=>toast('Could not copy')); }catch(err){ toast('Could not copy'); } }
+});
+document.addEventListener('change', e => { if(e.target.id==='incM'){ state.incM = e.target.value; state.incDay = null; render(); } });
+
 function renderDashboard(){
   const units = hireUnits(), st = units.map(u=>[u,unitStatus(u)]);
   const rented = st.filter(([,s])=>['On hire','Off-hire called'].includes(s.k));
@@ -3199,6 +3285,8 @@ function renderDashboard(){
       <div class="btnrow"><button class="btn" data-action="new-enq">New enquiry</button><button class="btn" data-view="avail">Availability</button><button class="btn" data-action="qq-new">Quick quotation</button><button class="btn primary" data-action="new-hire">New order</button></div></div>
     <div class="kpis dk">
       <button class="kpi" data-view="fleet"><span class="label">Machinery on rental</span><b>${rented.length}<small class="muted"> / ${units.length}</small></b><span>${units.length-rented.length} in yard, booked or in workshop</span></button>
+      ${(()=>{ if(!['boss','supervisor'].includes(role())) return ''; const m = TODAY.slice(0,7); let t = 0; for(let d=m+'-01'; d<=TODAY; d=addDays(d,1)) t += sum(incomeOn(d).map(x=>x.amt)); const td = sum(incomeOn(TODAY).map(x=>x.amt));
+        return `<button class="kpi" data-view="income"><span class="label">Earned, ${MON[+m.slice(5)-1]} to date</span><b style="font-size:1.4rem">${RM0(t)}</b><span>Today ${RM0(td)} · incl. monthly rentals per day</span></button>`; })()}
       <button class="kpi" data-view="fleet"><span class="label">Utilisation rate</span><b>${uNow}%</b><span>Oct to date ${delta(uNow,uPrev)}</span></button>
       <button class="kpi" data-view="staff"><span class="label">Attendance today</span>${noClock?'<b>—</b><span>Starts when staff clock in on the app</span>':`<b>${present}<small class="muted"> / ${att.length}</small></b><span>${none.length} not clocked in · ${att3[2].n} on leave / MC</span>`}</button>
       <button class="kpi cost" data-view="enquiries"><span class="label">Sales pipeline</span><b style="font-size:1.4rem">${RM0(pipe)}</b><span>${open.length} open enquiries · ${due} follow-ups due</span></button>
@@ -3940,7 +4028,7 @@ function useRealData(D){
     const st = j.st==='取消' ? 'Lost' : j.st==='等待' || j.st==='需更近' ? 'Quotation' : to < TODAY ? (j.inv ? 'Closed' : 'Returned') : from <= TODAY ? 'On hire' : 'Booked';
     const op = sid[j.dr] || sid[norm(j.dr)] || undefined;
     if(j.ct && !customers[c].contact){ customers[c].contact = j.ct; if(j.ph) customers[c].phone = customers[c].phone || j.ph; }
-    const line = {u: peer ? null : mm.u || null, m:mm.m, k:'wet', basis, from, to, slot, op, price:j.pr||undefined,
+    const line = {u: peer ? null : mm.u || null, m:mm.m, k:'wet', basis, from, to, slot, op, price:j.pr||undefined, priceTotal: basis==='month' && j.pr ? true : undefined,
       ...(['On hire','Returned','Closed'].includes(st) ? {on:from} : {}), ...(['Returned','Closed'].includes(st) ? {off:to} : {}),
       ...(peer ? {src:'peer', peer:peerOf(j.rm)} : {})};
     if(peer && line.price && !line.peer.cost) line.peer.cost = 0;
@@ -4094,7 +4182,7 @@ const ZH = {
   // extra machine / place words that appear alone
   "Lorry tipper":"罗里（倒斗）","Truck crane":"汽车吊","Prime mover & lowloader":"拖头和低床拖车","Lowloader":"低床拖车","Palfinger lorry crane":"Palfinger 随车吊",
   "Aisyah binti Karim":"Aisyah binti Karim","Prototype":"原型",
-  "Home":"主页","Not checked":"未查","No chart":"没有吊重表","Add chart":"添加吊重表","PDF received":"已收 PDF","Sample chart: do not use":"示例吊重表：不要使用","Verified":"已核对","From PDF, not checked":"来自 PDF，未核对","Attach":"附上","Save chart from pasted table":"用贴上的表格保存","Or type it in cell by cell":"或逐格输入","Mark verified":"标为已核对","No load chart yet":"还没有吊重表","no load chart yet":"还没有吊重表","Truck cranes":"汽车吊","Rough terrain cranes":"越野吊","All terrain cranes":"全地面吊","Lorry cranes":"随车吊","Skylifts":"高空车","With operator":"连司机","Machine only":"不连司机","Group":"类别","All groups":"所有类别","Group and size":"类别和吨位","Half day (morning)":"半天（上午）","Half day (afternoon)":"下午半天","On hire":"出租中","Rental period":"租期","Fixed dates":"固定日期","Day, week or month, with an end date":"按天、周或月，有结束日期","Monthly, no end date":"按月，没有结束日期","Until the customer says stop":"直到顾客说停","estimate":"估计","Not available":"不可用","Jobs":"订单","Schedule":"排程","Machines":"机械","Settings":"设置","Tabs":"分页","Today & coming":"今天和接下来","All jobs":"全部订单","Staff & leave":"员工和请假","Edit order":"编辑订单","Save changes":"保存修改","Sales and balance":"销售额和余额","In Bukku":"在 Bukku","Last job":"最后工作","Cross-hire from another company (同行车)":"同行车（向别家租）","Their price to us (RM)":"同行价格（RM）","From the cross-hire company":"由同行公司提供",
+  "Home":"主页","Daily income":"每日收入","Dashboard":"仪表板","Average a working day":"每工作日平均","Earned but no invoice no. yet":"已赚但还没有发票号码","By day":"按天","Daily & half-day jobs":"按天和半天工作","Monthly rentals (per day)":"月租（每天）","Cross-hire (charged)":"同行车（收费）","Click a day to see its jobs.":"点一天看当天工作。","How it is counted":"计算方法","Income":"收入","Cross-hire cost":"同行车成本","Daily jobs":"按天工作","Monthly rentals":"月租","Copy for Excel":"复制到 Excel","Not yet":"还没","Invoiced":"已开发票","booked":"已预订","Earned from the work done, before SST. Invoices and payments are in Bukku.":"按完成的工作计算，未含税。发票和收款在 Bukku。","No jobs on this day.":"这天没有工作。","Not checked":"未查","No chart":"没有吊重表","Add chart":"添加吊重表","PDF received":"已收 PDF","Sample chart: do not use":"示例吊重表：不要使用","Verified":"已核对","From PDF, not checked":"来自 PDF，未核对","Attach":"附上","Save chart from pasted table":"用贴上的表格保存","Or type it in cell by cell":"或逐格输入","Mark verified":"标为已核对","No load chart yet":"还没有吊重表","no load chart yet":"还没有吊重表","Truck cranes":"汽车吊","Rough terrain cranes":"越野吊","All terrain cranes":"全地面吊","Lorry cranes":"随车吊","Skylifts":"高空车","With operator":"连司机","Machine only":"不连司机","Group":"类别","All groups":"所有类别","Group and size":"类别和吨位","Half day (morning)":"半天（上午）","Half day (afternoon)":"下午半天","On hire":"出租中","Rental period":"租期","Fixed dates":"固定日期","Day, week or month, with an end date":"按天、周或月，有结束日期","Monthly, no end date":"按月，没有结束日期","Until the customer says stop":"直到顾客说停","estimate":"估计","Not available":"不可用","Jobs":"订单","Schedule":"排程","Machines":"机械","Settings":"设置","Tabs":"分页","Today & coming":"今天和接下来","All jobs":"全部订单","Staff & leave":"员工和请假","Edit order":"编辑订单","Save changes":"保存修改","Sales and balance":"销售额和余额","In Bukku":"在 Bukku","Last job":"最后工作","Cross-hire from another company (同行车)":"同行车（向别家租）","Their price to us (RM)":"同行价格（RM）","From the cross-hire company":"由同行公司提供",
   "free":"可用","NOT free":"不可用","free, document issue":"可用，文件有问题","Timesheet":"工作单","Morning · 08:00AM - 12:00PM":"上午 · 08:00AM - 12:00PM",
 
   // second pass: hints, sentences and fragments
@@ -4158,6 +4246,7 @@ const ZH_RX = [
   [/^Edit order (H-\d{4}-\d+)$/g, '编辑订单 $1'], [/^Order edited by (.+?): (.*)\.$/g, '$1 修改了订单：$2。'], [/\bupdated\b/g, '已更新'],
   [/^From search: (.+)$/g, (x,f)=>'按搜索：'+(ZH[f]||f)], [/^Half day \((morning|afternoon)\)/g, (x,w)=>w==='morning'?'半天（上午）':'半天（下午）'], [/^(Truck|Rough terrain|All terrain|Lorry) cranes$/g, x=>ZH[x]||x],
   [/^(\d+) cranes not checked$/g, '$1 台吊车未查'], [/^Machines:/g, '机械：'], [/cranes with a real chart can lift it/g, '台有真实吊重表的吊车吊得起'], [/(\d+) not checked\b/g, '$1 台未查'],
+  [/^Earned (.+?) to (.+)$/g, '$1 已赚（至 $2）'], [/^Every day of (.+)$/g, '$1 每一天'], [/^From monthly rentals/g, '来自月租'], [/^Cross-hire margin/g, '同行车利润'], [/^Faded = booked, not yet worked/g, '淡色 = 已预订，还没工作'], [/^Total to /g, '合计至 '],
   [/^Collect\b/g, '收机'], [/^Deliver\b/g, '送机'], [/^Late (\d)/g, '迟到 $1'], [/\btarget (\d+)%/gi, '目标 $1%'], [/\b(\d+) this month\b/g, '本月 $1'], [/\b(\d+) unsigned timesheets?\b/g, '$1 张未签工作单'], [/^Rejected:/g, '被拒：'],
   [/^\+(\d+) more$/g, '+$1 个'], [/\bchecklist (\d+)\/(\d+)\b/g, '清单 $1/$2'], [/^Checklist (\d+) (?:of|\/) (\d+):(.*) still to do$/g, '清单 $1 / $2：$3 还没做'], [/^Closest fit: (.+?) \((\d+(?:\.\d+)?) t\), free and not quoted to anyone else\.$/g, '最合适：$1（$2吨），可用且没报给别人。'],
   [/^Closest fit: (.+?), boom ([\d.]+) m, (\d+)% of chart\.$/g, '最合适：$1，吊臂 $2 米，吊重表的 $3%。'], [/^tip ([\d.]+) m \(needs ([\d.]+) m\), boom angle (\d+)°$/g, '臂尖 $1 米（需要 $2 米），吊臂角度 $3°'],
