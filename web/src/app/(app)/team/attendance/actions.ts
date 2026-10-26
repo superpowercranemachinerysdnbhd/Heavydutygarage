@@ -8,6 +8,7 @@ import { isDay } from "@/lib/calendar";
 import { isAttStatus } from "@/lib/attendance";
 import { sheetStaff } from "@/lib/attendance-server";
 import { today } from "@/lib/format";
+import { settings } from "@/lib/lists";
 import { translator, type MessageKey } from "@/i18n";
 
 const A = schema.attendance;
@@ -31,7 +32,9 @@ export async function saveAttendance(form: FormData) {
       if (!form.has(`s_${id}`)) continue;
       const status = str(form, `s_${id}`);
       if (!isAttStatus(status)) { await tx.delete(A).where(and(eq(A.staffId, id), eq(A.day, day))); continue; }
-      const values = { status, timeIn: hhmm(str(form, `in_${id}`)), timeOut: hhmm(str(form, `out_${id}`)), note: str(form, `n_${id}`).slice(0, 200) || null, updatedBy: user.id, updatedAt: new Date() };
+      // Present with no times typed: the normal working day from Settings (e.g. 08:00–17:00).
+      const def = status === "present" ? { in: settings().workStart, out: settings().workEnd } : { in: null, out: null };
+      const values = { status, timeIn: hhmm(str(form, `in_${id}`)) ?? def.in, timeOut: hhmm(str(form, `out_${id}`)) ?? def.out, note: str(form, `n_${id}`).slice(0, 200) || null, updatedBy: user.id, updatedAt: new Date() };
       await tx.insert(A).values({ staffId: id, day, ...values }).onConflictDoUpdate({ target: [A.staffId, A.day], set: values });
     }
   });
@@ -52,7 +55,8 @@ export async function markAllPresent(form: FormData) {
   const marked = new Set(done.map((r) => r.staffId));
   const rows = ids.filter((id) => !marked.has(id)).map((id) => {
     const k = plan.find((p) => p.staffId === id)?.kind;
-    return { staffId: id, day, status: (k && k !== "job" ? k : "present") as "present" | "leave" | "mc" | "off", updatedBy: user.id };
+    const status = (k && k !== "job" ? k : "present") as "present" | "leave" | "mc" | "off";
+    return { staffId: id, day, status, updatedBy: user.id, ...(status === "present" ? { timeIn: settings().workStart, timeOut: settings().workEnd } : {}) };
   });
   if (rows.length) await db.insert(A).values(rows).onConflictDoNothing();
   back(user, day, { ok: "att.allMarked" });

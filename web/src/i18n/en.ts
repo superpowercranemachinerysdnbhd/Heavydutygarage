@@ -131,6 +131,8 @@ export const en = {
   "dash.onActive": "{n} on active work orders",
   "dash.addCrew": "Add your crew under Team.",
   "dash.attention": "Needs attention",
+  "set.workStart": "Work starts at",
+  "set.workEnd": "Work ends at",
   "job.machineFile": "Machine file",
   "job.previousWork": "Previous work on this machine",
   "job.noPrevious": "No earlier work orders for this machine.",

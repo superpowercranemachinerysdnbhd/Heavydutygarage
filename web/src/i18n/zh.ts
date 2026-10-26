@@ -125,6 +125,8 @@ export const zh: Messages = {
   "dash.onActive": "{n} 人在岗",
   "dash.addCrew": "请在「团队」中添加人员。",
   "dash.attention": "需要处理",
+  "set.workStart": "上班时间",
+  "set.workEnd": "下班时间",
   "job.machineFile": "机器档案",
   "job.previousWork": "此机器以往的工作",
   "job.noPrevious": "此机器没有以前的工单。",
