@@ -814,3 +814,7 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 
 ### 58. Reset a forgotten password from the server (Oct 2026)
 - `npm run user:reset-password` (`scripts/reset-password.ts`): lists the Head Manager accounts (name and phone), asks for the phone number and a new password (typed at the prompt, so it is not kept in the shell history). It sets the password, makes the account active and signs that person out everywhere. On the server: `cd /opt/heavyworks/deploy && docker compose exec app npm run -s user:reset-password`. Passwords are stored as one-way hashes: nobody can read them back.
+
+### 59. From a work order to the machine file (Oct 2026)
+- The plate (or make and model) at the top of a work order is a link to the machine's page, and a **Machine file** button opens the machine's work order history (`/machinery/<id>#history`).
+- New section **Previous work on this machine**: the last 6 earlier work orders (number, date, category, complaint, services done), each a link, and a link to the machine file for more. Crew see only the work orders they may see.

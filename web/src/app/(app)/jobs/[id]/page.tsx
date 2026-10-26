@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { can, canWorkOnJob, CREW_ROLES, LEAD_ROLES } from "@/lib/permissions";
 import { CREW_STATUSES, PRIORITIES, STAGES as STEPS, STATUSES, qcMessageKey, invoicePending } from "@/lib/jobs";
 import { daysBetween, fmtDate, fmtDateTime, rm, today, hmText } from "@/lib/format";
-import { activeStaff, getJob } from "@/lib/queries";
+import { activeStaff, getJob, listJobs } from "@/lib/queries";
 import { jobPartsFor, jobPurchasesFor, partsForJob, requestsFor } from "@/lib/inventory";
 import { qcSuggestions } from "@/lib/lists";
 import { activeSuppliers } from "@/lib/purchasing";
@@ -24,7 +24,7 @@ import BoughtLines from "@/components/BoughtLines";
 import Suggest from "@/components/Suggest";
 import { recommendationIdeas } from "@/lib/recommendations";
 import { ServiceDue } from "@/components/ServicePanel";
-import { servicesFor, servicesOnJob } from "@/lib/services";
+import { servicesFor, servicesOnJob, servicesOnJobs } from "@/lib/services";
 import { isServiceCategory, itemLabel, listItems, settings } from "@/lib/lists";
 import { jobThreadId, messagesFor } from "@/lib/chat";
 import * as A from "../actions";
@@ -95,7 +95,10 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const due = dueInfo(job, t, locale);
   const hidden = (n: string, v: string | number) => <input type="hidden" name={n} value={v} />;
   const canWrite = open || can(user.role, "job.editDetails");
-  const [services, doneHere] = await Promise.all([servicesFor(unit.id), servicesOnJob(job.id)]);
+  const [services, doneHere, machineJobs] = await Promise.all([servicesFor(unit.id), servicesOnJob(job.id), listJobs(user, { unitId: unit.id })]);
+  // Earlier work orders on this machine (newest first), with the services done on each.
+  const previous = machineJobs.filter((p) => p.id !== job.id && p.openedAt <= job.openedAt).sort((a, b) => b.openedAt.localeCompare(a.openedAt) || b.id - a.id);
+  const prevServices = new Map([...(await servicesOnJobs(previous.slice(0, 6).map((p) => p.id)))].map(([id, items]) => [id, items.map((i) => itemLabel(t, "service_item", i)).join(", ")]));
   const svcItems = listItems("service_item");
   // Services done: on service jobs, when the machine has a service due, or when this job already recorded one.
   const showServices = isServiceCategory(job.category) || services.some((x) => x.state === "overdue" || x.state === "soon") || doneHere.length > 0;
@@ -108,11 +111,12 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         <div className="job-head-main">
           <span className="job-head-no">{job.jobNo} · {job.siteLocation ? `${job.siteType === "field" ? t("job.fieldService") : t("job.workshop")} · ${placeLabel(t, job.siteLocation)}` : t("loc.tbd")}</span>
           {/* The plate number is how the workshop knows a machine; make and model when it has none. */}
-          <h1 className={unit.plateNo ? "plate" : ""}>{unit.plateNo || `${model.make} ${model.model}`}</h1>
+          <h1 className={unit.plateNo ? "plate" : ""}><Link href={`/machinery/${unit.id}`} className="plain" title={t("job.machineFile")}>{unit.plateNo || `${model.make} ${model.model}`}</Link></h1>
           <span className="job-head-sub">{unit.plateNo ? `${model.make} ${model.model}` : unit.serialNo ?? ""}{(unit.plateNo || unit.serialNo) ? " · " : ""}{customer.name}</span>
         </div>
         <div className="job-head-actions">
           {can(user.role, "job.editDetails") && <Link className="btn small primary" href={`/jobs/${job.id}/edit`}>{t("job.edit")}</Link>}
+          <Link className="btn small" href={`/machinery/${unit.id}#history`}>{t("job.machineFile")}</Link>
           {!open && can(user.role, "job.anyStatus") && <form action={A.reopenJob}>{hidden("jobId", job.id)}<SubmitButton className="btn small">{t("job.reopen")}</SubmitButton></form>}
           <a className="btn small" href="#chat">{t("chat.jobChat")}</a>
           {can(user.role, "job.report") && <Link className="btn small" href={`/jobs/${job.id}/report`}>{open ? t("job.interimReport") : t("job.report")}</Link>}
@@ -499,6 +503,18 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                 <SubmitButton>{t("common.add")}</SubmitButton>
               </form>
             </>)}
+          </div></section>
+
+          <section className="sect" id="previous"><h3>{t("job.previousWork")} <Link className="btn small" href={`/machinery/${unit.id}#history`} style={subtle}>{t("job.machineFile")}</Link></h3><div className="in">
+            {previous.length === 0 ? <span className="muted">{t("job.noPrevious")}</span> : (
+              <ul className="prev-list">{previous.slice(0, 6).map((p) => (
+                <li key={p.id}>
+                  <Link href={`/jobs/${p.id}`} className="plain"><b className="mono">{p.jobNo}</b> · {fmtDate(p.closedAt ?? p.openedAt, false, locale)} <CatChip cat={p.category} t={t} /></Link>
+                  <small className="muted">{p.complaint.slice(0, 90)}{p.complaint.length > 90 ? "…" : ""}</small>
+                  {prevServices.get(p.id) && <small>✓ {prevServices.get(p.id)}</small>}
+                </li>))}</ul>
+            )}
+            {previous.length > 6 && <Link href={`/machinery/${unit.id}#history`} className="muted">{t("job.morePrevious", { n: previous.length - 6 })}</Link>}
           </div></section>
 
           <section className="sect"><h3>{t("job.machineCustomer")}</h3><div className="facts">

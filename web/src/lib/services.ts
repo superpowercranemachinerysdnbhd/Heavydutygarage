@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, isNotNull, lte, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { addDays, today } from "./format";
 import { listItems } from "./lists";
@@ -49,4 +49,13 @@ export async function markServiceDone(unitId: number, item: string, date: string
 export async function servicesOnJob(jobId: number) {
   const J = schema.jobServices;
   return db.select({ id: J.id, item: J.item, doneOn: J.doneOn, nextDue: J.nextDue }).from(J).where(eq(J.jobId, jobId)).orderBy(asc(J.doneOn), asc(J.id));
+}
+
+/** Services recorded on several work orders: job id → service item codes. */
+export async function servicesOnJobs(jobIds: number[]): Promise<Map<number, string[]>> {
+  const out = new Map<number, string[]>();
+  if (!jobIds.length) return out;
+  const J = schema.jobServices;
+  for (const r of await db.select({ jobId: J.jobId, item: J.item }).from(J).where(inArray(J.jobId, jobIds))) out.set(r.jobId, [...(out.get(r.jobId) ?? []), r.item]);
+  return out;
 }
