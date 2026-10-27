@@ -330,7 +330,7 @@ svg.line .end{fill:var(--ink);font-weight:600}
 .docbar textarea{min-height:64px}
 .doc{background:#fff;color:#1a1f26;border:1px solid var(--line);border-radius:4px;padding:26px 28px;font-size:13px;line-height:1.5;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px}
 .doc h4{font-family:var(--f-display);font-size:1rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px;color:#26303b;border-bottom:2px solid #e3a008;padding-bottom:3px}
-.doc p{margin:0}
+.doc p{margin:0;white-space:pre-line}
 .doc-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:3px solid #26303b;padding-bottom:12px}
 .doc-brand{font-family:var(--f-display);font-size:1.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.1}
 .doc small{color:#5a6471}

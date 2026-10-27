@@ -823,3 +823,6 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Settings → Workshop: **Work starts at** (08:00) and **Work ends at** (17:00).
 - Daily attendance sheet (`components/AttendanceTimes.tsx`): tapping **Present** fills empty In / Out with those times; **Late** fills Out only; MC / leave / absent / off clear times that are still the defaults. Typed times are never overwritten.
 - Saving a Present row with no times, and "Mark the others present", store the same default times.
+
+### 61. Line breaks kept in reports (Oct 2026)
+- Text typed on several lines (a numbered list of complaints, findings, work done, recommendations) keeps its lines on the service report (`.doc p { white-space: pre-line }`), on the work order page (complaint) and on the machine history report.

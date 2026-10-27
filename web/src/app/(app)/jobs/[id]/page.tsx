@@ -166,7 +166,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       <div className="job-cols">
         <div className="stack">
           <section className="sect" id="writeup"><h3>{t("job.writeup")}</h3><div className="in">
-            <div><span className="label">{t("job.complaint")}{job.reportedBy ? ` · ${t("job.reportedBy", { name: job.reportedBy })}` : ""}</span><p style={{ margin: "2px 0 0" }}>{job.complaint}</p></div>
+            <div><span className="label">{t("job.complaint")}{job.reportedBy ? ` · ${t("job.reportedBy", { name: job.reportedBy })}` : ""}</span><p style={{ margin: "2px 0 0", whiteSpace: "pre-line" }}>{job.complaint}</p></div>
             <form action={A.saveWriteup} className="form" style={{ gridTemplateColumns: "1fr" }}>
               {hidden("jobId", job.id)}
               <label>{t("job.diagnosis")}<textarea name="diagnosis" rows={3} defaultValue={job.diagnosis} disabled={!canWrite} placeholder={t("job.diagnosisPh")} /></label>

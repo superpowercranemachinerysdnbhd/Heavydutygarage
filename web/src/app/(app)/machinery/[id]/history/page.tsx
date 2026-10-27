@@ -74,7 +74,7 @@ export default async function HistoryReport({ params, searchParams }: { params: 
         <div><h4>{t("hist.jobHistory")}</h4><div className="dt"><table>
           <thead><tr><th>{t("col.date")}</th><th>{t("col.job")}</th><th>{t("col.type")}</th><th>{t("col.complaintFindings")}</th><th className="r">{t("col.days")}</th>{prices && <th className="r">{t("col.amount")}</th>}</tr></thead>
           <tbody>{list.map((j) => <tr key={j.id}><td style={{ whiteSpace: "nowrap" }}>{fmtDate(j.openedAt, true, lang)}</td><td className="mono" style={{ whiteSpace: "nowrap" }}>{j.jobNo}</td><td>{catLabel(t, j.category)}</td>
-            <td><b>{j.complaint}</b>{j.status !== "closed" && <><br /><small>{t("hist.open", { status: statusLabel(t, j.status) })}</small></>}</td><td className="r">{down(j)}</td>{prices && <td className="r">{j.category === "WARR" ? t("hist.warranty") : rm(value(j))}</td>}</tr>)}</tbody>
+            <td><b style={{ whiteSpace: "pre-line" }}>{j.complaint}</b>{j.status !== "closed" && <><br /><small>{t("hist.open", { status: statusLabel(t, j.status) })}</small></>}</td><td className="r">{down(j)}</td>{prices && <td className="r">{j.category === "WARR" ? t("hist.warranty") : rm(value(j))}</td>}</tr>)}</tbody>
         </table></div></div>
         <div><h4>{t("hist.comingUp")}</h4><p>{unit.nextServiceDate ? t("hist.nextDue", { type: unit.nextServiceType ?? t("hist.serviceDefault"), date: fmtDate(unit.nextServiceDate, true, lang) }) : t("hist.noNext")}</p></div>
         <div className="doc-foot">{t("rep.generated", { when: fmtDateTime(new Date(), lang), name: user.name })}</div>
