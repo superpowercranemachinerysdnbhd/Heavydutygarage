@@ -538,7 +538,7 @@ export async function saveRecommendations(form: FormData) {
   await access(jobId, user);
   await db.update(jobs).set({ recommendations: str(form, "recommendations") }).where(eq(jobs.id, jobId));
   revalidatePath(`/jobs/${jobId}/report`);
-  const q = new URLSearchParams({ prices: str(form, "prices"), photos: str(form, "photos"), qc: str(form, "qc"), labour: str(form, "labour"), lang: str(form, "lang"), ok: translator(user.locale)("ok.recSaved") });
+  const q = new URLSearchParams({ prices: str(form, "prices"), photos: str(form, "photos"), qc: str(form, "qc"), labour: str(form, "labour"), pno: str(form, "pno"), pdesc: str(form, "pdesc"), lang: str(form, "lang"), ok: translator(user.locale)("ok.recSaved") });
   redirect(`/jobs/${jobId}/report?${q}`);
 }
 

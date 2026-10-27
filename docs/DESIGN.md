@@ -826,3 +826,6 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 
 ### 61. Line breaks kept in reports (Oct 2026)
 - Text typed on several lines (a numbered list of complaints, findings, work done, recommendations) keeps its lines on the service report (`.doc p { white-space: pre-line }`), on the work order page (complaint) and on the machine history report.
+
+### 62. Service report: choose the part columns (Oct 2026)
+- Include: **Part no.** and **Part description** buttons (both on by default) next to Photos, Quality checks and Labour hours. Turning one off drops that column from Parts used; turning both off leaves the Parts used section out. The choices are kept in the report link (`pno=0`, `pdesc=0`) and when recommendations are saved.

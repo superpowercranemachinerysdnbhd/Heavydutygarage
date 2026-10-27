@@ -38,7 +38,9 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const lang: Locale = isLocale(sp.lang) ? sp.lang : isLocale(customer.locale) ? customer.locale : "en";
   const t = translator(lang);
   // Reports carry no prices: work orders are costed internally, not charged from here.
-  const o = { prices: false, photos: sp.photos !== "0", qc: sp.qc !== "0", labour: sp.labour !== "0" };
+  // What the report shows (each on unless switched off in the link): photos, quality checks, labour hours, part no. and description of parts.
+  const o = { prices: false, photos: sp.photos !== "0", qc: sp.qc !== "0", labour: sp.labour !== "0", pno: sp.pno !== "0", pdesc: sp.pdesc !== "0" };
+  const SHOW = ["photos", "qc", "labour", "pno", "pdesc"] as const;
   const final = job.status === "closed";
   const no = "SR-" + job.jobNo.slice(2);
   const warr = job.category === "WARR";
@@ -58,9 +60,9 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const recIdeas = recommendationIdeas(d, t, lang);
   const stages = (["before", "during", "after", "qc"] as const).map((s) => [s, photos.filter((p) => p.stage === s)] as const).filter(([, l]) => l.length);
   const techs = [lead, ...team].filter(Boolean).map((p) => p!.name);
-  const href = (change: Partial<{ prices: boolean; photos: boolean; qc: boolean; labour: boolean; lang: Locale }>) => {
+  const href = (change: Partial<Record<(typeof SHOW)[number] | "prices", boolean> & { lang: Locale }>) => {
     const v = { ...o, lang, ...change };
-    return `?${new URLSearchParams({ prices: v.prices ? "1" : "0", photos: v.photos ? "1" : "0", qc: v.qc ? "1" : "0", labour: v.labour ? "1" : "0", lang: v.lang })}`;
+    return `?${new URLSearchParams({ prices: v.prices ? "1" : "0", ...Object.fromEntries(SHOW.map((k) => [k, v[k] ? "1" : "0"])), lang: v.lang })}`;
   };
   // Machines without an hour meter show a dash instead of "0 h".
   const hm = [job.hourMeterIn ? t("rep.hmIn", { in: job.hourMeterIn.toLocaleString() }) : "", job.signoffHourMeter ? t("rep.hmOut", { out: job.signoffHourMeter.toLocaleString() }) : ""].filter(Boolean).join(" · ") || "—";
@@ -78,10 +80,12 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
             <Link className="btn small" href={href({ photos: !o.photos })} aria-pressed={o.photos}>{o.photos ? "✓ " : ""}{ui("rep.photos")}</Link>
             <Link className="btn small" href={href({ qc: !o.qc })} aria-pressed={o.qc}>{o.qc ? "✓ " : ""}{ui("rep.qc")}</Link>
             <Link className="btn small" href={href({ labour: !o.labour })} aria-pressed={o.labour}>{o.labour ? "✓ " : ""}{ui("rep.labourToggle")}</Link>
+            <Link className="btn small" href={href({ pno: !o.pno })} aria-pressed={o.pno}>{o.pno ? "✓ " : ""}{ui("rep.pnoToggle")}</Link>
+            <Link className="btn small" href={href({ pdesc: !o.pdesc })} aria-pressed={o.pdesc}>{o.pdesc ? "✓ " : ""}{ui("rep.pdescToggle")}</Link>
           </div>
           <form action={saveRecommendations} className="stack" style={{ gap: 6 }}>
             <input type="hidden" name="jobId" value={job.id} /><input type="hidden" name="lang" value={lang} />
-            <input type="hidden" name="prices" value={o.prices ? "1" : "0"} /><input type="hidden" name="photos" value={o.photos ? "1" : "0"} /><input type="hidden" name="qc" value={o.qc ? "1" : "0"} /><input type="hidden" name="labour" value={o.labour ? "1" : "0"} />
+            <input type="hidden" name="prices" value={o.prices ? "1" : "0"} /><input type="hidden" name="photos" value={o.photos ? "1" : "0"} />{SHOW.map((k) => <input key={k} type="hidden" name={k} value={o[k] ? "1" : "0"} />)}
             <label className="label" htmlFor="recommendations">{ui("rep.recTo")}</label>
             <textarea id="recommendations" name="recommendations" rows={3} defaultValue={rec} />
             {recIdeas.length > 0 && <Suggest target="recommendations" label={ui("rec.ideas")} items={recIdeas} />}
@@ -114,10 +118,10 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           <div className="dt"><table><thead><tr><th>{t("rep.service")}</th><th>{t("rep.doneOn")}</th><th>{t("rep.nextDue")}</th></tr></thead>
             <tbody>{servicesDone.map((s) => <tr key={s.id}><td>✓ {itemLabel(t, "service_item", s.item)}</td><td>{fmtDate(s.doneOn, true, lang)}</td><td>{s.nextDue ? fmtDate(s.nextDue, true, lang) : "—"}</td></tr>)}</tbody></table></div>
         </div>}
-        <div><h4>{t("rep.parts")}</h4>{issued.length ? (
-          <div className="dt"><table><thead><tr><th>{t("parts.partNo")}</th><th>{t("parts.description")}</th><th className="r">{t("po.qty")}</th>{o.prices && <><th className="r">{t("po.unitPrice")}</th><th className="r">{t("col.amount")}</th></>}</tr></thead>
-            <tbody>{issued.map((x) => <tr key={x.id}><td>{x.ref}</td><td>{x.description}</td><td className="r">{x.qty} {x.uom}</td>{o.prices && <><td className="r">{warr ? t("rep.noCharge") : rm(x.unitPrice)}</td><td className="r">{warr ? t("rep.noCharge") : rm(x.qty * x.unitPrice)}</td></>}</tr>)}</tbody></table></div>
-        ) : <p>{t("rep.noParts")}</p>}</div>
+        {(o.pno || o.pdesc) && <div><h4>{t("rep.parts")}</h4>{issued.length ? (
+          <div className="dt"><table><thead><tr>{o.pno && <th>{t("parts.partNo")}</th>}{o.pdesc && <th>{t("parts.description")}</th>}<th className="r">{t("po.qty")}</th>{o.prices && <><th className="r">{t("po.unitPrice")}</th><th className="r">{t("col.amount")}</th></>}</tr></thead>
+            <tbody>{issued.map((x) => <tr key={x.id}>{o.pno && <td>{x.ref}</td>}{o.pdesc && <td>{x.description}</td>}<td className="r">{x.qty} {x.uom}</td>{o.prices && <><td className="r">{warr ? t("rep.noCharge") : rm(x.unitPrice)}</td><td className="r">{warr ? t("rep.noCharge") : rm(x.qty * x.unitPrice)}</td></>}</tr>)}</tbody></table></div>
+        ) : <p>{t("rep.noParts")}</p>}</div>}
         {o.labour && <div><h4>{t("rep.labour")}</h4>{byPerson.size ? (
           <div className="dt"><table><thead><tr><th>{t("col.technician")}</th><th className="r">{t("col.hours")}</th>{o.prices && <th className="r">{t("col.amount")}</th>}</tr></thead>
             <tbody>{[...byPerson].map(([n, h]) => <tr key={n}><td>{n}</td><td className="r">{h}</td>{o.prices && <td className="r">{warr ? t("rep.noCharge") : rm(h * labourRate())}</td>}</tr>)}</tbody></table></div>

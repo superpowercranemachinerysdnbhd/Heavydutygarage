@@ -125,6 +125,8 @@ export const zh: Messages = {
   "dash.onActive": "{n} 人在岗",
   "dash.addCrew": "请在「团队」中添加人员。",
   "dash.attention": "需要处理",
+  "rep.pnoToggle": "零件号",
+  "rep.pdescToggle": "配件描述",
   "set.workStart": "上班时间",
   "set.workEnd": "下班时间",
   "job.machineFile": "机器档案",

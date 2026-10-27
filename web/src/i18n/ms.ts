@@ -125,6 +125,8 @@ export const ms: Messages = {
   "dash.onActive": "{n} pada kerja aktif",
   "dash.addCrew": "Tambah kru anda di bawah Pasukan.",
   "dash.attention": "Perlu perhatian",
+  "rep.pnoToggle": "No. part",
+  "rep.pdescToggle": "Keterangan part",
   "set.workStart": "Kerja mula pada",
   "set.workEnd": "Kerja tamat pada",
   "job.machineFile": "Fail mesin",
