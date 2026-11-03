@@ -918,6 +918,20 @@ Bukku shows money only when an invoice is issued, and a monthly rental is invoic
 
 The Home dashboard has an "Earned, month to date · today" tile that opens this page.
 
+**Orders by machine type; the office assigns the crane and operator.** Customers ask for a type ("25 t mobile crane", "RT 25 t"). The office decides which crane and operator go, usually the day before.
+
+- **Booking:**
+  - The order form and quick quotation default to **"Office assigns the crane and operator later"**. A specific plate is picked only when the customer asks for that crane.
+  - Quotations never print a plate unless one was picked.
+- **No overbooking.** Free cranes of a type are counted after subtracting orders of that type still waiting for a crane (on the same dates and time slot). For example: "1 of 3 rough terrain crane 25 t free (2 free, 1 already booked without a crane)". When none are left, the form warns and suggests a cross-hire or another size. Availability and the 14-day grid use the same count.
+- **Jobs → Today & coming → To assign** lists every order still without a crane or operator, soonest first. For each job:
+  - a crane dropdown, with only free cranes of the right type;
+  - an operator dropdown, with only free operators who have the right skill;
+  - **Suggest for all** fills in a free crane and operator for every job without double-booking anyone;
+  - **Assign** confirms, logs who assigned what, and makes the job card and job order available.
+- **The Planner** shows these orders in a **Not yet assigned** row per type at the top, so they are not forgotten.
+- **Edit order** can switch a job between a picked crane, "office assigns later", and cross-hire.
+
 ## 31. Open questions for the owner
 
 **From WORK_ORDER_2026.xlsx:**
