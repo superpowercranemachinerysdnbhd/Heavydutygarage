@@ -833,3 +833,17 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 ### 63. Company breaks taken off logged time (Nov 2026)
 - Settings → Workshop: **Breaks (not counted as work)**, default "10:00-10:30, 12:00-13:00" (`parseBreaks` in `lib/pay.ts`).
 - Time logged as from – to has the breaks inside it taken off before the split at the start of overtime (`splitHours`, unit-tested). 08:00–17:00 → 7.5 h; 08:00–19:00 → 7.5 h normal + 2 h overtime; 13:00–17:00 → 4 h. The preview on the form shows the net hours. Time logged as a number of hours is taken as typed.
+
+### 64. Work order title (Nov 2026)
+- `jobs.title` (optional, 120 characters): a short name such as "Main pump rebuild", on the new work order form and Edit. Shown on the work order cards (under the machine), in the table view, at the top of the work order and on the service report. It is searchable. Without a title, the first line of the complaint is shown (`jobTitle` in `lib/jobs.ts`, unit-tested).
+- AppSheet: the "work order title" is imported as the title; migration 0027 sets it for work orders imported earlier (the first line of their complaint).
+
+### 65. Preventive maintenance page (Nov 2026)
+- New menu item **Maintenance** (`/maintenance`, Head Manager and Supervisor), built from each machine's service schedule (`maintenanceBoard` in `lib/services.ts`).
+- Top: counts of services overdue, due in the next 14 days, due in 15–30 days, and machines with no schedule (each a link). Filters: Overdue / Next 14 days / Next 30 days / All scheduled / No schedule, plus a search (plate, serial, model, company). It opens on Overdue, or Next 14 days when nothing is overdue.
+- One card per machine (plate, model, company, location, hour meter; red edge if anything is overdue, amber if due soon). It lists each service in the period with last done, interval, due date and "N days late" / "in N days". Buttons: **Create service work order**, or **Open: J-…** when a service work order is already open, and **Service schedule**. Other open work orders on the machine are listed underneath.
+- "Create service work order" opens the new work order form for that machine with category Preventive Maintenance, the title "Service: Engine oil & filter, Greasing…", the complaint and one task per service filled in (`/jobs/new?unit=…&pm=item,item`; tasks go in as `task` fields). Ticking "Services done" on the work order moves each next due date on, as before.
+- "No schedule" lists machines without one, with **Set up schedule** (the machine's service schedule).
+
+### 66. Edit the customer complaint on the work order page (Nov 2026)
+- For the Head Manager and Supervisor, the customer complaint is a text box at the top of the write-up, saved with **Save write-up** (`saveWriteup` updates it when sent; it cannot be emptied). Crew still see it as text. Edit work order still has it too.

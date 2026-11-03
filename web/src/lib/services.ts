@@ -59,3 +59,23 @@ export async function servicesOnJobs(jobIds: number[]): Promise<Map<number, stri
   for (const r of await db.select({ jobId: J.jobId, item: J.item }).from(J).where(inArray(J.jobId, jobIds))) out.set(r.jobId, [...(out.get(r.jobId) ?? []), r.item]);
   return out;
 }
+
+/** Preventive maintenance board: every machine with its service schedule (state per item), owner, location and any
+ *  open service work order. Machines without a schedule are listed too (`items` empty). */
+export async function maintenanceBoard() {
+  const d = today();
+  const U = schema.machineUnits, M = schema.machineModels, C = schema.customers, J = schema.jobs;
+  const [units, rows, open] = await Promise.all([
+    db.select({ id: U.id, plateNo: U.plateNo, serialNo: U.serialNo, location: U.location, hourMeter: U.hourMeter, make: M.make, model: M.model, company: C.name })
+      .from(U).innerJoin(M, eq(U.modelId, M.id)).innerJoin(C, eq(U.customerId, C.id)),
+    db.select().from(S),
+    db.select({ id: J.id, jobNo: J.jobNo, unitId: J.unitId, category: J.category, status: J.status }).from(J).where(sql`${J.status} <> 'closed'`),
+  ]);
+  const order = new Map(listItems("service_item", { all: true }).map((i, n) => [i.code, n]));
+  return units.map((u) => {
+    const items = rows.filter((r) => r.unitId === u.id).map((r) => ({ ...r, state: serviceState(r.nextDue, d) }))
+      .sort((a, b) => (a.nextDue ?? "9999").localeCompare(b.nextDue ?? "9999") || (order.get(a.item) ?? 999) - (order.get(b.item) ?? 999));
+    return { ...u, items, openJobs: open.filter((j) => j.unitId === u.id), firstDue: items.find((i) => i.nextDue)?.nextDue ?? null };
+  });
+}
+export type BoardUnit = Awaited<ReturnType<typeof maintenanceBoard>>[number];

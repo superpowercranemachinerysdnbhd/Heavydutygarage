@@ -52,6 +52,7 @@ export default async function EditJobPage({ params, searchParams }: { params: Pr
           initial={job.outsourced ? { vendorName: vendor?.name ?? "", vendorRef: job.vendorRef, sentOutAt: job.sentOutAt, expectedBackAt: job.expectedBackAt, backAt: job.backAt } : null} />
         <label>{t("f.hourMeterIn")}<input type="number" name="hourMeterIn" min={0} defaultValue={job.hourMeterIn ?? ""} /></label>
         <label>{t("f.reportedBy")}<input name="reportedBy" defaultValue={job.reportedBy ?? ""} placeholder={t("f.reportedByPh")} /></label>
+        <label className="full">{t("f.title")}<input name="title" maxLength={120} defaultValue={job.title ?? ""} placeholder={t("f.titlePh")} /></label>
         <label className="full">{t("f.complaint")}<textarea name="complaint" rows={4} required defaultValue={job.complaint} /></label>
         <div className="full" style={{ display: "flex", gap: 8 }}>
           <SubmitButton className="btn primary">{t("job.saveDetails")}</SubmitButton>

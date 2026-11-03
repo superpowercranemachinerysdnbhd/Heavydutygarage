@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { ON_HAND, STATUSES, ageLevel, invoicePending, type Category, type Status } from "@/lib/jobs";
+import { ON_HAND, STATUSES, ageLevel, invoicePending, jobTitle, type Category, type Status } from "@/lib/jobs";
 import { listJobs } from "@/lib/queries";
 import { addDays, fmtDate, today } from "@/lib/format";
 import { getI18n } from "@/i18n/server";
@@ -29,7 +29,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const alerts = crew ? null : await workshopAlerts(user, locale, t, openJobs, everything.filter(invoicePending));
   // Counts for the status buttons (after the search and job type filters, before the status filter).
   const q = (sp.q ?? "").trim().toLowerCase();
-  const matching = everything.filter((j) => (!sp.cat || j.category === sp.cat) && (!q || [j.jobNo, j.make, j.model, j.serialNo, j.plateNo, j.customerName, j.complaint].join(" ").toLowerCase().includes(q)));
+  const matching = everything.filter((j) => (!sp.cat || j.category === sp.cat) && (!q || [j.jobNo, j.title, j.make, j.model, j.serialNo, j.plateNo, j.customerName, j.complaint].join(" ").toLowerCase().includes(q)));
   const counts: Record<string, number> = { open: matching.filter((j) => j.status !== "closed").length, all: matching.length };
   for (const s of STATUSES) counts[s] = matching.filter((j) => j.status === s).length;
   counts.invoice = matching.filter(invoicePending).length;
@@ -90,7 +90,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
             const due = dueInfo(j, t, locale), d = daysInStatus(j.statusSince);
             return (
               <tr key={j.id}>
-                <td className="mono"><Link href={`/jobs/${j.id}`}>{j.jobNo}</Link></td>
+                <td><Link href={`/jobs/${j.id}`} className="mono">{j.jobNo}</Link><br /><b>{jobTitle(j)}</b></td>
                 <td><CatChip cat={j.category} t={t} /></td>
                 <td><b>{j.make} {j.model}</b><br /><small className="muted mono">{unitRef(j)}</small></td>
                 <td>{j.customerName}</td>

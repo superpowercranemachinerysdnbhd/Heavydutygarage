@@ -63,3 +63,11 @@ test("invoicePending: outsourced, done, no outside work cost, not marked as no i
   assert.equal(invoicePending({ ...base, status: "in_progress" }), false);
   assert.equal(invoicePending({ ...base, status: "in_progress", backAt: "2026-10-01" }), true);
 });
+
+test("jobTitle: the title, else the first line of the complaint", async () => {
+  const { jobTitle } = await import("../src/lib/jobs");
+  assert.equal(jobTitle({ title: "Main pump rebuild", complaint: "x" }), "Main pump rebuild");
+  assert.equal(jobTitle({ title: null, complaint: "1. Boom slow\n2. Aircon" }), "1. Boom slow");
+  assert.equal(jobTitle({ title: " ", complaint: "\n\nLeak" }), "Leak");
+  assert.ok(jobTitle({ complaint: "a".repeat(100) }).length <= 70);
+});

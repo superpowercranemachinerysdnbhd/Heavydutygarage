@@ -147,11 +147,14 @@ export async function createJob(form: FormData) {
     const existing = await tx.select({ no: jobs.jobNo }).from(jobs).where(sql`${jobs.jobNo} like ${`J-${d.slice(0, 4)}-%`}`);
     const jobNo = nextJobNo(Number(d.slice(0, 4)), existing.map((r) => r.no));
     const [row] = await tx.insert(jobs).values({
-      jobNo, category, priority, status: form.get("deferred") === "on" ? "deferred" : "received", unitId, siteType, siteLocation, complaint,
+      jobNo, category, priority, status: form.get("deferred") === "on" ? "deferred" : "received", unitId, siteType, siteLocation, complaint, title: str(form, "title").slice(0, 120) || null,
       reportedBy: str(form, "reportedBy") || null, leadId, hourMeterIn: Number.isFinite(hourMeter) && hourMeter > 0 ? hourMeter : unit.hourMeter,
       openedAt: d, dueDate: dueDate || null, parentJobId, createdBy: user.id,
       ...(out.outsourced ? { outsourced: true, vendorId: out.vendorId, vendorRef: out.vendorRef, sentOutAt: out.sentOutAt, expectedBackAt: out.expectedBackAt } : {}),
     }).returning({ id: jobs.id });
+    // Tasks handed in with the form (a service work order from the maintenance page).
+    const taskTexts = form.getAll("task").map((x) => String(x).trim().slice(0, 300)).filter(Boolean);
+    if (taskTexts.length) await tx.insert(schema.jobTasks).values(taskTexts.map((description, i) => ({ jobId: row.id, description, seq: i + 1, assigneeId: leadId })));
     // Quality checks are chosen per job on the job page (suggestions come from Settings).
     const params = { no: jobNo, name: user.name };
     await tx.insert(schema.jobActivity).values({ jobId: row.id, staffId: user.id, key: "act.created", params, text: activityText(en, { key: "act.created", params, text: "" }) });
@@ -258,7 +261,7 @@ export async function updateDetails(form: FormData) {
   const backAt = out.outsourced ? str(form, "backAt") || null : null;
   if (backAt && (!isDate(backAt) || backAt > today() || (out.outsourced && backAt < out.sentOutAt))) fail("out.err.dates");
   await db.update(jobs).set({
-    category, priority, dueDate: dueDate || null, siteType, siteLocation, complaint, openedAt, ...(job.status === "closed" ? { closedAt } : {}),
+    category, priority, dueDate: dueDate || null, siteType, siteLocation, complaint, title: str(form, "title").slice(0, 120) || null, openedAt, ...(job.status === "closed" ? { closedAt } : {}),
     ...(out.outsourced
       ? { outsourced: true, vendorId: out.vendorId, vendorRef: out.vendorRef, sentOutAt: out.sentOutAt, expectedBackAt: out.expectedBackAt, backAt }
       : { outsourced: false, vendorId: null, vendorRef: null, sentOutAt: null, expectedBackAt: null, backAt: null }),
@@ -283,7 +286,11 @@ export async function saveWriteup(form: FormData) {
   const { job } = await access(jobId, user);
   if (job.status === "closed" && !can(user.role, "job.editDetails")) back(user, jobId, { error: "err.jobClosed", hash: "writeup" });
   const fu = str(form, "followUpDate");
+  // The customer complaint can be corrected here too (Head Manager / Supervisor); it may not be emptied.
+  const complaint = form.has("complaint") && can(user.role, "job.editDetails") ? str(form, "complaint") : null;
+  if (form.has("complaint") && complaint === "") back(user, jobId, { error: "err.complaint", hash: "writeup" });
   await db.update(jobs).set({
+    ...(complaint ? { complaint } : {}),
     diagnosis: str(form, "diagnosis"), workDone: str(form, "workDone"), recommendations: str(form, "recommendations") || null,
     followUp: str(form, "followUp") || null, followUpDate: /^\d{4}-\d{2}-\d{2}$/.test(fu) && str(form, "followUp") ? fu : null,
   }).where(eq(jobs.id, jobId));
