@@ -131,6 +131,9 @@ export const en = {
   "dash.onActive": "{n} on active work orders",
   "dash.addCrew": "Add your crew under Team.",
   "dash.attention": "Needs attention",
+  "f.title": "Work order title (short)",
+  "f.titlePh": "e.g. Main pump rebuild, 500 hr service, Boom cylinder leak",
+  "rep.woTitle": "Title",
   "set.breaks": "Breaks (not counted as work)",
   "set.breaksHelp": "e.g. 10:00-10:30, 12:00-13:00. Taken off time logged as from – to.",
   "rep.pnoToggle": "Part no.",
@@ -725,7 +728,7 @@ export const en = {
   // jobs list
   "jobs.title": "Work orders",
   "jobs.mine": "My work orders",
-  "jobs.searchPh": "Search work order no., machine, plate, serial, company",
+  "jobs.searchPh": "Search work order no., title, machine, plate, serial, company",
   "jobs.allCats": "All categories",
   "jobs.allOpen": "All open",
   "jobs.all": "All incl. closed",

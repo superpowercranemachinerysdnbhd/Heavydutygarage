@@ -125,6 +125,9 @@ export const zh: Messages = {
   "dash.onActive": "{n} 人在岗",
   "dash.addCrew": "请在「团队」中添加人员。",
   "dash.attention": "需要处理",
+  "f.title": "工单标题（简短）",
+  "f.titlePh": "例如：主泵大修、500小时保养、动臂油缸漏油",
+  "rep.woTitle": "标题",
   "set.breaks": "休息时间（不计入工时）",
   "set.breaksHelp": "例如 10:00-10:30, 12:00-13:00。按起止时间记录工时时会扣除。",
   "rep.pnoToggle": "零件号",
@@ -716,7 +719,7 @@ export const zh: Messages = {
 
   "jobs.title": "工单",
   "jobs.mine": "我的工单",
-  "jobs.searchPh": "搜索工单号、机器、车牌、序列号、公司",
+  "jobs.searchPh": "搜索工单号、标题、机器、车牌、序列号、公司",
   "jobs.allCats": "所有类别",
   "jobs.allOpen": "所有未结",
   "jobs.all": "全部（含已结案）",

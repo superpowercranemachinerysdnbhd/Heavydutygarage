@@ -232,6 +232,7 @@ export async function applyImport(d: AppSheetData, userId: number, ownerId?: num
         jobNo: no, category: woCategory(w["CATEGORY"] ?? ""), priority: woPriority(w["PRIORITY"] ?? ""), status,
         statusSince: new Date(`${closed ?? opened}T09:00:00+08:00`), unitId: await ensureUnit(w["ASSET"] || "Unknown"),
         siteType: field ? "field" : "workshop", siteLocation: field ? loc.slice(0, 200) : loc === "GDS" ? "GDS" : "",
+        title: (w["WORK ORDER TITLE"] ?? "").trim().slice(0, 120) || null,
         complaint: [w["WORK ORDER TITLE"], w["DESCRIPTION"]].filter(Boolean).join("\n") || "(no description)", reportedBy: w["REQUESTED BY:"] || null,
         workDone, followUp, leadId: lead, openedAt: opened, closedAt: closed, createdBy: userId, source: "appsheet",
         ...(vendor ? { outsourced: true, vendorId: vendor, sentOutAt: opened, backAt: closed } : {}),

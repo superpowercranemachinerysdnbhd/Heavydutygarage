@@ -61,6 +61,7 @@ export default function NewJobForm({ action, units, leads, busyBays, emergency, 
       <label>{t("f.hourMeterIn")}<input type="number" name="hourMeter" min={0} placeholder={t("f.reading")} /></label>
       <label>{t("f.reportedBy")}<input type="text" name="reportedBy" placeholder={t("f.reportedByPh")} /></label>
       {cat === "WARR" && <label>{t("f.parentJob")}<input type="text" name="parentJobNo" placeholder="J-2026-0311" /></label>}
+      <label className="full">{t("f.title")}<input name="title" maxLength={120} placeholder={t("f.titlePh")} /></label>
       <label className="full">{t("f.complaint")}<textarea name="complaint" rows={3} required placeholder={t("f.complaintPh")} /></label>
       <div className="full"><PhotoInput name="photos" multiple label={t("f.beforePhotos")} /></div>
       <div className="full"><SubmitButton className="btn primary" pendingText={t("new.creating")}>{emergency ? t("new.logEmg") : t("new.create")}</SubmitButton></div>

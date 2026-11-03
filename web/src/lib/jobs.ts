@@ -57,6 +57,13 @@ export function invoicePending(j: { outsourced: boolean; status: Status; backAt:
   return j.outsourced && (j.status === "closed" || !!j.backAt) && j.outsideLines === 0 && j.invoiceStatus !== "none";
 }
 
+/** What a work order is about, in a few words: its title, else the first line of the complaint (shortened). */
+export function jobTitle(j: { title?: string | null; complaint: string }): string {
+  if (j.title?.trim()) return j.title.trim();
+  const first = j.complaint.split("\n").map((l) => l.trim()).find(Boolean) ?? "";
+  return first.length > 70 ? `${first.slice(0, 68)}…` : first;
+}
+
 /** Next job number for the year, e.g. J-2026-0042. */
 export function nextJobNo(year: number, existing: string[]): string {
   const prefix = `J-${year}-`;

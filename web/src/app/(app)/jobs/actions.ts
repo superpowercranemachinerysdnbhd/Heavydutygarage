@@ -147,7 +147,7 @@ export async function createJob(form: FormData) {
     const existing = await tx.select({ no: jobs.jobNo }).from(jobs).where(sql`${jobs.jobNo} like ${`J-${d.slice(0, 4)}-%`}`);
     const jobNo = nextJobNo(Number(d.slice(0, 4)), existing.map((r) => r.no));
     const [row] = await tx.insert(jobs).values({
-      jobNo, category, priority, status: form.get("deferred") === "on" ? "deferred" : "received", unitId, siteType, siteLocation, complaint,
+      jobNo, category, priority, status: form.get("deferred") === "on" ? "deferred" : "received", unitId, siteType, siteLocation, complaint, title: str(form, "title").slice(0, 120) || null,
       reportedBy: str(form, "reportedBy") || null, leadId, hourMeterIn: Number.isFinite(hourMeter) && hourMeter > 0 ? hourMeter : unit.hourMeter,
       openedAt: d, dueDate: dueDate || null, parentJobId, createdBy: user.id,
       ...(out.outsourced ? { outsourced: true, vendorId: out.vendorId, vendorRef: out.vendorRef, sentOutAt: out.sentOutAt, expectedBackAt: out.expectedBackAt } : {}),
@@ -258,7 +258,7 @@ export async function updateDetails(form: FormData) {
   const backAt = out.outsourced ? str(form, "backAt") || null : null;
   if (backAt && (!isDate(backAt) || backAt > today() || (out.outsourced && backAt < out.sentOutAt))) fail("out.err.dates");
   await db.update(jobs).set({
-    category, priority, dueDate: dueDate || null, siteType, siteLocation, complaint, openedAt, ...(job.status === "closed" ? { closedAt } : {}),
+    category, priority, dueDate: dueDate || null, siteType, siteLocation, complaint, title: str(form, "title").slice(0, 120) || null, openedAt, ...(job.status === "closed" ? { closedAt } : {}),
     ...(out.outsourced
       ? { outsourced: true, vendorId: out.vendorId, vendorRef: out.vendorRef, sentOutAt: out.sentOutAt, expectedBackAt: out.expectedBackAt, backAt }
       : { outsourced: false, vendorId: null, vendorRef: null, sentOutAt: null, expectedBackAt: null, backAt: null }),

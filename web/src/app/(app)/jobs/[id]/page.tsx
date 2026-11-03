@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can, canWorkOnJob, CREW_ROLES, LEAD_ROLES } from "@/lib/permissions";
-import { CREW_STATUSES, PRIORITIES, STAGES as STEPS, STATUSES, qcMessageKey, invoicePending } from "@/lib/jobs";
+import { CREW_STATUSES, PRIORITIES, STAGES as STEPS, STATUSES, qcMessageKey, invoicePending, jobTitle } from "@/lib/jobs";
 import { daysBetween, fmtDate, fmtDateTime, rm, today, hmText } from "@/lib/format";
 import { activeStaff, getJob, listJobs } from "@/lib/queries";
 import { jobPartsFor, jobPurchasesFor, partsForJob, requestsFor } from "@/lib/inventory";
@@ -112,6 +112,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           <span className="job-head-no">{job.jobNo} · {job.siteLocation ? `${job.siteType === "field" ? t("job.fieldService") : t("job.workshop")} · ${placeLabel(t, job.siteLocation)}` : t("loc.tbd")}</span>
           {/* The plate number is how the workshop knows a machine; make and model when it has none. */}
           <h1 className={unit.plateNo ? "plate" : ""}><Link href={`/machinery/${unit.id}`} className="plain" title={t("job.machineFile")}>{unit.plateNo || `${model.make} ${model.model}`}</Link></h1>
+          <span className="job-head-title">{jobTitle(job)}</span>
           <span className="job-head-sub">{unit.plateNo ? `${model.make} ${model.model}` : unit.serialNo ?? ""}{(unit.plateNo || unit.serialNo) ? " · " : ""}{customer.name}</span>
         </div>
         <div className="job-head-actions">

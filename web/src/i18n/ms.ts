@@ -125,6 +125,9 @@ export const ms: Messages = {
   "dash.onActive": "{n} pada kerja aktif",
   "dash.addCrew": "Tambah kru anda di bawah Pasukan.",
   "dash.attention": "Perlu perhatian",
+  "f.title": "Tajuk pesanan kerja (ringkas)",
+  "f.titlePh": "cth. Baiki pam utama, Servis 500 jam, Silinder boom bocor",
+  "rep.woTitle": "Tajuk",
   "set.breaks": "Rehat (tidak dikira sebagai kerja)",
   "set.breaksHelp": "cth. 10:00-10:30, 12:00-13:00. Ditolak dari masa yang direkod dari – hingga.",
   "rep.pnoToggle": "No. part",
@@ -716,7 +719,7 @@ export const ms: Messages = {
 
   "jobs.title": "Pesanan kerja",
   "jobs.mine": "Kerja saya",
-  "jobs.searchPh": "Cari no. kerja, mesin, no. plat, no. siri, syarikat",
+  "jobs.searchPh": "Cari no. kerja, tajuk, mesin, no. plat, no. siri, syarikat",
   "jobs.allCats": "Semua kategori",
   "jobs.allOpen": "Semua terbuka",
   "jobs.all": "Semua termasuk ditutup",

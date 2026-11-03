@@ -833,3 +833,7 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 ### 63. Company breaks taken off logged time (Nov 2026)
 - Settings → Workshop: **Breaks (not counted as work)**, default "10:00-10:30, 12:00-13:00" (`parseBreaks` in `lib/pay.ts`).
 - Time logged as from – to has the breaks inside it taken off before the split at the start of overtime (`splitHours`, unit-tested). 08:00–17:00 → 7.5 h; 08:00–19:00 → 7.5 h normal + 2 h overtime; 13:00–17:00 → 4 h. The preview on the form shows the net hours. Time logged as a number of hours is taken as typed.
+
+### 64. Work order title (Nov 2026)
+- `jobs.title` (optional, 120 characters): a short name such as "Main pump rebuild", on the new work order form and Edit. Shown on the work order cards (under the machine), in the table view, at the top of the work order and on the service report. It is searchable. Without a title, the first line of the complaint is shown (`jobTitle` in `lib/jobs.ts`, unit-tested).
+- AppSheet: the "work order title" is imported as the title; migration 0027 sets it for work orders imported earlier (the first line of their complaint).

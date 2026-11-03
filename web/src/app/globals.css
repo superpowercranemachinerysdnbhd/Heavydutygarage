@@ -787,3 +787,5 @@ table.bl .num{white-space:nowrap}
 .prev-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .prev-list li{display:flex;flex-direction:column;gap:2px;padding-bottom:8px;border-bottom:1px solid var(--line)}
 .prev-list li:last-child{border-bottom:0;padding-bottom:0}
+.jcard-title{font-weight:600;font-size:.9rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.job-head-title{font-weight:600;font-size:1.05rem}

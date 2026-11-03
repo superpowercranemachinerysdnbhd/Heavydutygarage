@@ -128,6 +128,8 @@ export const jobs = pgTable("jobs", {
   unitId: integer("unit_id").notNull().references(() => machineUnits.id),
   siteType: siteTypeEnum("site_type").notNull().default("workshop"),
   siteLocation: varchar("site_location", { length: 200 }).notNull(),
+  /** Short title for lists and cards (e.g. "Main pump rebuild"); without one, the first line of the complaint is shown. */
+  title: varchar("title", { length: 120 }),
   complaint: text("complaint").notNull(),
   reportedBy: varchar("reported_by", { length: 120 }),
   diagnosis: text("diagnosis").notNull().default(""),
