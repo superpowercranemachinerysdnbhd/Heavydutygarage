@@ -13,6 +13,7 @@ const { addDays, today } = await import("../src/lib/format");
 const { translator } = await import("../src/i18n/index");
 const { sellFromMarkup } = await import("../src/lib/stock");
 const { weekDays, planWeekStart } = await import("../src/lib/calendar");
+const { addMonths: addMonthsIso } = await import("../src/lib/service-rules");
 const en = translator("en");
 
 const existing = await db.select({ id: schema.staff.id }).from(schema.staff).limit(1);
@@ -246,6 +247,12 @@ for (const [threadId, staffId] of [[teamT.id, sup.id], [teamT.id, boss.id], [pum
     });
   }
   await db.insert(schema.attendance).values(rows);
+}
+
+// More service schedules, so the Maintenance page has something due (dates relative to today).
+for (const [unit, item, months, last] of [[u5.id, "engine_oil", 3, -85], [u5.id, "fuel_filter", 6, -175], [u5.id, "greasing", 1, -28], [u4.id, "hydraulic_oil", 12, -380], [u4.id, "wire_rope", 6, -158], [u2.id, "aircon", 6, -170], [u2.id, "brake", 6, -155]] as const) {
+  const lastDone = d(last), nextDue = addMonthsIso(lastDone, months);
+  await db.insert(schema.machineServices).values({ unitId: unit, item, intervalMonths: months, lastDone, nextDue }).onConflictDoNothing();
 }
 
 // Everyone's pay as the start of their pay history (same as migration 0024).

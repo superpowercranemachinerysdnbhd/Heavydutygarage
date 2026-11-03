@@ -33,13 +33,13 @@ function MachinePicker({ units, unitId }: { units: Opt[]; unitId?: number }) {
   </>);
 }
 
-export default function NewJobForm({ action, units, leads, busyBays, emergency, defaultDue, today, unitId, machineOptions, vendors }: {
+export default function NewJobForm({ action, units, leads, busyBays, emergency, defaultDue, today, unitId, machineOptions, vendors, pm }: {
   action: (f: FormData) => Promise<void>; units: Opt[]; leads: Opt[]; busyBays: string[]; emergency: boolean; defaultDue: string; today: string; unitId?: number; vendors: string[];
-  machineOptions: MachineOptions;
+  machineOptions: MachineOptions; pm?: { items: string[]; title: string; complaint: string; tasks: string[] };
 }) {
   const t = useT();
   void defaultDue;
-  const [cat, setCat] = useState<Category>(() => { const c = categoryCodes(); return emergency && c.includes("EMG") ? "EMG" : c.includes("DIAG") ? "DIAG" : c[0] ?? ""; });
+  const [cat, setCat] = useState<Category>(() => { const c = categoryCodes(); return pm && c.includes("PM") ? "PM" : emergency && c.includes("EMG") ? "EMG" : c.includes("DIAG") ? "DIAG" : c[0] ?? ""; });
   const [mode, setMode] = useState<"existing" | "new">(units.length ? "existing" : "new");
   return (
     <form action={action} className="form panel" style={{ padding: 16 }}>
@@ -61,8 +61,9 @@ export default function NewJobForm({ action, units, leads, busyBays, emergency, 
       <label>{t("f.hourMeterIn")}<input type="number" name="hourMeter" min={0} placeholder={t("f.reading")} /></label>
       <label>{t("f.reportedBy")}<input type="text" name="reportedBy" placeholder={t("f.reportedByPh")} /></label>
       {cat === "WARR" && <label>{t("f.parentJob")}<input type="text" name="parentJobNo" placeholder="J-2026-0311" /></label>}
-      <label className="full">{t("f.title")}<input name="title" maxLength={120} placeholder={t("f.titlePh")} /></label>
-      <label className="full">{t("f.complaint")}<textarea name="complaint" rows={3} required placeholder={t("f.complaintPh")} /></label>
+      <label className="full">{t("f.title")}<input name="title" maxLength={120} placeholder={t("f.titlePh")} defaultValue={pm?.title} /></label>
+      <label className="full">{t("f.complaint")}<textarea name="complaint" rows={pm ? 4 : 3} required placeholder={t("f.complaintPh")} defaultValue={pm?.complaint} /></label>
+      {pm && <div className="full hint">{t("pm.tasksAdded", { n: pm.tasks.length })}{pm.tasks.map((x) => <input key={x} type="hidden" name="task" value={x} />)}</div>}
       <div className="full"><PhotoInput name="photos" multiple label={t("f.beforePhotos")} /></div>
       <div className="full"><SubmitButton className="btn primary" pendingText={t("new.creating")}>{emergency ? t("new.logEmg") : t("new.create")}</SubmitButton></div>
     </form>

@@ -152,6 +152,9 @@ export async function createJob(form: FormData) {
       openedAt: d, dueDate: dueDate || null, parentJobId, createdBy: user.id,
       ...(out.outsourced ? { outsourced: true, vendorId: out.vendorId, vendorRef: out.vendorRef, sentOutAt: out.sentOutAt, expectedBackAt: out.expectedBackAt } : {}),
     }).returning({ id: jobs.id });
+    // Tasks handed in with the form (a service work order from the maintenance page).
+    const taskTexts = form.getAll("task").map((x) => String(x).trim().slice(0, 300)).filter(Boolean);
+    if (taskTexts.length) await tx.insert(schema.jobTasks).values(taskTexts.map((description, i) => ({ jobId: row.id, description, seq: i + 1, assigneeId: leadId })));
     // Quality checks are chosen per job on the job page (suggestions come from Settings).
     const params = { no: jobNo, name: user.name };
     await tx.insert(schema.jobActivity).values({ jobId: row.id, staffId: user.id, key: "act.created", params, text: activityText(en, { key: "act.created", params, text: "" }) });
