@@ -828,8 +828,8 @@ const RULES = {dayHrs:8, minH:3.5, minHBig:7.5, mHrs:200, sunX:1.5, standbyPct:5
 const GROUPS = {crane:'Mobile cranes', lift:'Lifting & access', earth:'Earthmoving', power:'Power', transport:'Our transport'};
 const models = {
   RK500:{make:'Kobelco',model:'RK500-2',type:'Rough terrain crane 50 t',grp:'crane',size:'self'},
-  NK250:{make:'Kato',model:'NK-250-5',type:'Truck crane 25 t',grp:'crane',size:'self'},
-  TL450:{make:'Tadano',model:'TL-450-3',type:'Truck crane 45 t',grp:'crane',size:'self'},
+  NK250:{make:'Kato',model:'NK-250-5',type:'Mobile crane 25 t',grp:'crane',size:'self'},
+  TL450:{make:'Tadano',model:'TL-450-3',type:'Mobile crane 45 t',grp:'crane',size:'self'},
   UNIC:{make:'Hino',model:'Palfinger lorry crane',type:'Lorry crane 8 t',grp:'crane',size:'self'},
   FD30:{make:'Toyota',model:'8FD30',type:'Forklift 3 t',grp:'lift',size:'small'},
   FD50:{make:'TCM',model:'FD50',type:'Forklift 5 t',grp:'lift',size:'small'},
@@ -910,14 +910,14 @@ const STATES = ['Johor','Melaka','Negeri Sembilan','Selangor','Kuala Lumpur','Pu
 /* The company's crane fleet. Types and capacity classes come from the model names; confirm each with the owner. */
 Object.assign(models, {
   GR600:{make:'Tadano',model:'GR-600N-1',type:'Rough terrain crane 60 t',grp:'crane',size:'self'},
-  SS500:{make:'Kato',model:'SS-500SR',type:'Truck crane 50 t',grp:'crane',size:'self'},
-  TL500:{make:'Tadano',model:'TL-500-3',type:'Truck crane 50 t',grp:'crane',size:'self'},
+  SS500:{make:'Kato',model:'SS-500SR',type:'Mobile crane 50 t',grp:'crane',size:'self'},
+  TL500:{make:'Tadano',model:'TL-500-3',type:'Mobile crane 50 t',grp:'crane',size:'self'},
   ATF60:{make:'Faun',model:'ATF 60-3',type:'All terrain crane 60 t',grp:'crane',size:'self'},
   SL700:{make:'Kato',model:'SL-700R',type:'Rough terrain crane 70 t',grp:'crane',size:'self'},
   SA1100:{make:'Sumitomo',model:'SA-1100',type:'Mobile crane 110 t',grp:'crane',size:'self'},
   SL1300:{make:'Kato',model:'KA-1300SL',type:'All terrain crane 130 t',grp:'crane',size:'self'},
-  NK160:{make:'Kato',model:'NK-160B-2',type:'Truck crane 16 t',grp:'crane',size:'self'},
-  NK200:{make:'Kato',model:'NK-200E-III',type:'Truck crane 20 t',grp:'crane',size:'self'},
+  NK160:{make:'Kato',model:'NK-160B-2',type:'Mobile crane 16 t',grp:'crane',size:'self'},
+  NK200:{make:'Kato',model:'NK-200E-III',type:'Mobile crane 20 t',grp:'crane',size:'self'},
 });
 Object.assign(fleet, {
   'JYR 2138':{m:'GR600',plate:'JYR 2138',year:2019,hm:7420,docs:{cf:'2027-04-18',road:'2027-03-30',ins:'2027-03-30'},cost:1450000,ytd:{rev:298000,ws:24400,opx:46000,util:66}},
@@ -1026,7 +1026,7 @@ let hires = [
    trips:[{dir:'Delivery',d:'2026-10-19',u:'BL-01',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:1200,status:'Planned'},{dir:'Collection',d:'2026-10-31',u:'BL-01',veh:'BKT 4410',drv:'D2',zone:'Johor Bahru',charge:1200,status:'Planned'}],
    log:[{d:'2026-10-14 10:30',t:'New customer: deposit RM 3,000 required before delivery.'}]},
   {id:'H-2026-0160',c:'C1',site:'Senai Airport City warehouse project, Senai',state:'Johor',siteContact:'En. Rosli 013-202 4471',po:'',status:'Quotation',created:'2026-10-15',cycle:'Monthly in arrears',quoteValid:'2026-10-22',
-   note:'Second 50 t crane for roof steel. No 50 t free (WVX 5501 is on this site to 30 Nov). Options: the 60 t GR-600N-1 (JYR 2138) or a 50 t truck crane (JVY 2138, VHX 8292) is free; run Lift check to confirm.',
+   note:'Second 50 t crane for roof steel. No 50 t free (WVX 5501 is on this site to 30 Nov). Options: the 60 t GR-600N-1 (JYR 2138) or a 50 t mobile crane (JVY 2138, VHX 8292) is free; run Lift check to confirm.',
    lines:[{u:null,m:'RK500',k:'wet',basis:'day',from:'2026-11-02',to:'2026-11-13'}], trips:[],
    log:[{d:'2026-10-15 15:40',t:'Enquiry by Mr. Lim. Quotation started.'}]},
   {id:'H-2026-0161',c:'C5',site:'Taman Daya drainage works, Johor Bahru',state:'Johor',siteContact:'En. Kamarul 013-388 4410',po:'',status:'Quotation',created:'2026-10-16',cycle:'Monthly in arrears',quoteValid:'2026-10-30',
@@ -1289,11 +1289,11 @@ const einvPill = i => `<span class="pill ${({Validated:'ok',Rejected:'crit',Pend
 Object.assign(models, {
   KR300:{make:'Kato',model:'KR-300',type:'Rough terrain crane 30 t',grp:'crane',size:'self'},
   SR250:{make:'Kato',model:'SR-250V6',type:'Rough terrain crane 25 t',grp:'crane',size:'self'},
-  TL2501:{make:'Tadano',model:'TL-250-1',type:'Truck crane 25 t',grp:'crane',size:'self'},
-  TL2502:{make:'Tadano',model:'TL-250-2',type:'Truck crane 25 t',grp:'crane',size:'self'},
-  TL2503:{make:'Tadano',model:'TL-250-3',type:'Truck crane 25 t',grp:'crane',size:'self'},
-  NK2502:{make:'Kato',model:'NK-250-2',type:'Truck crane 25 t',grp:'crane',size:'self'},
-  TL200:{make:'Tadano',model:'TL-200-4',type:'Truck crane 20 t',grp:'crane',size:'self'},
+  TL2501:{make:'Tadano',model:'TL-250-1',type:'Mobile crane 25 t',grp:'crane',size:'self'},
+  TL2502:{make:'Tadano',model:'TL-250-2',type:'Mobile crane 25 t',grp:'crane',size:'self'},
+  TL2503:{make:'Tadano',model:'TL-250-3',type:'Mobile crane 25 t',grp:'crane',size:'self'},
+  NK2502:{make:'Kato',model:'NK-250-2',type:'Mobile crane 25 t',grp:'crane',size:'self'},
+  TL200:{make:'Tadano',model:'TL-200-4',type:'Mobile crane 20 t',grp:'crane',size:'self'},
   J340:{make:'Iveco',model:'J340 skylift',type:'Skylift 40 m',grp:'lift',size:'self'},
   SK240:{make:'Ivichi',model:'240 skylift',type:'Skylift 24 m',grp:'lift',size:'self'},
   SK270:{make:'Ivichi',model:'A270 skylift',type:'Skylift 27 m',grp:'lift',size:'self'},
@@ -1337,7 +1337,7 @@ Object.entries(WO_RATES).forEach(([mk,[day,half]]) => {
 /* ---------- working with a large fleet: families, capacity classes, search ---------- */
 /* Machine groups as the company names them; inside a group, machines sit by exact size (e.g. Rough terrain crane 25 t). */
 const FAMILIES = [
-  {k:'Truck cranes', re:/^(truck|mobile) crane/i}, {k:'Rough terrain cranes', re:/^rough terrain crane/i}, {k:'All terrain cranes', re:/^all terrain crane/i},
+  {k:'Mobile cranes', re:/^(truck|mobile) crane/i}, {k:'Rough terrain cranes', re:/^rough terrain crane/i}, {k:'All terrain cranes', re:/^all terrain crane/i},
   {k:'Lorry cranes', re:/^lorry crane/i}, {k:'Skylifts', re:/skylift|boom lift|scissor/i}, {k:'Forklifts', re:/forklift/i},
   {k:'Excavators', re:/excavator/i}, {k:'Loaders', re:/loader/i}, {k:'Generators', re:/generator/i},
 ];
@@ -1351,7 +1351,7 @@ function classOf(u){
 const planGroupOf = u => fleet[u].transport ? 'Our transport' : classOf(u).fam;
 const PLAN_GROUPS = () => [...FAMILIES.map(f=>f.k), 'Other', 'Our transport'].filter(g=>Object.keys(fleet).some(u=>planGroupOf(u)===g));
 const famHit = (u, f) => !f || (f==='Cranes' ? / cranes$/.test(classOf(u).fam) : classOf(u).fam===f);
-const FAM_WORDS = [[/rough\s*terrain|\bRT\b|越野/i,'Rough terrain cranes'],[/all\s*terrain|\bAT\b|\bATF\b|全地面/i,'All terrain cranes'],[/truck|汽车吊/i,'Truck cranes'],[/lorry|随车/i,'Lorry cranes'],
+const FAM_WORDS = [[/rough\s*terrain|\bRT\b|越野/i,'Rough terrain cranes'],[/all\s*terrain|\bAT\b|\bATF\b|全地面/i,'All terrain cranes'],[/mobile|truck|汽车吊/i,'Mobile cranes'],[/lorry|随车/i,'Lorry cranes'],
   [/crane|kren|吊车/i,'Cranes'],[/skylift|sky lift|boom|scissor|access|platform|高空/i,'Skylifts'],[/forklift|叉车/i,'Forklifts'],[/excavator|digger|jentolak/i,'Excavators'],[/loader/i,'Loaders'],[/genset|generator/i,'Generators']];
 function parseNeed(q){
   q = (q||'').trim(); if(!q) return {};
@@ -1359,7 +1359,7 @@ function parseNeed(q){
   const fam = FAM_WORDS.find(([re])=>re.test(q))?.[1];
   const m = q.match(/(\d+(?:\.\d+)?)\s*(t|ton|tons|tan|tonne|m|meter|metre|kva)\b/i);
   const cap = m ? {n:+m[1], unit:/^m/i.test(m[2]) ? 'm' : /kva/i.test(m[2]) ? 'kVA' : 't'} : null;
-  const rest = q.replace(m?.[0]||'','').replace(/rough|terrain|truck|all|lorry|\bRT\b|\bAT\b|crane|kren|forklift|boom|scissor|sky\s*lift|lift|excavator|loader|generator|genset|ton|tan/gi,'').trim();
+  const rest = q.replace(m?.[0]||'','').replace(/rough|terrain|mobile|truck|all|lorry|\bRT\b|\bAT\b|crane|kren|forklift|boom|scissor|sky\s*lift|lift|excavator|loader|generator|genset|ton|tan/gi,'').trim();
   return {fam, cap, text: !fam && !cap ? q.toLowerCase() : (rest.length>=3 ? rest.toLowerCase() : '')};
 }
 const textHit = (u, t) => !t || [u, fleet[u].plate, fleet[u].serial, mOf(u).make, mOf(u).model, mOf(u).type].filter(Boolean).join(' ').toLowerCase().includes(t) || normPlate([u, fleet[u].plate, fleet[u].serial].join('|')).includes(normPlate(t));
@@ -1477,7 +1477,7 @@ document.addEventListener('submit', e => {
 });
 
 /* ---------- state ---------- */
-const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Truck crane 25 t', grp:'', start:'2026-10-16', q:'25t crane', fam:'', slot:'full', freeOnly:false, more:{}, open:{}}, fl:{q:'', fam:'', st:'', sort:'cls', page:1}, planQ:'', planFam:'', planCol:{}, planCompact:true, qq:null, qSeq:1094, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'JQA 5783', week:'2026-10-12', sheet:null, lastSheet:null};
+const state = {view:'dashboard', role:'boss', me:'O1', hireTab:'active', fleetGrp:'', planGrp:'', find:{type:'', from:'2026-11-02', to:'2026-11-13'}, nh:null, insp:null, ts:null, ne:null, enqTab:'board', fuMine:false, custQ:'', calM:'2026-10', calDay:'2026-10-16', calHide:[], staffTab:'roster', av:{from:'2026-10-26', to:'2026-10-30', type:'Mobile crane 25 t', grp:'', start:'2026-10-16', q:'25t crane', fam:'', slot:'full', freeOnly:false, more:{}, open:{}}, fl:{q:'', fam:'', st:'', sort:'cls', page:1}, planQ:'', planFam:'', planCol:{}, planCompact:true, qq:null, qSeq:1094, fuelMonth:'2026-10', payMonth:'2026-10', fa:null, liftTab:'find', lift:{w:3.5,r:16,h:20,rig:0.2,head:3,from:'',to:'',done:true}, liftSel:null, chartU:'JQA 5783', week:'2026-10-12', sheet:null, lastSheet:null};
 try{ const v = localStorage.getItem('spc-view'); if(v && document.getElementById('v-'+v) && v!=='reports') state.view = v; }catch(e){}
 if(location.hash && document.getElementById('v-'+location.hash.slice(1))) state.view = location.hash.slice(1);
 
@@ -1725,7 +1725,7 @@ function openHire(id){
 
 /* ---------- New hire ---------- */
 function newHireDefaults(pre={}){
-  return {c:Object.keys(customers)[0], slot:'full', peerS:'', peerCost:'', site:'', state:'Johor', siteContact:'', po:'', k:'wet', basis:'day', type:'Truck crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Johor Bahru', del:true, col:true, jobType:'Lifting', jobScope:'', arrive:'08:30', requests:'', pay:'credit', collect:false, open:false, ...pre};
+  return {c:Object.keys(customers)[0], slot:'full', peerS:'', peerCost:'', site:'', state:'Johor', siteContact:'', po:'', k:'wet', basis:'day', type:'Mobile crane 25 t', from:'2026-10-26', to:'2026-11-06', hrs:8, u:null, op:null, zone:'Johor Bahru', del:true, col:true, jobType:'Lifting', jobScope:'', arrive:'08:30', requests:'', pay:'credit', collect:false, open:false, ...pre};
 }
 function hireToForm(h){
   const l = h.lines[0], j = h.job || {};
@@ -2234,8 +2234,8 @@ const SOURCES = ['Phone','WhatsApp','Email','Website form','Walk-in','Referral',
 const LOST_WHY = ['No machine free','Price','Went elsewhere','Project postponed','No reply'];
 const HIST = {won:31, lost:19};
 let enquiries = [
-  {id:'E-2026-0231',at:'2026-10-16 08:20',src:'WhatsApp',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Truck crane 25 t',qty:1,k:'wet',from:'2026-10-26',to:'2026-10-30',site:'Eco Botanic, Iskandar Puteri',state:'Johor',stage:'New',owner:'S2',temp:'Hot',
-   notes:'Lifting precast beams, heaviest 3.2 t at 18 m radius, set 12 m high. Site needs the crane CF copy and operator DOSH card.',lift:{w:3.2,r:18,h:12},log:[{d:'2026-10-16 08:20',t:'WhatsApp from Mr. Ong: 25 t truck crane 26–30 Oct.'}]},
+  {id:'E-2026-0231',at:'2026-10-16 08:20',src:'WhatsApp',prospect:{name:'Sri Kenari Builders Sdn Bhd',contact:'Mr. Ong Wei Ming',phone:'012-771 4402'},need:'Mobile crane 25 t',qty:1,k:'wet',from:'2026-10-26',to:'2026-10-30',site:'Eco Botanic, Iskandar Puteri',state:'Johor',stage:'New',owner:'S2',temp:'Hot',
+   notes:'Lifting precast beams, heaviest 3.2 t at 18 m radius, set 12 m high. Site needs the crane CF copy and operator DOSH card.',lift:{w:3.2,r:18,h:12},log:[{d:'2026-10-16 08:20',t:'WhatsApp from Mr. Ong: 25 t mobile crane 26–30 Oct.'}]},
   {id:'E-2026-0230',at:'2026-10-15 15:30',src:'Phone',c:'C1',need:'Rough terrain crane 50 t',qty:1,k:'wet',from:'2026-11-02',to:'2026-11-13',site:'Senai Airport City warehouse project, Senai',state:'Johor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0160',
    notes:'Second crane for roof steel. Our only 50 t (WVX 5501) is already on their site.',log:[{d:'2026-10-15 15:40',t:'Quotation H-2026-0160 started; no 50 t free.'},{d:'2026-10-15 15:30',t:'Call from Mr. Lim.'}]},
   {id:'E-2026-0229',at:'2026-10-15 11:05',src:'Phone',c:'C5',need:'Generator 150 kVA',qty:1,k:'dry',from:'2026-11-02',to:'2026-12-31',site:'Taman Daya drainage works, Johor Bahru',state:'Johor',stage:'Quoted',owner:'S2',temp:'Warm',hire:'H-2026-0161',
@@ -2261,9 +2261,9 @@ const enqName = e => e.c ? custName(e.c) : e.prospect.name;
 const openStage = e => !['Won','Lost'].includes(e.stage);
 
 let tasks = [
-  {id:1,d:'2026-10-16',time:'10:00',type:'Call',who:'S2',enq:'E-2026-0231',t:'Call Mr. Ong back: load weights, radius and site access for the 25 t truck crane'},
+  {id:1,d:'2026-10-16',time:'10:00',type:'Call',who:'S2',enq:'E-2026-0231',t:'Call Mr. Ong back: load weights, radius and site access for the 25 t mobile crane'},
   {id:2,d:'2026-10-16',time:'11:30',type:'WhatsApp',who:'S2',enq:'E-2026-0227',cust:'C7',t:'Reply Mr. Ravi on the 10% discount (up to 5% without the Head Manager)'},
-  {id:3,d:'2026-10-15',time:'16:00',type:'Call',who:'S2',enq:'E-2026-0230',cust:'C1',t:'Bina Jaya 50 t: offer the free 60 t GR-600N-1 (JYR 2138) or a 50 t truck crane'},
+  {id:3,d:'2026-10-15',time:'16:00',type:'Call',who:'S2',enq:'E-2026-0230',cust:'C1',t:'Bina Jaya 50 t: offer the free 60 t GR-600N-1 (JYR 2138) or a 50 t mobile crane'},
   {id:4,d:'2026-10-19',time:'09:30',type:'Site visit',who:'S1',enq:'E-2026-0228',t:'Site visit Ladang Sungai Tinggi with En. Hairul: ground and lowloader access'},
   {id:5,d:'2026-10-20',time:'10:00',type:'Send documents',who:'HM',enq:'E-2026-0226',t:'Send company profile, BL-01 CF and insurance for the tender'},
   {id:6,d:'2026-10-14',type:'Chase PO',who:'S2',enq:'E-2026-0225',cust:'C6',t:'Get the LOU from Lian Hup before booking',done:true,doneAt:'2026-10-14',note:'LOU received by e-mail.'},
@@ -3593,7 +3593,7 @@ document.addEventListener('click', e => {
   if(d.action==='wo-open') return openWorkOrder(d.id);
   if(d.action==='gps-next'){ gpsNext(h); if(state.sheet?.type==='wo') return; return rerender(); }
   if(d.action==='wa-enq' || d.action==='wa-order'){ const m = WA_INBOX.find(x=>x.id===+d.m);
-    if(d.action==='wa-enq'){ state.ne = neDefaults({src:'WhatsApp', c:m.c||'', pphone:m.from, pname:m.c?'':'', notes:m.text, need:/50\s*tan|50\s*t/i.test(m.text)?'Rough terrain crane 50 t':'Truck crane 25 t', fuT:'Reply on WhatsApp with availability and price'}); return openNewEnquiry(); }
+    if(d.action==='wa-enq'){ state.ne = neDefaults({src:'WhatsApp', c:m.c||'', pphone:m.from, pname:m.c?'':'', notes:m.text, need:/50\s*tan|50\s*t/i.test(m.text)?'Rough terrain crane 50 t':'Mobile crane 25 t', fuT:'Reply on WhatsApp with availability and price'}); return openNewEnquiry(); }
     state.nh = newHireDefaults({c:m.c||'C1', site:'', jobScope:m.text}); return openNewHire(); }
 });
 document.addEventListener('change', e => {
@@ -3724,7 +3724,7 @@ function qtItems(q, mk, k, r){
 const PEER_TYPES = () => Object.keys(models).filter(k=>models[k].peer).map(k=>models[k].type);
 const qtSums = items => { const main = items.filter(i=>!i.sched), sub = r2(sum(main.map(i=>i.amt))), sst = r2(sum(main.map(i=>i.tax))); return {sub, sst, total:r2(sub+sst)}; };
 function qqDefaults(pre={}){
-  const from = state.av?.from || addDays(TODAY,1), to = state.av?.to || from, type = state.av?.type || 'Truck crane 25 t';
+  const from = state.av?.from || addDays(TODAY,1), to = state.av?.to || from, type = state.av?.type || 'Mobile crane 25 t';
   return {c:'', name:'', contact:'', phone:'', site:'', type, u:null, from, to, k:'wet', basis:'', hrs:8, disc:0, zone:'Johor Bahru', mob:false, rigger:false, diesel:false, open:false, slot:'full', peerS:'', peerCost:'', valid:RULES.valid,
     extra:'', more:[], enq:null, ...pre};
 }
@@ -4180,9 +4180,9 @@ const ZH = {
   "Machinery list dates":"机械清单日期","Jobs without an invoice no.":"没有发票号码的工作","Price on the work order":"工作单上的价格","WO no.":"WO 号码","Cross-hire supplier and cost":"同行车公司和成本","Machine names":"机械名称","Machine use":"机械使用","Ready to invoice":"待开发票",
   "confirmed jobs a working day":"每个工作日确定的工作","cross-hired from other companies (同行车)":"向别家租（同行车）","Sent once the e-invoice is fixed":"电子发票修好后发送",
   // extra machine / place words that appear alone
-  "Lorry tipper":"罗里（倒斗）","Truck crane":"汽车吊","Prime mover & lowloader":"拖头和低床拖车","Lowloader":"低床拖车","Palfinger lorry crane":"Palfinger 随车吊",
+  "Lorry tipper":"罗里（倒斗）","Mobile crane":"汽车吊","Prime mover & lowloader":"拖头和低床拖车","Lowloader":"低床拖车","Palfinger lorry crane":"Palfinger 随车吊",
   "Aisyah binti Karim":"Aisyah binti Karim","Prototype":"原型",
-  "Home":"主页","Daily income":"每日收入","Dashboard":"仪表板","Average a working day":"每工作日平均","Earned but no invoice no. yet":"已赚但还没有发票号码","By day":"按天","Daily & half-day jobs":"按天和半天工作","Monthly rentals (per day)":"月租（每天）","Cross-hire (charged)":"同行车（收费）","Click a day to see its jobs.":"点一天看当天工作。","How it is counted":"计算方法","Income":"收入","Cross-hire cost":"同行车成本","Daily jobs":"按天工作","Monthly rentals":"月租","Copy for Excel":"复制到 Excel","Not yet":"还没","Invoiced":"已开发票","booked":"已预订","Earned from the work done, before SST. Invoices and payments are in Bukku.":"按完成的工作计算，未含税。发票和收款在 Bukku。","No jobs on this day.":"这天没有工作。","Not checked":"未查","No chart":"没有吊重表","Add chart":"添加吊重表","PDF received":"已收 PDF","Sample chart: do not use":"示例吊重表：不要使用","Verified":"已核对","From PDF, not checked":"来自 PDF，未核对","Attach":"附上","Save chart from pasted table":"用贴上的表格保存","Or type it in cell by cell":"或逐格输入","Mark verified":"标为已核对","No load chart yet":"还没有吊重表","no load chart yet":"还没有吊重表","Truck cranes":"汽车吊","Rough terrain cranes":"越野吊","All terrain cranes":"全地面吊","Lorry cranes":"随车吊","Skylifts":"高空车","With operator":"连司机","Machine only":"不连司机","Group":"类别","All groups":"所有类别","Group and size":"类别和吨位","Half day (morning)":"半天（上午）","Half day (afternoon)":"下午半天","On hire":"出租中","Rental period":"租期","Fixed dates":"固定日期","Day, week or month, with an end date":"按天、周或月，有结束日期","Monthly, no end date":"按月，没有结束日期","Until the customer says stop":"直到顾客说停","estimate":"估计","Not available":"不可用","Jobs":"订单","Schedule":"排程","Machines":"机械","Settings":"设置","Tabs":"分页","Today & coming":"今天和接下来","All jobs":"全部订单","Staff & leave":"员工和请假","Edit order":"编辑订单","Save changes":"保存修改","Sales and balance":"销售额和余额","In Bukku":"在 Bukku","Last job":"最后工作","Cross-hire from another company (同行车)":"同行车（向别家租）","Their price to us (RM)":"同行价格（RM）","From the cross-hire company":"由同行公司提供",
+  "Home":"主页","Daily income":"每日收入","Dashboard":"仪表板","Average a working day":"每工作日平均","Earned but no invoice no. yet":"已赚但还没有发票号码","By day":"按天","Daily & half-day jobs":"按天和半天工作","Monthly rentals (per day)":"月租（每天）","Cross-hire (charged)":"同行车（收费）","Click a day to see its jobs.":"点一天看当天工作。","How it is counted":"计算方法","Income":"收入","Cross-hire cost":"同行车成本","Daily jobs":"按天工作","Monthly rentals":"月租","Copy for Excel":"复制到 Excel","Not yet":"还没","Invoiced":"已开发票","booked":"已预订","Earned from the work done, before SST. Invoices and payments are in Bukku.":"按完成的工作计算，未含税。发票和收款在 Bukku。","No jobs on this day.":"这天没有工作。","Not checked":"未查","No chart":"没有吊重表","Add chart":"添加吊重表","PDF received":"已收 PDF","Sample chart: do not use":"示例吊重表：不要使用","Verified":"已核对","From PDF, not checked":"来自 PDF，未核对","Attach":"附上","Save chart from pasted table":"用贴上的表格保存","Or type it in cell by cell":"或逐格输入","Mark verified":"标为已核对","No load chart yet":"还没有吊重表","no load chart yet":"还没有吊重表","Mobile cranes":"汽车吊","Rough terrain cranes":"越野吊","All terrain cranes":"全地面吊","Lorry cranes":"随车吊","Skylifts":"高空车","With operator":"连司机","Machine only":"不连司机","Group":"类别","All groups":"所有类别","Group and size":"类别和吨位","Half day (morning)":"半天（上午）","Half day (afternoon)":"下午半天","On hire":"出租中","Rental period":"租期","Fixed dates":"固定日期","Day, week or month, with an end date":"按天、周或月，有结束日期","Monthly, no end date":"按月，没有结束日期","Until the customer says stop":"直到顾客说停","estimate":"估计","Not available":"不可用","Jobs":"订单","Schedule":"排程","Machines":"机械","Settings":"设置","Tabs":"分页","Today & coming":"今天和接下来","All jobs":"全部订单","Staff & leave":"员工和请假","Edit order":"编辑订单","Save changes":"保存修改","Sales and balance":"销售额和余额","In Bukku":"在 Bukku","Last job":"最后工作","Cross-hire from another company (同行车)":"同行车（向别家租）","Their price to us (RM)":"同行价格（RM）","From the cross-hire company":"由同行公司提供",
   "free":"可用","NOT free":"不可用","free, document issue":"可用，文件有问题","Timesheet":"工作单","Morning · 08:00AM - 12:00PM":"上午 · 08:00AM - 12:00PM",
 
   // second pass: hints, sentences and fragments
@@ -4244,7 +4244,7 @@ const ZH_RX = [
   [/^Prototype of the Super Power Crane Machinery system with example data \(today is set to (.+?)\)\. Changes stay until the page reloads\..*$/g, 'Super Power Crane Machinery 系统原型，使用示例数据（今天设为 $1）。改动在刷新页面后消失。切换“查看身份”可看每个身份：主管看得到价格和发票，但看不到机械成本和利润；销售负责询价、顾客和跟进；司机只看自己的工作单和请假，没有价格。完整设计（docs/RENTAL.md）在项目仓库里。'],
   [/\b(\d+) d left\b/g, '剩 $1 天'], [/\((\d+(?:\.\d+)?) (t|m|kVA) or more\)/g, '（$1 $2 或以上）'], [/^Enquiry (?=\S)/g, '询价 '], [/^Quotation (?=\S)/g, '报价 '], [/^Order \(checklist\)/g, '订单（清单）'],
   [/^Edit order (H-\d{4}-\d+)$/g, '编辑订单 $1'], [/^Order edited by (.+?): (.*)\.$/g, '$1 修改了订单：$2。'], [/\bupdated\b/g, '已更新'],
-  [/^From search: (.+)$/g, (x,f)=>'按搜索：'+(ZH[f]||f)], [/^Half day \((morning|afternoon)\)/g, (x,w)=>w==='morning'?'半天（上午）':'半天（下午）'], [/^(Truck|Rough terrain|All terrain|Lorry) cranes$/g, x=>ZH[x]||x],
+  [/^From search: (.+)$/g, (x,f)=>'按搜索：'+(ZH[f]||f)], [/^Half day \((morning|afternoon)\)/g, (x,w)=>w==='morning'?'半天（上午）':'半天（下午）'], [/^(Mobile|Rough terrain|All terrain|Lorry) cranes$/g, x=>ZH[x]||x],
   [/^(\d+) cranes not checked$/g, '$1 台吊车未查'], [/^Machines:/g, '机械：'], [/cranes with a real chart can lift it/g, '台有真实吊重表的吊车吊得起'], [/(\d+) not checked\b/g, '$1 台未查'],
   [/^Earned (.+?) to (.+)$/g, '$1 已赚（至 $2）'], [/^Every day of (.+)$/g, '$1 每一天'], [/^From monthly rentals/g, '来自月租'], [/^Cross-hire margin/g, '同行车利润'], [/^Faded = booked, not yet worked/g, '淡色 = 已预订，还没工作'], [/^Total to /g, '合计至 '],
   [/^Collect\b/g, '收机'], [/^Deliver\b/g, '送机'], [/^Late (\d)/g, '迟到 $1'], [/\btarget (\d+)%/gi, '目标 $1%'], [/\b(\d+) this month\b/g, '本月 $1'], [/\b(\d+) unsigned timesheets?\b/g, '$1 张未签工作单'], [/^Rejected:/g, '被拒：'],
@@ -4263,7 +4263,7 @@ const ZH_RX = [
   [/^Pre-dispatch check for (.+), done in the yard before leaving\.$/g, '$1 出车前检查，在车厂出发前完成。'], [/\b(\d+) d\b/g, '$1 天'], [/^(\d+) min$/g, '$1 分钟'], [/^\+(\d+) standby$/g, '+$1 待命'],
   [/\bFull day\b/g, '全天'], [/\bMorning\b/g, '上午'], [/\bAfternoon\b/g, '下午'], [/: Medical leave \(MC\)/g, '：病假（MC）'], [/: Annual leave \(pending\)/g, '：年假（待批）'], [/\bGPS51 (\d\d:\d\d):/g, 'GPS51 $1：'], [/\bkm from site\b/g, '公里到工地'],
   [/\b(\d+) of (\d+) free\b/g, '$2台中$1台可用'], [/\b(\d+) of (\d+)\b/g, '$1 / $2'], [/(\d+) enquiring\b/g, '$1 个在询价'], [/(\d+) on hire\b/g, '$1 台出租中'], [/(\d+)\/(\d+) out\b/g, '$1/$2 台在外'],
-  [/\bRough terrain crane (\d+(?:\.\d+)?) t\b/g, '$1吨 越野吊'], [/\bAll terrain crane (\d+(?:\.\d+)?) t\b/g, '$1吨 全地面吊'], [/\bTruck crane (\d+(?:\.\d+)?) t\b/g, '$1吨 汽车吊'], [/\bMobile crane (\d+(?:\.\d+)?) t\b/g, '$1吨 吊车'],
+  [/\bRough terrain crane (\d+(?:\.\d+)?) t\b/g, '$1吨 越野吊'], [/\bAll terrain crane (\d+(?:\.\d+)?) t\b/g, '$1吨 全地面吊'], [/\bMobile crane (\d+(?:\.\d+)?) t\b/g, '$1吨 汽车吊'], [/\bMobile crane (\d+(?:\.\d+)?) t\b/g, '$1吨 吊车'],
   [/\bLorry crane (\d+(?:\.\d+)?) t\b/g, '$1吨 随车吊'], [/\bLorry crane with 40 ft cargo\b/g, '随车吊连40尺货斗'], [/\bSkylift (\d+) m\b/g, '$1米 高空车'], [/\bForklift (\d+(?:\.\d+)?) t\b/g, '$1吨 叉车'], [/\bExcavator (\d+) t\b/g, '$1吨 挖土机'],
   [/\bBoom lift (\d+) m\b/g, '$1米 臂式升降机'], [/\bWheel loader\b/g, '铲车'], [/\bGenerator (\d+) kVA\b/g, '$1 kVA 发电机'], [/\bCross-hire (\d+) t mobile crane\b/g, '同行车 $1吨吊车'],
   [/\bCranes · up to (\d+) t\b/g, '吊车 · $1吨以下'], [/\bCranes · over (\d+) t\b/g, '吊车 · $1吨以上'], [/\bCranes · (\d+)–(\d+) t\b/g, '吊车 · $1–$2吨'], [/\bForklifts · /g, '叉车 · '], [/\bAccess platforms · over (\d+) m\b/g, '高空作业 · $1米以上'], [/\bAccess platforms · up to (\d+) m\b/g, '高空作业 · $1米以下'],

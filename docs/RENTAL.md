@@ -496,7 +496,7 @@ A page where the office types in a job's **load weight**, **working radius** and
 
 Each chart has one of three states, shown on every result: **sample** (made-up values, prototype only), **from PDF, not checked** (copied from the manufacturer's chart, waiting for the Head Manager's check) and **verified**. A chart can hold a hook block weight **per boom length**, because short booms often use the heavy hook (e.g. KA-1300SL: 70 t hook 0.9 t on 11.8 m, 50 t hook 0.6 t on longer booms).
 
-Charts loaded so far from the owner's PDFs (all *from PDF, not checked*): Kato NK-160 and NK-200E-III (truck cranes, full outriggers, over side and rear), Kobelco RK500-2 (7.4 m outriggers, 360°), Kato SL-700R (7.6 m outriggers, over side and rear) and Kato KA-1300SL (A1: 8.4 m outriggers, 360°, counterweight on; heavy-lift attachment column not loaded). The manufacturers state that these values include the hook block and slings, so the lift check adds the hook block and rigging to the load before comparing.
+Charts loaded so far from the owner's PDFs (all *from PDF, not checked*): Kato NK-160 and NK-200E-III (mobile cranes, full outriggers, over side and rear), Kobelco RK500-2 (7.4 m outriggers, 360°), Kato SL-700R (7.6 m outriggers, over side and rear) and Kato KA-1300SL (A1: 8.4 m outriggers, 360°, counterweight on; heavy-lift attachment column not loaded). The manufacturers state that these values include the hook block and slings, so the lift check adds the hook block and rigging to the load before comparing.
 
 **How a crane is checked**, for each boom length in its chart:
 
@@ -732,7 +732,7 @@ Day rates found in the work orders (RM, with operator, median of own machines):
 |---|---|---|---|---|---|
 | 16 t | 850 | – | | 50 t | 2,450 |
 | 20 t | 1,080 | 820 | | 60 t | 3,100 |
-| 25 t truck crane | 1,400 | 950–1,065 | | 70 t | 3,300 |
+| 25 t mobile crane | 1,400 | 950–1,065 | | 70 t | 3,300 |
 | 25 t rough terrain | 1,800 | 1,050 | | 80 t | 3,800 |
 | 35 t | 1,900 | – | | 100 t and 120 t | 5,000 |
 | 45 t | 1,980 | – | | 130 t | 6,600 |
@@ -873,7 +873,7 @@ The customer page now says "Sales and balance: in Bukku". The rental system stil
 - **Quotations** still print "WITH OPERATOR", as on QT-01094.
 
 **Machine groups by crane type.**
-- **The groups:** Truck cranes, Rough terrain cranes, All terrain cranes, Lorry cranes, Skylifts, Forklifts.
+- **The groups:** Mobile cranes, Rough terrain cranes, All terrain cranes, Lorry cranes, Skylifts, Forklifts.
 - **Within a group:** machines sit by exact size, for example *Rough terrain crane 25 t: BPN 8918, VNB 2138, VNC 2138*.
 - **Where the groups are used:** Machines, Planner, Availability, and the Home utilisation panel.
 - **Search understands the type:**
@@ -881,7 +881,7 @@ The customer page now says "Sales and balance: in Bukku". The rental system stil
   | Search | Finds |
   |---|---|
   | "25t rough terrain" or "RT 25t" | the three SR-250V6 first, then the bigger rough terrain cranes |
-  | "truck crane 50t" | 50 t truck cranes and bigger |
+  | "mobile crane 50t" | 50 t mobile cranes and bigger |
   | "all terrain" | all terrain cranes |
   | "25t crane" | every crane type of 25 t and above |
 
