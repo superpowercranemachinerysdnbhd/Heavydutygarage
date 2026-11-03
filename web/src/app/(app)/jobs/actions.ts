@@ -286,7 +286,11 @@ export async function saveWriteup(form: FormData) {
   const { job } = await access(jobId, user);
   if (job.status === "closed" && !can(user.role, "job.editDetails")) back(user, jobId, { error: "err.jobClosed", hash: "writeup" });
   const fu = str(form, "followUpDate");
+  // The customer complaint can be corrected here too (Head Manager / Supervisor); it may not be emptied.
+  const complaint = form.has("complaint") && can(user.role, "job.editDetails") ? str(form, "complaint") : null;
+  if (form.has("complaint") && complaint === "") back(user, jobId, { error: "err.complaint", hash: "writeup" });
   await db.update(jobs).set({
+    ...(complaint ? { complaint } : {}),
     diagnosis: str(form, "diagnosis"), workDone: str(form, "workDone"), recommendations: str(form, "recommendations") || null,
     followUp: str(form, "followUp") || null, followUpDate: /^\d{4}-\d{2}-\d{2}$/.test(fu) && str(form, "followUp") ? fu : null,
   }).where(eq(jobs.id, jobId));

@@ -844,3 +844,6 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - One card per machine (plate, model, company, location, hour meter; red edge if anything is overdue, amber if due soon). It lists each service in the period with last done, interval, due date and "N days late" / "in N days". Buttons: **Create service work order**, or **Open: J-…** when a service work order is already open, and **Service schedule**. Other open work orders on the machine are listed underneath.
 - "Create service work order" opens the new work order form for that machine with category Preventive Maintenance, the title "Service: Engine oil & filter, Greasing…", the complaint and one task per service filled in (`/jobs/new?unit=…&pm=item,item`; tasks go in as `task` fields). Ticking "Services done" on the work order moves each next due date on, as before.
 - "No schedule" lists machines without one, with **Set up schedule** (the machine's service schedule).
+
+### 66. Edit the customer complaint on the work order page (Nov 2026)
+- For the Head Manager and Supervisor, the customer complaint is a text box at the top of the write-up, saved with **Save write-up** (`saveWriteup` updates it when sent; it cannot be emptied). Crew still see it as text. Edit work order still has it too.

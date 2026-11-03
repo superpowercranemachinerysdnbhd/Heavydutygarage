@@ -95,6 +95,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const due = dueInfo(job, t, locale);
   const hidden = (n: string, v: string | number) => <input type="hidden" name={n} value={v} />;
   const canWrite = open || can(user.role, "job.editDetails");
+  // The complaint is edited in the write-up box by those who may edit work order details (crew read it).
+  const editComplaint = canWrite && can(user.role, "job.editDetails");
   const [services, doneHere, machineJobs] = await Promise.all([servicesFor(unit.id), servicesOnJob(job.id), listJobs(user, { unitId: unit.id })]);
   // Earlier work orders on this machine (newest first), with the services done on each.
   const previous = machineJobs.filter((p) => p.id !== job.id && p.openedAt <= job.openedAt).sort((a, b) => b.openedAt.localeCompare(a.openedAt) || b.id - a.id);
@@ -167,9 +169,10 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       <div className="job-cols">
         <div className="stack">
           <section className="sect" id="writeup"><h3>{t("job.writeup")}</h3><div className="in">
-            <div><span className="label">{t("job.complaint")}{job.reportedBy ? ` · ${t("job.reportedBy", { name: job.reportedBy })}` : ""}</span><p style={{ margin: "2px 0 0", whiteSpace: "pre-line" }}>{job.complaint}</p></div>
+            {!editComplaint && <div><span className="label">{t("job.complaint")}{job.reportedBy ? ` · ${t("job.reportedBy", { name: job.reportedBy })}` : ""}</span><p style={{ margin: "2px 0 0", whiteSpace: "pre-line" }}>{job.complaint}</p></div>}
             <form action={A.saveWriteup} className="form" style={{ gridTemplateColumns: "1fr" }}>
               {hidden("jobId", job.id)}
+              {editComplaint && <label>{t("job.complaint")}{job.reportedBy ? ` · ${t("job.reportedBy", { name: job.reportedBy })}` : ""}<textarea name="complaint" rows={Math.min(8, Math.max(3, job.complaint.split("\n").length + 1))} defaultValue={job.complaint} required /></label>}
               <label>{t("job.diagnosis")}<textarea name="diagnosis" rows={3} defaultValue={job.diagnosis} disabled={!canWrite} placeholder={t("job.diagnosisPh")} /></label>
               <label>{t("job.workDone")}<textarea name="workDone" rows={4} defaultValue={job.workDone} disabled={!canWrite} placeholder={t("job.workDonePh")} /></label>
               <label>{t("job.recommendations")}<textarea id="rec-text" name="recommendations" rows={2} defaultValue={job.recommendations ?? ""} disabled={!canWrite} placeholder={t("job.recommendationsPh")} /></label>
