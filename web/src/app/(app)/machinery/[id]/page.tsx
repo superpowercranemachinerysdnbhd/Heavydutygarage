@@ -106,7 +106,7 @@ export default async function UnitPage({ params, searchParams }: { params: Promi
         </div>
       </section>
 
-      <div className="panel">
+      <div className="panel" id="history">
         <div className="panel-head" style={{ flexWrap: "wrap" }}><h3>{t("mach.history")}</h3>
           <div className="chipbar">
             <Link className="chip" href={`/machinery/${id}`} aria-pressed={!sp.cat} style={{ textDecoration: "none" }}>{t("mach.all")}</Link>

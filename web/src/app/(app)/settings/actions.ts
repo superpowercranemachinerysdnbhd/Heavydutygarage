@@ -6,6 +6,9 @@ import { requirePermission } from "@/lib/auth";
 import { BUILTIN, builtinHex, findItem, listItems, newCode, type ListName, type Priority } from "@/lib/lists";
 import { loadLists } from "@/lib/lists-server";
 import { builtinPlaceLabel, translator, type MessageKey, type T } from "@/i18n";
+import { parseBreaks } from "@/lib/pay";
+
+const hhmmOf = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
 const LISTS: ListName[] = ["job_category", "machine_type", "bay", "qc_item", "service_item", "event_type"];
 const PRIORITIES: Priority[] = ["critical", "high", "normal", "low"];
@@ -112,6 +115,9 @@ export async function saveWorkshop(form: FormData) {
   const values: Record<string, string> = {
     poApprovalLimit: String(limit), otMultiplier: String(ot), sundayMultiplier: String(sun),
     otStart: /^\d{2}:\d{2}$/.test(str(form, "otStart")) ? str(form, "otStart") : "17:00",
+    workStart: /^\d{2}:\d{2}$/.test(str(form, "workStart")) ? str(form, "workStart") : "08:00",
+    workEnd: /^\d{2}:\d{2}$/.test(str(form, "workEnd")) ? str(form, "workEnd") : "17:00",
+    breaks: parseBreaks(str(form, "breaks")).map(([x, y]) => `${hhmmOf(x)}-${hhmmOf(y)}`).join(", "),
     companyName: str(form, "companyName").slice(0, 120), companyAddress: str(form, "companyAddress").slice(0, 400), companyPhone: str(form, "companyPhone").slice(0, 60), companyReg: str(form, "companyReg").slice(0, 60),
   };
   for (const [key, value] of Object.entries(values)) {

@@ -1,14 +1,14 @@
 "use client";
 import { useState } from "react";
 import { useT } from "@/i18n/client";
-import { splitHours } from "@/lib/pay";
+import { parseBreaks, splitHours } from "@/lib/pay";
 
 /** Time on a work order: either clock times (from – to; split at the start of overtime, shown before saving) or a number of hours with its type. */
-export default function LabourHours({ otStart, rateSelect }: { otStart: string; rateSelect: React.ReactNode }) {
+export default function LabourHours({ otStart, breaks, rateSelect }: { otStart: string; breaks: string; rateSelect: React.ReactNode }) {
   const t = useT();
   const [mode, setMode] = useState<"time" | "hours">("time");
   const [from, setFrom] = useState(""), [to, setTo] = useState(""), [date, setDate] = useState<string | null>(null);
-  const split = from && to ? splitHours(from, to, otStart) : null;
+  const split = from && to ? splitHours(from, to, otStart, parseBreaks(breaks)) : null;
   // The date box sits before this in the same form; read it to tell a Sunday.
   const sunday = (() => { const d = date ?? (typeof document !== "undefined" ? (document.querySelector('form input[name="workDate"]') as HTMLInputElement | null)?.value : ""); return d ? new Date(`${d}T00:00:00Z`).getUTCDay() === 0 : false; })();
   return (<>

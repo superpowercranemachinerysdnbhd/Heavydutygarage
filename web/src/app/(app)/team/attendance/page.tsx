@@ -11,6 +11,8 @@ import { INTL_LOCALE, type Locale, type MessageKey, type T } from "@/i18n";
 import { roleLabel } from "@/i18n/labels";
 import { Notice } from "@/components/ui";
 import SubmitButton from "@/components/SubmitButton";
+import AttendanceTimes from "@/components/AttendanceTimes";
+import { settings } from "@/lib/lists";
 import { markAllPresent, saveAttendance } from "./actions";
 
 export async function generateMetadata() {
@@ -62,7 +64,8 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
       </div>
       {(weekday(day) === 6 || hol.has(day)) && <p className="hint" style={{ margin: 0 }}>{hol.get(day) ?? t("att.sunday")}</p>}
       <p className="muted" style={{ margin: 0 }}>{t("att.summaryLine", { marked: people.length - unmarked, n: people.length })}</p>
-      <form action={saveAttendance} className="stack" style={{ gap: 10 }}>
+      <form action={saveAttendance} className="stack" style={{ gap: 10 }} id="att-sheet">
+        <AttendanceTimes formId="att-sheet" start={settings().workStart} end={settings().workEnd} />
         {hidden("day", day)}
         <div className="panel att-sheet">
           {people.map((p) => {
