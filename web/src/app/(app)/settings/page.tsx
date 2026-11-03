@@ -104,6 +104,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <label>{t("set.poLimit")}<input name="poApprovalLimit" type="number" min={0} step="1" required defaultValue={s.poApprovalLimit} /></label>
           <label>{t("set.workStart")}<input name="workStart" type="time" required defaultValue={s.workStart} /></label>
           <label>{t("set.workEnd")}<input name="workEnd" type="time" required defaultValue={s.workEnd} /></label>
+          <label>{t("set.breaks")}<input name="breaks" defaultValue={s.breaks} placeholder="10:00-10:30, 12:00-13:00" /><small className="muted">{t("set.breaksHelp")}</small></label>
           <label>{t("set.otStart")}<input name="otStart" type="time" required defaultValue={s.otStart} /></label>
           <label>{t("set.otMult")}<input name="otMultiplier" type="number" min={1} max={5} step="0.25" required defaultValue={s.otMultiplier} /></label>
           <label>{t("set.sundayMult")}<input name="sundayMultiplier" type="number" min={1} max={5} step="0.25" required defaultValue={s.sundayMultiplier} /></label>

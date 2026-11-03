@@ -829,3 +829,7 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 
 ### 62. Service report: choose the part columns (Oct 2026)
 - Include: **Part no.** and **Part description** buttons (both on by default) next to Photos, Quality checks and Labour hours. Turning one off drops that column from Parts used; turning both off leaves the Parts used section out. The choices are kept in the report link (`pno=0`, `pdesc=0`) and when recommendations are saved.
+
+### 63. Company breaks taken off logged time (Nov 2026)
+- Settings → Workshop: **Breaks (not counted as work)**, default "10:00-10:30, 12:00-13:00" (`parseBreaks` in `lib/pay.ts`).
+- Time logged as from – to has the breaks inside it taken off before the split at the start of overtime (`splitHours`, unit-tested). 08:00–17:00 → 7.5 h; 08:00–19:00 → 7.5 h normal + 2 h overtime; 13:00–17:00 → 4 h. The preview on the form shows the net hours. Time logged as a number of hours is taken as typed.

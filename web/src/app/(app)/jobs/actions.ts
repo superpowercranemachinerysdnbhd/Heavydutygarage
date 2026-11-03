@@ -14,7 +14,7 @@ import { changeIssuedQty, issueToJob } from "@/lib/inventory";
 import { supplierByName } from "@/lib/purchasing";
 import { saveMachine } from "@/lib/machines";
 import { bayCodes, findItem, isCategory, itemLabel, qcSuggestions, settings } from "@/lib/lists";
-import { rateMultiplier, rateTypeFor, splitHours } from "@/lib/pay";
+import { parseBreaks, rateMultiplier, rateTypeFor, splitHours } from "@/lib/pay";
 import { markServiceDone } from "@/lib/services";
 import { ensureLists } from "@/lib/lists-server";
 import { translator, type MessageKey, type Vars } from "@/i18n";
@@ -391,7 +391,7 @@ export async function logLabour(form: FormData) {
   // "From – to" clock times: split at the time overtime starts (15:00–19:00 → 2 h normal + 2 h overtime). Sundays are all Sunday rate.
   const from = str(form, "timeFrom"), to = str(form, "timeTo");
   if (from || to) {
-    const split = splitHours(from, to, settings().otStart);
+    const split = splitHours(from, to, settings().otStart, parseBreaks(settings().breaks));
     if (!split) back(user, jobId, { error: "lab.err.times", hash: "labour" });
     if (workDate > today()) back(user, jobId, { error: "err.futureDate" });
     if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });

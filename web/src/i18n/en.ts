@@ -131,6 +131,8 @@ export const en = {
   "dash.onActive": "{n} on active work orders",
   "dash.addCrew": "Add your crew under Team.",
   "dash.attention": "Needs attention",
+  "set.breaks": "Breaks (not counted as work)",
+  "set.breaksHelp": "e.g. 10:00-10:30, 12:00-13:00. Taken off time logged as from – to.",
   "rep.pnoToggle": "Part no.",
   "rep.pdescToggle": "Part description",
   "set.workStart": "Work starts at",

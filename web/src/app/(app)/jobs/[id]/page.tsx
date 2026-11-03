@@ -263,7 +263,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                 {hidden("jobId", job.id)}
                 {sup ? <select className="field" name="staffId" aria-label={t("col.person")} defaultValue={job.leadId ?? undefined}>{workers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select> : <span className="muted">{user.name}</span>}
                 <input type="date" name="workDate" defaultValue={today()} max={today()} aria-label={t("col.date")} />
-                <LabourHours otStart={settings().otStart} rateSelect={rateSelect()} />
+                <LabourHours otStart={settings().otStart} breaks={settings().breaks} rateSelect={rateSelect()} />
                 <input type="text" name="note" placeholder={t("job.whatDone")} style={{ flex: "1 1 160px" }} aria-label={t("col.note")} />
                 <SubmitButton>{t("job.logTime")}</SubmitButton>
               </form>

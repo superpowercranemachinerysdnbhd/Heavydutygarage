@@ -49,3 +49,15 @@ test("no overtime pay: overtime hours at the normal rate, Sunday unchanged", asy
   assert.equal(rateMultiplier("sunday", s, true), 2);
   assert.equal(rateMultiplier("ot", s, false), 1.5);
 });
+
+test("breaks are taken off logged time", async () => {
+  const { splitHours, parseBreaks } = await import("../src/lib/pay");
+  const br = parseBreaks("10:00-10:30, 12:00-13:00");
+  assert.deepEqual(br, [[600, 630], [720, 780]]);
+  assert.deepEqual(splitHours("08:00", "17:00", "17:00", br), { normal: 7.5, ot: 0 });
+  assert.deepEqual(splitHours("08:00", "19:00", "17:00", br), { normal: 7.5, ot: 2 });
+  assert.deepEqual(splitHours("13:00", "17:00", "17:00", br), { normal: 4, ot: 0 });
+  assert.deepEqual(splitHours("12:30", "14:00", "17:00", br), { normal: 1, ot: 0 });
+  assert.deepEqual(splitHours("15:00", "19:00", "17:00", br), { normal: 2, ot: 2 });
+  assert.deepEqual(parseBreaks("rubbish, 13:00-12:00"), []);
+});

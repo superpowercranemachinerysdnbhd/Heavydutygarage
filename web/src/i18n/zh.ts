@@ -125,6 +125,8 @@ export const zh: Messages = {
   "dash.onActive": "{n} 人在岗",
   "dash.addCrew": "请在「团队」中添加人员。",
   "dash.attention": "需要处理",
+  "set.breaks": "休息时间（不计入工时）",
+  "set.breaksHelp": "例如 10:00-10:30, 12:00-13:00。按起止时间记录工时时会扣除。",
   "rep.pnoToggle": "零件号",
   "rep.pdescToggle": "配件描述",
   "set.workStart": "上班时间",

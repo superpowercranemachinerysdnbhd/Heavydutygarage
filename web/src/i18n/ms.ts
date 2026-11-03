@@ -125,6 +125,8 @@ export const ms: Messages = {
   "dash.onActive": "{n} pada kerja aktif",
   "dash.addCrew": "Tambah kru anda di bawah Pasukan.",
   "dash.attention": "Perlu perhatian",
+  "set.breaks": "Rehat (tidak dikira sebagai kerja)",
+  "set.breaksHelp": "cth. 10:00-10:30, 12:00-13:00. Ditolak dari masa yang direkod dari – hingga.",
   "rep.pnoToggle": "No. part",
   "rep.pdescToggle": "Keterangan part",
   "set.workStart": "Kerja mula pada",
