@@ -866,3 +866,7 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - Day sheet: under each saved person, "7.5 h at work · OT 2 h". Monthly summary: Hours and OT hours columns; a day's tooltip shows its times and hours; a name opens that person's month.
 - New person view (`/team/attendance?p=<id>&m=YYYY-MM`): totals (days worked, hours, OT hours, late, MC / leave, absent) and every day of the month with status, time in, time out, hours, OT and note, plus a total row. ‹ › change month. Crew see their own.
 - The Excel download adds Hours and OT hours, and each day shows its code with the hours (e.g. "P 7.5").
+
+### 69. Reports: maintenance cost by company (Nov 2026)
+- New section **By company** (the machine's owner) on Reports: work orders, parts, outsource work, labour, total and share, for the whole year or one month (chips: Whole year + each month with work; `?cm=YYYY-MM`). Under each company, its machines with their own totals. Company and machine names link to their pages. Costs are dated by the day the work order was opened, like the rest of the maintenance report.
+- English wording: "Outside work" is now "Outsource work" everywhere.

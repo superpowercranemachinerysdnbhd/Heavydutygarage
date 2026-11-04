@@ -804,3 +804,7 @@ table.bl .num{white-space:nowrap}
 table.rp td.num,table.rp th{white-space:nowrap}
 .att-hrs{color:var(--ok);font-weight:600;font-size:.78rem}
 .att-tag{font-size:.8rem;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--surface-2)}
+table.rp tbody.co-group{border-top:2px solid var(--line)}
+table.rp tr.co-row td{background:var(--surface-2)}
+table.rp tr.co-machine td{font-size:.85rem;color:var(--muted)}
+table.rp tr.co-machine td:first-child{padding-left:28px}

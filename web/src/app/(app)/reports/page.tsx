@@ -21,7 +21,7 @@ export async function generateMetadata() {
 
 
 /** Maintenance cost report (Head Manager): by month, by machine and by work order category, for one year. */
-export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ y?: string; ok?: string; error?: string }> }) {
+export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ y?: string; cm?: string; ok?: string; error?: string }> }) {
   const user = await requireUser();
   if (!can(user.role, "money.labourCost")) notFound();
   const { t, locale } = await getI18n();
@@ -43,6 +43,15 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const byUnit = [...groupBy(rows, (r) => r.unitId)].sort((a, b) => total(b[1]) - total(a[1]));
   const byCat = [...groupBy(rows, (r) => r.category)].sort((a, b) => total(b[1]) - total(a[1]));
   const unit = new Map(units.map((u) => [u.id, u]));
+  // By company (the machine's owner), for the whole year or one month (?cm=YYYY-MM).
+  const cm = months.includes(sp.cm ?? "") ? sp.cm! : "";
+  const coRows = cm ? rows.filter((r) => r.opened.startsWith(cm)) : rows;
+  const coAll = sum(coRows);
+  const byCompany = [...groupBy(coRows, (r) => unit.get(r.unitId)?.customerId ?? 0)].map(([cid, c]) => ({
+    cid, name: units.find((u) => u.customerId === cid)?.customerName ?? "—", c,
+    machines: [...groupBy(coRows.filter((r) => unit.get(r.unitId)?.customerId === cid), (r) => r.unitId)].sort((a, b) => total(b[1]) - total(a[1])),
+  })).sort((a, b) => total(b.c) - total(a.c));
+  const cmHref = (m: string) => `/reports?${new URLSearchParams({ y: String(year), ...(m ? { cm: m } : {}) })}#companies`;
   const monthName = (m: string) => new Date(`${m}-01T00:00:00Z`).toLocaleDateString(INTL_LOCALE[locale], { month: "short", timeZone: "UTC" });
   const pct = (c: CostSum) => (total(all) ? Math.round((total(c) / total(all)) * 100) : 0);
   return (
@@ -101,6 +110,28 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           <tbody>{months.map((m) => { const c = byMonth.get(m) ?? EMPTY_SUM; return (
             <tr key={m}><td>{monthName(m)}</td><td className="r num">{c.n || ""}</td><td className="r num">{c.n ? rm(c.parts) : ""}</td><td className="r num">{c.outside ? rm(c.outside) : ""}</td><td className="r num">{c.n ? rm(c.labour) : ""}</td><td className="r num"><b>{c.n ? rm(total(c)) : ""}</b></td>
               <td className="bar-col"><span className="bar" style={{ width: `${(total(c) / maxMonth) * 100}%` }} /></td></tr>); })}</tbody>
+        </table></div>
+      </section>
+
+      <section className="panel" id="companies">
+        <div className="panel-head"><h3>{t("rp.byCompany")}{cm ? ` · ${monthName(cm)} ${year}` : ` · ${year}`}</h3><b className="num">{rm(total(coAll))}</b></div>
+        <nav className="chipbar" style={{ padding: "8px 14px 0" }} aria-label={t("rp.month")}>
+          <Link href={cmHref("")} className={`chip plain filt ${!cm ? "on" : ""}`}>{t("rp.wholeYear")}</Link>
+          {months.filter((m) => byMonth.has(m)).map((m) => <Link key={m} href={cmHref(m)} className={`chip plain filt ${cm === m ? "on" : ""}`}>{monthName(m)}</Link>)}
+        </nav>
+        <p className="hint" style={{ margin: 0, padding: "6px 14px 0" }}>{t("rp.byCompanyHelp")}</p>
+        <div className="tbl-wrap" style={{ border: 0, borderRadius: 0 }}><table className="rp">
+          <thead><tr><th>{t("col.customer")}</th><th className="r">{t("mc.orders")}</th><th className="r">{t("mc.parts")}</th><th className="r">{t("rp.outside")}</th><th className="r">{t("mc.labour")}</th><th className="r">{t("mc.total")}</th><th className="r">%</th></tr></thead>
+          {byCompany.map((co) => (
+            <tbody key={co.cid} className="co-group">
+              <tr className="co-row"><td><Link href={`/customers/${co.cid}`}><b>{co.name}</b></Link> <small className="muted">· {t("rp.machinesN", { n: co.machines.length })}</small></td>
+                <td className="r num">{co.c.n}</td><td className="r num">{rm(co.c.parts)}</td><td className="r num">{co.c.outside ? rm(co.c.outside) : ""}</td><td className="r num">{rm(co.c.labour)}</td>
+                <td className="r num"><b>{rm(total(co.c))}</b></td><td className="r num">{total(coAll) ? Math.round((total(co.c) / total(coAll)) * 100) : 0}%</td></tr>
+              {co.machines.map(([uid, c]) => { const u = unit.get(uid); return (
+                <tr key={uid} className="co-machine"><td><Link href={`/machinery/${uid}#cost`} className={u?.plateNo ? "mono" : ""}>{u ? unitRef(u) : uid}</Link> <small className="muted">{u?.make} {u?.model}</small></td>
+                  <td className="r num">{c.n}</td><td className="r num">{rm(c.parts)}</td><td className="r num">{c.outside ? rm(c.outside) : ""}</td><td className="r num">{rm(c.labour)}</td><td className="r num">{rm(total(c))}</td><td /></tr>); })}
+            </tbody>))}
+          {byCompany.length === 0 && <tbody><tr><td colSpan={7} className="muted">{t("rp.none")}</td></tr></tbody>}
         </table></div>
       </section>
 
