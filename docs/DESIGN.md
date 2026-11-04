@@ -859,3 +859,10 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 - **Other expenses** (new table `company_expenses`: date, type, description, amount): rent, electricity & water, fuel / diesel, tools & equipment, vehicles, office & admin, insurance & licences, other. Added and removed under the table.
 - The maintenance cost sections (by month, machine, outsource, category) follow under "Maintenance cost (work orders)".
 - Staff marked inactive are left out of salaries for every month.
+
+### 68. Attendance: each day starts fresh; hours per day and month (Nov 2026)
+- Fix: moving to another day with ‹ › kept the same form on screen (uncontrolled inputs), so one day's times and notes showed on the next and could be saved there. The day sheet form is keyed by date, so each day loads its own saved values.
+- Hours at work = clock in to clock out, less the company breaks, with time after the end of the normal day as overtime (`attHours` / `sumHours` in `lib/attendance.ts`, using the same rules as labour time; unit-tested).
+- Day sheet: under each saved person, "7.5 h at work · OT 2 h". Monthly summary: Hours and OT hours columns; a day's tooltip shows its times and hours; a name opens that person's month.
+- New person view (`/team/attendance?p=<id>&m=YYYY-MM`): totals (days worked, hours, OT hours, late, MC / leave, absent) and every day of the month with status, time in, time out, hours, OT and note, plus a total row. ‹ › change month. Crew see their own.
+- The Excel download adds Hours and OT hours, and each day shows its code with the hours (e.g. "P 7.5").

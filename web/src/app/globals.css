@@ -802,3 +802,5 @@ table.bl .num{white-space:nowrap}
 .pm-items td{padding:6px 0;border-top:1px solid var(--line);vertical-align:top;font-size:.88rem}
 .pm-actions{display:flex;gap:8px;flex-wrap:wrap}
 table.rp td.num,table.rp th{white-space:nowrap}
+.att-hrs{color:var(--ok);font-weight:600;font-size:.78rem}
+.att-tag{font-size:.8rem;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--surface-2)}
