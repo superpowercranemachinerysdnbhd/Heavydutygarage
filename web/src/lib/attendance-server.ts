@@ -15,3 +15,10 @@ export async function attendanceBetween(from: string, to: string, staffId?: numb
   return db.select({ staffId: A.staffId, day: A.day, status: A.status, timeIn: A.timeIn, timeOut: A.timeOut, note: A.note }).from(A)
     .where(and(between(A.day, from, to), staffId ? eq(A.staffId, staffId) : undefined));
 }
+
+/** Time logged on work orders between two days, one row per entry, with the work order. */
+export async function labourBetween(from: string, to: string, staffId?: number) {
+  const L = schema.labourEntries, J = schema.jobs;
+  return db.select({ staffId: L.staffId, day: L.workDate, hours: L.hours, timeFrom: L.timeFrom, timeTo: L.timeTo, jobId: L.jobId, jobNo: J.jobNo, title: J.title, complaint: J.complaint })
+    .from(L).innerJoin(J, eq(L.jobId, J.id)).where(and(between(L.workDate, from, to), staffId ? eq(L.staffId, staffId) : undefined)).orderBy(asc(L.workDate), asc(L.timeFrom));
+}

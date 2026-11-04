@@ -870,3 +870,9 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 ### 69. Reports: maintenance cost by company (Nov 2026)
 - New section **By company** (the machine's owner) on Reports: work orders, parts, outsource work, labour, total and share, for the whole year or one month (chips: Whole year + each month with work; `?cm=YYYY-MM`). Under each company, its machines with their own totals. Company and machine names link to their pages. Costs are dated by the day the work order was opened, like the rest of the maintenance report.
 - English wording: "Outside work" is now "Outsource work" everywhere.
+
+### 70. Utilisation: attendance against hours on work orders (Nov 2026)
+- Team → Attendance → **Utilisation** (Head Manager and Supervisor).
+- Each person and day: hours at work (`hoursAtWork`: clock in to out less breaks; Present / Late without times = the normal working day; a half day without times = half of it) against hours logged on work orders that day (`labourBetween`). `utilisation` (both unit-tested) gives the share, the idle hours and a flag: nothing logged / low (under 50%) / ok / more logged than at work.
+- Month view: totals (at work, logged, utilisation %, days at work with nothing logged), and per person: at work, logged, idle, %, blank days. A coloured cell per day shows the hours logged (red = at work with nothing logged, amber = under half, green = most of the day, blue = more logged than at work).
+- Person view (tap a name): each day with status, clock in–out, hours at work, hours logged, the work orders (number, times, hours, title), idle hours and the flag. Days with nothing logged are shaded red.

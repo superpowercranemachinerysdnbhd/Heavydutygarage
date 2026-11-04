@@ -23,3 +23,20 @@ test("hours from clock in / out, less breaks, overtime after 17:00", async () =>
   assert.equal(attHours("08:00", null, o), null);
   assert.deepEqual(sumHours([{ timeIn: "08:00", timeOut: "17:00" }, { timeIn: "08:00", timeOut: "19:00" }, { timeIn: null, timeOut: null }], o), { total: 17, ot: 2, days: 2 });
 });
+
+test("utilisation: hours at work against hours logged on work orders", async () => {
+  const { hoursAtWork, utilisation } = await import("../src/lib/attendance");
+  const { parseBreaks } = await import("../src/lib/pay");
+  const o = { breaks: parseBreaks("10:00-10:30, 12:00-13:00"), otStart: "17:00", workStart: "08:00", workEnd: "17:00" };
+  assert.equal(hoursAtWork({ status: "present", timeIn: "08:00", timeOut: "17:00" }, o), 7.5);
+  assert.equal(hoursAtWork({ status: "present", timeIn: null, timeOut: null }, o), 7.5);
+  assert.equal(hoursAtWork({ status: "half", timeIn: null, timeOut: null }, o), 3.75);
+  assert.equal(hoursAtWork({ status: "mc", timeIn: null, timeOut: null }, o), 0);
+  assert.equal(hoursAtWork(undefined, o), 0);
+  assert.deepEqual(utilisation(7.5, 0), { pct: 0, idle: 7.5, flag: "none" });
+  assert.deepEqual(utilisation(7.5, 3), { pct: 40, idle: 4.5, flag: "low" });
+  assert.deepEqual(utilisation(7.5, 7), { pct: 93, idle: 0.5, flag: "ok" });
+  assert.equal(utilisation(7.5, 9).flag, "over");
+  assert.deepEqual(utilisation(0, 0), { pct: null, idle: 0, flag: "" });
+  assert.equal(utilisation(0, 2).flag, "over");
+});

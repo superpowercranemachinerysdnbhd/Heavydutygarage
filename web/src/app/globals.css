@@ -808,3 +808,12 @@ table.rp tbody.co-group{border-top:2px solid var(--line)}
 table.rp tr.co-row td{background:var(--surface-2)}
 table.rp tr.co-machine td{font-size:.85rem;color:var(--muted)}
 table.rp tr.co-machine td:first-child{padding-left:28px}
+/* Utilisation (attendance vs work order hours) */
+.att-month.util td.dcol{font-size:.72rem;font-weight:600}
+.u-none{background:color-mix(in srgb,var(--crit) 22%,transparent);color:var(--crit)}
+.u-low{background:color-mix(in srgb,var(--warn) 22%,transparent)}
+.u-ok{background:color-mix(in srgb,var(--ok) 20%,transparent)}
+.u-over{background:color-mix(in srgb,var(--info) 20%,transparent)}
+.u-key{display:inline-block;min-width:22px;text-align:center;border-radius:3px;font-weight:600;font-size:.72rem;padding:1px 4px}
+tr.u-row-none td{background:color-mix(in srgb,var(--crit) 7%,transparent)}
+table.util-days td.num{white-space:nowrap}
