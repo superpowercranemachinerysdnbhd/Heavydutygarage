@@ -801,3 +801,4 @@ table.bl .num{white-space:nowrap}
 .pm-items{width:100%;border-collapse:collapse}
 .pm-items td{padding:6px 0;border-top:1px solid var(--line);vertical-align:top;font-size:.88rem}
 .pm-actions{display:flex;gap:8px;flex-wrap:wrap}
+table.rp td.num,table.rp th{white-space:nowrap}

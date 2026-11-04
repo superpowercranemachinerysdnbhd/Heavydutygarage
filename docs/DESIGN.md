@@ -847,3 +847,15 @@ chat messages (direct: the other person; work order chat: lead, team and supervi
 
 ### 66. Edit the customer complaint on the work order page (Nov 2026)
 - For the Head Manager and Supervisor, the customer complaint is a text box at the top of the write-up, saved with **Save write-up** (`saveWriteup` updates it when sent; it cannot be emptied). Crew still see it as text. Edit work order still has it too.
+
+### 67. Company expenses by month on Reports (Nov 2026)
+- Reports (Head Manager) starts with **Company expenses by month** (`monthlyExpenses` in `lib/expenses.ts`). Columns:
+  - Parts into stock: receipt lines × invoice price, by date received (Malaysia time).
+  - Parts for work orders and Outsource work: `job_purchases` by date bought.
+  - Salaries: each active person who had joined by the month, at the monthly salary in force that month from the pay history; months after the current one stay empty.
+  - Overtime & hourly: overtime / Sunday hours of salaried staff, and all hours of people paid by the hour, at the rate on the day × multiplier.
+  - Other.
+  A total per month, a bar, and a year total row.
+- **Other expenses** (new table `company_expenses`: date, type, description, amount): rent, electricity & water, fuel / diesel, tools & equipment, vehicles, office & admin, insurance & licences, other. Added and removed under the table.
+- The maintenance cost sections (by month, machine, outsource, category) follow under "Maintenance cost (work orders)".
+- Staff marked inactive are left out of salaries for every month.

@@ -2,14 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { rm, today } from "@/lib/format";
+import { fmtDate, rm, today } from "@/lib/format";
 import { EMPTY_SUM, costRows, costTotal as total, groupBy, outsideByVendor, sum, type CostSum } from "@/lib/costs";
 import { unitsWithNames } from "@/lib/queries";
 import { catColor, itemLabel } from "@/lib/lists";
 import { ensureLists } from "@/lib/lists-server";
 import { unitRef } from "@/lib/machine-types";
 import { getI18n } from "@/i18n/server";
-import { INTL_LOCALE } from "@/i18n";
+import { EXPENSE_CATEGORIES, monthlyExpenses, otherExpenses } from "@/lib/expenses";
+import { Notice } from "@/components/ui";
+import SubmitButton from "@/components/SubmitButton";
+import { addExpense, removeExpense } from "./actions";
+import { INTL_LOCALE, type MessageKey } from "@/i18n";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("nav.reports") };
@@ -17,7 +21,7 @@ export async function generateMetadata() {
 
 
 /** Maintenance cost report (Head Manager): by month, by machine and by work order category, for one year. */
-export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ y?: string }> }) {
+export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ y?: string; ok?: string; error?: string }> }) {
   const user = await requireUser();
   if (!can(user.role, "money.labourCost")) notFound();
   const { t, locale } = await getI18n();
@@ -25,7 +29,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const thisYear = Number(today().slice(0, 4));
   const year = /^\d{4}$/.test(sp.y ?? "") && Number(sp.y) > 2000 && Number(sp.y) <= thisYear ? Number(sp.y) : thisYear;
-  const [rows, units, vendors] = await Promise.all([costRows({ from: `${year}-01-01`, to: `${year}-12-31` }), unitsWithNames(), outsideByVendor(`${year}-01-01`, `${year}-12-31`)]);
+  const [rows, units, vendors, exp, others] = await Promise.all([costRows({ from: `${year}-01-01`, to: `${year}-12-31` }), unitsWithNames(), outsideByVendor(`${year}-01-01`, `${year}-12-31`),
+    monthlyExpenses(year), otherExpenses(year)]);
+  const expYear = exp.reduce((a, m) => ({ stock: a.stock + m.stock, jobParts: a.jobParts + m.jobParts, outside: a.outside + m.outside, salaries: a.salaries + m.salaries, extraPay: a.extraPay + m.extraPay, other: a.other + m.other, total: a.total + m.total }),
+    { stock: 0, jobParts: 0, outside: 0, salaries: 0, extraPay: 0, other: 0, total: 0 });
+  const maxExp = Math.max(1, ...exp.map((m) => m.total));
+  const EXP_COLS = ["stock", "jobParts", "outside", "salaries", "extraPay", "other"] as const;
   const inHouse = sum(rows.filter((r) => !r.outsourced)), outsourced = sum(rows.filter((r) => r.outsourced));
   const all = sum(rows);
   const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
@@ -45,6 +54,37 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           {year < thisYear && <Link className="btn small" href={`/reports?y=${year + 1}`} aria-label={t("rp.nextYear")}>›</Link>}
         </div>
       </div>
+      <Notice ok={sp.ok} error={sp.error} />
+
+      <section className="panel" id="expenses">
+        <div className="panel-head"><h3>{t("exp.title")}</h3><b className="num">{rm(expYear.total)}</b></div>
+        <p className="hint" style={{ margin: 0, padding: "6px 14px 0" }}>{t("exp.help")}</p>
+        <div className="tbl-wrap" style={{ border: 0, borderRadius: 0 }}><table className="rp">
+          <thead><tr><th>{t("rp.month")}</th>{EXP_COLS.map((k) => <th key={k} className="r">{t(`exp.col.${k}`)}</th>)}<th className="r">{t("mc.total")}</th><th className="bar-col"></th></tr></thead>
+          <tbody>{exp.map((m) => (
+            <tr key={m.month}><td>{monthName(m.month)}</td>{EXP_COLS.map((k) => <td key={k} className="r num">{m[k] ? rm(m[k]) : ""}</td>)}<td className="r num"><b>{m.total ? rm(m.total) : ""}</b></td>
+              <td className="bar-col"><span className="bar" style={{ width: `${(m.total / maxExp) * 100}%` }} /></td></tr>))}</tbody>
+          <tfoot><tr><td><b>{year}</b></td>{EXP_COLS.map((k) => <td key={k} className="r num"><b>{rm(expYear[k])}</b></td>)}<td className="r num"><b>{rm(expYear.total)}</b></td><td /></tr></tfoot>
+        </table></div>
+        <details className="exp-other" open={others.length > 0 || !!sp.error}>
+          <summary className="panel-head" style={{ cursor: "pointer" }}><h3>{t("exp.otherTitle")}</h3><span className="count">{others.length}</span></summary>
+          <form action={addExpense} className="filters" style={{ padding: "8px 14px" }}>
+            <input type="date" name="day" defaultValue={year === thisYear ? today() : `${year}-12-31`} required aria-label={t("col.date")} />
+            <select className="field" name="category" required aria-label={t("col.category")} defaultValue="">
+              <option value="" disabled>{t("exp.category")}</option>{EXPENSE_CATEGORIES.map((c) => <option key={c} value={c}>{t(`exp.cat.${c}`)}</option>)}</select>
+            <input name="description" placeholder={t("exp.descPh")} maxLength={200} style={{ flex: "1 1 180px" }} aria-label={t("exp.desc")} />
+            <input type="number" name="amount" min="0.01" step="0.01" required placeholder={t("exp.amount")} style={{ width: 130 }} aria-label={t("exp.amount")} />
+            <SubmitButton className="btn small primary">{t("common.add")}</SubmitButton>
+          </form>
+          {others.length > 0 && <div className="tbl-wrap" style={{ border: 0, borderRadius: 0 }}><table>
+            <tbody>{others.map((e) => (
+              <tr key={e.id}><td className="num">{fmtDate(e.day, false, locale)}</td><td>{t(`exp.cat.${e.category}` as MessageKey)}</td><td>{e.description}</td><td className="r num">{rm(Number(e.amount))}</td>
+                <td className="r"><form action={removeExpense}><input type="hidden" name="id" value={e.id} /><input type="hidden" name="y" value={year} /><SubmitButton className="linkbtn muted" confirm={t("exp.removeConfirm")}>{t("common.remove")}</SubmitButton></form></td></tr>))}</tbody>
+          </table></div>}
+        </details>
+      </section>
+
+      <h3 style={{ margin: "8px 0 0" }}>{t("rp.maintTitle")}</h3>
       <p className="muted" style={{ margin: 0 }}>{t("rp.intro")}</p>
       <nav className="sum" aria-label={t("rp.title")}>
         <div><b style={{ fontSize: "1.4rem" }}>{rm(total(all))}</b><span>{t("rp.total")}</span></div>

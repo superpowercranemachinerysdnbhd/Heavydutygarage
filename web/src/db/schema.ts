@@ -518,6 +518,17 @@ export const staffPayRates = pgTable("staff_pay_rates", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("staff_pay_rates_staff_from_idx").on(t.staffId, t.effectiveFrom)]);
 
+/** Company expenses that are not parts, outside work or pay: rent, electricity, diesel, tools… (Head Manager). */
+export const companyExpenses = pgTable("company_expenses", {
+  id: serial("id").primaryKey(),
+  day: date("day").notNull(),
+  category: varchar("category", { length: 30 }).notNull(),
+  description: varchar("description", { length: 200 }),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  createdBy: integer("created_by").references((): AnyPgColumn => staff.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("company_expenses_day_idx").on(t.day)]);
+
 /** Weekly crew plan: what each person does on a day — a job, or leave / MC / off. One entry per person per day. */
 export const crewPlan = pgTable("crew_plan", {
   id: serial("id").primaryKey(),
