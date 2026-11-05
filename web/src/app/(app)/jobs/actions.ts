@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requirePermission, requireUser, type CurrentUser } from "@/lib/auth";
 import { can, canWorkOnJob, LEAD_ROLES } from "@/lib/permissions";
@@ -393,37 +393,41 @@ export async function logLabour(form: FormData) {
   const user = await requireUser();
   const jobId = num(form, "jobId");
   const { job } = await access(jobId, user);
-  const staffId = can(user.role, "job.assign") ? num(form, "staffId") : user.id;
+  // Supervisor / Head Manager can log the same time for several people at once (e.g. two mechanics on the job together).
+  const ids = can(user.role, "job.assign") ? [...new Set(form.getAll("staffId").map(Number).filter((x) => x > 0))] : [user.id];
+  if (!ids.length) back(user, jobId, { error: "err.choosePerson", hash: "labour" });
   const workDate = str(form, "workDate") || today();
-  // "From – to" clock times: split at the time overtime starts (15:00–19:00 → 2 h normal + 2 h overtime). Sundays are all Sunday rate.
-  const from = str(form, "timeFrom"), to = str(form, "timeTo");
-  if (from || to) {
-    const split = splitHours(from, to, settings().otStart, parseBreaks(settings().breaks));
-    if (!split) back(user, jobId, { error: "lab.err.times", hash: "labour" });
-    if (workDate > today()) back(user, jobId, { error: "err.futureDate" });
-    if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
-    const [s] = await db.select({ name: schema.staff.name, noOvertime: schema.staff.noOvertime }).from(schema.staff).where(eq(schema.staff.id, staffId));
-    if (!s) back(user, jobId, { error: "err.choosePerson" });
-    const note = str(form, "note") || null, sunday = rateTypeFor("normal", workDate) === "sunday", ot = settings().otStart;
-    const parts = sunday ? [{ type: "sunday" as const, hours: split.normal + split.ot, a: from, b: to }]
-      : [{ type: "normal" as const, hours: split.normal, a: from, b: split.ot ? ot : to }, { type: "ot" as const, hours: split.ot, a: split.normal ? ot : from, b: to }].filter((p) => p.hours > 0);
-    await db.insert(schema.labourEntries).values(parts.map((p) => ({ jobId, staffId, workDate, hours: String(p.hours), rateType: p.type, rateMult: String(rateMultiplier(p.type, settings(), s.noOvertime)),
-      timeFrom: p.a, timeTo: p.b, note, loggedBy: user.id })));
-    await ensureOnTeam(jobId, staffId, job.leadId);
-    await addActivity(jobId, user.id, "act.labour", { hours: split.normal + split.ot, who: s.name });
-    back(user, jobId, { ok: split.ot && !sunday ? "lab.splitSaved" : "ok.timeLogged", vars: { n: split.normal, ot: split.ot }, hash: "labour" });
-  }
-  const hours = num(form, "hours");
-  if (!(hours > 0 && hours <= 24)) back(user, jobId, { error: "err.hours" });
   if (workDate > today()) back(user, jobId, { error: "err.futureDate" });
   if (job.status === "closed") back(user, jobId, { error: "err.jobClosed" });
-  const [s] = await db.select({ name: schema.staff.name, noOvertime: schema.staff.noOvertime }).from(schema.staff).where(eq(schema.staff.id, staffId));
-  if (!s) back(user, jobId, { error: "err.choosePerson" });
-  const rateType = rateTypeFor(str(form, "rateType"), workDate);
-  await db.insert(schema.labourEntries).values({ jobId, staffId, hours: String(hours), workDate, rateType, rateMult: String(rateMultiplier(rateType, settings(), s.noOvertime)), note: str(form, "note") || null, loggedBy: user.id });
-  await ensureOnTeam(jobId, staffId, job.leadId);
-  await addActivity(jobId, user.id, "act.labour", { hours, who: s.name });
-  back(user, jobId, { ok: "ok.timeLogged", hash: "labour" });
+  const people = await db.select({ id: schema.staff.id, name: schema.staff.name, noOvertime: schema.staff.noOvertime }).from(schema.staff).where(inArray(schema.staff.id, ids));
+  if (people.length !== ids.length) back(user, jobId, { error: "err.choosePerson", hash: "labour" });
+  const note = str(form, "note") || null;
+  // "From – to" clock times: split at the time overtime starts (15:00–19:00 → 2 h normal + 2 h overtime). Sundays are all Sunday rate.
+  const from = str(form, "timeFrom"), to = str(form, "timeTo");
+  let rows: (typeof schema.labourEntries.$inferInsert)[], hours: number, split: { normal: number; ot: number } | null = null, sunday = false;
+  if (from || to) {
+    split = splitHours(from, to, settings().otStart, parseBreaks(settings().breaks));
+    if (!split) back(user, jobId, { error: "lab.err.times", hash: "labour" });
+    sunday = rateTypeFor("normal", workDate) === "sunday";
+    const ot = settings().otStart, sp = split;
+    const parts = sunday ? [{ type: "sunday" as const, hours: sp.normal + sp.ot, a: from, b: to }]
+      : [{ type: "normal" as const, hours: sp.normal, a: from, b: sp.ot ? ot : to }, { type: "ot" as const, hours: sp.ot, a: sp.normal ? ot : from, b: to }].filter((x) => x.hours > 0);
+    hours = sp.normal + sp.ot;
+    rows = people.flatMap((pp) => parts.map((x) => ({ jobId, staffId: pp.id, workDate, hours: String(x.hours), rateType: x.type, rateMult: String(rateMultiplier(x.type, settings(), pp.noOvertime)),
+      timeFrom: x.a, timeTo: x.b, note, loggedBy: user.id })));
+  } else {
+    hours = num(form, "hours");
+    if (!(hours > 0 && hours <= 24)) back(user, jobId, { error: "err.hours" });
+    const rateType = rateTypeFor(str(form, "rateType"), workDate);
+    rows = people.map((pp) => ({ jobId, staffId: pp.id, hours: String(hours), workDate, rateType, rateMult: String(rateMultiplier(rateType, settings(), pp.noOvertime)), note, loggedBy: user.id }));
+  }
+  await db.insert(schema.labourEntries).values(rows);
+  for (const pp of people) {
+    await ensureOnTeam(jobId, pp.id, job.leadId);
+    await addActivity(jobId, user.id, "act.labour", { hours, who: pp.name });
+  }
+  if (people.length > 1) back(user, jobId, { ok: "lab.loggedFor", vars: { h: hours, n: people.length, names: people.map((x) => x.name).join(", ") }, hash: "labour" });
+  back(user, jobId, { ok: split?.ot && !sunday ? "lab.splitSaved" : "ok.timeLogged", vars: { n: split?.normal ?? 0, ot: split?.ot ?? 0 }, hash: "labour" });
 }
 
 /** A time entry the user may change: supervisors any entry (also on completed jobs, like other job details);

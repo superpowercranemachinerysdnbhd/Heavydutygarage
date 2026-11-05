@@ -18,6 +18,7 @@ import ChatRoom from "@/components/ChatRoom";
 import PhotoInput from "@/components/PhotoInput";
 import StatusPicker from "@/components/StatusPicker";
 import LabourHours from "@/components/LabourHours";
+import WorkerPicker from "@/components/WorkerPicker";
 import { RATE_TYPES } from "@/lib/pay";
 import PartPicker from "@/components/PartPicker";
 import BoughtLines from "@/components/BoughtLines";
@@ -265,7 +266,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             {open && (
               <form action={A.logLabour} className="filters">
                 {hidden("jobId", job.id)}
-                {sup ? <select className="field" name="staffId" aria-label={t("col.person")} defaultValue={job.leadId ?? undefined}>{workers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select> : <span className="muted">{user.name}</span>}
+                {sup ? <WorkerPicker people={workers.map((s) => ({ id: s.id, name: s.name }))} initial={[job.leadId ?? workers[0]?.id].filter((x): x is number => !!x)} /> : <span className="muted">{user.name}</span>}
                 <input type="date" name="workDate" defaultValue={today()} max={today()} aria-label={t("col.date")} />
                 <LabourHours otStart={settings().otStart} breaks={settings().breaks} rateSelect={rateSelect()} />
                 <input type="text" name="note" placeholder={t("job.whatDone")} style={{ flex: "1 1 160px" }} aria-label={t("col.note")} />

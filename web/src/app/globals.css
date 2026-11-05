@@ -832,3 +832,7 @@ table.util-days td.num{white-space:nowrap}
 .up-job{position:absolute;top:8px;bottom:8px;background:var(--ok);border-radius:2px}
 .up-tick{position:absolute;bottom:-14px;font-size:.62rem;color:var(--muted);transform:translateX(-50%)}
 .up-entries{list-style:none;margin:0 0 4px;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.88rem}
+.wp{position:relative;min-width:180px}
+.wp>summary{list-style:none;cursor:pointer;display:flex;align-items:center;min-height:38px;padding:6px 28px 6px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.wp>summary::after{content:"▾";position:absolute;right:10px}
+.wp-list{position:absolute;z-index:30;top:calc(100% + 4px);left:0;min-width:220px;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:8px 12px;display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto}
