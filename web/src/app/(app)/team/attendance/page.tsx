@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { addDays, fmtDate, today } from "@/lib/format";
+import { addDays, fmtDate, rm, today } from "@/lib/format";
 import { isDay, isMonth, monthGrid, shiftMonth, weekday } from "@/lib/calendar";
-import { ATT_CODE, ATT_STATUSES, attHours, hoursAtWork, sumHours, tally, utilisation, type AttStatus } from "@/lib/attendance";
+import { ATT_CODE, ATT_STATUSES, attHours, costAtWork, hoursAtWork, sumHours, tally, utilisation, type AttStatus } from "@/lib/attendance";
 import { jobTitle } from "@/lib/jobs";
 import { parseBreaks } from "@/lib/pay";
-import { attendanceBetween, labourBetween, sheetStaff } from "@/lib/attendance-server";
+import { attendanceBetween, labourBetween, payRatesLookup, sheetStaff } from "@/lib/attendance-server";
 import { holidaysBetween, planBetween } from "@/lib/calendar-server";
 import { getI18n } from "@/i18n/server";
 import { INTL_LOCALE, type Locale, type MessageKey, type T } from "@/i18n";
@@ -36,6 +36,22 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
   // Hours at work: clock in to out, less the company breaks; after the end of the normal day counts as overtime.
   const hOpts = { breaks: parseBreaks(settings().breaks), otStart: settings().otStart };
   const uOpts = { ...hOpts, workStart: settings().workStart, workEnd: settings().workEnd };
+  // Money (Head Manager only): what time at work cost, how much of it went on work orders, and the idle part.
+  const seePay = can(user.role, "money.labourCost");
+  const pay = seePay && view.startsWith("util") ? await payRatesLookup() : null;
+  const costOf = (staffId: number, day: string, r: Parameters<typeof costAtWork>[0], entries: { hours: string; rateMult: string }[]) => {
+    if (!pay) return { atCost: 0, loggedCost: 0, idleCost: 0 };
+    const rate = pay.rate(staffId, day);
+    const atCost = costAtWork(r, day, rate, { ...uOpts, otMultiplier: settings().otMultiplier, sundayMultiplier: settings().sundayMultiplier, noOvertime: pay.noOvertime(staffId) });
+    const loggedCost = Math.round(entries.reduce((a, l) => a + Number(l.hours) * rate * Number(l.rateMult), 0) * 100) / 100;
+    return { atCost, loggedCost, idleCost: Math.max(0, Math.round((atCost - loggedCost) * 100) / 100) };
+  };
+  const money = (rows: { atCost: number; loggedCost: number; idleCost: number }[]) => rows.reduce((a, x) => ({ atCost: a.atCost + x.atCost, loggedCost: a.loggedCost + x.loggedCost, idleCost: a.idleCost + x.idleCost }), { atCost: 0, loggedCost: 0, idleCost: 0 });
+  const moneyTiles = (m: { atCost: number; loggedCost: number; idleCost: number }) => (<>
+    <div><b>{rm(m.atCost)}</b><span>{t("util.costAtWork")}</span></div>
+    <div><b>{rm(m.loggedCost)}</b><span>{t("util.costLogged")}</span></div>
+    <div><b className={m.idleCost > 0 ? "due over" : ""}>{rm(m.idleCost)}</b><span>{t("util.costIdle")}</span></div>
+  </>);
   const hrs = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
   return (
     <div className="page" style={{ maxWidth: 1240 }}>
@@ -200,12 +216,12 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
     const title = new Date(`${m}-01T00:00:00Z`).toLocaleDateString(INTL_LOCALE[locale], { month: "long", year: "numeric", timeZone: "UTC" });
     const per = people.map((p) => {
       const cells = days.map((x) => {
-        const at = hoursAtWork(att.find((r) => r.staffId === p.id && r.day === x), uOpts);
-        const logged = lab.filter((l) => l.staffId === p.id && l.day === x).reduce((a, l) => a + Number(l.hours), 0);
-        return { day: x, at, logged, ...utilisation(at, logged) };
+        const r = att.find((a) => a.staffId === p.id && a.day === x), entries = lab.filter((l) => l.staffId === p.id && l.day === x);
+        const at = hoursAtWork(r, uOpts), logged = entries.reduce((a, l) => a + Number(l.hours), 0);
+        return { day: x, at, logged, ...utilisation(at, logged), ...costOf(p.id, x, r, entries) };
       });
       const at = cells.reduce((a, c) => a + c.at, 0), logged = cells.reduce((a, c) => a + c.logged, 0);
-      return { p, cells, at, logged, ...utilisation(at, logged), noneDays: cells.filter((c) => c.flag === "none").length, lowDays: cells.filter((c) => c.flag === "low").length };
+      return { p, cells, at, logged, ...utilisation(at, logged), ...money(cells), noneDays: cells.filter((c) => c.flag === "none").length, lowDays: cells.filter((c) => c.flag === "low").length };
     });
     const team = utilisation(per.reduce((a, x) => a + x.at, 0), per.reduce((a, x) => a + x.logged, 0));
     return (<>
@@ -221,11 +237,12 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
         <div><b>{hrs(per.reduce((a, x) => a + x.logged, 0))}</b><span>{t("util.logged")}</span></div>
         <div><b className={team.pct !== null && team.pct < 50 ? "due over" : ""}>{team.pct ?? "—"}%</b><span>{t("util.pct")}</span></div>
         <div><b className="due over">{per.reduce((a, x) => a + x.noneDays, 0)}</b><span>{t("util.noneDays")}</span></div>
+        {seePay && moneyTiles(money(per))}
       </nav>
       <div className="tbl-wrap">
         <table className="att-month util">
           <thead><tr>
-            <th>{t("col.person")}</th><th className="r" title={t("util.atWork")}>{t("util.hAt")}</th><th className="r" title={t("util.logged")}>{t("util.hLogged")}</th><th className="r" title={t("util.idle")}>{t("util.hIdle")}</th><th className="r">%</th><th className="r" title={t("util.noneDaysShort")}>{t("util.hNone")}</th>
+            <th>{t("col.person")}</th><th className="r" title={t("util.atWork")}>{t("util.hAt")}</th><th className="r" title={t("util.logged")}>{t("util.hLogged")}</th><th className="r" title={t("util.idle")}>{t("util.hIdle")}</th><th className="r">%</th><th className="r" title={t("util.noneDaysShort")}>{t("util.hNone")}</th>{seePay && <><th className="r">{t("util.hCost")}</th><th className="r">{t("util.hIdleCost")}</th></>}
             {days.map((x) => <th key={x} className={`dcol ${weekday(x) === 6 ? "sun" : ""}`}><Link href={`/team/attendance?view=util&d=${x}`} className="plain">{Number(x.slice(8))}</Link></th>)}
           </tr></thead>
           <tbody>{per.map((x) => (
@@ -234,6 +251,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
               <td className="r num">{hrs(x.at)}</td><td className="r num">{hrs(x.logged)}</td><td className="r num">{x.idle ? hrs(x.idle) : ""}</td>
               <td className={`r num ${x.flag === "none" || x.flag === "low" ? "due over" : ""}`}><b>{x.pct === null ? "—" : `${x.pct}%`}</b></td>
               <td className={`r num ${x.noneDays ? "due over" : ""}`}>{x.noneDays || ""}</td>
+              {seePay && <><td className="r num">{rm(x.atCost)}</td><td className={`r num ${x.idleCost ? "due over" : ""}`}>{x.idleCost ? rm(x.idleCost) : ""}</td></>}
               {x.cells.map((c) => <td key={c.day} className={`dcol u-${c.flag || "off"} ${weekday(c.day) === 6 ? "sun" : ""}`} title={`${fmtDate(c.day, false, locale)} · ${t("util.cellTitle", { at: hrs(c.at), logged: hrs(c.logged) })}`}>{c.at || c.logged ? <Link href={`/team/attendance?view=util&d=${c.day}#p${x.p.id}`} className="plain">{hrs(c.logged)}</Link> : ""}</td>)}
             </tr>))}</tbody>
         </table>
@@ -255,7 +273,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
     const rowsU = days.map((x) => {
       const r = att.find((a) => a.day === x), entries = lab.filter((l) => l.day === x);
       const at = hoursAtWork(r, uOpts), logged = entries.reduce((a, l) => a + Number(l.hours), 0);
-      return { day: x, r, entries, at, logged, ...utilisation(at, logged) };
+      return { day: x, r, entries, at, logged, ...utilisation(at, logged), ...costOf(pid, x, r, entries) };
     });
     const at = rowsU.reduce((a, x) => a + x.at, 0), logged = rowsU.reduce((a, x) => a + x.logged, 0), u = utilisation(at, logged);
     const base = `/team/attendance?view=util&p=${pid}&m=`;
@@ -272,9 +290,10 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
         <div><b>{hrs(u.idle)}</b><span>{t("util.idle")}</span></div>
         <div><b className={u.flag === "low" || u.flag === "none" ? "due over" : ""}>{u.pct ?? "—"}%</b><span>{t("util.pct")}</span></div>
         <div><b className="due over">{rowsU.filter((x) => x.flag === "none").length}</b><span>{t("util.noneDays")}</span></div>
+        {seePay && moneyTiles(money(rowsU))}
       </nav>
       <div className="tbl-wrap"><table className="util-days">
-        <thead><tr><th>{t("col.date")}</th><th>{t("col.status")}</th><th>{t("util.clock")}</th><th className="r">{t("util.atWork")}</th><th className="r">{t("util.logged")}</th><th>{t("util.workOrders")}</th><th className="r">{t("util.idle")}</th><th /></tr></thead>
+        <thead><tr><th>{t("col.date")}</th><th>{t("col.status")}</th><th>{t("util.clock")}</th><th className="r">{t("util.atWork")}</th><th className="r">{t("util.logged")}</th><th>{t("util.workOrders")}</th><th className="r">{t("util.idle")}</th>{seePay && <><th className="r">{t("util.hCost")}</th><th className="r">{t("util.hIdleCost")}</th></>}<th /></tr></thead>
         <tbody>{[...rowsU].reverse().map((x) => (
           <tr key={x.day} className={x.flag === "none" ? "u-row-none" : weekday(x.day) === 6 && !x.at ? "muted" : ""}>
             <td className="num"><Link href={`/team/attendance?view=util&d=${x.day}#p${pid}`}>{fmtDate(x.day, false, locale)}</Link></td>
@@ -283,9 +302,10 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
             <td className="r num">{x.at ? hrs(x.at) : ""}</td><td className="r num">{x.logged ? hrs(x.logged) : ""}</td>
             <td>{x.entries.map((l, i) => <div key={i}><Link href={`/jobs/${l.jobId}`} className="mono">{l.jobNo}</Link> <small className="muted">{l.timeFrom ? `${l.timeFrom}–${l.timeTo} · ` : ""}{hrs(Number(l.hours))} h · {jobTitle(l)}</small></div>)}</td>
             <td className="r num">{x.idle ? hrs(x.idle) : ""}</td>
+            {seePay && <><td className="r num">{x.atCost ? rm(x.atCost) : ""}</td><td className={`r num ${x.idleCost ? "due over" : ""}`}>{x.idleCost ? rm(x.idleCost) : ""}</td></>}
             <td>{x.flag && x.flag !== "ok" ? <span className={`pill ${x.flag === "over" ? "info" : "crit"}`}>{t(`util.flag.${x.flag}`)}</span> : null}</td>
           </tr>))}</tbody>
-        <tfoot><tr><td colSpan={3}><b>{t("att.total")}</b></td><td className="r num"><b>{hrs(at)}</b></td><td className="r num"><b>{hrs(logged)}</b></td><td /><td className="r num"><b>{hrs(u.idle)}</b></td><td /></tr></tfoot>
+        <tfoot><tr><td colSpan={3}><b>{t("att.total")}</b></td><td className="r num"><b>{hrs(at)}</b></td><td className="r num"><b>{hrs(logged)}</b></td><td /><td className="r num"><b>{hrs(u.idle)}</b></td>{seePay && <><td className="r num"><b>{rm(money(rowsU).atCost)}</b></td><td className="r num"><b>{rm(money(rowsU).idleCost)}</b></td></>}<td /></tr></tfoot>
       </table></div>
       <p className="hint" style={{ margin: 0 }}>{t("util.intro")}</p>
     </>);
@@ -299,7 +319,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
     const list = people.map((p) => {
       const r = att.find((a) => a.staffId === p.id), entries = lab.filter((l) => l.staffId === p.id);
       const at = hoursAtWork(r, uOpts), logged = entries.reduce((a, l) => a + Number(l.hours), 0);
-      return { p, r, entries, at, logged, ...utilisation(at, logged) };
+      return { p, r, entries, at, logged, ...utilisation(at, logged), ...costOf(p.id, day, r, entries) };
     }).sort((a, b) => ({ none: 0, low: 1, over: 2, ok: 3, "": 4 })[a.flag] - ({ none: 0, low: 1, over: 2, ok: 3, "": 4 })[b.flag] || a.p.name.localeCompare(b.p.name));
     const at = list.reduce((a, x) => a + x.at, 0), logged = list.reduce((a, x) => a + x.logged, 0), u = utilisation(at, logged);
     // Timeline from 07:00 to 21:00: attendance in grey, logged work in colour (entries with clock times only).
@@ -320,13 +340,14 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
         <div><b>{hrs(u.idle)}</b><span>{t("util.idle")}</span></div>
         <div><b className={u.flag === "low" || u.flag === "none" ? "due over" : ""}>{u.pct ?? "—"}%</b><span>{t("util.pct")}</span></div>
         <div><b className="due over">{list.filter((x) => x.flag === "none").length}</b><span>{t("util.nonePeople")}</span></div>
+        {seePay && moneyTiles(money(list))}
       </nav>
       <div className="util-day">
         {list.map((x) => (
           <details key={x.p.id} id={`p${x.p.id}`} className={`panel util-person u-b-${x.flag || "off"}`} open={x.entries.length > 0 || x.flag === "none"}>
             <summary>
               <span className="up-who"><b>{x.p.name}</b><small className="muted">{roleLabel(t, x.p.role)} · {x.r ? `${label(t, x.r.status)}${x.r.timeIn ? ` ${x.r.timeIn}–${x.r.timeOut ?? ""}` : ""}` : t("att.notMarked")}</small></span>
-              <span className="up-nums"><span>{t("util.hAt")} <b>{hrs(x.at)}</b></span><span>{t("util.hLogged")} <b>{hrs(x.logged)}</b></span><span>{t("util.hIdle")} <b>{hrs(x.idle)}</b></span>
+              <span className="up-nums"><span>{t("util.hAt")} <b>{hrs(x.at)}</b></span><span>{t("util.hLogged")} <b>{hrs(x.logged)}</b></span><span>{t("util.hIdle")} <b>{hrs(x.idle)}</b></span>{seePay && x.atCost > 0 && <span>{rm(x.atCost)}{x.idleCost ? <> · <b className="due over">{t("util.idleRm", { rm: rm(x.idleCost) })}</b></> : null}</span>}
                 {x.flag && x.flag !== "ok" ? <span className={`pill ${x.flag === "over" ? "info" : "crit"}`}>{t(`util.flag.${x.flag}`)}</span> : x.pct !== null ? <b>{x.pct}%</b> : null}</span>
             </summary>
             <div className="up-timeline" aria-hidden="true">

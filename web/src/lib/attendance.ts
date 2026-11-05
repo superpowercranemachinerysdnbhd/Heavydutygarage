@@ -44,3 +44,16 @@ export function utilisation(atWork: number, logged: number, lowPct = 50): { pct:
   const pct = Math.round((logged / atWork) * 100), idle = Math.max(0, Math.round((atWork - logged) * 100) / 100);
   return { pct, idle, flag: logged <= 0 ? "none" : logged > atWork + 0.25 ? "over" : pct < lowPct ? "low" : "ok" };
 }
+
+/** What a day at work costs: normal hours at the hourly rate, hours after the end of the normal day at the overtime rate,
+ *  a Sunday all at the Sunday rate (unless the person is not paid overtime). Uses `hoursAtWork` for days without times. */
+export function costAtWork(r: { status: AttStatus; timeIn: string | null; timeOut: string | null } | undefined, day: string, rate: number,
+  opts: { breaks: [number, number][]; otStart: string; workStart: string; workEnd: string; otMultiplier: number; sundayMultiplier: number; noOvertime?: boolean }): number {
+  const total = hoursAtWork(r, opts);
+  if (!total || !rate) return 0;
+  if (new Date(`${day}T00:00:00Z`).getUTCDay() === 0) return round2(total * rate * opts.sundayMultiplier);
+  const h = r?.timeIn && r.timeOut ? attHours(r.timeIn, r.timeOut, opts) : null;
+  const ot = h?.ot ?? 0;
+  return round2((total - ot) * rate + ot * rate * (opts.noOvertime ? 1 : opts.otMultiplier));
+}
+const round2 = (n: number) => Math.round(n * 100) / 100;

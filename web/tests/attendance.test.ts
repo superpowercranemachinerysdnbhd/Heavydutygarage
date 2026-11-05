@@ -40,3 +40,14 @@ test("utilisation: hours at work against hours logged on work orders", async () 
   assert.deepEqual(utilisation(0, 0), { pct: null, idle: 0, flag: "" });
   assert.equal(utilisation(0, 2).flag, "over");
 });
+
+test("cost of a day at work: normal, overtime after 17:00, Sunday", async () => {
+  const { costAtWork } = await import("../src/lib/attendance");
+  const { parseBreaks } = await import("../src/lib/pay");
+  const o = { breaks: parseBreaks("10:00-10:30, 12:00-13:00"), otStart: "17:00", workStart: "08:00", workEnd: "17:00", otMultiplier: 1.5, sundayMultiplier: 2 };
+  assert.equal(costAtWork({ status: "present", timeIn: "08:00", timeOut: "17:00" }, "2026-11-02", 10, o), 75);
+  assert.equal(costAtWork({ status: "present", timeIn: "08:00", timeOut: "19:00" }, "2026-11-02", 10, o), 105);
+  assert.equal(costAtWork({ status: "present", timeIn: "08:00", timeOut: "19:00" }, "2026-11-02", 10, { ...o, noOvertime: true }), 95);
+  assert.equal(costAtWork({ status: "present", timeIn: "08:00", timeOut: "17:00" }, "2026-11-01", 10, o), 150);
+  assert.equal(costAtWork({ status: "mc", timeIn: null, timeOut: null }, "2026-11-02", 10, o), 0);
+});
