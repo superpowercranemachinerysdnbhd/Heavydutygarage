@@ -817,3 +817,18 @@ table.rp tr.co-machine td:first-child{padding-left:28px}
 .u-key{display:inline-block;min-width:22px;text-align:center;border-radius:3px;font-weight:600;font-size:.72rem;padding:1px 4px}
 tr.u-row-none td{background:color-mix(in srgb,var(--crit) 7%,transparent)}
 table.util-days td.num{white-space:nowrap}
+/* Utilisation: one day */
+.util-day{display:flex;flex-direction:column;gap:8px}
+.util-person{padding:10px 14px;border-left:4px solid var(--line)}
+.util-person.u-b-none{border-left-color:var(--crit)}
+.util-person.u-b-low{border-left-color:var(--warn)}
+.util-person.u-b-ok{border-left-color:var(--ok)}
+.util-person.u-b-over{border-left-color:var(--info)}
+.util-person summary{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;cursor:pointer;align-items:center}
+.up-who{display:flex;flex-direction:column}
+.up-nums{display:flex;gap:12px;align-items:center;font-size:.85rem;flex-wrap:wrap}
+.up-timeline{position:relative;height:26px;margin:10px 0 20px;background:var(--surface-2);border-radius:4px}
+.up-att{position:absolute;top:4px;bottom:4px;background:color-mix(in srgb,var(--muted) 30%,transparent);border-radius:3px}
+.up-job{position:absolute;top:8px;bottom:8px;background:var(--ok);border-radius:2px}
+.up-tick{position:absolute;bottom:-14px;font-size:.62rem;color:var(--muted);transform:translateX(-50%)}
+.up-entries{list-style:none;margin:0 0 4px;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.88rem}

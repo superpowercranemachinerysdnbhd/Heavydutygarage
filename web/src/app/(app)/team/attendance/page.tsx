@@ -32,7 +32,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
   const { t, locale } = await getI18n();
   const sp = await searchParams;
   const planner = can(user.role, "job.assign");
-  const view = planner && sp.view === "util" ? (sp.p ? "utilPerson" : "util") : sp.p ? "person" : planner && sp.view !== "month" && !sp.m ? "day" : "month";
+  const view = planner && sp.view === "util" ? (sp.p ? "utilPerson" : isDay(sp.d) ? "utilDay" : "util") : sp.p ? "person" : planner && sp.view !== "month" && !sp.m ? "day" : "month";
   // Hours at work: clock in to out, less the company breaks; after the end of the normal day counts as overtime.
   const hOpts = { breaks: parseBreaks(settings().breaks), otStart: settings().otStart };
   const uOpts = { ...hOpts, workStart: settings().workStart, workEnd: settings().workEnd };
@@ -50,7 +50,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
         )}
       </div>
       <Notice ok={sp.ok} error={sp.error} />
-      {view === "day" ? await DaySheet() : view === "person" ? await PersonMonth() : view === "util" ? await UtilMonth() : view === "utilPerson" ? await UtilPerson() : await MonthSummary()}
+      {view === "day" ? await DaySheet() : view === "person" ? await PersonMonth() : view === "util" ? await UtilMonth() : view === "utilPerson" ? await UtilPerson() : view === "utilDay" ? await UtilDay() : await MonthSummary()}
     </div>
   );
 
@@ -213,6 +213,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
         <Link className="btn small" href={`/team/attendance?view=util&m=${shiftMonth(m, -1)}`} aria-label={t("cal.prev")}>‹</Link>
         <h3 className="cal-title">{title}</h3>
         <Link className="btn small" href={`/team/attendance?view=util&m=${shiftMonth(m, 1)}`} aria-label={t("cal.next")}>›</Link>
+        <Link className="btn small primary" style={{ marginLeft: "auto" }} href={`/team/attendance?view=util&d=${m === d0.slice(0, 7) ? d0 : days.at(-1) ?? d0}`}>{t("util.dayView")}</Link>
       </div>
       <p className="muted" style={{ margin: 0 }}>{t("util.intro")}</p>
       <nav className="sum" aria-label={t("util.tab")}>
@@ -225,7 +226,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
         <table className="att-month util">
           <thead><tr>
             <th>{t("col.person")}</th><th className="r" title={t("util.atWork")}>{t("util.hAt")}</th><th className="r" title={t("util.logged")}>{t("util.hLogged")}</th><th className="r" title={t("util.idle")}>{t("util.hIdle")}</th><th className="r">%</th><th className="r" title={t("util.noneDaysShort")}>{t("util.hNone")}</th>
-            {days.map((x) => <th key={x} className={`dcol ${weekday(x) === 6 ? "sun" : ""}`}>{Number(x.slice(8))}</th>)}
+            {days.map((x) => <th key={x} className={`dcol ${weekday(x) === 6 ? "sun" : ""}`}><Link href={`/team/attendance?view=util&d=${x}`} className="plain">{Number(x.slice(8))}</Link></th>)}
           </tr></thead>
           <tbody>{per.map((x) => (
             <tr key={x.p.id}>
@@ -233,7 +234,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
               <td className="r num">{hrs(x.at)}</td><td className="r num">{hrs(x.logged)}</td><td className="r num">{x.idle ? hrs(x.idle) : ""}</td>
               <td className={`r num ${x.flag === "none" || x.flag === "low" ? "due over" : ""}`}><b>{x.pct === null ? "—" : `${x.pct}%`}</b></td>
               <td className={`r num ${x.noneDays ? "due over" : ""}`}>{x.noneDays || ""}</td>
-              {x.cells.map((c) => <td key={c.day} className={`dcol u-${c.flag || "off"} ${weekday(c.day) === 6 ? "sun" : ""}`} title={`${fmtDate(c.day, false, locale)} · ${t("util.cellTitle", { at: hrs(c.at), logged: hrs(c.logged) })}`}>{c.at || c.logged ? hrs(c.logged) : ""}</td>)}
+              {x.cells.map((c) => <td key={c.day} className={`dcol u-${c.flag || "off"} ${weekday(c.day) === 6 ? "sun" : ""}`} title={`${fmtDate(c.day, false, locale)} · ${t("util.cellTitle", { at: hrs(c.at), logged: hrs(c.logged) })}`}>{c.at || c.logged ? <Link href={`/team/attendance?view=util&d=${c.day}#p${x.p.id}`} className="plain">{hrs(c.logged)}</Link> : ""}</td>)}
             </tr>))}</tbody>
         </table>
       </div>
@@ -276,7 +277,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
         <thead><tr><th>{t("col.date")}</th><th>{t("col.status")}</th><th>{t("util.clock")}</th><th className="r">{t("util.atWork")}</th><th className="r">{t("util.logged")}</th><th>{t("util.workOrders")}</th><th className="r">{t("util.idle")}</th><th /></tr></thead>
         <tbody>{[...rowsU].reverse().map((x) => (
           <tr key={x.day} className={x.flag === "none" ? "u-row-none" : weekday(x.day) === 6 && !x.at ? "muted" : ""}>
-            <td className="num"><Link href={`/team/attendance?d=${x.day}`}>{fmtDate(x.day, false, locale)}</Link></td>
+            <td className="num"><Link href={`/team/attendance?view=util&d=${x.day}#p${pid}`}>{fmtDate(x.day, false, locale)}</Link></td>
             <td>{x.r ? label(t, x.r.status) : "—"}</td>
             <td className="num">{x.r?.timeIn ? `${x.r.timeIn}–${x.r.timeOut ?? ""}` : ""}</td>
             <td className="r num">{x.at ? hrs(x.at) : ""}</td><td className="r num">{x.logged ? hrs(x.logged) : ""}</td>
@@ -287,6 +288,61 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
         <tfoot><tr><td colSpan={3}><b>{t("att.total")}</b></td><td className="r num"><b>{hrs(at)}</b></td><td className="r num"><b>{hrs(logged)}</b></td><td /><td className="r num"><b>{hrs(u.idle)}</b></td><td /></tr></tfoot>
       </table></div>
       <p className="hint" style={{ margin: 0 }}>{t("util.intro")}</p>
+    </>);
+  }
+
+  /** Utilisation for one day: everyone's clock in–out against the time they logged on work orders, with a timeline. */
+  async function UtilDay() {
+    const d0 = today();
+    const day = isDay(sp.d) && sp.d <= d0 ? sp.d : d0;
+    const [people, att, lab] = await Promise.all([sheetStaff(), attendanceBetween(day, day), labourBetween(day, day)]);
+    const list = people.map((p) => {
+      const r = att.find((a) => a.staffId === p.id), entries = lab.filter((l) => l.staffId === p.id);
+      const at = hoursAtWork(r, uOpts), logged = entries.reduce((a, l) => a + Number(l.hours), 0);
+      return { p, r, entries, at, logged, ...utilisation(at, logged) };
+    }).sort((a, b) => ({ none: 0, low: 1, over: 2, ok: 3, "": 4 })[a.flag] - ({ none: 0, low: 1, over: 2, ok: 3, "": 4 })[b.flag] || a.p.name.localeCompare(b.p.name));
+    const at = list.reduce((a, x) => a + x.at, 0), logged = list.reduce((a, x) => a + x.logged, 0), u = utilisation(at, logged);
+    // Timeline from 07:00 to 21:00: attendance in grey, logged work in colour (entries with clock times only).
+    const T0 = 7 * 60, T1 = 21 * 60, mins = (v: string | null) => (v ? Number(v.slice(0, 2)) * 60 + Number(v.slice(3, 5)) : NaN);
+    const pos = (v: number) => `${(Math.min(Math.max(v, T0), T1) - T0) / (T1 - T0) * 100}%`;
+    const span = (a: number, b: number) => ({ left: pos(a), width: `calc(${pos(b)} - ${pos(a)})` });
+    return (<>
+      <div className="cal-bar">
+        <Link className="btn small" href={`/team/attendance?view=util&d=${addDays(day, -1)}`} aria-label={t("att.prevDay")}>‹</Link>
+        <h3 className="cal-title">{longDay(day, locale)}</h3>
+        {day < d0 && <Link className="btn small" href={`/team/attendance?view=util&d=${addDays(day, 1)}`} aria-label={t("att.nextDay")}>›</Link>}
+        {day !== d0 && <Link className="btn small" href={`/team/attendance?view=util&d=${d0}`}>{t("cal.today")}</Link>}
+        <Link className="btn small" style={{ marginLeft: "auto" }} href={`/team/attendance?view=util&m=${day.slice(0, 7)}`}>{t("util.monthView")}</Link>
+      </div>
+      <nav className="sum" aria-label={t("util.tab")}>
+        <div><b>{hrs(at)}</b><span>{t("util.atWork")}</span></div>
+        <div><b>{hrs(logged)}</b><span>{t("util.logged")}</span></div>
+        <div><b>{hrs(u.idle)}</b><span>{t("util.idle")}</span></div>
+        <div><b className={u.flag === "low" || u.flag === "none" ? "due over" : ""}>{u.pct ?? "—"}%</b><span>{t("util.pct")}</span></div>
+        <div><b className="due over">{list.filter((x) => x.flag === "none").length}</b><span>{t("util.nonePeople")}</span></div>
+      </nav>
+      <div className="util-day">
+        {list.map((x) => (
+          <details key={x.p.id} id={`p${x.p.id}`} className={`panel util-person u-b-${x.flag || "off"}`} open={x.entries.length > 0 || x.flag === "none"}>
+            <summary>
+              <span className="up-who"><b>{x.p.name}</b><small className="muted">{roleLabel(t, x.p.role)} · {x.r ? `${label(t, x.r.status)}${x.r.timeIn ? ` ${x.r.timeIn}–${x.r.timeOut ?? ""}` : ""}` : t("att.notMarked")}</small></span>
+              <span className="up-nums"><span>{t("util.hAt")} <b>{hrs(x.at)}</b></span><span>{t("util.hLogged")} <b>{hrs(x.logged)}</b></span><span>{t("util.hIdle")} <b>{hrs(x.idle)}</b></span>
+                {x.flag && x.flag !== "ok" ? <span className={`pill ${x.flag === "over" ? "info" : "crit"}`}>{t(`util.flag.${x.flag}`)}</span> : x.pct !== null ? <b>{x.pct}%</b> : null}</span>
+            </summary>
+            <div className="up-timeline" aria-hidden="true">
+              {x.r?.timeIn && x.r.timeOut && <span className="up-att" style={span(mins(x.r.timeIn), mins(x.r.timeOut))} />}
+              {x.entries.filter((l) => l.timeFrom && l.timeTo).map((l, i) => <span key={i} className="up-job" style={span(mins(l.timeFrom), mins(l.timeTo))} title={`${l.jobNo} ${l.timeFrom}–${l.timeTo}`} />)}
+              {[8, 10, 12, 14, 16, 18, 20].map((h) => <span key={h} className="up-tick" style={{ left: pos(h * 60) }}>{h}</span>)}
+            </div>
+            {x.entries.length > 0 ? (
+              <ul className="up-entries">{x.entries.map((l, i) => (
+                <li key={i}><span className="num">{l.timeFrom ? `${l.timeFrom}–${l.timeTo}` : "—"}</span> <b>{hrs(Number(l.hours))} h</b> <Link href={`/jobs/${l.jobId}#labour`} className="mono">{l.jobNo}</Link> <span>{jobTitle(l)}</span></li>))}</ul>
+            ) : <p className="muted" style={{ margin: "4px 0 0" }}>{x.at ? t("util.nothingToday") : t("util.notAtWork")}</p>}
+            <small><Link href={`/team/attendance?view=util&p=${x.p.id}&m=${day.slice(0, 7)}`}>{t("util.personMonth", { name: x.p.name })}</Link></small>
+          </details>
+        ))}
+      </div>
+      <p className="hint" style={{ margin: 0 }}>{t("util.dayHelp")}</p>
     </>);
   }
 }
