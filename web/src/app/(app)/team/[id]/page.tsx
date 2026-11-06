@@ -14,7 +14,7 @@ import StaffFields, { PayInputs } from "@/components/StaffFields";
 import { HISTORY_START, payHistory } from "@/lib/pay-server";
 import { settings } from "@/lib/lists";
 import SubmitButton from "@/components/SubmitButton";
-import { addCert, changePay, mergeInto, removeCert, removePayChange, resetPassword, setActive, setOvertimeRule, updateStaff } from "../actions";
+import { addCert, changePay, mergeInto, removeCert, removePayChange, resetPassword, setActive, setOvertimeRule, setSupportRole, updateStaff } from "../actions";
 
 export async function generateMetadata() {
   return { title: (await getI18n()).t("team.title") };
@@ -81,6 +81,14 @@ export default async function StaffPage({ params, searchParams }: { params: Prom
             {theirs.length === 0 && <tr><td className="muted">{t("team.noJobs")}</td></tr>}
           </tbody></table></div></div>
       </div>
+
+      {manage && (
+        <form action={setSupportRole} className="panel filters" style={{ padding: "10px 14px" }}>
+          <input type="hidden" name="id" value={id} />
+          <label className="set-check"><input type="checkbox" name="supportRole" defaultChecked={p.supportRole} /> <span><b>{t("util.supportLabel")}</b><br /><small className="muted">{t("util.supportHelp")}</small></span></label>
+          <SubmitButton className="btn small">{t("common.save")}</SubmitButton>
+        </form>
+      )}
 
       {manage && (
         <section className="panel" id="pay">

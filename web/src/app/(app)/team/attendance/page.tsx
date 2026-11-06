@@ -212,7 +212,9 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
     const m = isMonth(sp.m) ? sp.m : d0.slice(0, 7);
     const days = monthGrid(m).filter((x) => x.startsWith(m) && x <= d0);
     const all = monthGrid(m).filter((x) => x.startsWith(m));
-    const [people, att, lab] = await Promise.all([sheetStaff(), attendanceBetween(all[0], all.at(-1)!), labourBetween(all[0], all.at(-1)!)]);
+    const [everyone, att, lab] = await Promise.all([sheetStaff(), attendanceBetween(all[0], all.at(-1)!), labourBetween(all[0], all.at(-1)!)]);
+    // Support staff (Supervisor, store, admin…) are not counted in utilisation.
+    const people = everyone.filter((p) => !p.supportRole), support = everyone.filter((p) => p.supportRole);
     const title = new Date(`${m}-01T00:00:00Z`).toLocaleDateString(INTL_LOCALE[locale], { month: "long", year: "numeric", timeZone: "UTC" });
     const per = people.map((p) => {
       const cells = days.map((x) => {
@@ -256,6 +258,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
             </tr>))}</tbody>
         </table>
       </div>
+      {support.length > 0 && <p className="muted" style={{ margin: 0 }}>{t("util.notCounted", { names: support.map((p) => p.name).join(", ") })}</p>}
       <p className="hint" style={{ margin: 0 }}><span className="u-key u-none">0</span> {t("util.keyNone")} · <span className="u-key u-low">2</span> {t("util.keyLow")} · <span className="u-key u-ok">7</span> {t("util.keyOk")} · <span className="u-key u-over">9</span> {t("util.keyOver")}. {t("util.cellHelp")}</p>
     </>);
   }
@@ -315,7 +318,8 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
   async function UtilDay() {
     const d0 = today();
     const day = isDay(sp.d) && sp.d <= d0 ? sp.d : d0;
-    const [people, att, lab] = await Promise.all([sheetStaff(), attendanceBetween(day, day), labourBetween(day, day)]);
+    const [everyone, att, lab] = await Promise.all([sheetStaff(), attendanceBetween(day, day), labourBetween(day, day)]);
+    const people = everyone.filter((p) => !p.supportRole), support = everyone.filter((p) => p.supportRole);
     const list = people.map((p) => {
       const r = att.find((a) => a.staffId === p.id), entries = lab.filter((l) => l.staffId === p.id);
       const at = hoursAtWork(r, uOpts), logged = entries.reduce((a, l) => a + Number(l.hours), 0);
@@ -363,6 +367,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
           </details>
         ))}
       </div>
+      {support.length > 0 && <p className="muted" style={{ margin: 0 }}>{t("util.notCounted", { names: support.map((p) => p.name).join(", ") })}</p>}
       <p className="hint" style={{ margin: 0 }}>{t("util.dayHelp")}</p>
     </>);
   }

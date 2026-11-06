@@ -6,7 +6,7 @@ import { rateOn } from "./pay";
 
 /** Everyone on the attendance sheet: active staff except the Head Manager. */
 export async function sheetStaff() {
-  return db.select({ id: schema.staff.id, name: schema.staff.name, role: schema.staff.role }).from(schema.staff)
+  return db.select({ id: schema.staff.id, name: schema.staff.name, role: schema.staff.role, supportRole: schema.staff.supportRole }).from(schema.staff)
     .where(and(eq(schema.staff.active, true), ne(schema.staff.role, "boss"))).orderBy(asc(schema.staff.name));
 }
 

@@ -36,6 +36,8 @@ export const staff = pgTable("staff", {
   monthlyHours: numeric("monthly_hours", { precision: 6, scale: 1 }).notNull().default("195"),
   /** Not paid overtime (e.g. the Supervisor): hours after 5 pm are recorded but cost the normal rate. */
   noOvertime: boolean("no_overtime").notNull().default(false),
+  /** Support staff (e.g. Supervisor, store, admin): still on attendance, but left out of utilisation. */
+  supportRole: boolean("support_role").notNull().default(false),
   active: boolean("active").notNull().default(true),
   passwordHash: text("password_hash"),
   locale: varchar("locale", { length: 5 }).notNull().default("en"),

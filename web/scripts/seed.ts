@@ -255,6 +255,9 @@ for (const [unit, item, months, last] of [[u5.id, "engine_oil", 3, -85], [u5.id,
   await db.insert(schema.machineServices).values({ unitId: unit, item, intervalMonths: months, lastDone, nextDue }).onConflictDoNothing();
 }
 
+// The Supervisor supports the team: not counted in utilisation (same as migration 0029).
+await db.update(schema.staff).set({ supportRole: true }).where(eq(schema.staff.role, "supervisor"));
+
 // Everyone's pay as the start of their pay history (same as migration 0024).
 await db.execute(sql`insert into staff_pay_rates (staff_id, effective_from, monthly_salary, monthly_hours, hourly_rate) select id, '2000-01-01', monthly_salary, monthly_hours, pay_rate from staff on conflict do nothing`);
 

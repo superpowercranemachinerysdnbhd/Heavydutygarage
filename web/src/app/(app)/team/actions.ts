@@ -157,3 +157,12 @@ export async function setOvertimeRule(form: FormData) {
   revalidatePath(`/team/${id}`);
   go(`/team/${id}`, "ok", noOvertime ? "pay.noOtSaved" : "pay.otSaved");
 }
+
+/** Support staff (Supervisor, store, admin…): kept on attendance, left out of utilisation. */
+export async function setSupportRole(form: FormData) {
+  const { go } = await boss();
+  const id = Number(form.get("id")), on = form.get("supportRole") === "on";
+  await db.update(schema.staff).set({ supportRole: on }).where(eq(schema.staff.id, id));
+  revalidatePath(`/team/${id}`);
+  go(`/team/${id}`, "ok", on ? "util.supportOn" : "util.supportOff");
+}
